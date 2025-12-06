@@ -226,17 +226,65 @@ export declare function parse(input: string): object;
   })
 
   describe('function parameter order', () => {
-    // Known limitation: parameter order with same types is structurally identical
-    it.fails('detects parameter order change as major', async () => {
+    it('detects parameter order change as major when names are swapped', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare function setSize(width: number, height: number): void;`,
         `export declare function setSize(height: number, width: number): void;`,
       )
 
-      // Even though same params, order matters for positional args
-      // Note: This might be detected as type change since param types at positions changed
       expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking).toHaveLength(1)
+      expect(report.changes.breaking[0]?.category).toBe('param-order-changed')
+      expect(report.changes.breaking[0]?.explanation).toContain('reordered')
+    })
+
+    it('detects parameter reordering with three parameters', async () => {
+      const report = await compareDeclarationStrings(
+        project,
+        `export declare function transfer(from: string, to: string, amount: number): void;`,
+        `export declare function transfer(to: string, from: string, amount: number): void;`,
+      )
+
+      expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking[0]?.category).toBe('param-order-changed')
+    })
+
+    it('does not flag benign parameter renames as reordering', async () => {
+      const report = await compareDeclarationStrings(
+        project,
+        `export declare function process(val: string, idx: number): void;`,
+        `export declare function process(value: string, index: number): void;`,
+      )
+
+      // val -> value and idx -> index are similar enough to be renames
+      expect(report.releaseType).toBe('none')
+      expect(report.changes.unchanged).toHaveLength(1)
+    })
+
+    it('does not flag case-only changes as reordering', async () => {
+      const report = await compareDeclarationStrings(
+        project,
+        `export declare function render(Width: number, Height: number): void;`,
+        `export declare function render(width: number, height: number): void;`,
+      )
+
+      expect(report.releaseType).toBe('none')
+    })
+
+    it('detects reordering even when names are slightly different', async () => {
+      // from/to swapped to toAddress/fromAddress - names expanded but pattern suggests swap
+      const report = await compareDeclarationStrings(
+        project,
+        `export declare function send(from: string, to: string): void;`,
+        `export declare function send(toAddress: string, fromAddress: string): void;`,
+      )
+
+      // This should detect the swap pattern:
+      // - "toAddress" at pos 0 resembles "to" which was at pos 1
+      // - "fromAddress" at pos 1 resembles "from" which was at pos 0
+      expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking[0]?.category).toBe('param-order-changed')
     })
   })
 

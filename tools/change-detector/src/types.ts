@@ -22,6 +22,7 @@ export type ChangeCategory =
   | 'param-added-required' // New required param (MAJOR)
   | 'param-added-optional' // New optional param (MINOR)
   | 'param-removed' // Param removed (MAJOR)
+  | 'param-order-changed' // Parameters reordered with same types (MAJOR)
   | 'return-type-changed' // Return modified (varies)
   | 'signature-identical' // No change (NONE)
 
