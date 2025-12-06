@@ -1,5 +1,7 @@
 # API Extractor Tools
 
+[![CI](https://github.com/mike-north/api-extractor-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/mike-north/api-extractor-tools/actions/workflows/ci.yml)
+
 A collection of tools that extend [@microsoft/api-extractor](https://api-extractor.com/) for TypeScript library authors. These packages help with declaration file management and semantic versioning analysis.
 
 ## Packages
