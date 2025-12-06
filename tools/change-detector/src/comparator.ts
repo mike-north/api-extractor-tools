@@ -11,6 +11,53 @@ import {
 } from './parameter-analysis'
 
 /**
+ * Strips optional markers that belong to top-level parameters in a normalized
+ * function signature string. This avoids removing question marks that appear
+ * in object types, conditional types, or other nested positions.
+ */
+function stripTopLevelParamOptionalMarkers(signature: string): string {
+  let parenDepth = 0
+  let braceDepth = 0
+  let bracketDepth = 0
+  let angleDepth = 0
+  let result = ''
+
+  for (let i = 0; i < signature.length; i++) {
+    const ch = signature[i]
+
+    // Track nesting
+    if (ch === '(') parenDepth++
+    else if (ch === ')') parenDepth = Math.max(parenDepth - 1, 0)
+    else if (ch === '{') braceDepth++
+    else if (ch === '}') braceDepth = Math.max(braceDepth - 1, 0)
+    else if (ch === '[') bracketDepth++
+    else if (ch === ']') bracketDepth = Math.max(bracketDepth - 1, 0)
+    else if (ch === '<' && parenDepth === 0) angleDepth++
+    else if (ch === '>' && parenDepth === 0) angleDepth = Math.max(angleDepth - 1, 0)
+
+    if (
+      ch === '?' &&
+      parenDepth === 1 &&
+      braceDepth === 0 &&
+      bracketDepth === 0
+    ) {
+      // Look ahead for ':' (skip whitespace) to confirm it's an optional marker
+      let j = i + 1
+      while (j < signature.length && /\s/.test(signature[j])) {
+        j++
+      }
+      if (signature[j] === ':') {
+        continue // drop this '?'
+      }
+    }
+
+    result += ch
+  }
+
+  return result
+}
+
+/**
  * Result of comparing two declaration files.
  *
  * @alpha
@@ -363,9 +410,11 @@ export function compareDeclarationFiles(
     if (!oldTypeSym || !newTypeSym) {
       // Can't get type info, compare signatures as strings
       if (oldSymbol.signature !== newSymbol.signature) {
-        // Heuristic: if removing optional markers from the new signature
-        // matches the old signature, treat as a widening (non-breaking).
-        const newSigWithoutOptional = newSymbol.signature.replace(/\?/g, '')
+        // Heuristic: if removing top-level parameter optional markers from the new
+        // signature matches the old signature, treat as a widening (non-breaking).
+        const newSigWithoutOptional = stripTopLevelParamOptionalMarkers(
+          newSymbol.signature,
+        )
         const isOptionalized = newSigWithoutOptional === oldSymbol.signature
 
         const category = isOptionalized ? 'type-widened' : 'type-narrowed'
