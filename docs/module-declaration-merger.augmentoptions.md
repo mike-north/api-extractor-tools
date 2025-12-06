@@ -4,6 +4,9 @@
 
 ## AugmentOptions interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Options for augmenting rollup files
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-Extracted module augmentations
+**_(ALPHA)_** Extracted module augmentations
 
 
 </td></tr>
@@ -69,7 +72,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ If true, don't actually write files (for testing)
+**_(ALPHA)_** _(Optional)_ If true, don't actually write files (for testing)
 
 
 </td></tr>
@@ -88,7 +91,7 @@ _(Optional)_ If true, don't actually write files (for testing)
 
 </td><td>
 
-_(Optional)_ Configuration for handling missing release tags
+**_(ALPHA)_** _(Optional)_ Configuration for handling missing release tags
 
 
 </td></tr>
@@ -107,7 +110,7 @@ _(Optional)_ Configuration for handling missing release tags
 
 </td><td>
 
-Module path resolver
+**_(ALPHA)_** Module path resolver
 
 
 </td></tr>
@@ -126,7 +129,7 @@ Module path resolver
 
 </td><td>
 
-Rollup paths from config
+**_(ALPHA)_** Rollup paths from config
 
 
 </td></tr>
@@ -145,7 +148,7 @@ Rollup paths from config
 
 </td><td>
 
-_(Optional)_ Untagged declarations found during extraction
+**_(ALPHA)_** _(Optional)_ Untagged declarations found during extraction
 
 
 </td></tr>

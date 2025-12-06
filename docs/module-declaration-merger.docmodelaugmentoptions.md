@@ -4,6 +4,9 @@
 
 ## DocModelAugmentOptions interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Options for augmenting the doc model
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-Path to the .api.json file
+**_(ALPHA)_** Path to the .api.json file
 
 
 </td></tr>
@@ -69,7 +72,7 @@ Path to the .api.json file
 
 </td><td>
 
-Extracted module augmentations
+**_(ALPHA)_** Extracted module augmentations
 
 
 </td></tr>
@@ -88,7 +91,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ If true, don't actually write files
+**_(ALPHA)_** _(Optional)_ If true, don't actually write files
 
 
 </td></tr>
@@ -107,7 +110,7 @@ _(Optional)_ If true, don't actually write files
 
 </td><td>
 
-Module path resolver
+**_(ALPHA)_** Module path resolver
 
 
 </td></tr>

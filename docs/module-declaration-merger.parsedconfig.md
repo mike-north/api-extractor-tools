@@ -4,6 +4,9 @@
 
 ## ParsedConfig interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Parsed configuration from api-extractor.json
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-Absolute path to the api-extractor.json file
+**_(ALPHA)_** Absolute path to the api-extractor.json file
 
 
 </td></tr>
@@ -69,7 +72,7 @@ Absolute path to the api-extractor.json file
 
 </td><td>
 
-_(Optional)_ Configuration for the doc model (.api.json) output
+**_(ALPHA)_** _(Optional)_ Configuration for the doc model (.api.json) output
 
 
 </td></tr>
@@ -88,7 +91,7 @@ string
 
 </td><td>
 
-Absolute path to the main entry point file
+**_(ALPHA)_** Absolute path to the main entry point file
 
 
 </td></tr>
@@ -107,7 +110,7 @@ Absolute path to the main entry point file
 
 </td><td>
 
-Configuration for handling missing release tags
+**_(ALPHA)_** Configuration for handling missing release tags
 
 
 </td></tr>
@@ -126,7 +129,7 @@ string
 
 </td><td>
 
-Absolute path to the project folder
+**_(ALPHA)_** Absolute path to the project folder
 
 
 </td></tr>
@@ -145,7 +148,7 @@ Absolute path to the project folder
 
 </td><td>
 
-Absolute paths to rollup files by maturity level
+**_(ALPHA)_** Absolute paths to rollup files by maturity level
 
 
 </td></tr>

@@ -43,10 +43,14 @@ function stripTopLevelParamOptionalMarkers(signature: string): string {
     ) {
       // Look ahead for ':' (skip whitespace) to confirm it's an optional marker
       let j = i + 1
-      while (j < signature.length && /\s/.test(signature[j])) {
+      while (j < signature.length) {
+        const lookahead = signature.charAt(j)
+        if (!/\s/.test(lookahead)) {
+          break
+        }
         j++
       }
-      if (signature[j] === ':') {
+      if (j < signature.length && signature.charAt(j) === ':') {
         continue // drop this '?'
       }
     }

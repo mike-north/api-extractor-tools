@@ -4,6 +4,9 @@
 
 ## UntaggedDeclarationInfo interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Info about an untagged declaration (missing release tag)
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-The kind of declaration
+**_(ALPHA)_** The kind of declaration
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-The module specifier it was found in
+**_(ALPHA)_** The module specifier it was found in
 
 
 </td></tr>
@@ -88,7 +91,7 @@ string
 
 </td><td>
 
-The declaration name
+**_(ALPHA)_** The declaration name
 
 
 </td></tr>
@@ -107,7 +110,7 @@ string
 
 </td><td>
 
-The source file path
+**_(ALPHA)_** The source file path
 
 
 </td></tr>

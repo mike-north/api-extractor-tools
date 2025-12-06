@@ -4,6 +4,9 @@
 
 ## CompareResult interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Result of comparing two declaration files.
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-All detected changes
+**_(ALPHA)_** All detected changes
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string\[\]
 
 </td><td>
 
-Errors encountered during comparison
+**_(ALPHA)_** Errors encountered during comparison
 
 
 </td></tr>

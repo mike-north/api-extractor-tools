@@ -4,10 +4,13 @@
 
 ## ChangeCategory type
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Categories of API changes and their typical semver impact.
 
 **Signature:**
 
 ```typescript
-export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'return-type-changed' | 'signature-identical';
+export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'param-order-changed' | 'return-type-changed' | 'signature-identical';
 ```

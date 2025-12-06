@@ -45,7 +45,7 @@ Description
 
 </td><td>
 
-Classifies a set of changes and computes the overall release type.
+**_(ALPHA)_** Classifies a set of changes and computes the overall release type.
 
 
 </td></tr>
@@ -56,7 +56,7 @@ Classifies a set of changes and computes the overall release type.
 
 </td><td>
 
-Compares two parsed declaration files and detects all changes.
+**_(ALPHA)_** Compares two parsed declaration files and detects all changes.
 
 
 </td></tr>
@@ -67,7 +67,7 @@ Compares two parsed declaration files and detects all changes.
 
 </td><td>
 
-Compares two declaration files and generates a comprehensive report.
+**_(ALPHA)_** Compares two declaration files and generates a comprehensive report.
 
 This is the main entry point for programmatic usage of the change detector.
 
@@ -80,7 +80,42 @@ This is the main entry point for programmatic usage of the change detector.
 
 </td><td>
 
-Compares two declaration files by path.
+**_(ALPHA)_** Compares two declaration files by path.
+
+
+</td></tr>
+<tr><td>
+
+[detectParameterReordering(oldParams, newParams)](./change-detector.detectparameterreordering.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Detects if parameters have been reordered between two signatures.
+
+This provides rich analysis including: - Whether reordering is detected - Confidence level based on the evidence - Detailed per-position analysis with similarity scores - Human-readable interpretations for user feedback
+
+
+</td></tr>
+<tr><td>
+
+[editDistance(a, b)](./change-detector.editdistance.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Calculates the Levenshtein edit distance between two strings. This measures the minimum number of single-character edits (insertions, deletions, substitutions) needed to transform one string into another.
+
+
+</td></tr>
+<tr><td>
+
+[extractParameterInfo(sig, checker)](./change-detector.extractparameterinfo.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Extracts parameter information from a TypeScript signature.
 
 
 </td></tr>
@@ -91,7 +126,7 @@ Compares two declaration files by path.
 
 </td><td>
 
-Formats the comparison report as markdown.
+**_(ALPHA)_** Formats the comparison report as markdown.
 
 
 </td></tr>
@@ -102,7 +137,29 @@ Formats the comparison report as markdown.
 
 </td><td>
 
-Formats the comparison report as plain text.
+**_(ALPHA)_** Formats the comparison report as plain text.
+
+
+</td></tr>
+<tr><td>
+
+[interpretNameChange(oldName, newName, similarity)](./change-detector.interpretnamechange.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Generates a human-readable interpretation of a name change based on similarity.
+
+
+</td></tr>
+<tr><td>
+
+[nameSimilarity(a, b)](./change-detector.namesimilarity.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Calculates a normalized similarity score between two strings (0-1). 1 means identical, 0 means completely different.
 
 
 </td></tr>
@@ -113,7 +170,18 @@ Formats the comparison report as plain text.
 
 </td><td>
 
-Parses a declaration file and extracts all exported symbols.
+**_(ALPHA)_** Parses a declaration file and extracts all exported symbols.
+
+
+</td></tr>
+<tr><td>
+
+[parseDeclarationFileWithTypes(filePath)](./change-detector.parsedeclarationfilewithtypes.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Parses a declaration file and returns TypeScript type information for deep comparison.
 
 
 </td></tr>
@@ -124,7 +192,7 @@ Parses a declaration file and extracts all exported symbols.
 
 </td><td>
 
-Converts the report to a plain JSON-serializable object.
+**_(ALPHA)_** Converts the report to a plain JSON-serializable object.
 
 
 </td></tr>
@@ -150,7 +218,7 @@ Description
 
 </td><td>
 
-A detected change between old and new API.
+**_(ALPHA)_** A detected change between old and new API.
 
 
 </td></tr>
@@ -161,7 +229,7 @@ A detected change between old and new API.
 
 </td><td>
 
-Changes grouped by their semver impact.
+**_(ALPHA)_** Changes grouped by their semver impact.
 
 
 </td></tr>
@@ -172,7 +240,7 @@ Changes grouped by their semver impact.
 
 </td><td>
 
-Result of classifying a set of changes.
+**_(ALPHA)_** Result of classifying a set of changes.
 
 
 </td></tr>
@@ -183,7 +251,7 @@ Result of classifying a set of changes.
 
 </td><td>
 
-Options for comparing declarations.
+**_(ALPHA)_** Options for comparing declarations.
 
 
 </td></tr>
@@ -194,7 +262,7 @@ Options for comparing declarations.
 
 </td><td>
 
-Result of comparing two declaration files.
+**_(ALPHA)_** Result of comparing two declaration files.
 
 
 </td></tr>
@@ -205,7 +273,7 @@ Result of comparing two declaration files.
 
 </td><td>
 
-The complete comparison report.
+**_(ALPHA)_** The complete comparison report.
 
 
 </td></tr>
@@ -216,7 +284,7 @@ The complete comparison report.
 
 </td><td>
 
-JSON-serializable representation of a comparison report.
+**_(ALPHA)_** JSON-serializable representation of a comparison report.
 
 
 </td></tr>
@@ -227,7 +295,7 @@ JSON-serializable representation of a comparison report.
 
 </td><td>
 
-Statistics about the comparison.
+**_(ALPHA)_** Statistics about the comparison.
 
 
 </td></tr>
@@ -238,7 +306,40 @@ Statistics about the comparison.
 
 </td><td>
 
-Information about a single exported symbol extracted from a declaration file.
+**_(ALPHA)_** Information about a single exported symbol extracted from a declaration file.
+
+
+</td></tr>
+<tr><td>
+
+[ParameterInfo](./change-detector.parameterinfo.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Information about a single parameter in a function signature.
+
+
+</td></tr>
+<tr><td>
+
+[ParameterOrderAnalysis](./change-detector.parameterorderanalysis.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Result of analyzing parameter order changes between two function signatures.
+
+
+</td></tr>
+<tr><td>
+
+[ParameterPositionAnalysis](./change-detector.parameterpositionanalysis.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Analysis of a single parameter position change.
 
 
 </td></tr>
@@ -249,7 +350,18 @@ Information about a single exported symbol extracted from a declaration file.
 
 </td><td>
 
-Result of parsing a declaration file.
+**_(ALPHA)_** Result of parsing a declaration file.
+
+
+</td></tr>
+<tr><td>
+
+[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Internal access to TypeScript types for comparison. This is used by the comparator for deep type analysis.
 
 
 </td></tr>
@@ -275,7 +387,7 @@ Description
 
 </td><td>
 
-Categories of API changes and their typical semver impact.
+**_(ALPHA)_** Categories of API changes and their typical semver impact.
 
 
 </td></tr>
@@ -286,7 +398,18 @@ Categories of API changes and their typical semver impact.
 
 </td><td>
 
-The release type this delta represents according to semantic versioning. - "major": Breaking changes that require a major version bump - "minor": New features/additions that are backwards compatible - "patch": Bug fixes or internal changes with no API impact - "none": No changes detected
+**_(ALPHA)_** The release type this delta represents according to semantic versioning. - "major": Breaking changes that require a major version bump - "minor": New features/additions that are backwards compatible - "patch": Bug fixes or internal changes with no API impact - "none": No changes detected
+
+
+</td></tr>
+<tr><td>
+
+[ReorderingConfidence](./change-detector.reorderingconfidence.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Confidence level for parameter reordering detection.
 
 
 </td></tr>
@@ -297,7 +420,7 @@ The release type this delta represents according to semantic versioning. - "majo
 
 </td><td>
 
-Kinds of exported symbols we track.
+**_(ALPHA)_** Kinds of exported symbols we track.
 
 
 </td></tr>

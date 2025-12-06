@@ -4,6 +4,9 @@
 
 ## ComparisonStats interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Statistics about the comparison.
 
 **Signature:**
@@ -50,7 +53,7 @@ number
 
 </td><td>
 
-Number of symbols added
+**_(ALPHA)_** Number of symbols added
 
 
 </td></tr>
@@ -69,7 +72,7 @@ number
 
 </td><td>
 
-Number of symbols modified
+**_(ALPHA)_** Number of symbols modified
 
 
 </td></tr>
@@ -88,7 +91,7 @@ number
 
 </td><td>
 
-Number of symbols removed
+**_(ALPHA)_** Number of symbols removed
 
 
 </td></tr>
@@ -107,7 +110,7 @@ number
 
 </td><td>
 
-Total number of symbols in the new declaration file
+**_(ALPHA)_** Total number of symbols in the new declaration file
 
 
 </td></tr>
@@ -126,7 +129,7 @@ number
 
 </td><td>
 
-Total number of symbols in the old declaration file
+**_(ALPHA)_** Total number of symbols in the old declaration file
 
 
 </td></tr>
@@ -145,7 +148,7 @@ number
 
 </td><td>
 
-Number of symbols unchanged
+**_(ALPHA)_** Number of symbols unchanged
 
 
 </td></tr>

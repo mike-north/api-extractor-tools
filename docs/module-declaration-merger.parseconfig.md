@@ -4,9 +4,12 @@
 
 ## parseConfig() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Parses an api-extractor.json file and extracts relevant configuration.
 
-This is a lightweight parser that handles: - <projectFolder> token resolution - Config file inheritance (extends) - Path resolution
+This is a lightweight parser that handles: - &lt;<!-- -->projectFolder<!-- -->&gt; token resolution - Config file inheritance (extends) - Path resolution
 
 Unlike the full api-extractor, this doesn't require the entry point to be a .d.ts file, since our tool runs AFTER api-extractor has already generated the rollups.
 

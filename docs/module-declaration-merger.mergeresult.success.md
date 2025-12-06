@@ -4,6 +4,9 @@
 
 ## MergeResult.success property
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Whether the merge completed successfully (no errors, or errors only added to report)
 
 **Signature:**

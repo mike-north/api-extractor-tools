@@ -4,6 +4,9 @@
 
 ## ExtractedDeclaration interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A single declaration extracted from within a `declare module` block
 
 **Signature:**
@@ -50,7 +53,7 @@ boolean
 
 </td><td>
 
-True if no release tag was found (defaulted to public)
+**_(ALPHA)_** True if no release tag was found (defaulted to public)
 
 
 </td></tr>
@@ -69,7 +72,7 @@ True if no release tag was found (defaulted to public)
 
 </td><td>
 
-The kind of declaration
+**_(ALPHA)_** The kind of declaration
 
 
 </td></tr>
@@ -88,7 +91,7 @@ The kind of declaration
 
 </td><td>
 
-The maturity level determined from TSDoc tags (`\@public`<!-- -->, `\@beta`<!-- -->, `\@alpha`<!-- -->, `\@internal`<!-- -->)
+**_(ALPHA)_** The maturity level determined from TSDoc tags (`\@public`<!-- -->, `\@beta`<!-- -->, `\@alpha`<!-- -->, `\@internal`<!-- -->)
 
 
 </td></tr>
@@ -107,7 +110,7 @@ string
 
 </td><td>
 
-The name of the declaration (e.g., interface name, type name)
+**_(ALPHA)_** The name of the declaration (e.g., interface name, type name)
 
 
 </td></tr>
@@ -126,7 +129,7 @@ string
 
 </td><td>
 
-The full text of the declaration including its TSDoc comment
+**_(ALPHA)_** The full text of the declaration including its TSDoc comment
 
 
 </td></tr>

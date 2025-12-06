@@ -4,6 +4,9 @@
 
 ## ExportedSymbol interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Information about a single exported symbol extracted from a declaration file.
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-The kind of symbol (function, class, interface, etc.)
+**_(ALPHA)_** The kind of symbol (function, class, interface, etc.)
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-The name of the exported symbol
+**_(ALPHA)_** The name of the exported symbol
 
 
 </td></tr>
@@ -88,7 +91,7 @@ string
 
 </td><td>
 
-Human-readable type signature
+**_(ALPHA)_** Human-readable type signature
 
 
 </td></tr>

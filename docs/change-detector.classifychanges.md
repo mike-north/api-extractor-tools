@@ -4,6 +4,9 @@
 
 ## classifyChanges() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Classifies a set of changes and computes the overall release type.
 
 **Signature:**

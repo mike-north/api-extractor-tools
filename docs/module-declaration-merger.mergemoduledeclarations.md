@@ -4,6 +4,9 @@
 
 ## mergeModuleDeclarations() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Main API for merging module declarations into api-extractor rollup files.
 
 This function: 1. Parses the api-extractor.json config 2. Extracts `declare module` blocks from TypeScript source files 3. Resolves module paths relative to the entry point 4. Appends declarations to the appropriate rollup files based on maturity tags

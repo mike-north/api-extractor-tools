@@ -4,6 +4,9 @@
 
 ## augmentDocModel() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Augments a doc model (.api.json) file with extracted module declarations.
 
 This function: 1. Loads the existing .api.json file 2. For each extracted module augmentation, finds the target interface 3. Adds new property signatures to represent the augmented members 4. Saves the modified model

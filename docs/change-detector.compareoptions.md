@@ -4,6 +4,9 @@
 
 ## CompareOptions interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Options for comparing declarations.
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-Path to the new declaration file to compare against
+**_(ALPHA)_** Path to the new declaration file to compare against
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-Path to the old (baseline) declaration file
+**_(ALPHA)_** Path to the old (baseline) declaration file
 
 
 </td></tr>

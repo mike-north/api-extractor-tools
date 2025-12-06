@@ -4,6 +4,9 @@
 
 ## ExtractedModuleAugmentation interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A module augmentation block extracted from a source file
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-Individual declarations within this module block
+**_(ALPHA)_** Individual declarations within this module block
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-The module specifier from `declare module "..."`
+**_(ALPHA)_** The module specifier from `declare module "..."`
 
 
 </td></tr>
@@ -88,7 +91,7 @@ string
 
 </td><td>
 
-The original full text of the declare module block (for reference)
+**_(ALPHA)_** The original full text of the declare module block (for reference)
 
 
 </td></tr>
@@ -107,7 +110,7 @@ string
 
 </td><td>
 
-The source file path this augmentation came from
+**_(ALPHA)_** The source file path this augmentation came from
 
 
 </td></tr>

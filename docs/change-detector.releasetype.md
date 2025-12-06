@@ -4,6 +4,9 @@
 
 ## ReleaseType type
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The release type this delta represents according to semantic versioning. - "major": Breaking changes that require a major version bump - "minor": New features/additions that are backwards compatible - "patch": Bug fixes or internal changes with no API impact - "none": No changes detected
 
 **Signature:**
