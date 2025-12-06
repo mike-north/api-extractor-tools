@@ -1,10 +1,12 @@
 import * as fs from "fs";
 import * as path from "path";
-import type { MaturityLevel, RollupPaths } from "./config";
+import { ExtractorLogLevel } from "@microsoft/api-extractor";
+import type { MaturityLevel, RollupPaths, MissingReleaseTagConfig } from "./config";
 import { getRollupPathsForMaturity } from "./config";
 import type {
   ExtractedDeclaration,
   ExtractedModuleAugmentation,
+  UntaggedDeclarationInfo,
 } from "./extractor";
 import type { Resolver } from "./resolver";
 
@@ -157,6 +159,10 @@ export interface AugmentResult {
   skippedFiles: string[];
   /** Errors encountered during augmentation */
   errors: string[];
+  /** Warnings encountered during augmentation */
+  warnings: string[];
+  /** Whether processing should stop due to blocking errors */
+  shouldStop: boolean;
 }
 
 /**
@@ -171,6 +177,44 @@ export interface AugmentOptions {
   resolver: Resolver;
   /** If true, don't actually write files (for testing) */
   dryRun?: boolean;
+  /** Configuration for handling missing release tags */
+  missingReleaseTagConfig?: MissingReleaseTagConfig;
+  /** Untagged declarations found during extraction */
+  untaggedDeclarations?: UntaggedDeclarationInfo[];
+}
+
+/**
+ * Formats an untagged declaration warning message
+ */
+function formatUntaggedWarning(info: UntaggedDeclarationInfo): string {
+  return `ae-missing-release-tag: "${info.name}" (${info.kind}) in ${info.sourceFilePath} is missing a release tag (@public, @beta, @alpha, or @internal)`;
+}
+
+/**
+ * Generates warning comments for untagged declarations to add to rollup files
+ */
+function generateUntaggedWarningSection(
+  untaggedDeclarations: UntaggedDeclarationInfo[]
+): string {
+  if (untaggedDeclarations.length === 0) {
+    return "";
+  }
+
+  const lines: string[] = [];
+  lines.push("");
+  lines.push("// ============================================");
+  lines.push("// Missing Release Tag Warnings (ae-missing-release-tag)");
+  lines.push("// ============================================");
+  lines.push("//");
+  
+  for (const info of untaggedDeclarations) {
+    lines.push(`// WARNING: ${formatUntaggedWarning(info)}`);
+  }
+  
+  lines.push("//");
+  lines.push("");
+  
+  return lines.join("\n");
 }
 
 /**
@@ -180,13 +224,45 @@ export interface AugmentOptions {
  * @returns Result of the augmentation
  */
 export function augmentRollups(options: AugmentOptions): AugmentResult {
-  const { augmentations, rollupPaths, resolver, dryRun = false } = options;
+  const { 
+    augmentations, 
+    rollupPaths, 
+    resolver, 
+    dryRun = false,
+    missingReleaseTagConfig,
+    untaggedDeclarations = [],
+  } = options;
 
   const result: AugmentResult = {
     augmentedFiles: [],
     skippedFiles: [],
     errors: [],
+    warnings: [],
+    shouldStop: false,
   };
+
+  // Handle untagged declarations based on config
+  const logLevel = missingReleaseTagConfig?.logLevel ?? ExtractorLogLevel.None;
+  const addToApiReportFile = missingReleaseTagConfig?.addToApiReportFile ?? false;
+
+  if (untaggedDeclarations.length > 0 && logLevel !== ExtractorLogLevel.None) {
+    // Generate warnings/errors for untagged declarations
+    for (const info of untaggedDeclarations) {
+      const message = formatUntaggedWarning(info);
+      
+      if (logLevel === ExtractorLogLevel.Error) {
+        result.errors.push(message);
+      } else if (logLevel === ExtractorLogLevel.Warning) {
+        result.warnings.push(message);
+      }
+    }
+
+    // If logLevel is error and addToApiReportFile is false, we should stop processing
+    if (logLevel === ExtractorLogLevel.Error && !addToApiReportFile) {
+      result.shouldStop = true;
+      return result;
+    }
+  }
 
   // Group declarations by target rollup
   const grouped = groupDeclarationsByRollup(
@@ -207,11 +283,18 @@ export function augmentRollups(options: AugmentOptions): AugmentResult {
       // Read existing content
       const existingContent = fs.readFileSync(rollupPath, "utf-8");
 
+      // Generate warning section if addToApiReportFile is true
+      let warningSection = "";
+      if (addToApiReportFile && untaggedDeclarations.length > 0 && 
+          (logLevel === ExtractorLogLevel.Error || logLevel === ExtractorLogLevel.Warning)) {
+        warningSection = generateUntaggedWarningSection(untaggedDeclarations);
+      }
+
       // Generate augmentation section
       const augmentationSection = generateAugmentationSection(moduleMap);
 
-      // Combine existing content with new augmentations
-      const newContent = existingContent.trimEnd() + "\n" + augmentationSection;
+      // Combine existing content with warnings and new augmentations
+      const newContent = existingContent.trimEnd() + "\n" + warningSection + augmentationSection;
 
       // Write the augmented file
       if (!dryRun) {

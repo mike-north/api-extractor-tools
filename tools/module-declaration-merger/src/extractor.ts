@@ -29,6 +29,8 @@ export interface ExtractedDeclaration {
   name: string;
   /** The kind of declaration */
   kind: DeclarationKind;
+  /** True if no release tag was found (defaulted to public) */
+  isUntagged: boolean;
 }
 
 /**
@@ -46,6 +48,20 @@ export interface ExtractedModuleAugmentation {
 }
 
 /**
+ * Info about an untagged declaration (missing release tag)
+ */
+export interface UntaggedDeclarationInfo {
+  /** The declaration name */
+  name: string;
+  /** The source file path */
+  sourceFilePath: string;
+  /** The module specifier it was found in */
+  moduleSpecifier: string;
+  /** The kind of declaration */
+  kind: DeclarationKind;
+}
+
+/**
  * Result of extracting all module augmentations from a project
  */
 export interface ExtractionResult {
@@ -53,6 +69,8 @@ export interface ExtractionResult {
   augmentations: ExtractedModuleAugmentation[];
   /** Any errors encountered during extraction */
   errors: string[];
+  /** Declarations that had no release tag (defaulted to @public) */
+  untaggedDeclarations: UntaggedDeclarationInfo[];
 }
 
 // Create a TSDoc parser - the standard tags (@public, @beta, @alpha, @internal)
@@ -60,14 +78,24 @@ export interface ExtractionResult {
 const tsdocParser = new TSDocParser();
 
 /**
+ * Result of parsing a TSDoc comment for maturity level
+ */
+interface MaturityParseResult {
+  /** The maturity level (defaults to "public" if no tag found) */
+  maturityLevel: MaturityLevel;
+  /** True if no release tag was found (defaulted to public) */
+  isUntagged: boolean;
+}
+
+/**
  * Determines the maturity level from a TSDoc comment using proper TSDoc parsing.
  * This correctly handles TSDoc syntax and won't match false positives like email addresses.
  */
 function getMaturityLevelFromComment(
   commentText: string | undefined
-): MaturityLevel {
+): MaturityParseResult {
   if (!commentText) {
-    return "public"; // Default to public if no comment
+    return { maturityLevel: "public", isUntagged: true }; // Default to public if no comment
   }
 
   // Parse the comment with TSDoc
@@ -78,17 +106,20 @@ function getMaturityLevelFromComment(
   const modifierTags = parserContext.docComment.modifierTagSet;
 
   if (modifierTags.hasTagName("@internal")) {
-    return "internal";
+    return { maturityLevel: "internal", isUntagged: false };
   }
   if (modifierTags.hasTagName("@alpha")) {
-    return "alpha";
+    return { maturityLevel: "alpha", isUntagged: false };
   }
   if (modifierTags.hasTagName("@beta")) {
-    return "beta";
+    return { maturityLevel: "beta", isUntagged: false };
+  }
+  if (modifierTags.hasTagName("@public")) {
+    return { maturityLevel: "public", isUntagged: false };
   }
 
-  // @public is the default (either explicitly tagged or not)
-  return "public";
+  // No release tag found - default to public but mark as untagged
+  return { maturityLevel: "public", isUntagged: true };
 }
 
 /**
@@ -211,7 +242,7 @@ function extractDeclarationsFromModuleBlock(
     }
 
     const commentText = getLeadingCommentText(statement, sourceFile);
-    const maturityLevel = getMaturityLevelFromComment(commentText);
+    const { maturityLevel, isUntagged } = getMaturityLevelFromComment(commentText);
     const text = getNodeTextWithComments(statement, sourceFile);
     const name = getDeclarationName(statement);
     const kind = getDeclarationKind(statement);
@@ -221,6 +252,7 @@ function extractDeclarationsFromModuleBlock(
       maturityLevel,
       name,
       kind,
+      isUntagged,
     });
   }
 
@@ -301,6 +333,7 @@ export async function extractModuleAugmentations(
 
   const augmentations: ExtractedModuleAugmentation[] = [];
   const errors: string[] = [];
+  const untaggedDeclarations: UntaggedDeclarationInfo[] = [];
 
   // Find all TypeScript files
   const files = await glob(include, {
@@ -323,6 +356,20 @@ export async function extractModuleAugmentations(
       const relativePath = path.relative(projectFolder, filePath);
       const fileAugmentations = extractFromSourceFile(sourceFile, relativePath);
       augmentations.push(...fileAugmentations);
+
+      // Collect untagged declarations info
+      for (const aug of fileAugmentations) {
+        for (const decl of aug.declarations) {
+          if (decl.isUntagged) {
+            untaggedDeclarations.push({
+              name: decl.name,
+              sourceFilePath: aug.sourceFilePath,
+              moduleSpecifier: aug.moduleSpecifier,
+              kind: decl.kind,
+            });
+          }
+        }
+      }
     } catch (error) {
       errors.push(
         `Error processing ${filePath}: ${error instanceof Error ? error.message : String(error)}`
@@ -330,5 +377,5 @@ export async function extractModuleAugmentations(
     }
   }
 
-  return { augmentations, errors };
+  return { augmentations, errors, untaggedDeclarations };
 }

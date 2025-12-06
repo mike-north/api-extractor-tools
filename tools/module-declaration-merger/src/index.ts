@@ -5,7 +5,11 @@ export {
   type ParsedConfig,
   type RollupPaths,
   type MaturityLevel,
+  type MissingReleaseTagConfig,
 } from "./config";
+
+// Re-export ExtractorLogLevel from api-extractor for consumers
+export { ExtractorLogLevel } from "@microsoft/api-extractor";
 
 // Extractor exports
 export {
@@ -15,6 +19,7 @@ export {
   type ExtractionResult,
   type ExtractOptions,
   type DeclarationKind,
+  type UntaggedDeclarationInfo,
 } from "./extractor";
 
 // Resolver exports
@@ -56,6 +61,8 @@ export interface MergeOptions {
  * Result of merging module declarations
  */
 export interface MergeResult {
+  /** Whether the merge completed successfully (no errors, or errors only added to report) */
+  success: boolean;
   /** Rollup files that were successfully augmented */
   augmentedFiles: string[];
   /** Rollup files that were skipped (didn't exist) */
@@ -64,8 +71,12 @@ export interface MergeResult {
   augmentationCount: number;
   /** Number of individual declarations processed */
   declarationCount: number;
-  /** Any errors encountered */
+  /** Number of untagged declarations (missing release tags) */
+  untaggedDeclarationCount: number;
+  /** Errors encountered during processing */
   errors: string[];
+  /** Warnings encountered during processing */
+  warnings: string[];
 }
 
 /**
@@ -89,6 +100,9 @@ export interface MergeResult {
  * });
  *
  * console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
+ * if (!result.success) {
+ *   console.error('Errors:', result.errors);
+ * }
  * ```
  */
 export async function mergeModuleDeclarations(
@@ -97,6 +111,7 @@ export async function mergeModuleDeclarations(
   const { configPath, dryRun = false, include, exclude } = options;
 
   const errors: string[] = [];
+  const warnings: string[] = [];
 
   // 1. Parse config
   const config = parseConfig(configPath);
@@ -116,15 +131,18 @@ export async function mergeModuleDeclarations(
     mainEntryPointFilePath: config.mainEntryPointFilePath,
   });
 
-  // 4. Augment rollup files
+  // 4. Augment rollup files (with missing release tag handling)
   const augmentResult = augmentRollups({
     augmentations: extractionResult.augmentations,
     rollupPaths: config.rollupPaths,
     resolver,
     dryRun,
+    missingReleaseTagConfig: config.missingReleaseTagConfig,
+    untaggedDeclarations: extractionResult.untaggedDeclarations,
   });
 
   errors.push(...augmentResult.errors);
+  warnings.push(...augmentResult.warnings);
 
   // Calculate statistics
   const augmentationCount = extractionResult.augmentations.length;
@@ -132,12 +150,21 @@ export async function mergeModuleDeclarations(
     (sum, aug) => sum + aug.declarations.length,
     0
   );
+  const untaggedDeclarationCount = extractionResult.untaggedDeclarations.length;
+
+  // Determine success:
+  // - If shouldStop is true, we failed with blocking errors
+  // - If there are errors but they were added to report (shouldStop=false), we still succeeded
+  const success = !augmentResult.shouldStop && extractionResult.errors.length === 0;
 
   return {
+    success,
     augmentedFiles: augmentResult.augmentedFiles,
     skippedFiles: augmentResult.skippedFiles,
     augmentationCount,
     declarationCount,
+    untaggedDeclarationCount,
     errors,
+    warnings,
   };
 }

@@ -95,9 +95,18 @@ async function main(): Promise<void> {
       dryRun: options.dryRun,
     });
 
+    // Report warnings
+    if (result.warnings.length > 0) {
+      console.warn("\nWarnings:");
+      for (const warning of result.warnings) {
+        console.warn(`  ⚠ ${warning}`);
+      }
+      console.log();
+    }
+
     // Report errors
     if (result.errors.length > 0) {
-      console.warn("\nCompleted with errors:");
+      console.error("\nErrors:");
       for (const error of result.errors) {
         console.error(`  ✗ ${error}`);
       }
@@ -108,6 +117,9 @@ async function main(): Promise<void> {
     if (options.verbose) {
       console.log(`Found ${result.augmentationCount} module augmentation(s)`);
       console.log(`Processed ${result.declarationCount} declaration(s)`);
+      if (result.untaggedDeclarationCount > 0) {
+        console.log(`Found ${result.untaggedDeclarationCount} untagged declaration(s)`);
+      }
       console.log();
     }
 
@@ -118,6 +130,9 @@ async function main(): Promise<void> {
       for (const file of result.augmentedFiles) {
         console.log(`  ✓ ${file}`);
       }
+    } else if (!result.success) {
+      // Processing stopped early due to errors
+      console.error("Processing stopped due to errors.");
     } else {
       console.warn("No rollup files were augmented.");
       if (result.skippedFiles.length > 0) {
@@ -128,7 +143,8 @@ async function main(): Promise<void> {
       }
     }
 
-    if (result.errors.length > 0) {
+    // Exit with non-zero code if not successful
+    if (!result.success) {
       process.exitCode = 1;
     }
   } catch (error) {

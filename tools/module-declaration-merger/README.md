@@ -36,9 +36,18 @@ const result = await mergeModuleDeclarations({
   dryRun: false,
 });
 
+if (!result.success) {
+  console.error('Merge failed with errors:', result.errors);
+  process.exit(1);
+}
+
 console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
 console.log(`Found ${result.augmentationCount} module augmentations`);
 console.log(`Processed ${result.declarationCount} declarations`);
+
+if (result.warnings.length > 0) {
+  console.warn('Warnings:', result.warnings);
+}
 ```
 
 ## How It Works
@@ -58,6 +67,44 @@ Declarations are routed to rollups based on their TSDoc release tags:
 | `@alpha` | untrimmed, alpha |
 | `@beta` | untrimmed, alpha, beta |
 | `@public` | untrimmed, alpha, beta, public |
+
+Declarations without a release tag default to `@public`.
+
+### Handling Missing Release Tags
+
+This tool respects the `ae-missing-release-tag` configuration in your `api-extractor.json`:
+
+```json
+{
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-missing-release-tag": {
+        "logLevel": "warning",
+        "addToApiReportFile": true
+      }
+    }
+  }
+}
+```
+
+| `logLevel` | `addToApiReportFile` | Behavior |
+|------------|---------------------|----------|
+| `"error"` | `true` | Add warning comment in rollup, continue processing (non-zero exit) |
+| `"error"` | `false` | Print error to console, **stop processing** (non-zero exit) |
+| `"warning"` | `true` | Add warning comment in rollup, continue (zero exit) |
+| `"warning"` | `false` | Print warning to console, continue (zero exit) |
+| `"none"` or absent | any | Silently treat as `@public` (zero exit) |
+
+When `addToApiReportFile: true`, warnings are added as comments in the rollup:
+
+```typescript
+// ============================================
+// Missing Release Tag Warnings (ae-missing-release-tag)
+// ============================================
+//
+// WARNING: ae-missing-release-tag: "MyInterface" (interface) in src/file.ts is missing a release tag
+//
+```
 
 ### Output Format
 
@@ -142,11 +189,14 @@ interface MergeOptions {
 }
 
 interface MergeResult {
-  augmentedFiles: string[];   // Files that were modified
-  skippedFiles: string[];     // Files that didn't exist
-  augmentationCount: number;  // Number of declare module blocks found
-  declarationCount: number;   // Number of individual declarations
-  errors: string[];           // Any errors encountered
+  success: boolean;               // Whether merge completed successfully
+  augmentedFiles: string[];       // Files that were modified
+  skippedFiles: string[];         // Files that didn't exist
+  augmentationCount: number;      // Number of declare module blocks found
+  declarationCount: number;       // Number of individual declarations
+  untaggedDeclarationCount: number; // Declarations missing release tags
+  errors: string[];               // Errors encountered
+  warnings: string[];             // Warnings encountered
 }
 ```
 

@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { ExtractorLogLevel } from "@microsoft/api-extractor";
 import type { ReleaseTagForTrim } from "@microsoft/api-extractor";
 
 /**
@@ -18,6 +19,24 @@ export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}` ? Tag : ne
 export type RollupPaths = Partial<Record<MaturityLevel, string>>;
 
 /**
+ * Configuration for how to handle missing release tags (ae-missing-release-tag)
+ */
+export interface MissingReleaseTagConfig {
+  /**
+   * The log level for missing release tag messages.
+   * - "error": Treat as an error
+   * - "warning": Treat as a warning
+   * - "none": Silently ignore (treat as @public)
+   */
+  logLevel: ExtractorLogLevel;
+  /**
+   * If true, add the message as a comment in the rollup file.
+   * If false, print to console (and stop processing if logLevel is "error").
+   */
+  addToApiReportFile: boolean;
+}
+
+/**
  * Parsed configuration from api-extractor.json
  */
 export interface ParsedConfig {
@@ -29,6 +48,16 @@ export interface ParsedConfig {
   mainEntryPointFilePath: string;
   /** Absolute paths to rollup files by maturity level */
   rollupPaths: RollupPaths;
+  /** Configuration for handling missing release tags */
+  missingReleaseTagConfig: MissingReleaseTagConfig;
+}
+
+/**
+ * Message reporting rule shape (from JSON, so logLevel is a string)
+ */
+interface MessageReportingRule {
+  logLevel?: string;
+  addToApiReportFile?: boolean;
 }
 
 /**
@@ -44,6 +73,12 @@ interface ApiExtractorConfig {
     alphaTrimmedFilePath?: string;
     betaTrimmedFilePath?: string;
     publicTrimmedFilePath?: string;
+  };
+  messages?: {
+    extractorMessageReporting?: {
+      "ae-missing-release-tag"?: MessageReportingRule;
+      [key: string]: MessageReportingRule | undefined;
+    };
   };
 }
 
@@ -94,10 +129,44 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
         ...baseConfig.dtsRollup,
         ...config.dtsRollup,
       },
+      messages: {
+        ...baseConfig.messages,
+        ...config.messages,
+        extractorMessageReporting: {
+          ...baseConfig.messages?.extractorMessageReporting,
+          ...config.messages?.extractorMessageReporting,
+        },
+      },
     };
   }
 
   return config;
+}
+
+/**
+ * Extracts the missing release tag configuration from api-extractor config.
+ * Defaults to "none" logLevel (silently treat as @public).
+ */
+function getMissingReleaseTagConfig(
+  config: ApiExtractorConfig
+): MissingReleaseTagConfig {
+  const rule = config.messages?.extractorMessageReporting?.["ae-missing-release-tag"];
+  
+  // Map string values to ExtractorLogLevel enum
+  let logLevel: ExtractorLogLevel = ExtractorLogLevel.None;
+  if (rule?.logLevel) {
+    const level = rule.logLevel as string;
+    if (level === "error") logLevel = ExtractorLogLevel.Error;
+    else if (level === "warning") logLevel = ExtractorLogLevel.Warning;
+    else if (level === "info") logLevel = ExtractorLogLevel.Info;
+    else if (level === "verbose") logLevel = ExtractorLogLevel.Verbose;
+    else if (level === "none") logLevel = ExtractorLogLevel.None;
+  }
+  
+  return {
+    logLevel,
+    addToApiReportFile: rule?.addToApiReportFile ?? false,
+  };
 }
 
 /**
@@ -177,11 +246,15 @@ export function parseConfig(configPath: string): ParsedConfig {
     }
   }
 
+  // Get missing release tag configuration
+  const missingReleaseTagConfig = getMissingReleaseTagConfig(config);
+
   return {
     configPath: absoluteConfigPath,
     projectFolder,
     mainEntryPointFilePath,
     rollupPaths,
+    missingReleaseTagConfig,
   };
 }
 
