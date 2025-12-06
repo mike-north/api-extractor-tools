@@ -18,7 +18,7 @@ export interface Change {
 }
 
 // @alpha
-export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'return-type-changed' | 'signature-identical';
+export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'param-order-changed' | 'return-type-changed' | 'signature-identical';
 
 // @alpha
 export interface ChangesByImpact {
@@ -92,6 +92,12 @@ export interface ComparisonStats {
 }
 
 // @alpha
+export function detectParameterReordering(oldParams: ParameterInfo[], newParams: ParameterInfo[]): ParameterOrderAnalysis;
+
+// @alpha
+export function editDistance(a: string, b: string): number;
+
+// @alpha
 export interface ExportedSymbol {
     kind: SymbolKind;
     name: string;
@@ -99,10 +105,48 @@ export interface ExportedSymbol {
 }
 
 // @alpha
+export function extractParameterInfo(sig: ts.Signature, checker: ts.TypeChecker): ParameterInfo[];
+
+// @alpha
 export function formatReportAsMarkdown(report: ComparisonReport): string;
 
 // @alpha
 export function formatReportAsText(report: ComparisonReport): string;
+
+// @alpha
+export function interpretNameChange(oldName: string, newName: string, similarity: number): string;
+
+// @alpha
+export function nameSimilarity(a: string, b: string): number;
+
+// @alpha
+export interface ParameterInfo {
+    isOptional: boolean;
+    isRest: boolean;
+    name: string;
+    position: number;
+    type: string;
+}
+
+// @alpha
+export interface ParameterOrderAnalysis {
+    confidence: ReorderingConfidence;
+    hasReordering: boolean;
+    newParams: ParameterInfo[];
+    oldParams: ParameterInfo[];
+    positionAnalysis: ParameterPositionAnalysis[];
+    summary: string;
+}
+
+// @alpha
+export interface ParameterPositionAnalysis {
+    interpretation: string;
+    newName: string;
+    oldName: string;
+    position: number;
+    similarity: number;
+    type: string;
+}
 
 // @alpha
 export function parseDeclarationFile(filePath: string): ParseResult;
@@ -125,6 +169,9 @@ export interface ParseResultWithTypes extends ParseResult {
 
 // @alpha
 export type ReleaseType = 'major' | 'minor' | 'patch' | 'none';
+
+// @alpha
+export type ReorderingConfidence = 'high' | 'medium' | 'low';
 
 // @alpha
 export function reportToJSON(report: ComparisonReport): ComparisonReportJSON;

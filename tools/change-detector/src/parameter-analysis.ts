@@ -69,6 +69,8 @@ export interface ParameterOrderAnalysis {
  * Calculates the Levenshtein edit distance between two strings.
  * This measures the minimum number of single-character edits
  * (insertions, deletions, substitutions) needed to transform one string into another.
+ *
+ * @alpha
  */
 export function editDistance(a: string, b: string): number {
   const m = a.length
@@ -106,6 +108,8 @@ export function editDistance(a: string, b: string): number {
 /**
  * Calculates a normalized similarity score between two strings (0-1).
  * 1 means identical, 0 means completely different.
+ *
+ * @alpha
  */
 export function nameSimilarity(a: string, b: string): number {
   if (a === b) return 1
@@ -139,6 +143,8 @@ export function nameSimilarity(a: string, b: string): number {
  * @param newName - The new parameter name
  * @param similarity - Pre-computed similarity score
  * @returns Human-readable interpretation
+ *
+ * @alpha
  */
 export function interpretNameChange(
   oldName: string,
@@ -176,6 +182,8 @@ export function interpretNameChange(
 
 /**
  * Extracts parameter information from a TypeScript signature.
+ *
+ * @alpha
  */
 export function extractParameterInfo(
   sig: ts.Signature,
@@ -226,6 +234,8 @@ export function extractParameterInfo(
  * @param oldParams - Parameter info from the old signature
  * @param newParams - Parameter info from the new signature
  * @returns Detailed analysis result
+ *
+ * @alpha
  */
 export function detectParameterReordering(
   oldParams: ParameterInfo[],
