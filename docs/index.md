@@ -24,6 +24,8 @@ Description
 
 </td><td>
 
+A library for detecting and classifying changes between TypeScript declaration files.
+
 
 </td></tr>
 <tr><td>
@@ -32,6 +34,8 @@ Description
 
 
 </td><td>
+
+A library for merging ambient module declarations into API Extractor rollup files.
 
 
 </td></tr>

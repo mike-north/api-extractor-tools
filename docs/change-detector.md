@@ -4,6 +4,27 @@
 
 ## change-detector package
 
+A library for detecting and classifying changes between TypeScript declaration files.
+
+## Remarks
+
+This package analyzes `.d.ts` files to identify API changes and classify them according to semantic versioning impact (major, minor, patch, or none).
+
+## Example
+
+
+```ts
+import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector';
+
+const report = compareDeclarations({
+  oldFile: './dist/v1/index.d.ts',
+  newFile: './dist/v2/index.d.ts',
+});
+
+console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
+console.log(formatReportAsMarkdown(report));
+```
+
 ## Functions
 
 <table><thead><tr><th>

@@ -174,6 +174,4 @@ export interface UntaggedDeclarationInfo {
     sourceFilePath: string;
 }
 
-// (No @packageDocumentation comment for this package)
-
 ```

@@ -110,6 +110,4 @@ export function reportToJSON(report: ComparisonReport): Record<string, unknown>;
 // @public
 export type SymbolKind = 'function' | 'class' | 'interface' | 'type' | 'variable' | 'enum' | 'namespace';
 
-// (No @packageDocumentation comment for this package)
-
 ```

@@ -44,7 +44,7 @@
       ],
       "outputs": []
     },
-    "api-extractor": {
+    "generate:api-report": {
       "cache": true,
       "dependsOn": ["build", "^build"],
       "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
