@@ -7,7 +7,7 @@
     "build": "NX_TUI=false nx run-many -t build",
     "test": "NX_TUI=false nx run-many -t test",
     "check": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests",
-    "format": "prettier --write \"**/*.{js,ts,json,md}\""
+    "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\""
   },
   "keywords": [],
   "author": "Mike North <michael.l.north@gmail.com>",
