@@ -23,17 +23,20 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
 ## Getting Started
 
 1. **Clone the repository**
+
    ```bash
    git clone git@github.com:mike-north/api-extractor-tools.git
    cd api-extractor-tools
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    ```
 
 3. **Build all packages**
+
    ```bash
    pnpm build
    ```
@@ -48,6 +51,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
 ### Making Changes
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -57,6 +61,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
    - `tools/module-declaration-merger/` - Module declaration merger tool
 
 3. **Build and test your changes**
+
    ```bash
    pnpm build
    pnpm test
@@ -78,6 +83,7 @@ We use [Changesets](https://github.com/changesets/changesets) to manage versioni
 ### What is a Changeset?
 
 A changeset is a markdown file that describes:
+
 - Which package(s) changed
 - The type of change (major/minor/patch)
 - A human-readable description of what changed
@@ -100,7 +106,7 @@ You'll be prompted with:
    - `major` (breaking change) - e.g., removing a public API, changing behavior
    - `minor` (new feature) - e.g., adding new functionality
    - `patch` (bug fix) - e.g., fixing a bug, updating docs
-   
+
    **Note**: We're currently in alpha prerelease mode, so all versions will be tagged as `0.0.x-alpha.y`
 
 3. **Write a summary**
@@ -109,6 +115,7 @@ You'll be prompted with:
    - This will appear in the CHANGELOG
 
 **Example output:**
+
 ```
 🦋  Which packages would you like to include?
 ◯ @api-extractor-tools/change-detector
@@ -126,12 +133,14 @@ This creates a file in `.changeset/` with a random name like `.changeset/fuzzy-c
 ### Changeset Guidelines
 
 **When to create a changeset:**
+
 - ✅ Adding a new feature
 - ✅ Fixing a bug
 - ✅ Changing public API behavior
 - ✅ Updating documentation that affects usage
 
 **When NOT to create a changeset:**
+
 - ❌ Updating internal dev dependencies
 - ❌ Changing CI configuration
 - ❌ Refactoring with no user-facing changes
@@ -140,13 +149,15 @@ This creates a file in `.changeset/` with a random name like `.changeset/fuzzy-c
 ### Changeset Examples
 
 **Good changeset summary:**
+
 ```markdown
-Added support for detecting changes to generic type parameter constraints. 
-The change detector now correctly identifies when `<T extends Foo>` changes 
+Added support for detecting changes to generic type parameter constraints.
+The change detector now correctly identifies when `<T extends Foo>` changes
 to `<T extends Bar>` as a breaking change.
 ```
 
 **Poor changeset summary:**
+
 ```markdown
 Fixed bug
 ```
@@ -163,6 +174,7 @@ git push origin feature/your-feature-name
 ```
 
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation only
@@ -180,23 +192,39 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ## Testing
 
 ### Run all tests
+
 ```bash
 pnpm test
 ```
 
+### Run tests for files changed since the last commit
+
+```bash
+pnpm test:changed
+```
+
+### Run tests for current uncommitted changes
+
+```bash
+pnpm test:uncommitted
+```
+
 ### Run tests for a specific package
+
 ```bash
 cd tools/change-detector
 pnpm test
 ```
 
 ### Run tests in watch mode
+
 ```bash
 cd tools/change-detector
 pnpm test --watch
 ```
 
 ### Type checking
+
 ```bash
 # Check all packages
 pnpm check:packages
@@ -209,6 +237,7 @@ pnpm check
 ```
 
 ### Linting
+
 ```bash
 # Lint all packages
 pnpm check
@@ -236,6 +265,7 @@ Releases are **semi-automated** using GitHub Actions.
 ### Current Release Mode
 
 We're in **alpha prerelease mode**. All releases are tagged with `alpha`:
+
 - Versions: `0.0.1-alpha.0`, `0.0.1-alpha.1`, etc.
 - NPM dist-tag: `alpha`
 - Install with: `npm install @api-extractor-tools/change-detector@alpha`
@@ -267,16 +297,16 @@ git push
 
 ## Common Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm install` | Install dependencies |
-| `pnpm build` | Build all packages |
-| `pnpm test` | Run all tests |
-| `pnpm check` | Lint and type-check everything |
-| `pnpm format` | Format code with Prettier |
-| `pnpm changeset` | Create a new changeset |
+| Command                 | Description                         |
+| ----------------------- | ----------------------------------- |
+| `pnpm install`          | Install dependencies                |
+| `pnpm build`            | Build all packages                  |
+| `pnpm test`             | Run all tests                       |
+| `pnpm check`            | Lint and type-check everything      |
+| `pnpm format`           | Format code with Prettier           |
+| `pnpm changeset`        | Create a new changeset              |
 | `pnpm version-packages` | Version packages (maintainers only) |
-| `pnpm release` | Publish packages (maintainers only) |
+| `pnpm release`          | Publish packages (maintainers only) |
 
 ## Package Structure
 
@@ -311,4 +341,3 @@ api-extractor-tools/
 - [API Extractor](https://api-extractor.com/)
 - [pnpm Workspaces](https://pnpm.io/workspaces)
 - [Nx](https://nx.dev/)
-
