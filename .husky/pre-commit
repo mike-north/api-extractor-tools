@@ -1,0 +1,14 @@
+# Lint and format staged files
+pnpm lint:staged
+
+# Build all packages
+pnpm build
+
+# Run tests for uncommitted changes
+pnpm test:uncommitted
+
+# Generate API reports
+pnpm generate:api-report
+
+# Generate documentation
+pnpm generate:docs
