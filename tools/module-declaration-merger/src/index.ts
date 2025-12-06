@@ -50,7 +50,7 @@ export {
 import { parseConfig } from "./config";
 import { extractModuleAugmentations } from "./extractor";
 import { createResolver } from "./resolver";
-import { augmentRollups, type AugmentResult } from "./augmenter";
+import { augmentRollups } from "./augmenter";
 import { augmentDocModel, canAugmentDocModel } from "./doc-model-augmenter";
 
 /**

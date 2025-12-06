@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { ExtractorLogLevel } from "@microsoft/api-extractor";
-import type { MaturityLevel, RollupPaths, MissingReleaseTagConfig } from "./config";
+import type { RollupPaths, MissingReleaseTagConfig } from "./config";
 import { getRollupPathsForMaturity } from "./config";
 import type {
   ExtractedDeclaration,

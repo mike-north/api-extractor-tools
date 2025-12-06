@@ -1,0 +1,30 @@
+{
+  "$schema": "https://nx.dev/nx.schema.json",
+  "namedInputs": {
+    "source": ["{projectRoot}/src/**/*"],
+    "tsConfig": ["{projectRoot}/tsconfig.json", "{workspaceRoot}/tsconfig.json"],
+    "eslintConfig": ["{workspaceRoot}/eslint.config.mts"]
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "inputs": ["source", "tsConfig"],
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "cache": true,
+      "inputs": ["source", "tsConfig", "{projectRoot}/test/**/*", "{projectRoot}/vitest.config.mts"],
+      "outputs": []
+    },
+    "check:eslint": {
+      "cache": true,
+      "inputs": ["source", "eslintConfig"],
+      "outputs": []
+    },
+    "check:typecheck-tests": {
+      "cache": true,
+      "inputs": ["source", "tsConfig", "{projectRoot}/test/**/*", "{projectRoot}/vitest.config.mts", "{projectRoot}/test/tsconfig.json"],
+      "outputs": []
+    }
+  }
+}

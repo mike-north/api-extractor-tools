@@ -124,7 +124,7 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
   let config: ApiExtractorConfig;
 
   try {
-    config = JSON.parse(configContent);
+    config = JSON.parse(configContent) as ApiExtractorConfig;
   } catch (error) {
     throw new Error(
       `Failed to parse config file: ${configPath}. ${error instanceof Error ? error.message : String(error)}`
@@ -189,7 +189,7 @@ function readPackageName(projectFolder: string): string | undefined {
   }
   try {
     const content = fs.readFileSync(packageJsonPath, "utf-8");
-    const pkg = JSON.parse(content);
+    const pkg = JSON.parse(content) as { name?: string };
     return pkg.name;
   } catch {
     return undefined;
@@ -250,7 +250,7 @@ function getMissingReleaseTagConfig(
   // Map string values to ExtractorLogLevel enum
   let logLevel: ExtractorLogLevel = ExtractorLogLevel.None;
   if (rule?.logLevel) {
-    const level = rule.logLevel as string;
+    const level = rule.logLevel;
     if (level === "error") logLevel = ExtractorLogLevel.Error;
     else if (level === "warning") logLevel = ExtractorLogLevel.Warning;
     else if (level === "info") logLevel = ExtractorLogLevel.Info;

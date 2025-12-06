@@ -4,7 +4,9 @@
   "description": "Tools for working with API Extractor",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "NX_TUI=false nx run-many -t build",
+    "test": "NX_TUI=false nx run-many -t test",
+    "check": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests"
   },
   "keywords": [],
   "author": "Mike North <michael.l.north@gmail.com>",
@@ -13,6 +15,9 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "eslint": "^9.39.1",
+    "jiti": "^2.6.1",
+    "lerna": "^9.0.3",
+    "nx": "^22.1.3",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1"

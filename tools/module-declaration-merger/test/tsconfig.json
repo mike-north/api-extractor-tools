@@ -4,6 +4,9 @@
     "noEmit": true,
     "rootDir": "..",
     "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
     "paths": {
       "@": ["../src/index.ts"],
       "@/*": ["../src/*"]

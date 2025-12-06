@@ -1,0 +1,6 @@
+---
+description: When working with ESLint configuration or fixing lint errors
+alwaysApply: false
+---
+
+- eslint-disable directives should always be accompanied by a comment

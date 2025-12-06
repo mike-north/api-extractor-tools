@@ -124,8 +124,8 @@ function generateExplanation(
   symbolName: string,
   symbolKind: SymbolKind,
   category: ChangeCategory,
-  before?: string,
-  after?: string
+  _before?: string,
+  _after?: string
 ): string {
   switch (category) {
     case "symbol-removed":

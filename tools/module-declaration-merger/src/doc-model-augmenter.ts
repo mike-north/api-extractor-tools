@@ -1,16 +1,11 @@
 import * as fs from "fs";
 import {
   ApiPackage,
-  ApiModel,
   ApiInterface,
-  ApiPropertySignature,
   ApiItemKind,
-  ReleaseTag,
-  ExcerptTokenKind,
-  type IExcerptToken,
 } from "@microsoft/api-extractor-model";
-import type { DocModelConfig, MaturityLevel } from "./config";
-import type { ExtractedModuleAugmentation, ExtractedDeclaration } from "./extractor";
+import type { DocModelConfig } from "./config";
+import type { ExtractedModuleAugmentation } from "./extractor";
 import type { Resolver } from "./resolver";
 
 /**
@@ -44,38 +39,6 @@ export interface DocModelAugmentOptions {
 }
 
 /**
- * Maps our MaturityLevel to api-extractor-model's ReleaseTag
- */
-function maturityToReleaseTag(maturity: MaturityLevel): ReleaseTag {
-  switch (maturity) {
-    case "internal":
-      return ReleaseTag.Internal;
-    case "alpha":
-      return ReleaseTag.Alpha;
-    case "beta":
-      return ReleaseTag.Beta;
-    case "public":
-      return ReleaseTag.Public;
-    default:
-      return ReleaseTag.Public;
-  }
-}
-
-/**
- * Creates excerpt tokens from a declaration text
- */
-function createExcerptTokens(text: string): IExcerptToken[] {
-  // For simplicity, we treat the entire declaration as a single content token
-  // A more sophisticated implementation could parse out type references
-  return [
-    {
-      kind: ExcerptTokenKind.Content,
-      text: text,
-    },
-  ];
-}
-
-/**
  * Finds an interface in the API model by name
  */
 function findInterface(
@@ -90,69 +53,6 @@ function findInterface(
     }
   }
   return undefined;
-}
-
-/**
- * Checks if an interface already has a member with the given name
- */
-function hasPropertySignature(
-  apiInterface: ApiInterface,
-  propertyName: string
-): boolean {
-  return apiInterface.members.some(
-    (member) =>
-      member.kind === ApiItemKind.PropertySignature &&
-      (member as ApiPropertySignature).displayName === propertyName
-  );
-}
-
-/**
- * Adds a property signature to an interface
- * 
- * Note: The api-extractor-model API is primarily designed for reading models,
- * not modifying them. Creating new items requires constructing the full options
- * object including excerpt tokens.
- */
-function addPropertyToInterface(
-  apiInterface: ApiInterface,
-  declaration: ExtractedDeclaration,
-  sourceFilePath: string
-): { success: boolean; error?: string } {
-  try {
-    // Check if property already exists
-    if (hasPropertySignature(apiInterface, declaration.name)) {
-      return {
-        success: false,
-        error: `Property ${declaration.name} already exists on interface ${apiInterface.displayName}`,
-      };
-    }
-
-    // Create excerpt tokens for the declaration
-    const excerptTokens = createExcerptTokens(declaration.text);
-
-    // Create the property signature
-    // The propertyTypeTokenRange points to the type portion of the excerpt
-    const propertySignature = new ApiPropertySignature({
-      name: declaration.name,
-      releaseTag: maturityToReleaseTag(declaration.maturityLevel),
-      isOptional: false,
-      isReadonly: false,
-      excerptTokens,
-      propertyTypeTokenRange: { startIndex: 0, endIndex: excerptTokens.length },
-      docComment: undefined, // TSDoc comment - could parse from declaration.text
-      fileUrlPath: sourceFilePath,
-    });
-
-    // Add to interface
-    apiInterface.addMember(propertySignature);
-
-    return { success: true };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Failed to add property ${declaration.name}: ${error instanceof Error ? error.message : String(error)}`,
-    };
-  }
 }
 
 /**
@@ -194,8 +94,8 @@ export function augmentDocModel(
     for (const augmentation of augmentations) {
       const { moduleSpecifier, sourceFilePath, declarations } = augmentation;
 
-      // Resolve the module specifier
-      const resolvedModule = resolver.resolveModulePath(moduleSpecifier, sourceFilePath);
+      // Resolve the module specifier (validates the path, even though we don't use the result yet)
+      resolver.resolveModulePath(moduleSpecifier, sourceFilePath);
 
       // For each declaration in the augmentation
       for (const declaration of declarations) {
