@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
     "check:eslint": "eslint src",
@@ -23,6 +24,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.55.1",
     "@types/node": "^22.10.2",
     "fixturify-project": "^7.1.3",
     "vitest": "^4.0.15"

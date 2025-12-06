@@ -18,8 +18,8 @@ describe('change-detector', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   describe('parseDeclarationFile', () => {

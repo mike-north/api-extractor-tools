@@ -6,7 +6,11 @@
       "{projectRoot}/tsconfig.json",
       "{workspaceRoot}/tsconfig.json"
     ],
-    "eslintConfig": ["{workspaceRoot}/eslint.config.mts"]
+    "eslintConfig": ["{workspaceRoot}/eslint.config.mts"],
+    "apiExtractorConfig": [
+      "{projectRoot}/api-extractor.json",
+      "{workspaceRoot}/api-extractor-base.json"
+    ]
   },
   "targetDefaults": {
     "build": {
@@ -39,6 +43,15 @@
         "{projectRoot}/test/tsconfig.json"
       ],
       "outputs": []
+    },
+    "api-extractor": {
+      "cache": true,
+      "dependsOn": ["build", "^build"],
+      "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
+      "outputs": [
+        "{workspaceRoot}/api-reports/{projectName}.api.md",
+        "{workspaceRoot}/temp/{projectName}.api.json"
+      ]
     }
   }
 }

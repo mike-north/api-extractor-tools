@@ -1,0 +1,7 @@
+# API extractor configs should be treated as json with comments
+**/*api-extractor-*.json linguist-language=jsonc
+**/*api-extractor.*.json linguist-language=jsonc
+**/*api-extractor.json linguist-language=jsonc
+
+# Regard the ./docs folder as generated, so that Github collapses diffs by default
+docs/ linguist-generated

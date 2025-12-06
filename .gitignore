@@ -142,3 +142,7 @@ vite.config.ts.timestamp-*
 
 .pnpm-store/
 .nx/
+
+# API Extractor temp files (api.json for api-documenter)
+temp/*
+!temp/.gitkeep

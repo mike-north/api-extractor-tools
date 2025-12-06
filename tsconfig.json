@@ -16,5 +16,5 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["eslint.config.mts"]
+  "include": ["eslint.config.mts", "**/vitest.config.mts"]
 }

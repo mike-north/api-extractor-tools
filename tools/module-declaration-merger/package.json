@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
     "check:eslint": "eslint src",

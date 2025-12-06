@@ -1,5 +1,3 @@
-import { beforeEach, afterEach } from 'vitest'
-import { Project } from 'fixturify-project'
 import type { IConfigFile } from '@microsoft/api-extractor'
 
 /**
@@ -28,26 +26,4 @@ export function createApiExtractorConfig(
     ...overrides,
   }
   return JSON.stringify(config)
-}
-
-/**
- * Creates and manages a test project fixture.
- * Use this in your test files with `useTestProject()`.
- */
-export function useTestProject() {
-  let project: Project
-
-  beforeEach(() => {
-    project = new Project('test-pkg')
-  })
-
-  afterEach(async () => {
-    await project.dispose()
-  })
-
-  return {
-    get project() {
-      return project
-    },
-  }
 }
