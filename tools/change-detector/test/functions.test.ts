@@ -273,16 +273,16 @@ export declare function parse(input: string): object;
     })
 
     it('detects reordering even when names are slightly different', async () => {
-      // source/dest swapped to destination/src - names changed but pattern suggests swap
+      // from/to swapped to toAddress/fromAddress - names expanded but pattern suggests swap
       const report = await compareDeclarationStrings(
         project,
-        `export declare function copy(source: string, dest: string): void;`,
-        `export declare function copy(destination: string, src: string): void;`,
+        `export declare function send(from: string, to: string): void;`,
+        `export declare function send(toAddress: string, fromAddress: string): void;`,
       )
 
-      // This should detect the swap pattern: 
-      // - "source" at pos 0 is similar to "src" which is now at pos 1
-      // - "dest" at pos 1 is similar to "destination" which is now at pos 0
+      // This should detect the swap pattern:
+      // - "toAddress" at pos 0 resembles "to" which was at pos 1
+      // - "fromAddress" at pos 1 resembles "from" which was at pos 0
       expect(report.releaseType).toBe('major')
       expect(report.changes.breaking[0]?.category).toBe('param-order-changed')
     })

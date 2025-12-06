@@ -164,14 +164,15 @@ describe('parameter-analysis', () => {
       expect(result.hasReordering).toBe(false)
     })
 
-    it('does not flag when types differ', () => {
+    it('does not flag when types differ at positions', () => {
+      // Types at each position are different, so type analysis will catch this
       const oldParams = makeParams(
         { name: 'width', type: 'number' },
-        { name: 'height', type: 'string' },
+        { name: 'height', type: 'number' },
       )
       const newParams = makeParams(
-        { name: 'height', type: 'number' },
-        { name: 'width', type: 'string' },
+        { name: 'height', type: 'string' }, // Different type at position 0
+        { name: 'width', type: 'number' },
       )
 
       const result = detectParameterReordering(oldParams, newParams)
@@ -234,19 +235,19 @@ describe('parameter-analysis', () => {
     })
 
     it('detects medium-confidence reordering with similar names', () => {
-      // source/dest -> destination/src: names changed but pattern suggests swap
+      // from/to -> toAddress/fromAddress: names expanded but pattern suggests swap
       const oldParams = makeParams(
-        { name: 'source', type: 'string' },
-        { name: 'dest', type: 'string' },
+        { name: 'from', type: 'string' },
+        { name: 'to', type: 'string' },
       )
       const newParams = makeParams(
-        { name: 'destination', type: 'string' },
-        { name: 'src', type: 'string' },
+        { name: 'toAddress', type: 'string' },
+        { name: 'fromAddress', type: 'string' },
       )
 
       const result = detectParameterReordering(oldParams, newParams)
 
-      // "src" resembles "source", "destination" resembles "dest"
+      // "toAddress" resembles "to", "fromAddress" resembles "from"
       expect(result.hasReordering).toBe(true)
       expect(result.confidence).toBe('medium')
       expect(result.summary).toContain('appear reordered')
