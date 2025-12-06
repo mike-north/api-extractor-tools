@@ -52,10 +52,11 @@ if (result.warnings.length > 0) {
 
 ## How It Works
 
-1. **Parses** your `api-extractor.json` to find rollup output paths
+1. **Parses** your `api-extractor.json` to find rollup output paths and doc model settings
 2. **Extracts** `declare module` blocks from your TypeScript source files
 3. **Detects maturity levels** (`@public`, `@beta`, `@alpha`, `@internal`) using proper TSDoc parsing
 4. **Appends** declarations to the appropriate rollup files with source attribution
+5. **Augments** the `.api.json` doc model if enabled (for documentation generation)
 
 ### Maturity-Based Routing
 
@@ -104,6 +105,26 @@ When `addToApiReportFile: true`, warnings are added as comments in the rollup:
 //
 // WARNING: ae-missing-release-tag: "MyInterface" (interface) in src/file.ts is missing a release tag
 //
+```
+
+### Doc Model (.api.json) Support
+
+This tool also augments the `.api.json` files used by [@microsoft/api-documenter](https://api-extractor.com/pages/setup/generating_docs/) to generate documentation.
+
+When `docModel.enabled` is `true` in your `api-extractor.json`, the tool will:
+- Load the existing `.api.json` file
+- Add information about module augmentations
+- Save the updated model
+
+The default path is `temp/<unscopedPackageName>.api.json` (matching api-extractor's default), but you can customize it:
+
+```json
+{
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/docs/my-package.api.json"
+  }
+}
 ```
 
 ### Output Format
@@ -190,11 +211,12 @@ interface MergeOptions {
 
 interface MergeResult {
   success: boolean;               // Whether merge completed successfully
-  augmentedFiles: string[];       // Files that were modified
-  skippedFiles: string[];         // Files that didn't exist
+  augmentedFiles: string[];       // Rollup files that were modified
+  skippedFiles: string[];         // Rollup files that didn't exist
   augmentationCount: number;      // Number of declare module blocks found
   declarationCount: number;       // Number of individual declarations
   untaggedDeclarationCount: number; // Declarations missing release tags
+  docModelAugmented: boolean;     // Whether .api.json was augmented
   errors: string[];               // Errors encountered
   warnings: string[];             // Warnings encountered
 }

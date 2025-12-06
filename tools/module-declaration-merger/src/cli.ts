@@ -143,6 +143,14 @@ async function main(): Promise<void> {
       }
     }
 
+    // Doc model status
+    if (result.docModelAugmented) {
+      const action = options.dryRun ? "Would update" : "Updated";
+      console.log(`✓ ${action} doc model (.api.json)`);
+    } else if (options.verbose) {
+      console.log("Doc model (.api.json) was not augmented");
+    }
+
     // Exit with non-zero code if not successful
     if (!result.success) {
       process.exitCode = 1;

@@ -6,6 +6,7 @@ export {
   type RollupPaths,
   type MaturityLevel,
   type MissingReleaseTagConfig,
+  type DocModelConfig,
 } from "./config";
 
 // Re-export ExtractorLogLevel from api-extractor for consumers
@@ -37,11 +38,20 @@ export {
   type AugmentOptions,
 } from "./augmenter";
 
+// Doc Model Augmenter exports
+export {
+  augmentDocModel,
+  canAugmentDocModel,
+  type DocModelAugmentResult,
+  type DocModelAugmentOptions,
+} from "./doc-model-augmenter";
+
 // Main API
 import { parseConfig } from "./config";
 import { extractModuleAugmentations } from "./extractor";
 import { createResolver } from "./resolver";
 import { augmentRollups, type AugmentResult } from "./augmenter";
+import { augmentDocModel, canAugmentDocModel } from "./doc-model-augmenter";
 
 /**
  * Options for merging module declarations
@@ -73,6 +83,8 @@ export interface MergeResult {
   declarationCount: number;
   /** Number of untagged declarations (missing release tags) */
   untaggedDeclarationCount: number;
+  /** Whether the doc model (.api.json) was augmented */
+  docModelAugmented: boolean;
   /** Errors encountered during processing */
   errors: string[];
   /** Warnings encountered during processing */
@@ -144,6 +156,21 @@ export async function mergeModuleDeclarations(
   errors.push(...augmentResult.errors);
   warnings.push(...augmentResult.warnings);
 
+  // 5. Augment doc model if enabled
+  let docModelAugmented = false;
+  if (canAugmentDocModel(config.docModel) && !augmentResult.shouldStop) {
+    const docModelResult = augmentDocModel({
+      apiJsonFilePath: config.docModel!.apiJsonFilePath,
+      augmentations: extractionResult.augmentations,
+      resolver,
+      dryRun,
+    });
+
+    docModelAugmented = docModelResult.success;
+    errors.push(...docModelResult.errors);
+    warnings.push(...docModelResult.warnings);
+  }
+
   // Calculate statistics
   const augmentationCount = extractionResult.augmentations.length;
   const declarationCount = extractionResult.augmentations.reduce(
@@ -164,6 +191,7 @@ export async function mergeModuleDeclarations(
     augmentationCount,
     declarationCount,
     untaggedDeclarationCount,
+    docModelAugmented,
     errors,
     warnings,
   };

@@ -1,12 +1,12 @@
 {
-  "name": "@api-extractor-tools/module-declaration-merger",
+  "name": "@api-extractor-tools/change-detector",
   "version": "0.0.1",
   "private": true,
-  "description": "Merges ambient module declarations into api-extractor rollup files",
+  "description": "Detects changes between two API Extractor rollup files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "module-declaration-merger": "./dist/cli.js"
+    "change-detector": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -17,15 +17,11 @@
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
-    "@microsoft/api-extractor": "^7.52.8",
-    "@microsoft/api-extractor-model": "^7.30.6",
-    "@microsoft/tsdoc": "^0.16.0",
-    "fast-glob": "^3.3.2"
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "fixturify-project": "^7.1.3",
-    "typescript": "^5.9.3",
     "vitest": "^4.0.15"
   }
 }

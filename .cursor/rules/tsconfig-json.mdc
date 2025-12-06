@@ -4,3 +4,6 @@ alwaysApply: false
 ---
 
 - Never enable `skipLibCheck`, `esmoduleInterop`, `allowSyntheticDefaultImports` or other compiler options that would force consumers of this library to _also_ enable them
+- Keeping the library consumable as CommonJS modules is important! We cannot presume that our users are ready to consume ES modules directly
+- For new libraries, make the compiler options as strict as possible (except for fallthrough cases in switch statements -- those are fine)
+

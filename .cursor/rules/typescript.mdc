@@ -2,3 +2,9 @@
 globs: **/*.ts
 alwaysApply: false
 ---
+
+- never use `//@ts-ignore` or `//@ts-expect-error` without getting permission from the user first
+- only use the non-null assertion operator in tests, never in source code
+- strongly prefer the use of type guards over casting
+- when declaring constants of object types, use the `satisfies` keyword instead of a type annotation
+- only use `any` where literally any TypeScript value is permissable (e.g. `console.log`)

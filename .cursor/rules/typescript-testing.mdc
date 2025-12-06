@@ -1,0 +1,13 @@
+---
+globs: **/*.test.ts
+alwaysApply: false
+---
+* Test modules should ideally be under 500 lines long. If modules start to get bigger than that, look for opportunities to break them up
+* Repetitive test setup/teardown code should be avoided by writing test helpers/utilities that can be re-used
+* Making tests easy to read, maintain and review is important! It's worth doing a little extra work to make writing tests easy, expressive, semantic, etc...
+* [fixturify-project](https://github.com/stefanpenner/node-fixturify-project) should be used to create end-to-end tests that simulate an actual software project, real package manager install commands, etc...
+* [tsd](https://github.com/tsdjs/tsd) should be used to make tests for types. negative test cases are particularly important here, as bugs in types that result in them being excessively wide can be quite serious
+* [vitest](https://vitest.dev/) should be used for conventional JS unit and integration tests
+* When the test modules refer to the library being tested, they should do so using an `@` alias, that refers to `../src/index.ts` or `@/foo` which refers to `../src/foo.ts`
+   * This requires a `compilerOptions#paths` in tsconfig.json
+   * This also requires something like `  resolve: { alias: { "@": path.resolve(__dirname, "src/index.ts"), }, }` in `vitest.config.mts`

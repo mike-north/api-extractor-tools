@@ -37,6 +37,16 @@ export interface MissingReleaseTagConfig {
 }
 
 /**
+ * Configuration for the doc model (.api.json) output
+ */
+export interface DocModelConfig {
+  /** Whether doc model generation is enabled */
+  enabled: boolean;
+  /** Absolute path to the .api.json file */
+  apiJsonFilePath: string;
+}
+
+/**
  * Parsed configuration from api-extractor.json
  */
 export interface ParsedConfig {
@@ -50,6 +60,8 @@ export interface ParsedConfig {
   rollupPaths: RollupPaths;
   /** Configuration for handling missing release tags */
   missingReleaseTagConfig: MissingReleaseTagConfig;
+  /** Configuration for the doc model (.api.json) output */
+  docModel?: DocModelConfig;
 }
 
 /**
@@ -73,6 +85,10 @@ interface ApiExtractorConfig {
     alphaTrimmedFilePath?: string;
     betaTrimmedFilePath?: string;
     publicTrimmedFilePath?: string;
+  };
+  docModel?: {
+    enabled?: boolean;
+    apiJsonFilePath?: string;
   };
   messages?: {
     extractorMessageReporting?: {
@@ -129,6 +145,10 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
         ...baseConfig.dtsRollup,
         ...config.dtsRollup,
       },
+      docModel: {
+        ...baseConfig.docModel,
+        ...config.docModel,
+      },
       messages: {
         ...baseConfig.messages,
         ...config.messages,
@@ -141,6 +161,81 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
   }
 
   return config;
+}
+
+/**
+ * Gets the unscoped package name from a package.json name field.
+ * For "@scope/my-package", returns "my-package".
+ * For "my-package", returns "my-package".
+ */
+function getUnscopedPackageName(packageName: string): string {
+  if (packageName.startsWith("@")) {
+    const slashIndex = packageName.indexOf("/");
+    if (slashIndex !== -1) {
+      return packageName.slice(slashIndex + 1);
+    }
+  }
+  return packageName;
+}
+
+/**
+ * Reads the package name from package.json in the project folder.
+ * Returns undefined if package.json doesn't exist or has no name.
+ */
+function readPackageName(projectFolder: string): string | undefined {
+  const packageJsonPath = path.join(projectFolder, "package.json");
+  if (!fs.existsSync(packageJsonPath)) {
+    return undefined;
+  }
+  try {
+    const content = fs.readFileSync(packageJsonPath, "utf-8");
+    const pkg = JSON.parse(content);
+    return pkg.name;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Gets the doc model configuration from api-extractor config.
+ * Returns undefined if docModel is not enabled.
+ * Default path: temp/<unscopedPackageName>.api.json
+ */
+function getDocModelConfig(
+  config: ApiExtractorConfig,
+  projectFolder: string,
+  configDir: string
+): DocModelConfig | undefined {
+  const docModel = config.docModel;
+  
+  // Default to enabled if not explicitly set (api-extractor default behavior)
+  // But we only return config if we can determine a valid path
+  const enabled = docModel?.enabled ?? true;
+  
+  if (!enabled) {
+    return undefined;
+  }
+
+  let apiJsonFilePath: string;
+  
+  if (docModel?.apiJsonFilePath) {
+    // Use configured path, resolving tokens
+    apiJsonFilePath = resolvePath(docModel.apiJsonFilePath, projectFolder, configDir);
+  } else {
+    // Use default path: temp/<unscopedPackageName>.api.json
+    const packageName = readPackageName(projectFolder);
+    if (!packageName) {
+      // Can't determine default path without package name
+      return undefined;
+    }
+    const unscopedName = getUnscopedPackageName(packageName);
+    apiJsonFilePath = path.join(projectFolder, "temp", `${unscopedName}.api.json`);
+  }
+
+  return {
+    enabled: true,
+    apiJsonFilePath,
+  };
 }
 
 /**
@@ -249,12 +344,16 @@ export function parseConfig(configPath: string): ParsedConfig {
   // Get missing release tag configuration
   const missingReleaseTagConfig = getMissingReleaseTagConfig(config);
 
+  // Get doc model configuration
+  const docModel = getDocModelConfig(config, projectFolder, configDir);
+
   return {
     configPath: absoluteConfigPath,
     projectFolder,
     mainEntryPointFilePath,
     rollupPaths,
     missingReleaseTagConfig,
+    docModel,
   };
 }
 
