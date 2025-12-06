@@ -9,5 +9,5 @@ Categories of API changes and their typical semver impact.
 **Signature:**
 
 ```typescript
-export type ChangeCategory = "symbol-removed" | "symbol-added" | "type-narrowed" | "type-widened" | "param-added-required" | "param-added-optional" | "param-removed" | "return-type-changed" | "signature-identical";
+export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'return-type-changed' | 'signature-identical';
 ```

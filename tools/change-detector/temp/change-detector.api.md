@@ -18,7 +18,7 @@ export interface Change {
 }
 
 // @public
-export type ChangeCategory = "symbol-removed" | "symbol-added" | "type-narrowed" | "type-widened" | "param-added-required" | "param-added-optional" | "param-removed" | "return-type-changed" | "signature-identical";
+export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'return-type-changed' | 'signature-identical';
 
 // @public
 export interface ChangesByImpact {
@@ -102,13 +102,13 @@ export interface ParseResult {
 }
 
 // @public
-export type ReleaseType = "major" | "minor" | "patch" | "none";
+export type ReleaseType = 'major' | 'minor' | 'patch' | 'none';
 
 // @public
 export function reportToJSON(report: ComparisonReport): Record<string, unknown>;
 
 // @public
-export type SymbolKind = "function" | "class" | "interface" | "type" | "variable" | "enum" | "namespace";
+export type SymbolKind = 'function' | 'class' | 'interface' | 'type' | 'variable' | 'enum' | 'namespace';
 
 // (No @packageDocumentation comment for this package)
 

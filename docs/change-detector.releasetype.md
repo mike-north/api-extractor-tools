@@ -9,5 +9,5 @@ The release type this delta represents according to semantic versioning. - "majo
 **Signature:**
 
 ```typescript
-export type ReleaseType = "major" | "minor" | "patch" | "none";
+export type ReleaseType = 'major' | 'minor' | 'patch' | 'none';
 ```

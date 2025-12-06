@@ -1,3 +1,25 @@
+/**
+ * A library for merging ambient module declarations into API Extractor rollup files.
+ *
+ * @remarks
+ * API Extractor doesn't natively support `declare module` blocks. This package extracts
+ * those declarations from your TypeScript source files and appends them to the generated
+ * rollup `.d.ts` files, preserving release tags and maturity levels.
+ *
+ * @example
+ * ```ts
+ * import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger';
+ *
+ * const result = await mergeModuleDeclarations({
+ *   configPath: './api-extractor.json',
+ * });
+ *
+ * console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
+ * ```
+ *
+ * @packageDocumentation
+ */
+
 // Config exports
 export {
   parseConfig,

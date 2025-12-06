@@ -41,7 +41,7 @@ export function createResolver(options: ResolverOptions): {
 };
 
 // @public
-export type DeclarationKind = "interface" | "type" | "function" | "variable" | "class" | "enum" | "namespace";
+export type DeclarationKind = 'interface' | 'type' | 'function' | 'variable' | 'class' | 'enum' | 'namespace';
 
 // @public
 export interface DocModelAugmentOptions {

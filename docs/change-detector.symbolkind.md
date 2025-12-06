@@ -9,5 +9,5 @@ Kinds of exported symbols we track.
 **Signature:**
 
 ```typescript
-export type SymbolKind = "function" | "class" | "interface" | "type" | "variable" | "enum" | "namespace";
+export type SymbolKind = 'function' | 'class' | 'interface' | 'type' | 'variable' | 'enum' | 'namespace';
 ```
