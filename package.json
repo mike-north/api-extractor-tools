@@ -8,7 +8,7 @@
     "generate:api-report": "NX_TUI=false nx run-many -t generate:api-report --exclude api-extractor-tools",
     "generate:docs": "NX_TUI=false nx api-documenter",
     "test": "NX_TUI=false nx run-many -t test --exclude api-extractor-tools",
-    "check:packages": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests",
+    "check:packages": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests,check:api-report",
     "check:workspace": "NX_TUI=false nx knip",
     "check": "pnpm check:packages && pnpm check:workspace",
     "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\""

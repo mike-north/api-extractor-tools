@@ -23,7 +23,7 @@ export type DeclarationKind =
 export interface ExtractedDeclaration {
   /** The full text of the declaration including its TSDoc comment */
   text: string
-  /** The maturity level determined from TSDoc tags (@ public, @ beta, @ alpha, @ internal) */
+  /** The maturity level determined from TSDoc tags (`\@public`, `\@beta`, `\@alpha`, `\@internal`) */
   maturityLevel: MaturityLevel
   /** The name of the declaration (e.g., interface name, type name) */
   name: string
@@ -69,7 +69,7 @@ export interface ExtractionResult {
   augmentations: ExtractedModuleAugmentation[]
   /** Any errors encountered during extraction */
   errors: string[]
-  /** Declarations that had no release tag (defaulted to @public) */
+  /** Declarations that had no release tag (defaulted to `\@public`) */
   untaggedDeclarations: UntaggedDeclarationInfo[]
 }
 

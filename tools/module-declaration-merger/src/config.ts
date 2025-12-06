@@ -5,7 +5,7 @@ import type { ReleaseTagForTrim } from '@microsoft/api-extractor'
 
 /**
  * Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim.
- * Strips the '@' prefix for easier use.
+ * Strips the `\@` prefix for easier use.
  */
 export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}`
   ? Tag
@@ -28,7 +28,7 @@ export interface MissingReleaseTagConfig {
    * The log level for missing release tag messages.
    * - "error": Treat as an error
    * - "warning": Treat as a warning
-   * - "none": Silently ignore (treat as @public)
+   * - "none": Silently ignore (treat as `\@public`)
    */
   logLevel: ExtractorLogLevel
   /**

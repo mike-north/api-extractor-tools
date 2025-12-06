@@ -52,6 +52,15 @@
         "{workspaceRoot}/api-reports/{projectName}.api.md",
         "{workspaceRoot}/temp/{projectName}.api.json"
       ]
+    },
+    "check:api-report": {
+      "cache": true,
+      "dependsOn": ["build", "^build"],
+      "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
+      "outputs": [
+        "{workspaceRoot}/api-reports/{projectName}.api.md",
+        "{workspaceRoot}/temp/{projectName}.api.json"
+      ]
     }
   }
 }

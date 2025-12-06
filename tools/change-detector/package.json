@@ -12,9 +12,10 @@
     "build": "tsc",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
-    "check": "pnpm check:eslint && pnpm check:typecheck-tests",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
     "check:eslint": "eslint src",
-    "check:typecheck-tests": "tsc -p test/tsconfig.json"
+    "check:typecheck-tests": "tsc -p test/tsconfig.json",
+    "check:api-report": "api-extractor run"
   },
   "keywords": [],
   "author": "",
