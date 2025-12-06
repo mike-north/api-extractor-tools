@@ -32,14 +32,15 @@ function stripTopLevelParamOptionalMarkers(signature: string): string {
     else if (ch === '}') braceDepth = Math.max(braceDepth - 1, 0)
     else if (ch === '[') bracketDepth++
     else if (ch === ']') bracketDepth = Math.max(bracketDepth - 1, 0)
-    else if (ch === '<' && parenDepth === 0) angleDepth++
-    else if (ch === '>' && parenDepth === 0) angleDepth = Math.max(angleDepth - 1, 0)
+    else if (ch === '<') angleDepth++
+    else if (ch === '>') angleDepth = Math.max(angleDepth - 1, 0)
 
     if (
       ch === '?' &&
       parenDepth === 1 &&
       braceDepth === 0 &&
-      bracketDepth === 0
+      bracketDepth === 0 &&
+      angleDepth === 0
     ) {
       // Look ahead for ':' (skip whitespace) to confirm it's an optional marker
       let j = i + 1
