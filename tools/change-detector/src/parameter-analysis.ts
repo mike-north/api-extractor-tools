@@ -402,23 +402,3 @@ export function detectParameterReordering(
   return baseResult
 }
 
-/**
- * Extracts parameter info from a TypeScript type if it has call signatures.
- */
-export function extractParameterInfoFromType(
-  type: ts.Type,
-  checker: ts.TypeChecker,
-): ParameterInfo[] | null {
-  const callSigs = type.getCallSignatures()
-  if (callSigs.length > 0) {
-    return extractParameterInfo(callSigs[0]!, checker)
-  }
-
-  const constructSigs = type.getConstructSignatures()
-  if (constructSigs.length > 0) {
-    return extractParameterInfo(constructSigs[0]!, checker)
-  }
-
-  return null
-}
-

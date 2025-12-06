@@ -17,4 +17,3 @@ The analysis provides rich, actionable feedback including:
 - Human-readable summaries describing what was detected
 
 New exports: `ParameterInfo`, `ParameterPositionAnalysis`, `ParameterOrderAnalysis`, `ReorderingConfidence`, `extractParameterInfo`, `detectParameterReordering`, `editDistance`, `nameSimilarity`, `interpretNameChange`
-
