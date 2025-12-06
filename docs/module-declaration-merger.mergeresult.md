@@ -4,6 +4,9 @@
 
 ## MergeResult interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Result of merging module declarations
 
 **Signature:**
@@ -50,7 +53,7 @@ number
 
 </td><td>
 
-Number of module augmentations found
+**_(ALPHA)_** Number of module augmentations found
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string\[\]
 
 </td><td>
 
-Rollup files that were successfully augmented
+**_(ALPHA)_** Rollup files that were successfully augmented
 
 
 </td></tr>
@@ -88,7 +91,7 @@ number
 
 </td><td>
 
-Number of individual declarations processed
+**_(ALPHA)_** Number of individual declarations processed
 
 
 </td></tr>
@@ -107,7 +110,7 @@ boolean
 
 </td><td>
 
-Whether the doc model (.api.json) was augmented
+**_(ALPHA)_** Whether the doc model (.api.json) was augmented
 
 
 </td></tr>
@@ -126,7 +129,7 @@ string\[\]
 
 </td><td>
 
-Errors encountered during processing
+**_(ALPHA)_** Errors encountered during processing
 
 
 </td></tr>
@@ -145,7 +148,7 @@ string\[\]
 
 </td><td>
 
-Rollup files that were skipped (didn't exist)
+**_(ALPHA)_** Rollup files that were skipped (didn't exist)
 
 
 </td></tr>
@@ -164,7 +167,7 @@ boolean
 
 </td><td>
 
-Whether the merge completed successfully (no errors, or errors only added to report)
+**_(ALPHA)_** Whether the merge completed successfully (no errors, or errors only added to report)
 
 
 </td></tr>
@@ -183,7 +186,7 @@ number
 
 </td><td>
 
-Number of untagged declarations (missing release tags)
+**_(ALPHA)_** Number of untagged declarations (missing release tags)
 
 
 </td></tr>
@@ -202,7 +205,7 @@ string\[\]
 
 </td><td>
 
-Warnings encountered during processing
+**_(ALPHA)_** Warnings encountered during processing
 
 
 </td></tr>

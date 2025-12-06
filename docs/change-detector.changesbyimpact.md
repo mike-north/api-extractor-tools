@@ -4,6 +4,9 @@
 
 ## ChangesByImpact interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Changes grouped by their semver impact.
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-Changes requiring a major version bump (breaking changes)
+**_(ALPHA)_** Changes requiring a major version bump (breaking changes)
 
 
 </td></tr>
@@ -69,7 +72,7 @@ Changes requiring a major version bump (breaking changes)
 
 </td><td>
 
-Changes requiring a minor version bump (additions/compatible changes)
+**_(ALPHA)_** Changes requiring a minor version bump (additions/compatible changes)
 
 
 </td></tr>
@@ -88,7 +91,7 @@ Changes requiring a minor version bump (additions/compatible changes)
 
 </td><td>
 
-Changes with no version impact (patch or none)
+**_(ALPHA)_** Changes with no version impact (patch or none)
 
 
 </td></tr>

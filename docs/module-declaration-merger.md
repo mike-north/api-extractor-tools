@@ -43,7 +43,7 @@ Description
 
 </td><td>
 
-Augments a doc model (.api.json) file with extracted module declarations.
+**_(ALPHA)_** Augments a doc model (.api.json) file with extracted module declarations.
 
 This function: 1. Loads the existing .api.json file 2. For each extracted module augmentation, finds the target interface 3. Adds new property signatures to represent the augmented members 4. Saves the modified model
 
@@ -56,7 +56,7 @@ This function: 1. Loads the existing .api.json file 2. For each extracted module
 
 </td><td>
 
-Augments rollup files with extracted module declarations
+**_(ALPHA)_** Augments rollup files with extracted module declarations
 
 
 </td></tr>
@@ -67,7 +67,7 @@ Augments rollup files with extracted module declarations
 
 </td><td>
 
-Checks if a doc model file exists and can be augmented
+**_(ALPHA)_** Checks if a doc model file exists and can be augmented
 
 
 </td></tr>
@@ -78,7 +78,7 @@ Checks if a doc model file exists and can be augmented
 
 </td><td>
 
-Creates a module path resolver that transforms relative module specifiers to be relative to the rollup entry point.
+**_(ALPHA)_** Creates a module path resolver that transforms relative module specifiers to be relative to the rollup entry point.
 
 For example, if a source file at `src/things/first.ts` has: `declare module "../registry" { ... }`
 
@@ -93,7 +93,7 @@ And the main entry point is `src/index.ts`<!-- -->, the resolved module path sho
 
 </td><td>
 
-Extracts all module augmentations from TypeScript source files in a project
+**_(ALPHA)_** Extracts all module augmentations from TypeScript source files in a project
 
 
 </td></tr>
@@ -104,7 +104,7 @@ Extracts all module augmentations from TypeScript source files in a project
 
 </td><td>
 
-Gets the content that would be appended to a rollup file (for preview/dry-run)
+**_(ALPHA)_** Gets the content that would be appended to a rollup file (for preview/dry-run)
 
 
 </td></tr>
@@ -115,7 +115,7 @@ Gets the content that would be appended to a rollup file (for preview/dry-run)
 
 </td><td>
 
-Returns the rollup paths that a declaration with a given maturity level should be added to. Following api-extractor conventions: - `@internal` goes to: internal only - `@alpha` goes to: internal, alpha - `@beta` goes to: internal, alpha, beta - `@public` goes to: internal, alpha, beta, public
+**_(ALPHA)_** Returns the rollup paths that a declaration with a given maturity level should be added to. Following api-extractor conventions: - `@internal` goes to: internal only - `@alpha` goes to: internal, alpha - `@beta` goes to: internal, alpha, beta - `@public` goes to: internal, alpha, beta, public
 
 
 </td></tr>
@@ -126,7 +126,7 @@ Returns the rollup paths that a declaration with a given maturity level should b
 
 </td><td>
 
-Main API for merging module declarations into api-extractor rollup files.
+**_(ALPHA)_** Main API for merging module declarations into api-extractor rollup files.
 
 This function: 1. Parses the api-extractor.json config 2. Extracts `declare module` blocks from TypeScript source files 3. Resolves module paths relative to the entry point 4. Appends declarations to the appropriate rollup files based on maturity tags
 
@@ -139,9 +139,9 @@ This function: 1. Parses the api-extractor.json config 2. Extracts `declare modu
 
 </td><td>
 
-Parses an api-extractor.json file and extracts relevant configuration.
+**_(ALPHA)_** Parses an api-extractor.json file and extracts relevant configuration.
 
-This is a lightweight parser that handles: - <projectFolder> token resolution - Config file inheritance (extends) - Path resolution
+This is a lightweight parser that handles: - &lt;<!-- -->projectFolder<!-- -->&gt; token resolution - Config file inheritance (extends) - Path resolution
 
 Unlike the full api-extractor, this doesn't require the entry point to be a .d.ts file, since our tool runs AFTER api-extractor has already generated the rollups.
 
@@ -169,7 +169,7 @@ Description
 
 </td><td>
 
-Options for augmenting rollup files
+**_(ALPHA)_** Options for augmenting rollup files
 
 
 </td></tr>
@@ -180,7 +180,7 @@ Options for augmenting rollup files
 
 </td><td>
 
-Result of augmenting rollup files
+**_(ALPHA)_** Result of augmenting rollup files
 
 
 </td></tr>
@@ -191,7 +191,7 @@ Result of augmenting rollup files
 
 </td><td>
 
-Options for augmenting the doc model
+**_(ALPHA)_** Options for augmenting the doc model
 
 
 </td></tr>
@@ -202,7 +202,7 @@ Options for augmenting the doc model
 
 </td><td>
 
-Result of augmenting the doc model
+**_(ALPHA)_** Result of augmenting the doc model
 
 
 </td></tr>
@@ -213,7 +213,7 @@ Result of augmenting the doc model
 
 </td><td>
 
-Configuration for the doc model (.api.json) output
+**_(ALPHA)_** Configuration for the doc model (.api.json) output
 
 
 </td></tr>
@@ -224,7 +224,7 @@ Configuration for the doc model (.api.json) output
 
 </td><td>
 
-A single declaration extracted from within a `declare module` block
+**_(ALPHA)_** A single declaration extracted from within a `declare module` block
 
 
 </td></tr>
@@ -235,7 +235,7 @@ A single declaration extracted from within a `declare module` block
 
 </td><td>
 
-A module augmentation block extracted from a source file
+**_(ALPHA)_** A module augmentation block extracted from a source file
 
 
 </td></tr>
@@ -246,7 +246,7 @@ A module augmentation block extracted from a source file
 
 </td><td>
 
-Result of extracting all module augmentations from a project
+**_(ALPHA)_** Result of extracting all module augmentations from a project
 
 
 </td></tr>
@@ -257,7 +257,7 @@ Result of extracting all module augmentations from a project
 
 </td><td>
 
-Options for extracting module augmentations
+**_(ALPHA)_** Options for extracting module augmentations
 
 
 </td></tr>
@@ -268,7 +268,7 @@ Options for extracting module augmentations
 
 </td><td>
 
-Options for merging module declarations
+**_(ALPHA)_** Options for merging module declarations
 
 
 </td></tr>
@@ -279,7 +279,7 @@ Options for merging module declarations
 
 </td><td>
 
-Result of merging module declarations
+**_(ALPHA)_** Result of merging module declarations
 
 
 </td></tr>
@@ -290,7 +290,7 @@ Result of merging module declarations
 
 </td><td>
 
-Configuration for how to handle missing release tags (ae-missing-release-tag)
+**_(ALPHA)_** Configuration for how to handle missing release tags (ae-missing-release-tag)
 
 
 </td></tr>
@@ -301,7 +301,7 @@ Configuration for how to handle missing release tags (ae-missing-release-tag)
 
 </td><td>
 
-Parsed configuration from api-extractor.json
+**_(ALPHA)_** Parsed configuration from api-extractor.json
 
 
 </td></tr>
@@ -312,7 +312,7 @@ Parsed configuration from api-extractor.json
 
 </td><td>
 
-Options for resolving module paths
+**_(ALPHA)_** Options for resolving module paths
 
 
 </td></tr>
@@ -323,7 +323,7 @@ Options for resolving module paths
 
 </td><td>
 
-Info about an untagged declaration (missing release tag)
+**_(ALPHA)_** Info about an untagged declaration (missing release tag)
 
 
 </td></tr>
@@ -349,7 +349,7 @@ Description
 
 </td><td>
 
-The kinds of declarations we extract from module augmentation blocks
+**_(ALPHA)_** The kinds of declarations we extract from module augmentation blocks
 
 
 </td></tr>
@@ -360,7 +360,7 @@ The kinds of declarations we extract from module augmentation blocks
 
 </td><td>
 
-Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the `\@` prefix for easier use.
+**_(ALPHA)_** Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the `\@` prefix for easier use.
 
 
 </td></tr>
@@ -371,7 +371,7 @@ Maturity levels for API declarations, derived from api-extractor's ReleaseTagFor
 
 </td><td>
 
-Type for the resolver returned by createResolver
+**_(ALPHA)_** Type for the resolver returned by createResolver
 
 
 </td></tr>
@@ -382,7 +382,7 @@ Type for the resolver returned by createResolver
 
 </td><td>
 
-Rollup file paths extracted from api-extractor.json, keyed by maturity level. - public: publicTrimmedFilePath - beta: betaTrimmedFilePath - alpha: alphaTrimmedFilePath - internal: untrimmedFilePath
+**_(ALPHA)_** Rollup file paths extracted from api-extractor.json, keyed by maturity level. - public: publicTrimmedFilePath - beta: betaTrimmedFilePath - alpha: alphaTrimmedFilePath - internal: untrimmedFilePath
 
 
 </td></tr>

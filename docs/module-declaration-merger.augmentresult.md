@@ -4,6 +4,9 @@
 
 ## AugmentResult interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Result of augmenting rollup files
 
 **Signature:**
@@ -50,7 +53,7 @@ string\[\]
 
 </td><td>
 
-Rollup files that were successfully augmented
+**_(ALPHA)_** Rollup files that were successfully augmented
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string\[\]
 
 </td><td>
 
-Errors encountered during augmentation
+**_(ALPHA)_** Errors encountered during augmentation
 
 
 </td></tr>
@@ -88,7 +91,7 @@ boolean
 
 </td><td>
 
-Whether processing should stop due to blocking errors
+**_(ALPHA)_** Whether processing should stop due to blocking errors
 
 
 </td></tr>
@@ -107,7 +110,7 @@ string\[\]
 
 </td><td>
 
-Rollup files that were skipped (didn't exist)
+**_(ALPHA)_** Rollup files that were skipped (didn't exist)
 
 
 </td></tr>
@@ -126,7 +129,7 @@ string\[\]
 
 </td><td>
 
-Warnings encountered during augmentation
+**_(ALPHA)_** Warnings encountered during augmentation
 
 
 </td></tr>

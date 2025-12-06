@@ -11,6 +11,57 @@ import {
 } from './parameter-analysis'
 
 /**
+ * Strips optional markers that belong to top-level parameters in a normalized
+ * function signature string. This avoids removing question marks that appear
+ * in object types, conditional types, or other nested positions.
+ */
+function stripTopLevelParamOptionalMarkers(signature: string): string {
+  let parenDepth = 0
+  let braceDepth = 0
+  let bracketDepth = 0
+  let angleDepth = 0
+  let result = ''
+
+  for (let i = 0; i < signature.length; i++) {
+    const ch = signature[i]
+
+    // Track nesting
+    if (ch === '(') parenDepth++
+    else if (ch === ')') parenDepth = Math.max(parenDepth - 1, 0)
+    else if (ch === '{') braceDepth++
+    else if (ch === '}') braceDepth = Math.max(braceDepth - 1, 0)
+    else if (ch === '[') bracketDepth++
+    else if (ch === ']') bracketDepth = Math.max(bracketDepth - 1, 0)
+    else if (ch === '<' && parenDepth === 0) angleDepth++
+    else if (ch === '>' && parenDepth === 0) angleDepth = Math.max(angleDepth - 1, 0)
+
+    if (
+      ch === '?' &&
+      parenDepth === 1 &&
+      braceDepth === 0 &&
+      bracketDepth === 0
+    ) {
+      // Look ahead for ':' (skip whitespace) to confirm it's an optional marker
+      let j = i + 1
+      while (j < signature.length) {
+        const lookahead = signature.charAt(j)
+        if (!/\s/.test(lookahead)) {
+          break
+        }
+        j++
+      }
+      if (j < signature.length && signature.charAt(j) === ':') {
+        continue // drop this '?'
+      }
+    }
+
+    result += ch
+  }
+
+  return result
+}
+
+/**
  * Result of comparing two declaration files.
  *
  * @alpha
@@ -118,7 +169,10 @@ function analyzeTypeChange(
     if (newParams.length > oldParams.length) {
       // Check if new parameters are optional
       for (let i = oldParams.length; i < newParams.length; i++) {
-        const param = newParams[i]!
+        const param = newParams[i]
+        if (!param) {
+          continue
+        }
         const paramDecl = param.valueDeclaration
         if (paramDecl && ts.isParameter(paramDecl)) {
           const isOptional =
@@ -136,13 +190,35 @@ function analyzeTypeChange(
 
     // Check parameter type changes
     for (let i = 0; i < oldParams.length; i++) {
-      const oldParam = oldParams[i]!
-      const newParam = newParams[i]!
+      const oldParam = oldParams[i]
+      const newParam = newParams[i]
+      if (!oldParam || !newParam) {
+        continue
+      }
 
       const oldParamDecl = oldParam.valueDeclaration
       const newParamDecl = newParam.valueDeclaration
 
-      if (oldParamDecl && newParamDecl) {
+      if (
+        oldParamDecl &&
+        newParamDecl &&
+        ts.isParameter(oldParamDecl) &&
+        ts.isParameter(newParamDecl)
+      ) {
+        const oldIsOptional =
+          oldParamDecl.questionToken !== undefined ||
+          oldParamDecl.initializer !== undefined
+        const newIsOptional =
+          newParamDecl.questionToken !== undefined ||
+          newParamDecl.initializer !== undefined
+
+        if (!oldIsOptional && newIsOptional) {
+          return { category: 'type-widened', releaseType: 'minor' }
+        }
+        if (oldIsOptional && !newIsOptional) {
+          return { category: 'type-narrowed', releaseType: 'major' }
+        }
+
         const oldParamType = oldChecker.getTypeOfSymbolAtLocation(
           oldParam,
           oldParamDecl,
@@ -169,8 +245,11 @@ function analyzeTypeChange(
   const newCallSigs = newType.getCallSignatures()
 
   if (oldCallSigs.length > 0 && newCallSigs.length > 0) {
-    const oldSig = oldCallSigs[0]!
-    const newSig = newCallSigs[0]!
+    const oldSig = oldCallSigs[0]
+    const newSig = newCallSigs[0]
+    if (!oldSig || !newSig) {
+      return { category: 'type-narrowed', releaseType: 'major' }
+    }
 
     const paramResult = analyzeSignatureParams(
       oldSig.getParameters(),
@@ -194,8 +273,11 @@ function analyzeTypeChange(
   const newConstructSigs = newType.getConstructSignatures()
 
   if (oldConstructSigs.length > 0 && newConstructSigs.length > 0) {
-    const oldSig = oldConstructSigs[0]!
-    const newSig = newConstructSigs[0]!
+    const oldSig = oldConstructSigs[0]
+    const newSig = newConstructSigs[0]
+    if (!oldSig || !newSig) {
+      return { category: 'type-narrowed', releaseType: 'major' }
+    }
 
     const paramResult = analyzeSignatureParams(
       oldSig.getParameters(),
@@ -219,30 +301,54 @@ function generateExplanation(
   symbolName: string,
   symbolKind: SymbolKind,
   category: ChangeCategory,
+  before?: string,
+  after?: string,
   parameterAnalysis?: ParameterOrderAnalysis,
 ): string {
+  const signatureDetail =
+    before && after && before !== after
+      ? ` (was: ${before}, now: ${after})`
+      : ''
+
   switch (category) {
     case 'symbol-removed':
       return `Removed ${symbolKind} '${symbolName}' from public API`
     case 'symbol-added':
       return `Added new ${symbolKind} '${symbolName}' to public API`
     case 'type-narrowed':
-      return `Type of ${symbolKind} '${symbolName}' became more restrictive`
+      return (
+        `Type of ${symbolKind} '${symbolName}' became more restrictive` +
+        signatureDetail
+      )
     case 'type-widened':
-      return `Type of ${symbolKind} '${symbolName}' became more permissive`
+      return (
+        `Type of ${symbolKind} '${symbolName}' became more permissive` +
+        signatureDetail
+      )
     case 'param-added-required':
-      return `Added required parameter to ${symbolKind} '${symbolName}'`
+      return (
+        `Added required parameter to ${symbolKind} '${symbolName}'` +
+        signatureDetail
+      )
     case 'param-added-optional':
-      return `Added optional parameter to ${symbolKind} '${symbolName}'`
+      return (
+        `Added optional parameter to ${symbolKind} '${symbolName}'` +
+        signatureDetail
+      )
     case 'param-removed':
-      return `Removed parameter from ${symbolKind} '${symbolName}'`
+      return (
+        `Removed parameter from ${symbolKind} '${symbolName}'` + signatureDetail
+      )
     case 'param-order-changed':
       if (parameterAnalysis) {
         return `Parameter order changed in ${symbolKind} '${symbolName}': ${parameterAnalysis.summary}`
       }
       return `Parameter order changed in ${symbolKind} '${symbolName}'`
     case 'return-type-changed':
-      return `Return type of ${symbolKind} '${symbolName}' changed`
+      return (
+        `Return type of ${symbolKind} '${symbolName}' changed` +
+        signatureDetail
+      )
     case 'signature-identical':
       return `No changes to ${symbolKind} '${symbolName}'`
   }
@@ -308,16 +414,22 @@ export function compareDeclarationFiles(
     if (!oldTypeSym || !newTypeSym) {
       // Can't get type info, compare signatures as strings
       if (oldSymbol.signature !== newSymbol.signature) {
+        // Heuristic: if removing top-level parameter optional markers from the new
+        // signature matches the old signature, treat as a widening (non-breaking).
+        const newSigWithoutOptional = stripTopLevelParamOptionalMarkers(
+          newSymbol.signature,
+        )
+        const isOptionalized = newSigWithoutOptional === oldSymbol.signature
+
+        const category = isOptionalized ? 'type-widened' : 'type-narrowed'
+        const releaseType = isOptionalized ? 'minor' : 'major'
+
         changes.push({
           symbolName: name,
           symbolKind: newSymbol.kind,
-          category: 'type-narrowed',
-          releaseType: 'major',
-          explanation: generateExplanation(
-            name,
-            newSymbol.kind,
-            'type-narrowed',
-          ),
+          category,
+          releaseType,
+          explanation: generateExplanation(name, newSymbol.kind, category),
           before: oldSymbol.signature,
           after: newSymbol.signature,
         })
@@ -373,7 +485,14 @@ export function compareDeclarationFiles(
       symbolKind: newSymbol.kind,
       category,
       releaseType,
-      explanation: generateExplanation(name, newSymbol.kind, category, parameterAnalysis),
+      explanation: generateExplanation(
+        name,
+        newSymbol.kind,
+        category,
+        oldSymbol.signature,
+        newSymbol.signature,
+        parameterAnalysis,
+      ),
       before: oldSymbol.signature,
       after: newSymbol.signature,
     })

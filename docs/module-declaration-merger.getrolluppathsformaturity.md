@@ -4,6 +4,9 @@
 
 ## getRollupPathsForMaturity() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Returns the rollup paths that a declaration with a given maturity level should be added to. Following api-extractor conventions: - `@internal` goes to: internal only - `@alpha` goes to: internal, alpha - `@beta` goes to: internal, alpha, beta - `@public` goes to: internal, alpha, beta, public
 
 **Signature:**

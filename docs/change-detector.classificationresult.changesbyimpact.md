@@ -4,6 +4,9 @@
 
 ## ClassificationResult.changesByImpact property
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Changes grouped by their impact
 
 **Signature:**

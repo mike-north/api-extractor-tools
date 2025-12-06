@@ -4,6 +4,9 @@
 
 ## ResolverOptions interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Options for resolving module paths
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-The main entry point file path (used to determine module base)
+**_(ALPHA)_** The main entry point file path (used to determine module base)
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-The project folder (root of the source files)
+**_(ALPHA)_** The project folder (root of the source files)
 
 
 </td></tr>

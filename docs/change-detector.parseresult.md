@@ -4,6 +4,9 @@
 
 ## ParseResult interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Result of parsing a declaration file.
 
 **Signature:**
@@ -50,7 +53,7 @@ string\[\]
 
 </td><td>
 
-Any errors encountered during parsing
+**_(ALPHA)_** Any errors encountered during parsing
 
 
 </td></tr>
@@ -69,7 +72,7 @@ Map&lt;string, [ExportedSymbol](./change-detector.exportedsymbol.md)<!-- -->&gt;
 
 </td><td>
 
-Map of symbol name to exported symbol info
+**_(ALPHA)_** Map of symbol name to exported symbol info
 
 
 </td></tr>

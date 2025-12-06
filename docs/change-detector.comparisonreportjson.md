@@ -4,6 +4,9 @@
 
 ## ComparisonReportJSON interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 JSON-serializable representation of a comparison report.
 
 **Signature:**
@@ -50,6 +53,8 @@ Description
 
 </td><td>
 
+**_(ALPHA)_**
+
 
 </td></tr>
 <tr><td>
@@ -66,6 +71,8 @@ string
 
 
 </td><td>
+
+**_(ALPHA)_**
 
 
 </td></tr>
@@ -84,6 +91,8 @@ string
 
 </td><td>
 
+**_(ALPHA)_**
+
 
 </td></tr>
 <tr><td>
@@ -101,6 +110,8 @@ string
 
 </td><td>
 
+**_(ALPHA)_**
+
 
 </td></tr>
 <tr><td>
@@ -117,6 +128,8 @@ string
 
 
 </td><td>
+
+**_(ALPHA)_**
 
 
 </td></tr>

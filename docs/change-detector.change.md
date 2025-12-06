@@ -4,6 +4,9 @@
 
 ## Change interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A detected change between old and new API.
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-_(Optional)_ New signature (for modified/added symbols)
+**_(ALPHA)_** _(Optional)_ New signature (for modified/added symbols)
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-_(Optional)_ Old signature (for modified/removed symbols)
+**_(ALPHA)_** _(Optional)_ Old signature (for modified/removed symbols)
 
 
 </td></tr>
@@ -88,7 +91,7 @@ _(Optional)_ Old signature (for modified/removed symbols)
 
 </td><td>
 
-What kind of change occurred
+**_(ALPHA)_** What kind of change occurred
 
 
 </td></tr>
@@ -107,7 +110,7 @@ string
 
 </td><td>
 
-Human-readable explanation of the change
+**_(ALPHA)_** Human-readable explanation of the change
 
 
 </td></tr>
@@ -126,7 +129,7 @@ Human-readable explanation of the change
 
 </td><td>
 
-Semver impact of this change
+**_(ALPHA)_** Semver impact of this change
 
 
 </td></tr>
@@ -145,7 +148,7 @@ Semver impact of this change
 
 </td><td>
 
-The kind of symbol
+**_(ALPHA)_** The kind of symbol
 
 
 </td></tr>
@@ -164,7 +167,7 @@ string
 
 </td><td>
 
-The name of the symbol that changed
+**_(ALPHA)_** The name of the symbol that changed
 
 
 </td></tr>

@@ -4,6 +4,9 @@
 
 ## ComparisonReport interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The complete comparison report.
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-All changes grouped by impact
+**_(ALPHA)_** All changes grouped by impact
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string
 
 </td><td>
 
-Path to the new declaration file
+**_(ALPHA)_** Path to the new declaration file
 
 
 </td></tr>
@@ -88,7 +91,7 @@ string
 
 </td><td>
 
-Path to the old declaration file
+**_(ALPHA)_** Path to the old declaration file
 
 
 </td></tr>
@@ -107,7 +110,7 @@ Path to the old declaration file
 
 </td><td>
 
-Overall release type classification based on all changes
+**_(ALPHA)_** Overall release type classification based on all changes
 
 
 </td></tr>
@@ -126,7 +129,7 @@ Overall release type classification based on all changes
 
 </td><td>
 
-Numeric statistics about the comparison
+**_(ALPHA)_** Numeric statistics about the comparison
 
 
 </td></tr>

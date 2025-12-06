@@ -4,6 +4,9 @@
 
 ## createResolver() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Creates a module path resolver that transforms relative module specifiers to be relative to the rollup entry point.
 
 For example, if a source file at `src/things/first.ts` has: `declare module "../registry" { ... }`

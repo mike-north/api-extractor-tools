@@ -4,6 +4,9 @@
 
 ## ExtractionResult interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Result of extracting all module augmentations from a project
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-All extracted module augmentations grouped by source file
+**_(ALPHA)_** All extracted module augmentations grouped by source file
 
 
 </td></tr>
@@ -69,7 +72,7 @@ string\[\]
 
 </td><td>
 
-Any errors encountered during extraction
+**_(ALPHA)_** Any errors encountered during extraction
 
 
 </td></tr>
@@ -88,7 +91,7 @@ Any errors encountered during extraction
 
 </td><td>
 
-Declarations that had no release tag (defaulted to `\@public`<!-- -->)
+**_(ALPHA)_** Declarations that had no release tag (defaulted to `\@public`<!-- -->)
 
 
 </td></tr>

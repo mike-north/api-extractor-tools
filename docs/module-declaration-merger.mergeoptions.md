@@ -4,6 +4,9 @@
 
 ## MergeOptions interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Options for merging module declarations
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-Path to the api-extractor.json config file
+**_(ALPHA)_** Path to the api-extractor.json config file
 
 
 </td></tr>
@@ -69,7 +72,7 @@ boolean
 
 </td><td>
 
-_(Optional)_ If true, don't actually write files
+**_(ALPHA)_** _(Optional)_ If true, don't actually write files
 
 
 </td></tr>
@@ -88,7 +91,7 @@ string\[\]
 
 </td><td>
 
-_(Optional)_ Custom glob patterns for files to exclude
+**_(ALPHA)_** _(Optional)_ Custom glob patterns for files to exclude
 
 
 </td></tr>
@@ -107,7 +110,7 @@ string\[\]
 
 </td><td>
 
-_(Optional)_ Custom glob patterns for source files to include
+**_(ALPHA)_** _(Optional)_ Custom glob patterns for source files to include
 
 
 </td></tr>

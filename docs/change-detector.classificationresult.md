@@ -4,6 +4,9 @@
 
 ## ClassificationResult interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Result of classifying a set of changes.
 
 **Signature:**
@@ -50,7 +53,7 @@ Description
 
 </td><td>
 
-Changes grouped by their impact
+**_(ALPHA)_** Changes grouped by their impact
 
 
 </td></tr>
@@ -69,7 +72,7 @@ Changes grouped by their impact
 
 </td><td>
 
-The overall release type based on all changes
+**_(ALPHA)_** The overall release type based on all changes
 
 
 </td></tr>
@@ -88,7 +91,7 @@ The overall release type based on all changes
 
 </td><td>
 
-Statistics about the changes
+**_(ALPHA)_** Statistics about the changes
 
 
 </td></tr>

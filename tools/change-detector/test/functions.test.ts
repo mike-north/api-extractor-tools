@@ -59,9 +59,8 @@ describe('function signature changes', () => {
         `export declare function greet(name?: string): string;`,
       )
 
-      // Making a required param optional is more permissive
-      // Existing callers still work
-      expect(report.releaseType).toBe('major') // Current implementation treats all changes as major
+      // Making a required param optional is more permissive, so non-breaking.
+      expect(report.releaseType).toBe('minor')
     })
 
     it('detects making optional param required as major', async () => {

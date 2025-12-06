@@ -4,6 +4,9 @@
 
 ## DocModelConfig interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Configuration for the doc model (.api.json) output
 
 **Signature:**
@@ -50,7 +53,7 @@ string
 
 </td><td>
 
-Absolute path to the .api.json file
+**_(ALPHA)_** Absolute path to the .api.json file
 
 
 </td></tr>
@@ -69,7 +72,7 @@ boolean
 
 </td><td>
 
-Whether doc model generation is enabled
+**_(ALPHA)_** Whether doc model generation is enabled
 
 
 </td></tr>

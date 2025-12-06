@@ -4,6 +4,9 @@
 
 ## compareDeclarationFiles() function
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Compares two parsed declaration files and detects all changes.
 
 **Signature:**
@@ -37,7 +40,7 @@ oldParsed
 
 </td><td>
 
-ParseResultWithTypes
+[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
 
 
 </td><td>
@@ -51,7 +54,7 @@ newParsed
 
 </td><td>
 
-ParseResultWithTypes
+[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
 
 
 </td><td>
