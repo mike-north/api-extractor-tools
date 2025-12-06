@@ -5,14 +5,13 @@
 ## ExportedSymbol interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Information about a single exported symbol extracted from a declaration file.
 
 **Signature:**
 
 ```typescript
-export interface ExportedSymbol 
+export interface ExportedSymbol
 ```
 
 ## Properties
@@ -21,79 +20,62 @@ export interface ExportedSymbol
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [kind](./change-detector.exportedsymbol.kind.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [SymbolKind](./change-detector.symbolkind.md)
 
-
 </td><td>
 
 **_(ALPHA)_** The kind of symbol (function, class, interface, etc.)
-
 
 </td></tr>
 <tr><td>
 
 [name](./change-detector.exportedsymbol.name.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** The name of the exported symbol
-
 
 </td></tr>
 <tr><td>
 
 [signature](./change-detector.exportedsymbol.signature.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Human-readable type signature
 
-
 </td></tr>
 </tbody></table>
-

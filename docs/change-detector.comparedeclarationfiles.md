@@ -5,14 +5,16 @@
 ## compareDeclarationFiles() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Compares two parsed declaration files and detects all changes.
 
 **Signature:**
 
 ```typescript
-export declare function compareDeclarationFiles(oldParsed: ParseResultWithTypes, newParsed: ParseResultWithTypes): CompareResult;
+export declare function compareDeclarationFiles(
+  oldParsed: ParseResultWithTypes,
+  newParsed: ParseResultWithTypes,
+): CompareResult
 ```
 
 ## Parameters
@@ -21,44 +23,35 @@ export declare function compareDeclarationFiles(oldParsed: ParseResultWithTypes,
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 oldParsed
 
-
 </td><td>
 
 [ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 newParsed
 
-
 </td><td>
 
 [ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -66,4 +59,3 @@ newParsed
 **Returns:**
 
 [CompareResult](./change-detector.compareresult.md)
-

@@ -5,12 +5,11 @@
 ## Change.releaseType property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Semver impact of this change
 
 **Signature:**
 
 ```typescript
-releaseType: ReleaseType;
+releaseType: ReleaseType
 ```

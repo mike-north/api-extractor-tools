@@ -5,7 +5,6 @@
 ## createResolver() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates a module path resolver that transforms relative module specifiers to be relative to the rollup entry point.
 
@@ -17,8 +16,8 @@ And the main entry point is `src/index.ts`<!-- -->, the resolved module path sho
 
 ```typescript
 export declare function createResolver(options: ResolverOptions): {
-    resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) => string;
-};
+  resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) => string
+}
 ```
 
 ## Parameters
@@ -27,30 +26,24 @@ export declare function createResolver(options: ResolverOptions): {
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
-
 </td><td>
 
 [ResolverOptions](./module-declaration-merger.resolveroptions.md)
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -58,4 +51,3 @@ options
 **Returns:**
 
 { resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) =&gt; string; }
-

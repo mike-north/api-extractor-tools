@@ -5,14 +5,13 @@
 ## MergeOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options for merging module declarations
 
 **Signature:**
 
 ```typescript
-export interface MergeOptions 
+export interface MergeOptions
 ```
 
 ## Properties
@@ -21,98 +20,77 @@ export interface MergeOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [configPath](./module-declaration-merger.mergeoptions.configpath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Path to the api-extractor.json config file
-
 
 </td></tr>
 <tr><td>
 
 [dryRun?](./module-declaration-merger.mergeoptions.dryrun.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ If true, don't actually write files
-
 
 </td></tr>
 <tr><td>
 
 [exclude?](./module-declaration-merger.mergeoptions.exclude.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Custom glob patterns for files to exclude
-
 
 </td></tr>
 <tr><td>
 
 [include?](./module-declaration-merger.mergeoptions.include.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Custom glob patterns for source files to include
 
-
 </td></tr>
 </tbody></table>
-

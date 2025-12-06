@@ -5,12 +5,11 @@
 ## ClassificationResult.releaseType property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The overall release type based on all changes
 
 **Signature:**
 
 ```typescript
-releaseType: ReleaseType;
+releaseType: ReleaseType
 ```

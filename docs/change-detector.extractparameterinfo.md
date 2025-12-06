@@ -5,14 +5,16 @@
 ## extractParameterInfo() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Extracts parameter information from a TypeScript signature.
 
 **Signature:**
 
 ```typescript
-export declare function extractParameterInfo(sig: ts.Signature, checker: ts.TypeChecker): ParameterInfo[];
+export declare function extractParameterInfo(
+  sig: ts.Signature,
+  checker: ts.TypeChecker,
+): ParameterInfo[]
 ```
 
 ## Parameters
@@ -21,44 +23,35 @@ export declare function extractParameterInfo(sig: ts.Signature, checker: ts.Type
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 sig
 
-
 </td><td>
 
 ts.Signature
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 checker
 
-
 </td><td>
 
 ts.TypeChecker
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -66,4 +59,3 @@ ts.TypeChecker
 **Returns:**
 
 [ParameterInfo](./change-detector.parameterinfo.md)<!-- -->\[\]
-

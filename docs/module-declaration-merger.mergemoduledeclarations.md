@@ -5,7 +5,6 @@
 ## mergeModuleDeclarations() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Main API for merging module declarations into api-extractor rollup files.
 
@@ -14,7 +13,9 @@ This function: 1. Parses the api-extractor.json config 2. Extracts `declare modu
 **Signature:**
 
 ```typescript
-export declare function mergeModuleDeclarations(options: MergeOptions): Promise<MergeResult>;
+export declare function mergeModuleDeclarations(
+  options: MergeOptions,
+): Promise<MergeResult>
 ```
 
 ## Parameters
@@ -23,32 +24,26 @@ export declare function mergeModuleDeclarations(options: MergeOptions): Promise<
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
-
 </td><td>
 
 [MergeOptions](./module-declaration-merger.mergeoptions.md)
 
-
 </td><td>
 
 Merge options
-
 
 </td></tr>
 </tbody></table>
@@ -61,17 +56,15 @@ Result of the merge operation
 
 ## Example
 
-
 ```ts
-import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger';
+import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger'
 
 const result = await mergeModuleDeclarations({
   configPath: './api-extractor.json',
-});
+})
 
-console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
+console.log(`Augmented ${result.augmentedFiles.length} rollup files`)
 if (!result.success) {
-  console.error('Errors:', result.errors);
+  console.error('Errors:', result.errors)
 }
 ```
-

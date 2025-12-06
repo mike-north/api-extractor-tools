@@ -256,7 +256,11 @@ export function detectParameterReordering(
       newName: newParam.name,
       type: oldParam.type,
       similarity,
-      interpretation: interpretNameChange(oldParam.name, newParam.name, similarity),
+      interpretation: interpretNameChange(
+        oldParam.name,
+        newParam.name,
+        similarity,
+      ),
     })
   }
 
@@ -287,7 +291,8 @@ export function detectParameterReordering(
     (oldParam, i) => oldParam.type === newParams[i]?.type,
   )
   if (!typesMatch) {
-    baseResult.summary = 'Types differ at some positions; type analysis will handle this'
+    baseResult.summary =
+      'Types differ at some positions; type analysis will handle this'
     return baseResult
   }
 
@@ -307,7 +312,8 @@ export function detectParameterReordering(
   const newNames = new Set(newParams.map((p) => p.name))
   const commonNames = [...oldNames].filter((name) => newNames.has(name))
 
-  const swappedNames: Array<{ name: string; oldPos: number; newPos: number }> = []
+  const swappedNames: Array<{ name: string; oldPos: number; newPos: number }> =
+    []
   for (const name of commonNames) {
     const oldPos = oldNameToPos.get(name)!
     const newPos = newNameToPos.get(name)!
@@ -322,7 +328,8 @@ export function detectParameterReordering(
     return {
       hasReordering: true,
       confidence: 'high',
-      summary: `Parameters reordered: (${oldOrder}) → (${newOrder}). ` +
+      summary:
+        `Parameters reordered: (${oldOrder}) → (${newOrder}). ` +
         `The same parameter names appear at different positions.`,
       positionAnalysis,
       oldParams,
@@ -349,7 +356,7 @@ export function detectParameterReordering(
             crossMatchCount++
             crossMatches.push(
               `"${pos.newName}" at position ${pos.position} resembles "${oldParam.name}" ` +
-              `which was at position ${oldParam.position}`,
+                `which was at position ${oldParam.position}`,
             )
             break
           }
@@ -363,9 +370,11 @@ export function detectParameterReordering(
       return {
         hasReordering: true,
         confidence: 'medium',
-        summary: `Parameters appear reordered: (${oldOrder}) → (${newOrder}). ` +
+        summary:
+          `Parameters appear reordered: (${oldOrder}) → (${newOrder}). ` +
           `Names at each position are dissimilar, but new names resemble old names from other positions. ` +
-          crossMatches.join('; ') + '.',
+          crossMatches.join('; ') +
+          '.',
         positionAnalysis,
         oldParams,
         newParams,
@@ -395,10 +404,12 @@ export function detectParameterReordering(
 
   // Some low-similarity changes but no clear reordering pattern
   const lowSimDescriptions = lowSimilarityPositions
-    .map((p) => `position ${p.position}: "${p.oldName}" → "${p.newName}" (similarity: ${(p.similarity * 100).toFixed(0)}%)`)
+    .map(
+      (p) =>
+        `position ${p.position}: "${p.oldName}" → "${p.newName}" (similarity: ${(p.similarity * 100).toFixed(0)}%)`,
+    )
     .join(', ')
   baseResult.summary = `Significant name changes detected but no clear reordering pattern: ${lowSimDescriptions}`
 
   return baseResult
 }
-

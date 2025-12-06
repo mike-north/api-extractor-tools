@@ -5,12 +5,11 @@
 ## AugmentResult.shouldStop property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Whether processing should stop due to blocking errors
 
 **Signature:**
 
 ```typescript
-shouldStop: boolean;
+shouldStop: boolean
 ```

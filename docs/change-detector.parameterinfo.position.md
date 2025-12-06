@@ -5,12 +5,11 @@
 ## ParameterInfo.position property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Position in the parameter list (0-indexed)
 
 **Signature:**
 
 ```typescript
-position: number;
+position: number
 ```

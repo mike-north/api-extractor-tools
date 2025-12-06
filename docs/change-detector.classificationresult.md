@@ -5,14 +5,13 @@
 ## ClassificationResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Result of classifying a set of changes.
 
 **Signature:**
 
 ```typescript
-export interface ClassificationResult 
+export interface ClassificationResult
 ```
 
 ## Properties
@@ -21,79 +20,62 @@ export interface ClassificationResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changesByImpact](./change-detector.classificationresult.changesbyimpact.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ChangesByImpact](./change-detector.changesbyimpact.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Changes grouped by their impact
-
 
 </td></tr>
 <tr><td>
 
 [releaseType](./change-detector.classificationresult.releasetype.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ReleaseType](./change-detector.releasetype.md)
 
-
 </td><td>
 
 **_(ALPHA)_** The overall release type based on all changes
-
 
 </td></tr>
 <tr><td>
 
 [stats](./change-detector.classificationresult.stats.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ComparisonStats](./change-detector.comparisonstats.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Statistics about the changes
 
-
 </td></tr>
 </tbody></table>
-

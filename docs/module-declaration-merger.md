@@ -12,15 +12,14 @@ API Extractor doesn't natively support `declare module` blocks. This package ext
 
 ## Example
 
-
 ```ts
-import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger';
+import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger'
 
 const result = await mergeModuleDeclarations({
   configPath: './api-extractor.json',
-});
+})
 
-console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
+console.log(`Augmented ${result.augmentedFiles.length} rollup files`)
 ```
 
 ## Functions
@@ -29,17 +28,14 @@ console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
 
 Function
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [augmentDocModel(options)](./module-declaration-merger.augmentdocmodel.md)
-
 
 </td><td>
 
@@ -47,34 +43,28 @@ Description
 
 This function: 1. Loads the existing .api.json file 2. For each extracted module augmentation, finds the target interface 3. Adds new property signatures to represent the augmented members 4. Saves the modified model
 
-
 </td></tr>
 <tr><td>
 
 [augmentRollups(options)](./module-declaration-merger.augmentrollups.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Augments rollup files with extracted module declarations
-
 
 </td></tr>
 <tr><td>
 
 [canAugmentDocModel(docModelConfig)](./module-declaration-merger.canaugmentdocmodel.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Checks if a doc model file exists and can be augmented
-
 
 </td></tr>
 <tr><td>
 
 [createResolver(options)](./module-declaration-merger.createresolver.md)
-
 
 </td><td>
 
@@ -84,45 +74,37 @@ For example, if a source file at `src/things/first.ts` has: `declare module "../
 
 And the main entry point is `src/index.ts`<!-- -->, the resolved module path should be `./registry` (relative to where the rollup would be imported from).
 
-
 </td></tr>
 <tr><td>
 
 [extractModuleAugmentations(options)](./module-declaration-merger.extractmoduleaugmentations.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Extracts all module augmentations from TypeScript source files in a project
-
 
 </td></tr>
 <tr><td>
 
 [getAugmentationPreview(augmentations, rollupPaths, resolver, targetRollup)](./module-declaration-merger.getaugmentationpreview.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Gets the content that would be appended to a rollup file (for preview/dry-run)
-
 
 </td></tr>
 <tr><td>
 
 [getRollupPathsForMaturity(maturityLevel, rollupPaths)](./module-declaration-merger.getrolluppathsformaturity.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Returns the rollup paths that a declaration with a given maturity level should be added to. Following api-extractor conventions: - `@internal` goes to: internal only - `@alpha` goes to: internal, alpha - `@beta` goes to: internal, alpha, beta - `@public` goes to: internal, alpha, beta, public
-
 
 </td></tr>
 <tr><td>
 
 [mergeModuleDeclarations(options)](./module-declaration-merger.mergemoduledeclarations.md)
-
 
 </td><td>
 
@@ -130,12 +112,10 @@ And the main entry point is `src/index.ts`<!-- -->, the resolved module path sho
 
 This function: 1. Parses the api-extractor.json config 2. Extracts `declare module` blocks from TypeScript source files 3. Resolves module paths relative to the entry point 4. Appends declarations to the appropriate rollup files based on maturity tags
 
-
 </td></tr>
 <tr><td>
 
 [parseConfig(configPath)](./module-declaration-merger.parseconfig.md)
-
 
 </td><td>
 
@@ -144,7 +124,6 @@ This function: 1. Parses the api-extractor.json config 2. Extracts `declare modu
 This is a lightweight parser that handles: - &lt;<!-- -->projectFolder<!-- -->&gt; token resolution - Config file inheritance (extends) - Path resolution
 
 Unlike the full api-extractor, this doesn't require the entry point to be a .d.ts file, since our tool runs AFTER api-extractor has already generated the rollups.
-
 
 </td></tr>
 </tbody></table>
@@ -155,176 +134,144 @@ Unlike the full api-extractor, this doesn't require the entry point to be a .d.t
 
 Interface
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [AugmentOptions](./module-declaration-merger.augmentoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for augmenting rollup files
-
 
 </td></tr>
 <tr><td>
 
 [AugmentResult](./module-declaration-merger.augmentresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of augmenting rollup files
-
 
 </td></tr>
 <tr><td>
 
 [DocModelAugmentOptions](./module-declaration-merger.docmodelaugmentoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for augmenting the doc model
-
 
 </td></tr>
 <tr><td>
 
 [DocModelAugmentResult](./module-declaration-merger.docmodelaugmentresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of augmenting the doc model
-
 
 </td></tr>
 <tr><td>
 
 [DocModelConfig](./module-declaration-merger.docmodelconfig.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Configuration for the doc model (.api.json) output
-
 
 </td></tr>
 <tr><td>
 
 [ExtractedDeclaration](./module-declaration-merger.extracteddeclaration.md)
 
-
 </td><td>
 
 **_(ALPHA)_** A single declaration extracted from within a `declare module` block
-
 
 </td></tr>
 <tr><td>
 
 [ExtractedModuleAugmentation](./module-declaration-merger.extractedmoduleaugmentation.md)
 
-
 </td><td>
 
 **_(ALPHA)_** A module augmentation block extracted from a source file
-
 
 </td></tr>
 <tr><td>
 
 [ExtractionResult](./module-declaration-merger.extractionresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of extracting all module augmentations from a project
-
 
 </td></tr>
 <tr><td>
 
 [ExtractOptions](./module-declaration-merger.extractoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for extracting module augmentations
-
 
 </td></tr>
 <tr><td>
 
 [MergeOptions](./module-declaration-merger.mergeoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for merging module declarations
-
 
 </td></tr>
 <tr><td>
 
 [MergeResult](./module-declaration-merger.mergeresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of merging module declarations
-
 
 </td></tr>
 <tr><td>
 
 [MissingReleaseTagConfig](./module-declaration-merger.missingreleasetagconfig.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Configuration for how to handle missing release tags (ae-missing-release-tag)
-
 
 </td></tr>
 <tr><td>
 
 [ParsedConfig](./module-declaration-merger.parsedconfig.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Parsed configuration from api-extractor.json
-
 
 </td></tr>
 <tr><td>
 
 [ResolverOptions](./module-declaration-merger.resolveroptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for resolving module paths
-
 
 </td></tr>
 <tr><td>
 
 [UntaggedDeclarationInfo](./module-declaration-merger.untaggeddeclarationinfo.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Info about an untagged declaration (missing release tag)
-
 
 </td></tr>
 </tbody></table>
@@ -335,56 +282,45 @@ Description
 
 Type Alias
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [DeclarationKind](./module-declaration-merger.declarationkind.md)
 
-
 </td><td>
 
 **_(ALPHA)_** The kinds of declarations we extract from module augmentation blocks
-
 
 </td></tr>
 <tr><td>
 
 [MaturityLevel](./module-declaration-merger.maturitylevel.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the `\@` prefix for easier use.
-
 
 </td></tr>
 <tr><td>
 
 [Resolver](./module-declaration-merger.resolver.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Type for the resolver returned by createResolver
-
 
 </td></tr>
 <tr><td>
 
 [RollupPaths](./module-declaration-merger.rolluppaths.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Rollup file paths extracted from api-extractor.json, keyed by maturity level. - public: publicTrimmedFilePath - beta: betaTrimmedFilePath - alpha: alphaTrimmedFilePath - internal: untrimmedFilePath
 
-
 </td></tr>
 </tbody></table>
-

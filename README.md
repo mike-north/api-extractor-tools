@@ -61,6 +61,7 @@ console.log(formatReportAsText(report));
 ## Contributing
 
 See [DEVELOPMENT.md](./DEVELOPMENT.md) for detailed instructions on:
+
 - Setting up your development environment
 - Working with changesets for versioning
 - Running tests and checks

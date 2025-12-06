@@ -5,12 +5,11 @@
 ## ComparisonReport.newFile property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Path to the new declaration file
 
 **Signature:**
 
 ```typescript
-newFile: string;
+newFile: string
 ```

@@ -5,14 +5,16 @@
 ## compareFiles() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Compares two declaration files by path.
 
 **Signature:**
 
 ```typescript
-export declare function compareFiles(oldFilePath: string, newFilePath: string): CompareResult;
+export declare function compareFiles(
+  oldFilePath: string,
+  newFilePath: string,
+): CompareResult
 ```
 
 ## Parameters
@@ -21,44 +23,35 @@ export declare function compareFiles(oldFilePath: string, newFilePath: string): 
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 oldFilePath
 
-
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 newFilePath
 
-
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -66,4 +59,3 @@ string
 **Returns:**
 
 [CompareResult](./change-detector.compareresult.md)
-

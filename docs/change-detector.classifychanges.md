@@ -5,14 +5,17 @@
 ## classifyChanges() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Classifies a set of changes and computes the overall release type.
 
 **Signature:**
 
 ```typescript
-export declare function classifyChanges(changes: Change[], totalSymbolsOld: number, totalSymbolsNew: number): ClassificationResult;
+export declare function classifyChanges(
+  changes: Change[],
+  totalSymbolsOld: number,
+  totalSymbolsNew: number,
+): ClassificationResult
 ```
 
 ## Parameters
@@ -21,58 +24,46 @@ export declare function classifyChanges(changes: Change[], totalSymbolsOld: numb
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 changes
 
-
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 totalSymbolsOld
 
-
 </td><td>
 
 number
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 totalSymbolsNew
 
-
 </td><td>
 
 number
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -80,4 +71,3 @@ number
 **Returns:**
 
 [ClassificationResult](./change-detector.classificationresult.md)
-

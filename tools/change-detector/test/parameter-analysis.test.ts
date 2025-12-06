@@ -66,7 +66,9 @@ describe('parameter-analysis', () => {
     })
 
     it('identifies case changes', () => {
-      expect(interpretNameChange('Width', 'width', 0.95)).toBe('case change only')
+      expect(interpretNameChange('Width', 'width', 0.95)).toBe(
+        'case change only',
+      )
     })
 
     it('identifies abbreviation expansions', () => {

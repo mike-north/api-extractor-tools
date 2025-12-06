@@ -5,14 +5,13 @@
 ## augmentRollups() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Augments rollup files with extracted module declarations
 
 **Signature:**
 
 ```typescript
-export declare function augmentRollups(options: AugmentOptions): AugmentResult;
+export declare function augmentRollups(options: AugmentOptions): AugmentResult
 ```
 
 ## Parameters
@@ -21,32 +20,26 @@ export declare function augmentRollups(options: AugmentOptions): AugmentResult;
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
-
 </td><td>
 
 [AugmentOptions](./module-declaration-merger.augmentoptions.md)
 
-
 </td><td>
 
 Augmentation options
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +49,3 @@ Augmentation options
 [AugmentResult](./module-declaration-merger.augmentresult.md)
 
 Result of the augmentation
-

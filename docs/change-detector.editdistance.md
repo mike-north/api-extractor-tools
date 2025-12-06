@@ -5,14 +5,13 @@
 ## editDistance() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Calculates the Levenshtein edit distance between two strings. This measures the minimum number of single-character edits (insertions, deletions, substitutions) needed to transform one string into another.
 
 **Signature:**
 
 ```typescript
-export declare function editDistance(a: string, b: string): number;
+export declare function editDistance(a: string, b: string): number
 ```
 
 ## Parameters
@@ -21,44 +20,35 @@ export declare function editDistance(a: string, b: string): number;
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 a
 
-
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 b
 
-
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -66,4 +56,3 @@ string
 **Returns:**
 
 number
-

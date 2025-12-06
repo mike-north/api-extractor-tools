@@ -5,15 +5,15 @@
 ## ParseResultWithTypes interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Internal access to TypeScript types for comparison. This is used by the comparator for deep type analysis.
 
 **Signature:**
 
 ```typescript
-export interface ParseResultWithTypes extends ParseResult 
+export interface ParseResultWithTypes extends ParseResult
 ```
+
 **Extends:** [ParseResult](./change-detector.parseresult.md)
 
 ## Properties
@@ -22,79 +22,62 @@ export interface ParseResultWithTypes extends ParseResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [checker](./change-detector.parseresultwithtypes.checker.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ts.TypeChecker
 
-
 </td><td>
 
 **_(ALPHA)_** The type checker
-
 
 </td></tr>
 <tr><td>
 
 [program](./change-detector.parseresultwithtypes.program.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ts.Program
 
-
 </td><td>
 
 **_(ALPHA)_** The TypeScript program
-
 
 </td></tr>
 <tr><td>
 
 [typeSymbols](./change-detector.parseresultwithtypes.typesymbols.md)
 
-
 </td><td>
-
 
 </td><td>
 
 Map&lt;string, ts.Symbol&gt;
 
-
 </td><td>
 
 **_(ALPHA)_** Map of symbol name to TypeScript Symbol
 
-
 </td></tr>
 </tbody></table>
-
