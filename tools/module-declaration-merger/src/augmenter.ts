@@ -145,6 +145,8 @@ function generateAugmentationSection(
 
 /**
  * Result of augmenting rollup files
+ *
+ * @alpha
  */
 export interface AugmentResult {
   /** Rollup files that were successfully augmented */
@@ -161,6 +163,8 @@ export interface AugmentResult {
 
 /**
  * Options for augmenting rollup files
+ *
+ * @alpha
  */
 export interface AugmentOptions {
   /** Extracted module augmentations */
@@ -216,6 +220,8 @@ function generateUntaggedWarningSection(
  *
  * @param options - Augmentation options
  * @returns Result of the augmentation
+ *
+ * @alpha
  */
 export function augmentRollups(options: AugmentOptions): AugmentResult {
   const {
@@ -319,6 +325,8 @@ export function augmentRollups(options: AugmentOptions): AugmentResult {
 
 /**
  * Gets the content that would be appended to a rollup file (for preview/dry-run)
+ *
+ * @alpha
  */
 export function getAugmentationPreview(
   augmentations: ExtractedModuleAugmentation[],

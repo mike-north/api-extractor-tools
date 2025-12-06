@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Merges ambient module declarations into api-extractor rollup files",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/module-declaration-merger-public.d.ts",
   "bin": {
     "module-declaration-merger": "./dist/cli.js"
   },

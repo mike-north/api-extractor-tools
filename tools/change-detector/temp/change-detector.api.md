@@ -6,7 +6,7 @@
 
 import * as ts from 'typescript';
 
-// @public
+// @alpha
 export interface Change {
     after?: string;
     before?: string;
@@ -17,50 +17,48 @@ export interface Change {
     symbolName: string;
 }
 
-// @public
+// @alpha
 export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'return-type-changed' | 'signature-identical';
 
-// @public
+// @alpha
 export interface ChangesByImpact {
     breaking: Change[];
     nonBreaking: Change[];
     unchanged: Change[];
 }
 
-// @public
+// @alpha
 export interface ClassificationResult {
     changesByImpact: ChangesByImpact;
     releaseType: ReleaseType;
     stats: ComparisonStats;
 }
 
-// @public
+// @alpha
 export function classifyChanges(changes: Change[], totalSymbolsOld: number, totalSymbolsNew: number): ClassificationResult;
 
-// Warning: (ae-forgotten-export) The symbol "ParseResultWithTypes" needs to be exported by the entry point index.d.ts
-//
-// @public
+// @alpha
 export function compareDeclarationFiles(oldParsed: ParseResultWithTypes, newParsed: ParseResultWithTypes): CompareResult;
 
-// @public
+// @alpha
 export function compareDeclarations(options: CompareOptions): ComparisonReport;
 
-// @public
+// @alpha
 export function compareFiles(oldFilePath: string, newFilePath: string): CompareResult;
 
-// @public
+// @alpha
 export interface CompareOptions {
     newFile: string;
     oldFile: string;
 }
 
-// @public
+// @alpha
 export interface CompareResult {
     changes: Change[];
     errors: string[];
 }
 
-// @public
+// @alpha
 export interface ComparisonReport {
     changes: ChangesByImpact;
     newFile: string;
@@ -69,7 +67,7 @@ export interface ComparisonReport {
     stats: ComparisonStats;
 }
 
-// @public
+// @alpha
 export interface ComparisonReportJSON {
     // (undocumented)
     changes: ChangesByImpact;
@@ -83,7 +81,7 @@ export interface ComparisonReportJSON {
     stats: ComparisonStats;
 }
 
-// @public
+// @alpha
 export interface ComparisonStats {
     added: number;
     modified: number;
@@ -93,35 +91,45 @@ export interface ComparisonStats {
     unchanged: number;
 }
 
-// @public
+// @alpha
 export interface ExportedSymbol {
     kind: SymbolKind;
     name: string;
     signature: string;
 }
 
-// @public
+// @alpha
 export function formatReportAsMarkdown(report: ComparisonReport): string;
 
-// @public
+// @alpha
 export function formatReportAsText(report: ComparisonReport): string;
 
-// @public
+// @alpha
 export function parseDeclarationFile(filePath: string): ParseResult;
 
-// @public
+// @alpha
+export function parseDeclarationFileWithTypes(filePath: string): ParseResultWithTypes;
+
+// @alpha
 export interface ParseResult {
     errors: string[];
     symbols: Map<string, ExportedSymbol>;
 }
 
-// @public
+// @alpha
+export interface ParseResultWithTypes extends ParseResult {
+    checker: ts.TypeChecker;
+    program: ts.Program;
+    typeSymbols: Map<string, ts.Symbol>;
+}
+
+// @alpha
 export type ReleaseType = 'major' | 'minor' | 'patch' | 'none';
 
-// @public
+// @alpha
 export function reportToJSON(report: ComparisonReport): ComparisonReportJSON;
 
-// @public
+// @alpha
 export type SymbolKind = 'function' | 'class' | 'interface' | 'type' | 'variable' | 'enum' | 'namespace';
 
 ```

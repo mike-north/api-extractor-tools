@@ -7,6 +7,8 @@ import {
 
 /**
  * Result of comparing two declaration files.
+ *
+ * @alpha
  */
 export interface CompareResult {
   /** All detected changes */
@@ -181,6 +183,8 @@ function generateExplanation(
 
 /**
  * Compares two parsed declaration files and detects all changes.
+ *
+ * @alpha
  */
 export function compareDeclarationFiles(
   oldParsed: ParseResultWithTypes,
@@ -313,6 +317,8 @@ export function compareDeclarationFiles(
 
 /**
  * Compares two declaration files by path.
+ *
+ * @alpha
  */
 export function compareFiles(
   oldFilePath: string,

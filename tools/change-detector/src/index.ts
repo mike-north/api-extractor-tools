@@ -35,7 +35,12 @@ export type {
 } from './types'
 
 // Parser exports
-export { parseDeclarationFile, type ParseResult } from './parser'
+export {
+  parseDeclarationFile,
+  parseDeclarationFileWithTypes,
+  type ParseResult,
+  type ParseResultWithTypes,
+} from './parser'
 
 // Comparator exports
 export {
@@ -81,6 +86,8 @@ import { classifyChanges } from './classifier'
  * console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
  * console.log(formatReportAsText(report));
  * ```
+ *
+ * @alpha
  */
 export function compareDeclarations(options: CompareOptions): ComparisonReport {
   const { oldFile, newFile } = options

@@ -6,6 +6,8 @@ import type { ReleaseTagForTrim } from '@microsoft/api-extractor'
 /**
  * Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim.
  * Strips the `\@` prefix for easier use.
+ *
+ * @alpha
  */
 export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}`
   ? Tag
@@ -17,11 +19,15 @@ export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}`
  * - beta: betaTrimmedFilePath
  * - alpha: alphaTrimmedFilePath
  * - internal: untrimmedFilePath
+ *
+ * @alpha
  */
 export type RollupPaths = Partial<Record<MaturityLevel, string>>
 
 /**
  * Configuration for how to handle missing release tags (ae-missing-release-tag)
+ *
+ * @alpha
  */
 export interface MissingReleaseTagConfig {
   /**
@@ -40,6 +46,8 @@ export interface MissingReleaseTagConfig {
 
 /**
  * Configuration for the doc model (.api.json) output
+ *
+ * @alpha
  */
 export interface DocModelConfig {
   /** Whether doc model generation is enabled */
@@ -50,6 +58,8 @@ export interface DocModelConfig {
 
 /**
  * Parsed configuration from api-extractor.json
+ *
+ * @alpha
  */
 export interface ParsedConfig {
   /** Absolute path to the api-extractor.json file */
@@ -279,7 +289,7 @@ function getMissingReleaseTagConfig(
  * Parses an api-extractor.json file and extracts relevant configuration.
  *
  * This is a lightweight parser that handles:
- * - <projectFolder> token resolution
+ * - \<projectFolder\> token resolution
  * - Config file inheritance (extends)
  * - Path resolution
  *
@@ -289,6 +299,8 @@ function getMissingReleaseTagConfig(
  *
  * @param configPath - Path to the api-extractor.json file
  * @returns Parsed configuration with resolved absolute paths
+ *
+ * @alpha
  */
 export function parseConfig(configPath: string): ParsedConfig {
   const absoluteConfigPath = path.resolve(configPath)
@@ -379,6 +391,8 @@ export function parseConfig(configPath: string): ParsedConfig {
  * @param maturityLevel - The maturity level of the declaration
  * @param rollupPaths - Available rollup paths from config
  * @returns Array of rollup file paths to add the declaration to
+ *
+ * @alpha
  */
 export function getRollupPathsForMaturity(
   maturityLevel: MaturityLevel,

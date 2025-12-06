@@ -2,6 +2,8 @@ import * as path from 'path'
 
 /**
  * Options for resolving module paths
+ *
+ * @alpha
  */
 export interface ResolverOptions {
   /** The project folder (root of the source files) */
@@ -19,6 +21,8 @@ export interface ResolverOptions {
  *
  * And the main entry point is `src/index.ts`, the resolved module path
  * should be `./registry` (relative to where the rollup would be imported from).
+ *
+ * @alpha
  */
 export function createResolver(options: ResolverOptions) {
   const { projectFolder, mainEntryPointFilePath } = options
@@ -70,5 +74,7 @@ export function createResolver(options: ResolverOptions) {
 
 /**
  * Type for the resolver returned by createResolver
+ *
+ * @alpha
  */
 export type Resolver = ReturnType<typeof createResolver>

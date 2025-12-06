@@ -8,6 +8,8 @@ import type {
 
 /**
  * JSON-serializable representation of a comparison report.
+ *
+ * @alpha
  */
 export interface ComparisonReportJSON {
   releaseType: ReleaseType
@@ -59,6 +61,8 @@ function formatChangeAsText(change: Change, indent: string = '  '): string {
 
 /**
  * Formats the comparison report as plain text.
+ *
+ * @alpha
  */
 export function formatReportAsText(report: ComparisonReport): string {
   const lines: string[] = []
@@ -126,6 +130,8 @@ function formatChangeAsMarkdown(change: Change): string {
 
 /**
  * Formats the comparison report as markdown.
+ *
+ * @alpha
  */
 export function formatReportAsMarkdown(report: ComparisonReport): string {
   const lines: string[] = []
@@ -177,6 +183,8 @@ export function formatReportAsMarkdown(report: ComparisonReport): string {
 
 /**
  * Converts the report to a plain JSON-serializable object.
+ *
+ * @alpha
  */
 export function reportToJSON(report: ComparisonReport): ComparisonReportJSON {
   return {

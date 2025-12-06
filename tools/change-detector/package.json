@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Detects changes between two API Extractor rollup files",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/change-detector-public.d.ts",
   "bin": {
     "change-detector": "./dist/cli.js"
   },

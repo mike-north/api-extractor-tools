@@ -4,6 +4,8 @@ import type { ExportedSymbol, SymbolKind } from './types'
 
 /**
  * Result of parsing a declaration file.
+ *
+ * @alpha
  */
 export interface ParseResult {
   /** Map of symbol name to exported symbol info */
@@ -679,6 +681,8 @@ function getNamespaceSignature(
 
 /**
  * Parses a declaration file and extracts all exported symbols.
+ *
+ * @alpha
  */
 export function parseDeclarationFile(filePath: string): ParseResult {
   const symbols = new Map<string, ExportedSymbol>()
@@ -751,6 +755,8 @@ export function parseDeclarationFile(filePath: string): ParseResult {
 /**
  * Internal access to TypeScript types for comparison.
  * This is used by the comparator for deep type analysis.
+ *
+ * @alpha
  */
 export interface ParseResultWithTypes extends ParseResult {
   /** The TypeScript program */
@@ -764,6 +770,11 @@ export interface ParseResultWithTypes extends ParseResult {
 /**
  * Parses a declaration file and returns TypeScript type information
  * for deep comparison.
+ *
+ * @param filePath - Path to the declaration file to parse
+ * @returns Parse result with TypeScript program and type checker for deep analysis
+ *
+ * @alpha
  */
 export function parseDeclarationFileWithTypes(
   filePath: string,

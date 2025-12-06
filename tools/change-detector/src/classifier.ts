@@ -7,6 +7,8 @@ import type {
 
 /**
  * Result of classifying a set of changes.
+ *
+ * @alpha
  */
 export interface ClassificationResult {
   /** The overall release type based on all changes */
@@ -119,6 +121,8 @@ function computeStats(
 
 /**
  * Classifies a set of changes and computes the overall release type.
+ *
+ * @alpha
  */
 export function classifyChanges(
   changes: Change[],

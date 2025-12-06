@@ -4,11 +4,15 @@
  * - "minor": New features/additions that are backwards compatible
  * - "patch": Bug fixes or internal changes with no API impact
  * - "none": No changes detected
+ *
+ * @alpha
  */
 export type ReleaseType = 'major' | 'minor' | 'patch' | 'none'
 
 /**
  * Categories of API changes and their typical semver impact.
+ *
+ * @alpha
  */
 export type ChangeCategory =
   | 'symbol-removed' // Export removed (MAJOR)
@@ -23,6 +27,8 @@ export type ChangeCategory =
 
 /**
  * Kinds of exported symbols we track.
+ *
+ * @alpha
  */
 export type SymbolKind =
   | 'function'
@@ -35,6 +41,8 @@ export type SymbolKind =
 
 /**
  * Information about a single exported symbol extracted from a declaration file.
+ *
+ * @alpha
  */
 export interface ExportedSymbol {
   /** The name of the exported symbol */
@@ -47,6 +55,8 @@ export interface ExportedSymbol {
 
 /**
  * A detected change between old and new API.
+ *
+ * @alpha
  */
 export interface Change {
   /** The name of the symbol that changed */
@@ -67,6 +77,8 @@ export interface Change {
 
 /**
  * Changes grouped by their semver impact.
+ *
+ * @alpha
  */
 export interface ChangesByImpact {
   /** Changes requiring a major version bump (breaking changes) */
@@ -79,6 +91,8 @@ export interface ChangesByImpact {
 
 /**
  * Statistics about the comparison.
+ *
+ * @alpha
  */
 export interface ComparisonStats {
   /** Total number of symbols in the old declaration file */
@@ -97,6 +111,8 @@ export interface ComparisonStats {
 
 /**
  * The complete comparison report.
+ *
+ * @alpha
  */
 export interface ComparisonReport {
   /** Overall release type classification based on all changes */
@@ -113,6 +129,8 @@ export interface ComparisonReport {
 
 /**
  * Options for comparing declarations.
+ *
+ * @alpha
  */
 export interface CompareOptions {
   /** Path to the old (baseline) declaration file */

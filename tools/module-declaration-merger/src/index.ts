@@ -73,6 +73,8 @@ import { augmentDocModel, canAugmentDocModel } from './doc-model-augmenter'
 
 /**
  * Options for merging module declarations
+ *
+ * @alpha
  */
 export interface MergeOptions {
   /** Path to the api-extractor.json config file */
@@ -87,6 +89,8 @@ export interface MergeOptions {
 
 /**
  * Result of merging module declarations
+ *
+ * @alpha
  */
 export interface MergeResult {
   /** Whether the merge completed successfully (no errors, or errors only added to report) */
@@ -134,6 +138,8 @@ export interface MergeResult {
  *   console.error('Errors:', result.errors);
  * }
  * ```
+ *
+ * @alpha
  */
 export async function mergeModuleDeclarations(
   options: MergeOptions,

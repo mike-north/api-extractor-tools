@@ -10,6 +10,8 @@ import type { Resolver } from './resolver'
 
 /**
  * Result of augmenting the doc model
+ *
+ * @alpha
  */
 export interface DocModelAugmentResult {
   /** Whether the doc model was successfully augmented */
@@ -26,6 +28,8 @@ export interface DocModelAugmentResult {
 
 /**
  * Options for augmenting the doc model
+ *
+ * @alpha
  */
 export interface DocModelAugmentOptions {
   /** Path to the .api.json file */
@@ -69,6 +73,8 @@ function findInterface(
  *
  * @param options - Augmentation options
  * @returns Result of the augmentation
+ *
+ * @alpha
  */
 export function augmentDocModel(
   options: DocModelAugmentOptions,
@@ -153,6 +159,8 @@ export function augmentDocModel(
 
 /**
  * Checks if a doc model file exists and can be augmented
+ *
+ * @alpha
  */
 export function canAugmentDocModel(
   docModelConfig: DocModelConfig | undefined,

@@ -7,10 +7,10 @@
 import { ExtractorLogLevel } from '@microsoft/api-extractor';
 import type { ReleaseTagForTrim } from '@microsoft/api-extractor';
 
-// @public
+// @alpha
 export function augmentDocModel(options: DocModelAugmentOptions): DocModelAugmentResult;
 
-// @public
+// @alpha
 export interface AugmentOptions {
     augmentations: ExtractedModuleAugmentation[];
     dryRun?: boolean;
@@ -20,7 +20,7 @@ export interface AugmentOptions {
     untaggedDeclarations?: UntaggedDeclarationInfo[];
 }
 
-// @public
+// @alpha
 export interface AugmentResult {
     augmentedFiles: string[];
     errors: string[];
@@ -29,21 +29,21 @@ export interface AugmentResult {
     warnings: string[];
 }
 
-// @public
+// @alpha
 export function augmentRollups(options: AugmentOptions): AugmentResult;
 
-// @public
+// @alpha
 export function canAugmentDocModel(docModelConfig: DocModelConfig | undefined): boolean;
 
-// @public
+// @alpha
 export function createResolver(options: ResolverOptions): {
     resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) => string;
 };
 
-// @public
+// @alpha
 export type DeclarationKind = 'interface' | 'type' | 'function' | 'variable' | 'class' | 'enum' | 'namespace';
 
-// @public
+// @alpha
 export interface DocModelAugmentOptions {
     apiJsonFilePath: string;
     augmentations: ExtractedModuleAugmentation[];
@@ -51,7 +51,7 @@ export interface DocModelAugmentOptions {
     resolver: Resolver;
 }
 
-// @public
+// @alpha
 export interface DocModelAugmentResult {
     apiJsonFilePath: string;
     declarationsAdded: number;
@@ -60,13 +60,13 @@ export interface DocModelAugmentResult {
     warnings: string[];
 }
 
-// @public
+// @alpha
 export interface DocModelConfig {
     apiJsonFilePath: string;
     enabled: boolean;
 }
 
-// @public
+// @alpha
 export interface ExtractedDeclaration {
     isUntagged: boolean;
     kind: DeclarationKind;
@@ -75,7 +75,7 @@ export interface ExtractedDeclaration {
     text: string;
 }
 
-// @public
+// @alpha
 export interface ExtractedModuleAugmentation {
     declarations: ExtractedDeclaration[];
     moduleSpecifier: string;
@@ -83,17 +83,17 @@ export interface ExtractedModuleAugmentation {
     sourceFilePath: string;
 }
 
-// @public
+// @alpha
 export interface ExtractionResult {
     augmentations: ExtractedModuleAugmentation[];
     errors: string[];
     untaggedDeclarations: UntaggedDeclarationInfo[];
 }
 
-// @public
+// @alpha
 export function extractModuleAugmentations(options: ExtractOptions): Promise<ExtractionResult>;
 
-// @public
+// @alpha
 export interface ExtractOptions {
     exclude?: string[];
     include?: string[];
@@ -102,19 +102,19 @@ export interface ExtractOptions {
 
 export { ExtractorLogLevel }
 
-// @public
+// @alpha
 export function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): string | null;
 
-// @public
+// @alpha
 export function getRollupPathsForMaturity(maturityLevel: MaturityLevel, rollupPaths: RollupPaths): string[];
 
-// @public
+// @alpha
 export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}` ? Tag : never;
 
-// @public
+// @alpha
 export function mergeModuleDeclarations(options: MergeOptions): Promise<MergeResult>;
 
-// @public
+// @alpha
 export interface MergeOptions {
     configPath: string;
     dryRun?: boolean;
@@ -122,7 +122,7 @@ export interface MergeOptions {
     include?: string[];
 }
 
-// @public
+// @alpha
 export interface MergeResult {
     augmentationCount: number;
     augmentedFiles: string[];
@@ -135,16 +135,16 @@ export interface MergeResult {
     warnings: string[];
 }
 
-// @public
+// @alpha
 export interface MissingReleaseTagConfig {
     addToApiReportFile: boolean;
     logLevel: ExtractorLogLevel;
 }
 
-// @public
+// @alpha
 export function parseConfig(configPath: string): ParsedConfig;
 
-// @public
+// @alpha
 export interface ParsedConfig {
     configPath: string;
     docModel?: DocModelConfig;
@@ -154,19 +154,19 @@ export interface ParsedConfig {
     rollupPaths: RollupPaths;
 }
 
-// @public
+// @alpha
 export type Resolver = ReturnType<typeof createResolver>;
 
-// @public
+// @alpha
 export interface ResolverOptions {
     mainEntryPointFilePath: string;
     projectFolder: string;
 }
 
-// @public
+// @alpha
 export type RollupPaths = Partial<Record<MaturityLevel, string>>;
 
-// @public
+// @alpha
 export interface UntaggedDeclarationInfo {
     kind: DeclarationKind;
     moduleSpecifier: string;

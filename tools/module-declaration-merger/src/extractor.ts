@@ -7,6 +7,8 @@ import type { MaturityLevel } from './config'
 
 /**
  * The kinds of declarations we extract from module augmentation blocks
+ *
+ * @alpha
  */
 export type DeclarationKind =
   | 'interface'
@@ -19,6 +21,8 @@ export type DeclarationKind =
 
 /**
  * A single declaration extracted from within a `declare module` block
+ *
+ * @alpha
  */
 export interface ExtractedDeclaration {
   /** The full text of the declaration including its TSDoc comment */
@@ -35,6 +39,8 @@ export interface ExtractedDeclaration {
 
 /**
  * A module augmentation block extracted from a source file
+ *
+ * @alpha
  */
 export interface ExtractedModuleAugmentation {
   /** The module specifier from `declare module "..."` */
@@ -49,6 +55,8 @@ export interface ExtractedModuleAugmentation {
 
 /**
  * Info about an untagged declaration (missing release tag)
+ *
+ * @alpha
  */
 export interface UntaggedDeclarationInfo {
   /** The declaration name */
@@ -63,6 +71,8 @@ export interface UntaggedDeclarationInfo {
 
 /**
  * Result of extracting all module augmentations from a project
+ *
+ * @alpha
  */
 export interface ExtractionResult {
   /** All extracted module augmentations grouped by source file */
@@ -304,6 +314,8 @@ function extractFromSourceFile(
 
 /**
  * Options for extracting module augmentations
+ *
+ * @alpha
  */
 export interface ExtractOptions {
   /** The project folder to search for source files */
@@ -319,6 +331,8 @@ export interface ExtractOptions {
  *
  * @param options - Extraction options
  * @returns Extraction result with all augmentations and any errors
+ *
+ * @alpha
  */
 export async function extractModuleAugmentations(
   options: ExtractOptions,
