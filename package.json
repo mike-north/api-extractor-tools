@@ -11,7 +11,10 @@
     "check:packages": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests,check:api-report",
     "check:workspace": "NX_TUI=false nx knip",
     "check": "pnpm check:packages && pnpm check:workspace",
-    "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\""
+    "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "keywords": [],
   "author": "Mike North <michael.l.north@gmail.com>",
@@ -45,9 +48,12 @@
     }
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.10",
     "@eslint/js": "^9.39.1",
     "@microsoft/api-documenter": "^7.28.2",
     "eslint": "^9.39.1",
+    "eslint-plugin-tsdoc": "^0.5.0",
     "jiti": "^2.6.1",
     "knip": "^5.71.0",
     "nx": "^22.1.3",

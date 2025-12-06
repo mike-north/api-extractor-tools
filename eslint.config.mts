@@ -1,5 +1,6 @@
 import * as eslint from '@eslint/js'
 import { defineConfig } from 'eslint/config'
+import tsdocPlugin from 'eslint-plugin-tsdoc'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig(
@@ -11,6 +12,9 @@ export default defineConfig(
         projectService: true,
       },
     },
+    plugins: {
+      tsdoc: tsdocPlugin,
+    },
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -19,6 +23,7 @@ export default defineConfig(
           varsIgnorePattern: '^_',
         },
       ],
+      'tsdoc/syntax': 'warn',
     },
   },
 )
