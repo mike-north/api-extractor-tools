@@ -146,3 +146,6 @@ vite.config.ts.timestamp-*
 # API Extractor temp files (api.json for api-documenter)
 temp/*
 !temp/.gitkeep
+
+# Editor logs
+.nvimlog
