@@ -88,7 +88,7 @@ The kind of declaration
 
 </td><td>
 
-The maturity level determined from TSDoc tags (<!-- -->@ public, @ beta, @ alpha, @ internal)
+The maturity level determined from TSDoc tags (`\@public`<!-- -->, `\@beta`<!-- -->, `\@alpha`<!-- -->, `\@internal`<!-- -->)
 
 
 </td></tr>

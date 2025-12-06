@@ -4,7 +4,7 @@
 
 ## MissingReleaseTagConfig.logLevel property
 
-The log level for missing release tag messages. - "error": Treat as an error - "warning": Treat as a warning - "none": Silently ignore (treat as @<!-- -->public)
+The log level for missing release tag messages. - "error": Treat as an error - "warning": Treat as a warning - "none": Silently ignore (treat as `\@public`<!-- -->)
 
 **Signature:**
 

@@ -88,7 +88,7 @@ Any errors encountered during extraction
 
 </td><td>
 
-Declarations that had no release tag (defaulted to @<!-- -->public)
+Declarations that had no release tag (defaulted to `\@public`<!-- -->)
 
 
 </td></tr>

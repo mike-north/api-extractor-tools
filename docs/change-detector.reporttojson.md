@@ -9,7 +9,7 @@ Converts the report to a plain JSON-serializable object.
 **Signature:**
 
 ```typescript
-export declare function reportToJSON(report: ComparisonReport): Record<string, unknown>;
+export declare function reportToJSON(report: ComparisonReport): ComparisonReportJSON;
 ```
 
 ## Parameters
@@ -48,5 +48,5 @@ report
 
 **Returns:**
 
-Record&lt;string, unknown&gt;
+[ComparisonReportJSON](./change-detector.comparisonreportjson.md)
 

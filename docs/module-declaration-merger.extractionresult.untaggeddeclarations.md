@@ -4,7 +4,7 @@
 
 ## ExtractionResult.untaggedDeclarations property
 
-Declarations that had no release tag (defaulted to @<!-- -->public)
+Declarations that had no release tag (defaulted to `\@public`<!-- -->)
 
 **Signature:**
 

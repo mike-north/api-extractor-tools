@@ -199,8 +199,6 @@ function getClassSignature(
   decl: ts.ClassDeclaration,
   checker: ts.TypeChecker,
 ): string {
-  const parts: string[] = []
-
   // Check for abstract modifier
   const isAbstract = decl.modifiers?.some(
     (m) => m.kind === ts.SyntaxKind.AbstractKeyword,
@@ -238,10 +236,8 @@ function getClassSignature(
     }
   }
 
-  // Get class type (typeof Class) for static members
+  // Get class type (typeof Class) for static members and constructors
   const classType = checker.getTypeOfSymbolAtLocation(symbol, decl)
-  // Get instance type for instance members
-  const instanceType = checker.getDeclaredTypeOfSymbol(symbol)
 
   // Collect members
   const memberSignatures: string[] = []

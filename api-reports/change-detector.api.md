@@ -70,6 +70,20 @@ export interface ComparisonReport {
 }
 
 // @public
+export interface ComparisonReportJSON {
+    // (undocumented)
+    changes: ChangesByImpact;
+    // (undocumented)
+    newFile: string;
+    // (undocumented)
+    oldFile: string;
+    // (undocumented)
+    releaseType: ReleaseType;
+    // (undocumented)
+    stats: ComparisonStats;
+}
+
+// @public
 export interface ComparisonStats {
     added: number;
     modified: number;
@@ -105,7 +119,7 @@ export interface ParseResult {
 export type ReleaseType = 'major' | 'minor' | 'patch' | 'none';
 
 // @public
-export function reportToJSON(report: ComparisonReport): Record<string, unknown>;
+export function reportToJSON(report: ComparisonReport): ComparisonReportJSON;
 
 // @public
 export type SymbolKind = 'function' | 'class' | 'interface' | 'type' | 'variable' | 'enum' | 'namespace';

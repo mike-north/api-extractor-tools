@@ -4,7 +4,7 @@
 
 ## ExtractedDeclaration.maturityLevel property
 
-The maturity level determined from TSDoc tags (<!-- -->@ public, @ beta, @ alpha, @ internal)
+The maturity level determined from TSDoc tags (`\@public`<!-- -->, `\@beta`<!-- -->, `\@alpha`<!-- -->, `\@internal`<!-- -->)
 
 **Signature:**
 

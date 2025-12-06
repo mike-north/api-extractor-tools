@@ -4,7 +4,7 @@
 
 ## MaturityLevel type
 
-Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the '<!-- -->@<!-- -->' prefix for easier use.
+Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the `\@` prefix for easier use.
 
 **Signature:**
 

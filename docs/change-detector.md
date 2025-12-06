@@ -211,6 +211,17 @@ The complete comparison report.
 </td></tr>
 <tr><td>
 
+[ComparisonReportJSON](./change-detector.comparisonreportjson.md)
+
+
+</td><td>
+
+JSON-serializable representation of a comparison report.
+
+
+</td></tr>
+<tr><td>
+
 [ComparisonStats](./change-detector.comparisonstats.md)
 
 

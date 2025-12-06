@@ -360,7 +360,7 @@ The kinds of declarations we extract from module augmentation blocks
 
 </td><td>
 
-Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the '<!-- -->@<!-- -->' prefix for easier use.
+Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim. Strips the `\@` prefix for easier use.
 
 
 </td></tr>
