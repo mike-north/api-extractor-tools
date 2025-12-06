@@ -9,5 +9,5 @@ Module path resolver
 **Signature:**
 
 ```typescript
-resolver: Resolver
+resolver: Resolver;
 ```

@@ -9,5 +9,5 @@ The name of the symbol that changed
 **Signature:**
 
 ```typescript
-symbolName: string
+symbolName: string;
 ```

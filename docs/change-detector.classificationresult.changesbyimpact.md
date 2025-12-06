@@ -9,5 +9,5 @@ Changes grouped by their impact
 **Signature:**
 
 ```typescript
-changesByImpact: ChangesByImpact
+changesByImpact: ChangesByImpact;
 ```

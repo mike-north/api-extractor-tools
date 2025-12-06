@@ -12,19 +12,17 @@ This package analyzes `.d.ts` files to identify API changes and classify them ac
 
 ## Example
 
+
 ```ts
-import {
-  compareDeclarations,
-  formatReportAsMarkdown,
-} from '@api-extractor-tools/change-detector'
+import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector';
 
 const report = compareDeclarations({
   oldFile: './dist/v1/index.d.ts',
   newFile: './dist/v2/index.d.ts',
-})
+});
 
-console.log(report.releaseType) // "major" | "minor" | "patch" | "none"
-console.log(formatReportAsMarkdown(report))
+console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
+console.log(formatReportAsMarkdown(report));
 ```
 
 ## Functions
@@ -33,32 +31,39 @@ console.log(formatReportAsMarkdown(report))
 
 Function
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [classifyChanges(changes, totalSymbolsOld, totalSymbolsNew)](./change-detector.classifychanges.md)
 
+
 </td><td>
 
 Classifies a set of changes and computes the overall release type.
+
 
 </td></tr>
 <tr><td>
 
 [compareDeclarationFiles(oldParsed, newParsed)](./change-detector.comparedeclarationfiles.md)
 
+
 </td><td>
 
 Compares two parsed declaration files and detects all changes.
+
 
 </td></tr>
 <tr><td>
 
 [compareDeclarations(options)](./change-detector.comparedeclarations.md)
+
 
 </td><td>
 
@@ -66,50 +71,61 @@ Compares two declaration files and generates a comprehensive report.
 
 This is the main entry point for programmatic usage of the change detector.
 
+
 </td></tr>
 <tr><td>
 
 [compareFiles(oldFilePath, newFilePath)](./change-detector.comparefiles.md)
 
+
 </td><td>
 
 Compares two declaration files by path.
+
 
 </td></tr>
 <tr><td>
 
 [formatReportAsMarkdown(report)](./change-detector.formatreportasmarkdown.md)
 
+
 </td><td>
 
 Formats the comparison report as markdown.
+
 
 </td></tr>
 <tr><td>
 
 [formatReportAsText(report)](./change-detector.formatreportastext.md)
 
+
 </td><td>
 
 Formats the comparison report as plain text.
+
 
 </td></tr>
 <tr><td>
 
 [parseDeclarationFile(filePath)](./change-detector.parsedeclarationfile.md)
 
+
 </td><td>
 
 Parses a declaration file and extracts all exported symbols.
+
 
 </td></tr>
 <tr><td>
 
 [reportToJSON(report)](./change-detector.reporttojson.md)
 
+
 </td><td>
 
 Converts the report to a plain JSON-serializable object.
+
 
 </td></tr>
 </tbody></table>
@@ -120,99 +136,121 @@ Converts the report to a plain JSON-serializable object.
 
 Interface
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [Change](./change-detector.change.md)
 
+
 </td><td>
 
 A detected change between old and new API.
+
 
 </td></tr>
 <tr><td>
 
 [ChangesByImpact](./change-detector.changesbyimpact.md)
 
+
 </td><td>
 
 Changes grouped by their semver impact.
+
 
 </td></tr>
 <tr><td>
 
 [ClassificationResult](./change-detector.classificationresult.md)
 
+
 </td><td>
 
 Result of classifying a set of changes.
+
 
 </td></tr>
 <tr><td>
 
 [CompareOptions](./change-detector.compareoptions.md)
 
+
 </td><td>
 
 Options for comparing declarations.
+
 
 </td></tr>
 <tr><td>
 
 [CompareResult](./change-detector.compareresult.md)
 
+
 </td><td>
 
 Result of comparing two declaration files.
+
 
 </td></tr>
 <tr><td>
 
 [ComparisonReport](./change-detector.comparisonreport.md)
 
+
 </td><td>
 
 The complete comparison report.
+
 
 </td></tr>
 <tr><td>
 
 [ComparisonReportJSON](./change-detector.comparisonreportjson.md)
 
+
 </td><td>
 
 JSON-serializable representation of a comparison report.
+
 
 </td></tr>
 <tr><td>
 
 [ComparisonStats](./change-detector.comparisonstats.md)
 
+
 </td><td>
 
 Statistics about the comparison.
+
 
 </td></tr>
 <tr><td>
 
 [ExportedSymbol](./change-detector.exportedsymbol.md)
 
+
 </td><td>
 
 Information about a single exported symbol extracted from a declaration file.
+
 
 </td></tr>
 <tr><td>
 
 [ParseResult](./change-detector.parseresult.md)
 
+
 </td><td>
 
 Result of parsing a declaration file.
+
 
 </td></tr>
 </tbody></table>
@@ -223,36 +261,45 @@ Result of parsing a declaration file.
 
 Type Alias
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [ChangeCategory](./change-detector.changecategory.md)
 
+
 </td><td>
 
 Categories of API changes and their typical semver impact.
+
 
 </td></tr>
 <tr><td>
 
 [ReleaseType](./change-detector.releasetype.md)
 
+
 </td><td>
 
 The release type this delta represents according to semantic versioning. - "major": Breaking changes that require a major version bump - "minor": New features/additions that are backwards compatible - "patch": Bug fixes or internal changes with no API impact - "none": No changes detected
+
 
 </td></tr>
 <tr><td>
 
 [SymbolKind](./change-detector.symbolkind.md)
 
+
 </td><td>
 
 Kinds of exported symbols we track.
 
+
 </td></tr>
 </tbody></table>
+

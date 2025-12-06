@@ -9,5 +9,5 @@ The kind of symbol
 **Signature:**
 
 ```typescript
-symbolKind: SymbolKind
+symbolKind: SymbolKind;
 ```

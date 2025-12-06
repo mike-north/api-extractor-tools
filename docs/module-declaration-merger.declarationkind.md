@@ -9,12 +9,5 @@ The kinds of declarations we extract from module augmentation blocks
 **Signature:**
 
 ```typescript
-export type DeclarationKind =
-  | 'interface'
-  | 'type'
-  | 'function'
-  | 'variable'
-  | 'class'
-  | 'enum'
-  | 'namespace'
+export type DeclarationKind = 'interface' | 'type' | 'function' | 'variable' | 'class' | 'enum' | 'namespace';
 ```

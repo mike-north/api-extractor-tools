@@ -11,9 +11,7 @@ This function: 1. Loads the existing .api.json file 2. For each extracted module
 **Signature:**
 
 ```typescript
-export declare function augmentDocModel(
-  options: DocModelAugmentOptions,
-): DocModelAugmentResult
+export declare function augmentDocModel(options: DocModelAugmentOptions): DocModelAugmentResult;
 ```
 
 ## Parameters
@@ -22,26 +20,32 @@ export declare function augmentDocModel(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
+
 </td><td>
 
 [DocModelAugmentOptions](./module-declaration-merger.docmodelaugmentoptions.md)
 
+
 </td><td>
 
 Augmentation options
+
 
 </td></tr>
 </tbody></table>
@@ -51,3 +55,4 @@ Augmentation options
 [DocModelAugmentResult](./module-declaration-merger.docmodelaugmentresult.md)
 
 Result of the augmentation
+

@@ -9,5 +9,5 @@ The name of the declaration (e.g., interface name, type name)
 **Signature:**
 
 ```typescript
-name: string
+name: string;
 ```

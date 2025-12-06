@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-newFile: string
+newFile: string;
 ```

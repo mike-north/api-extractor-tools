@@ -9,10 +9,7 @@ Returns the rollup paths that a declaration with a given maturity level should b
 **Signature:**
 
 ```typescript
-export declare function getRollupPathsForMaturity(
-  maturityLevel: MaturityLevel,
-  rollupPaths: RollupPaths,
-): string[]
+export declare function getRollupPathsForMaturity(maturityLevel: MaturityLevel, rollupPaths: RollupPaths): string[];
 ```
 
 ## Parameters
@@ -21,39 +18,48 @@ export declare function getRollupPathsForMaturity(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 maturityLevel
 
+
 </td><td>
 
 [MaturityLevel](./module-declaration-merger.maturitylevel.md)
 
+
 </td><td>
 
 The maturity level of the declaration
+
 
 </td></tr>
 <tr><td>
 
 rollupPaths
 
+
 </td><td>
 
 [RollupPaths](./module-declaration-merger.rolluppaths.md)
 
+
 </td><td>
 
 Available rollup paths from config
+
 
 </td></tr>
 </tbody></table>
@@ -63,3 +69,4 @@ Available rollup paths from config
 string\[\]
 
 Array of rollup file paths to add the declaration to
+

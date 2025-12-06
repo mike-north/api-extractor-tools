@@ -9,5 +9,5 @@ The source file path this augmentation came from
 **Signature:**
 
 ```typescript
-sourceFilePath: string
+sourceFilePath: string;
 ```

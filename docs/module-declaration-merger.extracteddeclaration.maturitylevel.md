@@ -9,5 +9,5 @@ The maturity level determined from TSDoc tags (`\@public`<!-- -->, `\@beta`<!-- 
 **Signature:**
 
 ```typescript
-maturityLevel: MaturityLevel
+maturityLevel: MaturityLevel;
 ```

@@ -9,5 +9,5 @@ Human-readable type signature
 **Signature:**
 
 ```typescript
-signature: string
+signature: string;
 ```

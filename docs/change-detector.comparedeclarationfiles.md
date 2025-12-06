@@ -9,10 +9,7 @@ Compares two parsed declaration files and detects all changes.
 **Signature:**
 
 ```typescript
-export declare function compareDeclarationFiles(
-  oldParsed: ParseResultWithTypes,
-  newParsed: ParseResultWithTypes,
-): CompareResult
+export declare function compareDeclarationFiles(oldParsed: ParseResultWithTypes, newParsed: ParseResultWithTypes): CompareResult;
 ```
 
 ## Parameters
@@ -21,35 +18,44 @@ export declare function compareDeclarationFiles(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 oldParsed
 
+
 </td><td>
 
 ParseResultWithTypes
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 newParsed
 
+
 </td><td>
 
 ParseResultWithTypes
 
+
 </td><td>
+
 
 </td></tr>
 </tbody></table>
@@ -57,3 +63,4 @@ ParseResultWithTypes
 **Returns:**
 
 [CompareResult](./change-detector.compareresult.md)
+

@@ -9,12 +9,7 @@ Gets the content that would be appended to a rollup file (for preview/dry-run)
 **Signature:**
 
 ```typescript
-export declare function getAugmentationPreview(
-  augmentations: ExtractedModuleAugmentation[],
-  rollupPaths: RollupPaths,
-  resolver: Resolver,
-  targetRollup: string,
-): string | null
+export declare function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): string | null;
 ```
 
 ## Parameters
@@ -23,57 +18,72 @@ export declare function getAugmentationPreview(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 augmentations
 
+
 </td><td>
 
 [ExtractedModuleAugmentation](./module-declaration-merger.extractedmoduleaugmentation.md)<!-- -->\[\]
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 rollupPaths
 
+
 </td><td>
 
 [RollupPaths](./module-declaration-merger.rolluppaths.md)
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 resolver
 
+
 </td><td>
 
 [Resolver](./module-declaration-merger.resolver.md)
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 targetRollup
 
+
 </td><td>
 
 string
 
+
 </td><td>
+
 
 </td></tr>
 </tbody></table>
@@ -81,3 +91,4 @@ string
 **Returns:**
 
 string \| null
+

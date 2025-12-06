@@ -9,5 +9,5 @@ Configuration for handling missing release tags
 **Signature:**
 
 ```typescript
-missingReleaseTagConfig: MissingReleaseTagConfig
+missingReleaseTagConfig: MissingReleaseTagConfig;
 ```

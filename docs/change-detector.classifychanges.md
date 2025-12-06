@@ -9,11 +9,7 @@ Classifies a set of changes and computes the overall release type.
 **Signature:**
 
 ```typescript
-export declare function classifyChanges(
-  changes: Change[],
-  totalSymbolsOld: number,
-  totalSymbolsNew: number,
-): ClassificationResult
+export declare function classifyChanges(changes: Change[], totalSymbolsOld: number, totalSymbolsNew: number): ClassificationResult;
 ```
 
 ## Parameters
@@ -22,46 +18,58 @@ export declare function classifyChanges(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 changes
 
+
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 totalSymbolsOld
 
+
 </td><td>
 
 number
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 totalSymbolsNew
 
+
 </td><td>
 
 number
 
+
 </td><td>
+
 
 </td></tr>
 </tbody></table>
@@ -69,3 +77,4 @@ number
 **Returns:**
 
 [ClassificationResult](./change-detector.classificationresult.md)
+

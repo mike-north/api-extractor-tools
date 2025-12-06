@@ -9,7 +9,7 @@ Options for extracting module augmentations
 **Signature:**
 
 ```typescript
-export interface ExtractOptions
+export interface ExtractOptions 
 ```
 
 ## Properties
@@ -18,62 +18,79 @@ export interface ExtractOptions
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [exclude?](./module-declaration-merger.extractoptions.exclude.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
-_(Optional)_ Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
+_(Optional)_ Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node\_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
+
 
 </td></tr>
 <tr><td>
 
 [include?](./module-declaration-merger.extractoptions.include.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 _(Optional)_ Glob patterns for source files to include (default: \['\*\*<!-- -->/<!-- -->\*.ts', '\*\*<!-- -->/<!-- -->\*.tsx'\])
+
 
 </td></tr>
 <tr><td>
 
 [projectFolder](./module-declaration-merger.extractoptions.projectfolder.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 The project folder to search for source files
 
+
 </td></tr>
 </tbody></table>
+

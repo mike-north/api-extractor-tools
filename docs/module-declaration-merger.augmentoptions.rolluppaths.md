@@ -9,5 +9,5 @@ Rollup paths from config
 **Signature:**
 
 ```typescript
-rollupPaths: RollupPaths
+rollupPaths: RollupPaths;
 ```

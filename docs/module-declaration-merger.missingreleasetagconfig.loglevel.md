@@ -9,5 +9,5 @@ The log level for missing release tag messages. - "error": Treat as an error - "
 **Signature:**
 
 ```typescript
-logLevel: ExtractorLogLevel
+logLevel: ExtractorLogLevel;
 ```

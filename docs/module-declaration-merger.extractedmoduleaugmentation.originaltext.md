@@ -9,5 +9,5 @@ The original full text of the declare module block (for reference)
 **Signature:**
 
 ```typescript
-originalText: string
+originalText: string;
 ```

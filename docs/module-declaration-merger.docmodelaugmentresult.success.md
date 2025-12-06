@@ -9,5 +9,5 @@ Whether the doc model was successfully augmented
 **Signature:**
 
 ```typescript
-success: boolean
+success: boolean;
 ```

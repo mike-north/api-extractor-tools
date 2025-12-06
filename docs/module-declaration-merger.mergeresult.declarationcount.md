@@ -9,5 +9,5 @@ Number of individual declarations processed
 **Signature:**
 
 ```typescript
-declarationCount: number
+declarationCount: number;
 ```

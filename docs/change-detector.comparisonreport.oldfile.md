@@ -9,5 +9,5 @@ Path to the old declaration file
 **Signature:**
 
 ```typescript
-oldFile: string
+oldFile: string;
 ```

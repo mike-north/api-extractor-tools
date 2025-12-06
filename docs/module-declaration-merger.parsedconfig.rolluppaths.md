@@ -9,5 +9,5 @@ Absolute paths to rollup files by maturity level
 **Signature:**
 
 ```typescript
-rollupPaths: RollupPaths
+rollupPaths: RollupPaths;
 ```

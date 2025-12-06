@@ -9,7 +9,7 @@ Configuration for how to handle missing release tags (ae-missing-release-tag)
 **Signature:**
 
 ```typescript
-export interface MissingReleaseTagConfig
+export interface MissingReleaseTagConfig 
 ```
 
 ## Properties
@@ -18,47 +18,60 @@ export interface MissingReleaseTagConfig
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [addToApiReportFile](./module-declaration-merger.missingreleasetagconfig.addtoapireportfile.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 If true, add the message as a comment in the rollup file. If false, print to console (and stop processing if logLevel is "error").
+
 
 </td></tr>
 <tr><td>
 
 [logLevel](./module-declaration-merger.missingreleasetagconfig.loglevel.md)
 
+
 </td><td>
+
 
 </td><td>
 
 ExtractorLogLevel
 
+
 </td><td>
 
 The log level for missing release tag messages. - "error": Treat as an error - "warning": Treat as a warning - "none": Silently ignore (treat as `\@public`<!-- -->)
 
+
 </td></tr>
 </tbody></table>
+

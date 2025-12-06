@@ -9,5 +9,5 @@ The module specifier from `declare module "..."`
 **Signature:**
 
 ```typescript
-moduleSpecifier: string
+moduleSpecifier: string;
 ```

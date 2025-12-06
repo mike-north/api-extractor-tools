@@ -9,5 +9,5 @@ The kind of declaration
 **Signature:**
 
 ```typescript
-kind: DeclarationKind
+kind: DeclarationKind;
 ```

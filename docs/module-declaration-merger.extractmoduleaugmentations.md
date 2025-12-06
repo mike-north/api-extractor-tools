@@ -9,9 +9,7 @@ Extracts all module augmentations from TypeScript source files in a project
 **Signature:**
 
 ```typescript
-export declare function extractModuleAugmentations(
-  options: ExtractOptions,
-): Promise<ExtractionResult>
+export declare function extractModuleAugmentations(options: ExtractOptions): Promise<ExtractionResult>;
 ```
 
 ## Parameters
@@ -20,26 +18,32 @@ export declare function extractModuleAugmentations(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
+
 </td><td>
 
 [ExtractOptions](./module-declaration-merger.extractoptions.md)
 
+
 </td><td>
 
 Extraction options
+
 
 </td></tr>
 </tbody></table>
@@ -49,3 +53,4 @@ Extraction options
 Promise&lt;[ExtractionResult](./module-declaration-merger.extractionresult.md)<!-- -->&gt;
 
 Extraction result with all augmentations and any errors
+

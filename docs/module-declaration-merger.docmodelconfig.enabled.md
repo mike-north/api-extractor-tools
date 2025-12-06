@@ -9,5 +9,5 @@ Whether doc model generation is enabled
 **Signature:**
 
 ```typescript
-enabled: boolean
+enabled: boolean;
 ```

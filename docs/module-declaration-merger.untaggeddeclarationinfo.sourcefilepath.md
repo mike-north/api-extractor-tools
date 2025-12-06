@@ -9,5 +9,5 @@ The source file path
 **Signature:**
 
 ```typescript
-sourceFilePath: string
+sourceFilePath: string;
 ```

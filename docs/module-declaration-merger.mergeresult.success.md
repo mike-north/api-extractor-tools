@@ -9,5 +9,5 @@ Whether the merge completed successfully (no errors, or errors only added to rep
 **Signature:**
 
 ```typescript
-success: boolean
+success: boolean;
 ```

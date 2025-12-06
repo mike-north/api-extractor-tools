@@ -9,9 +9,7 @@ Converts the report to a plain JSON-serializable object.
 **Signature:**
 
 ```typescript
-export declare function reportToJSON(
-  report: ComparisonReport,
-): ComparisonReportJSON
+export declare function reportToJSON(report: ComparisonReport): ComparisonReportJSON;
 ```
 
 ## Parameters
@@ -20,24 +18,30 @@ export declare function reportToJSON(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 report
 
+
 </td><td>
 
 [ComparisonReport](./change-detector.comparisonreport.md)
 
+
 </td><td>
+
 
 </td></tr>
 </tbody></table>
@@ -45,3 +49,4 @@ report
 **Returns:**
 
 [ComparisonReportJSON](./change-detector.comparisonreportjson.md)
+

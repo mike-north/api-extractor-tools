@@ -9,5 +9,5 @@ Type for the resolver returned by createResolver
 **Signature:**
 
 ```typescript
-export type Resolver = ReturnType<typeof createResolver>
+export type Resolver = ReturnType<typeof createResolver>;
 ```

@@ -9,5 +9,5 @@ The project folder to search for source files
 **Signature:**
 
 ```typescript
-projectFolder: string
+projectFolder: string;
 ```

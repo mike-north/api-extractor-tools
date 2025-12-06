@@ -9,5 +9,5 @@ Map of symbol name to exported symbol info
 **Signature:**
 
 ```typescript
-symbols: Map<string, ExportedSymbol>
+symbols: Map<string, ExportedSymbol>;
 ```

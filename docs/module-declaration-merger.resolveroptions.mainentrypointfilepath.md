@@ -9,5 +9,5 @@ The main entry point file path (used to determine module base)
 **Signature:**
 
 ```typescript
-mainEntryPointFilePath: string
+mainEntryPointFilePath: string;
 ```

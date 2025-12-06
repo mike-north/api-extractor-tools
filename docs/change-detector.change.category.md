@@ -9,5 +9,5 @@ What kind of change occurred
 **Signature:**
 
 ```typescript
-category: ChangeCategory
+category: ChangeCategory;
 ```

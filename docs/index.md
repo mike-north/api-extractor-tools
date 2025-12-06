@@ -10,27 +10,34 @@
 
 Package
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [@api-extractor-tools/change-detector](./change-detector.md)
 
+
 </td><td>
 
 A library for detecting and classifying changes between TypeScript declaration files.
+
 
 </td></tr>
 <tr><td>
 
 [@api-extractor-tools/module-declaration-merger](./module-declaration-merger.md)
 
+
 </td><td>
 
 A library for merging ambient module declarations into API Extractor rollup files.
 
+
 </td></tr>
 </tbody></table>
+

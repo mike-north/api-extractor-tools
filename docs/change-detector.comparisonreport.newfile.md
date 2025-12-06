@@ -9,5 +9,5 @@ Path to the new declaration file
 **Signature:**
 
 ```typescript
-newFile: string
+newFile: string;
 ```

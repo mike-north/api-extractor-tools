@@ -9,5 +9,5 @@ Semver impact of this change
 **Signature:**
 
 ```typescript
-releaseType: ReleaseType
+releaseType: ReleaseType;
 ```

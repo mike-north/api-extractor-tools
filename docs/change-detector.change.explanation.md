@@ -9,5 +9,5 @@ Human-readable explanation of the change
 **Signature:**
 
 ```typescript
-explanation: string
+explanation: string;
 ```

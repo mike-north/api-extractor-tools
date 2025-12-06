@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-changes: ChangesByImpact
+changes: ChangesByImpact;
 ```

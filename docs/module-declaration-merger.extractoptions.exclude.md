@@ -4,7 +4,7 @@
 
 ## ExtractOptions.exclude property
 
-Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
+Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node\_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
 
 **Signature:**
 

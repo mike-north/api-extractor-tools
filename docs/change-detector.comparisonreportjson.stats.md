@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-stats: ComparisonStats
+stats: ComparisonStats;
 ```

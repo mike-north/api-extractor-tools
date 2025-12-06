@@ -9,5 +9,5 @@ Total number of symbols in the new declaration file
 **Signature:**
 
 ```typescript
-totalSymbolsNew: number
+totalSymbolsNew: number;
 ```

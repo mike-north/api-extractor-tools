@@ -9,7 +9,7 @@ Changes grouped by their semver impact.
 **Signature:**
 
 ```typescript
-export interface ChangesByImpact
+export interface ChangesByImpact 
 ```
 
 ## Properties
@@ -18,62 +18,79 @@ export interface ChangesByImpact
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [breaking](./change-detector.changesbyimpact.breaking.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
+
 </td><td>
 
 Changes requiring a major version bump (breaking changes)
+
 
 </td></tr>
 <tr><td>
 
 [nonBreaking](./change-detector.changesbyimpact.nonbreaking.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
+
 </td><td>
 
 Changes requiring a minor version bump (additions/compatible changes)
+
 
 </td></tr>
 <tr><td>
 
 [unchanged](./change-detector.changesbyimpact.unchanged.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
+
 </td><td>
 
 Changes with no version impact (patch or none)
 
+
 </td></tr>
 </tbody></table>
+

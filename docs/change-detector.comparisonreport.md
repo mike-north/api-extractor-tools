@@ -9,7 +9,7 @@ The complete comparison report.
 **Signature:**
 
 ```typescript
-export interface ComparisonReport
+export interface ComparisonReport 
 ```
 
 ## Properties
@@ -18,92 +18,117 @@ export interface ComparisonReport
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changes](./change-detector.comparisonreport.changes.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ChangesByImpact](./change-detector.changesbyimpact.md)
 
+
 </td><td>
 
 All changes grouped by impact
+
 
 </td></tr>
 <tr><td>
 
 [newFile](./change-detector.comparisonreport.newfile.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 Path to the new declaration file
+
 
 </td></tr>
 <tr><td>
 
 [oldFile](./change-detector.comparisonreport.oldfile.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 Path to the old declaration file
+
 
 </td></tr>
 <tr><td>
 
 [releaseType](./change-detector.comparisonreport.releasetype.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ReleaseType](./change-detector.releasetype.md)
 
+
 </td><td>
 
 Overall release type classification based on all changes
+
 
 </td></tr>
 <tr><td>
 
 [stats](./change-detector.comparisonreport.stats.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ComparisonStats](./change-detector.comparisonstats.md)
 
+
 </td><td>
 
 Numeric statistics about the comparison
 
+
 </td></tr>
 </tbody></table>
+

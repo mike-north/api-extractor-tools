@@ -9,5 +9,5 @@ Number of module augmentations found
 **Signature:**
 
 ```typescript
-augmentationCount: number
+augmentationCount: number;
 ```

@@ -9,7 +9,7 @@ A detected change between old and new API.
 **Signature:**
 
 ```typescript
-export interface Change
+export interface Change 
 ```
 
 ## Properties
@@ -18,122 +18,155 @@ export interface Change
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [after?](./change-detector.change.after.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 _(Optional)_ New signature (for modified/added symbols)
+
 
 </td></tr>
 <tr><td>
 
 [before?](./change-detector.change.before.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 _(Optional)_ Old signature (for modified/removed symbols)
+
 
 </td></tr>
 <tr><td>
 
 [category](./change-detector.change.category.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ChangeCategory](./change-detector.changecategory.md)
 
+
 </td><td>
 
 What kind of change occurred
+
 
 </td></tr>
 <tr><td>
 
 [explanation](./change-detector.change.explanation.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 Human-readable explanation of the change
+
 
 </td></tr>
 <tr><td>
 
 [releaseType](./change-detector.change.releasetype.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ReleaseType](./change-detector.releasetype.md)
 
+
 </td><td>
 
 Semver impact of this change
+
 
 </td></tr>
 <tr><td>
 
 [symbolKind](./change-detector.change.symbolkind.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [SymbolKind](./change-detector.symbolkind.md)
 
+
 </td><td>
 
 The kind of symbol
+
 
 </td></tr>
 <tr><td>
 
 [symbolName](./change-detector.change.symbolname.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 The name of the symbol that changed
 
+
 </td></tr>
 </tbody></table>
+

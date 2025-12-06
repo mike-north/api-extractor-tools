@@ -9,7 +9,7 @@ Result of merging module declarations
 **Signature:**
 
 ```typescript
-export interface MergeResult
+export interface MergeResult 
 ```
 
 ## Properties
@@ -18,152 +18,193 @@ export interface MergeResult
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [augmentationCount](./module-declaration-merger.mergeresult.augmentationcount.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 Number of module augmentations found
+
 
 </td></tr>
 <tr><td>
 
 [augmentedFiles](./module-declaration-merger.mergeresult.augmentedfiles.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 Rollup files that were successfully augmented
+
 
 </td></tr>
 <tr><td>
 
 [declarationCount](./module-declaration-merger.mergeresult.declarationcount.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 Number of individual declarations processed
+
 
 </td></tr>
 <tr><td>
 
 [docModelAugmented](./module-declaration-merger.mergeresult.docmodelaugmented.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 Whether the doc model (.api.json) was augmented
+
 
 </td></tr>
 <tr><td>
 
 [errors](./module-declaration-merger.mergeresult.errors.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 Errors encountered during processing
+
 
 </td></tr>
 <tr><td>
 
 [skippedFiles](./module-declaration-merger.mergeresult.skippedfiles.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 Rollup files that were skipped (didn't exist)
+
 
 </td></tr>
 <tr><td>
 
 [success](./module-declaration-merger.mergeresult.success.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 Whether the merge completed successfully (no errors, or errors only added to report)
+
 
 </td></tr>
 <tr><td>
 
 [untaggedDeclarationCount](./module-declaration-merger.mergeresult.untaggeddeclarationcount.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 Number of untagged declarations (missing release tags)
+
 
 </td></tr>
 <tr><td>
 
 [warnings](./module-declaration-merger.mergeresult.warnings.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 Warnings encountered during processing
 
+
 </td></tr>
 </tbody></table>
+

@@ -9,5 +9,5 @@ Statistics about the changes
 **Signature:**
 
 ```typescript
-stats: ComparisonStats
+stats: ComparisonStats;
 ```

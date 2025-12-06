@@ -9,5 +9,5 @@ Number of symbols unchanged
 **Signature:**
 
 ```typescript
-unchanged: number
+unchanged: number;
 ```

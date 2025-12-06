@@ -9,5 +9,5 @@ The project folder (root of the source files)
 **Signature:**
 
 ```typescript
-projectFolder: string
+projectFolder: string;
 ```

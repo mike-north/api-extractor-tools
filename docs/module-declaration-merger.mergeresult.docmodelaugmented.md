@@ -9,5 +9,5 @@ Whether the doc model (.api.json) was augmented
 **Signature:**
 
 ```typescript
-docModelAugmented: boolean
+docModelAugmented: boolean;
 ```

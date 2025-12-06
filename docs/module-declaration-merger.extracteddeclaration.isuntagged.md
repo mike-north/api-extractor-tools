@@ -9,5 +9,5 @@ True if no release tag was found (defaulted to public)
 **Signature:**
 
 ```typescript
-isUntagged: boolean
+isUntagged: boolean;
 ```

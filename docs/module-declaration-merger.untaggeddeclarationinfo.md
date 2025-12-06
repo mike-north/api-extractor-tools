@@ -9,7 +9,7 @@ Info about an untagged declaration (missing release tag)
 **Signature:**
 
 ```typescript
-export interface UntaggedDeclarationInfo
+export interface UntaggedDeclarationInfo 
 ```
 
 ## Properties
@@ -18,77 +18,98 @@ export interface UntaggedDeclarationInfo
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [kind](./module-declaration-merger.untaggeddeclarationinfo.kind.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [DeclarationKind](./module-declaration-merger.declarationkind.md)
 
+
 </td><td>
 
 The kind of declaration
+
 
 </td></tr>
 <tr><td>
 
 [moduleSpecifier](./module-declaration-merger.untaggeddeclarationinfo.modulespecifier.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 The module specifier it was found in
+
 
 </td></tr>
 <tr><td>
 
 [name](./module-declaration-merger.untaggeddeclarationinfo.name.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 The declaration name
+
 
 </td></tr>
 <tr><td>
 
 [sourceFilePath](./module-declaration-merger.untaggeddeclarationinfo.sourcefilepath.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 The source file path
 
+
 </td></tr>
 </tbody></table>
+

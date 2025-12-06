@@ -9,7 +9,7 @@ Result of comparing two declaration files.
 **Signature:**
 
 ```typescript
-export interface CompareResult
+export interface CompareResult 
 ```
 
 ## Properties
@@ -18,47 +18,60 @@ export interface CompareResult
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changes](./change-detector.compareresult.changes.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
+
 </td><td>
 
 All detected changes
+
 
 </td></tr>
 <tr><td>
 
 [errors](./change-detector.compareresult.errors.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 Errors encountered during comparison
 
+
 </td></tr>
 </tbody></table>
+
