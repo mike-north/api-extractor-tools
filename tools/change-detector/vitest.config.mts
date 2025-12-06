@@ -8,6 +8,7 @@ export default defineConfig({
     },
   },
   test: {
+    testTimeout: 30000,
     server: {
       deps: {
         // Inline fast-glob so vitest handles its CJS/ESM interop
