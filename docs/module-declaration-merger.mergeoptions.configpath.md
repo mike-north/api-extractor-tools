@@ -9,5 +9,5 @@ Path to the api-extractor.json config file
 **Signature:**
 
 ```typescript
-configPath: string;
+configPath: string
 ```

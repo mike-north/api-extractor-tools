@@ -9,5 +9,5 @@ Number of symbols added
 **Signature:**
 
 ```typescript
-added: number;
+added: number
 ```

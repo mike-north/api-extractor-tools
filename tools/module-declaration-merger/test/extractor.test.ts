@@ -91,6 +91,3 @@ declare module "../registry" {
     expect(declarations?.[2]?.maturityLevel).toBe('beta')
   })
 })
-
-
-

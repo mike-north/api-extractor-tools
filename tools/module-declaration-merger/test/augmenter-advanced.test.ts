@@ -243,7 +243,9 @@ describe('augmenter advanced scenarios', () => {
       )
 
       // Single source file region
-      const regionMatches = content.match(/Module augmentation from src\/things\.ts/g)
+      const regionMatches = content.match(
+        /Module augmentation from src\/things\.ts/g,
+      )
       expect(regionMatches).toHaveLength(1)
 
       // Both declarations inside single module block
@@ -813,7 +815,12 @@ export type PublicType = string;
         resolver,
       })
 
-      for (const file of ['public.d.ts', 'beta.d.ts', 'alpha.d.ts', 'internal.d.ts']) {
+      for (const file of [
+        'public.d.ts',
+        'beta.d.ts',
+        'alpha.d.ts',
+        'internal.d.ts',
+      ]) {
         const content = fs.readFileSync(
           path.join(project.baseDir, 'dist', file),
           'utf-8',
@@ -972,4 +979,3 @@ export type PublicType = string;
     })
   })
 })
-

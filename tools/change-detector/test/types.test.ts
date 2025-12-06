@@ -526,7 +526,3 @@ describe('type alias changes', () => {
     })
   })
 })
-
-
-
-

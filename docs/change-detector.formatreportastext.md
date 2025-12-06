@@ -9,7 +9,7 @@ Formats the comparison report as plain text.
 **Signature:**
 
 ```typescript
-export declare function formatReportAsText(report: ComparisonReport): string;
+export declare function formatReportAsText(report: ComparisonReport): string
 ```
 
 ## Parameters
@@ -18,30 +18,24 @@ export declare function formatReportAsText(report: ComparisonReport): string;
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 report
 
-
 </td><td>
 
 [ComparisonReport](./change-detector.comparisonreport.md)
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -49,4 +43,3 @@ report
 **Returns:**
 
 string
-

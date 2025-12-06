@@ -9,5 +9,5 @@ Absolute path to the main entry point file
 **Signature:**
 
 ```typescript
-mainEntryPointFilePath: string;
+mainEntryPointFilePath: string
 ```

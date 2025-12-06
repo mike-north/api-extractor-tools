@@ -219,6 +219,3 @@ declare module "./registry" {
     expect(kinds).toContain('namespace')
   })
 })
-
-
-

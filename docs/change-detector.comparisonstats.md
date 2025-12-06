@@ -9,7 +9,7 @@ Statistics about the comparison.
 **Signature:**
 
 ```typescript
-export interface ComparisonStats 
+export interface ComparisonStats
 ```
 
 ## Properties
@@ -18,136 +18,107 @@ export interface ComparisonStats
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [added](./change-detector.comparisonstats.added.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Number of symbols added
-
 
 </td></tr>
 <tr><td>
 
 [modified](./change-detector.comparisonstats.modified.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Number of symbols modified
-
 
 </td></tr>
 <tr><td>
 
 [removed](./change-detector.comparisonstats.removed.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Number of symbols removed
-
 
 </td></tr>
 <tr><td>
 
 [totalSymbolsNew](./change-detector.comparisonstats.totalsymbolsnew.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Total number of symbols in the new declaration file
-
 
 </td></tr>
 <tr><td>
 
 [totalSymbolsOld](./change-detector.comparisonstats.totalsymbolsold.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Total number of symbols in the old declaration file
-
 
 </td></tr>
 <tr><td>
 
 [unchanged](./change-detector.comparisonstats.unchanged.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Number of symbols unchanged
 
-
 </td></tr>
 </tbody></table>
-

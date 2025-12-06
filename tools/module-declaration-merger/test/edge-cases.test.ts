@@ -206,6 +206,3 @@ const x = 1;
     expect(result.augmentations).toHaveLength(0)
   })
 })
-
-
-

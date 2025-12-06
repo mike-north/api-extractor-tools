@@ -9,5 +9,5 @@ The kind of symbol (function, class, interface, etc.)
 **Signature:**
 
 ```typescript
-kind: SymbolKind;
+kind: SymbolKind
 ```

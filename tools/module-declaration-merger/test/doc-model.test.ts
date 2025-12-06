@@ -228,6 +228,3 @@ declare module "./registry" {
     })
   })
 })
-
-
-

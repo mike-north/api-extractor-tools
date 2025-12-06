@@ -9,7 +9,7 @@ Result of augmenting rollup files
 **Signature:**
 
 ```typescript
-export interface AugmentResult 
+export interface AugmentResult
 ```
 
 ## Properties
@@ -18,117 +18,92 @@ export interface AugmentResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [augmentedFiles](./module-declaration-merger.augmentresult.augmentedfiles.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 Rollup files that were successfully augmented
-
 
 </td></tr>
 <tr><td>
 
 [errors](./module-declaration-merger.augmentresult.errors.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 Errors encountered during augmentation
-
 
 </td></tr>
 <tr><td>
 
 [shouldStop](./module-declaration-merger.augmentresult.shouldstop.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 Whether processing should stop due to blocking errors
-
 
 </td></tr>
 <tr><td>
 
 [skippedFiles](./module-declaration-merger.augmentresult.skippedfiles.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 Rollup files that were skipped (didn't exist)
-
 
 </td></tr>
 <tr><td>
 
 [warnings](./module-declaration-merger.augmentresult.warnings.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 Warnings encountered during augmentation
 
-
 </td></tr>
 </tbody></table>
-

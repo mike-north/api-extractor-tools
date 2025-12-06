@@ -9,5 +9,5 @@ Absolute path to the api-extractor.json file
 **Signature:**
 
 ```typescript
-configPath: string;
+configPath: string
 ```

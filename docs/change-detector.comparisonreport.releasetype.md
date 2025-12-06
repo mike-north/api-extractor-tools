@@ -9,5 +9,5 @@ Overall release type classification based on all changes
 **Signature:**
 
 ```typescript
-releaseType: ReleaseType;
+releaseType: ReleaseType
 ```

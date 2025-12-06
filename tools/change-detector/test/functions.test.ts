@@ -84,7 +84,9 @@ describe('function signature changes', () => {
 
       expect(report.releaseType).toBe('minor')
       expect(report.changes.nonBreaking).toHaveLength(1)
-      expect(report.changes.nonBreaking[0]?.category).toBe('param-added-optional')
+      expect(report.changes.nonBreaking[0]?.category).toBe(
+        'param-added-optional',
+      )
     })
   })
 
@@ -319,7 +321,3 @@ export declare function parse(input: string): object;
     })
   })
 })
-
-
-
-

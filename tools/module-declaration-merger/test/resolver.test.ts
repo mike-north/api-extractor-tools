@@ -143,6 +143,3 @@ describe('createResolver', () => {
     ).toBe('@scope/package/sub')
   })
 })
-
-
-

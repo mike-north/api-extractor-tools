@@ -9,7 +9,7 @@ Result of augmenting the doc model
 **Signature:**
 
 ```typescript
-export interface DocModelAugmentResult 
+export interface DocModelAugmentResult
 ```
 
 ## Properties
@@ -18,117 +18,92 @@ export interface DocModelAugmentResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiJsonFilePath](./module-declaration-merger.docmodelaugmentresult.apijsonfilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 Path to the augmented .api.json file
-
 
 </td></tr>
 <tr><td>
 
 [declarationsAdded](./module-declaration-merger.docmodelaugmentresult.declarationsadded.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 Number of declarations added to the doc model
-
 
 </td></tr>
 <tr><td>
 
 [errors](./module-declaration-merger.docmodelaugmentresult.errors.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 Errors encountered during augmentation
-
 
 </td></tr>
 <tr><td>
 
 [success](./module-declaration-merger.docmodelaugmentresult.success.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 Whether the doc model was successfully augmented
-
 
 </td></tr>
 <tr><td>
 
 [warnings](./module-declaration-merger.docmodelaugmentresult.warnings.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 Warnings encountered during augmentation
 
-
 </td></tr>
 </tbody></table>
-

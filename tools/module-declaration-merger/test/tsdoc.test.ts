@@ -164,6 +164,3 @@ declare module "./registry" {
     expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(false)
   })
 })
-
-
-

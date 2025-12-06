@@ -9,5 +9,5 @@ Absolute path to the project folder
 **Signature:**
 
 ```typescript
-projectFolder: string;
+projectFolder: string
 ```

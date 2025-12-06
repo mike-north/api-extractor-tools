@@ -9,5 +9,5 @@ The declaration name
 **Signature:**
 
 ```typescript
-name: string;
+name: string
 ```

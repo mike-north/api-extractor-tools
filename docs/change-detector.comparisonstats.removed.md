@@ -9,5 +9,5 @@ Number of symbols removed
 **Signature:**
 
 ```typescript
-removed: number;
+removed: number
 ```

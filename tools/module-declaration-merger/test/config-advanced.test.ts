@@ -451,7 +451,9 @@ describe('package name edge cases', () => {
 
     const config = parseConfig(path.join(project.baseDir, 'api-extractor.json'))
 
-    expect(config.docModel?.apiJsonFilePath).toContain('simple-package.api.json')
+    expect(config.docModel?.apiJsonFilePath).toContain(
+      'simple-package.api.json',
+    )
   })
 
   it('handles package.json with no name field', async () => {
@@ -589,7 +591,9 @@ describe('missing release tag config parsing', () => {
 
     const config = parseConfig(path.join(project.baseDir, 'api-extractor.json'))
 
-    expect(config.missingReleaseTagConfig.logLevel).toBe(ExtractorLogLevel.Error)
+    expect(config.missingReleaseTagConfig.logLevel).toBe(
+      ExtractorLogLevel.Error,
+    )
     expect(config.missingReleaseTagConfig.addToApiReportFile).toBe(false)
   })
 
@@ -631,4 +635,3 @@ describe('missing release tag config parsing', () => {
     expect(config.missingReleaseTagConfig.addToApiReportFile).toBe(false)
   })
 })
-

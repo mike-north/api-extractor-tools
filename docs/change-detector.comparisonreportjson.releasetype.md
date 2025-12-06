@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-releaseType: ReleaseType;
+releaseType: ReleaseType
 ```

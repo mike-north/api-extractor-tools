@@ -9,5 +9,5 @@ Path to the .api.json file
 **Signature:**
 
 ```typescript
-apiJsonFilePath: string;
+apiJsonFilePath: string
 ```

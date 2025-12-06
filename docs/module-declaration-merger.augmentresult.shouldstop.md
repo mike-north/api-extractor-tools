@@ -9,5 +9,5 @@ Whether processing should stop due to blocking errors
 **Signature:**
 
 ```typescript
-shouldStop: boolean;
+shouldStop: boolean
 ```

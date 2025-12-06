@@ -21,8 +21,12 @@ describe('resolver edge cases', () => {
         mainEntryPointFilePath: '/project/src/index.ts',
       })
 
-      expect(resolver.resolveModulePath('lodash', 'src/utils.ts')).toBe('lodash')
-      expect(resolver.resolveModulePath('react', 'src/components/Button.tsx')).toBe('react')
+      expect(resolver.resolveModulePath('lodash', 'src/utils.ts')).toBe(
+        'lodash',
+      )
+      expect(
+        resolver.resolveModulePath('react', 'src/components/Button.tsx'),
+      ).toBe('react')
     })
 
     it('preserves package subpath imports', () => {
@@ -31,8 +35,12 @@ describe('resolver edge cases', () => {
         mainEntryPointFilePath: '/project/src/index.ts',
       })
 
-      expect(resolver.resolveModulePath('lodash/fp', 'src/utils.ts')).toBe('lodash/fp')
-      expect(resolver.resolveModulePath('react-dom/client', 'src/app.tsx')).toBe('react-dom/client')
+      expect(resolver.resolveModulePath('lodash/fp', 'src/utils.ts')).toBe(
+        'lodash/fp',
+      )
+      expect(
+        resolver.resolveModulePath('react-dom/client', 'src/app.tsx'),
+      ).toBe('react-dom/client')
     })
 
     it('preserves scoped package names', () => {
@@ -41,8 +49,12 @@ describe('resolver edge cases', () => {
         mainEntryPointFilePath: '/project/src/index.ts',
       })
 
-      expect(resolver.resolveModulePath('@types/node', 'src/server.ts')).toBe('@types/node')
-      expect(resolver.resolveModulePath('@microsoft/api-extractor', 'src/build.ts')).toBe('@microsoft/api-extractor')
+      expect(resolver.resolveModulePath('@types/node', 'src/server.ts')).toBe(
+        '@types/node',
+      )
+      expect(
+        resolver.resolveModulePath('@microsoft/api-extractor', 'src/build.ts'),
+      ).toBe('@microsoft/api-extractor')
     })
 
     it('preserves scoped package subpath imports', () => {
@@ -51,8 +63,12 @@ describe('resolver edge cases', () => {
         mainEntryPointFilePath: '/project/src/index.ts',
       })
 
-      expect(resolver.resolveModulePath('@scope/pkg/subpath', 'src/utils.ts')).toBe('@scope/pkg/subpath')
-      expect(resolver.resolveModulePath('@org/lib/deep/path', 'src/nested/file.ts')).toBe('@org/lib/deep/path')
+      expect(
+        resolver.resolveModulePath('@scope/pkg/subpath', 'src/utils.ts'),
+      ).toBe('@scope/pkg/subpath')
+      expect(
+        resolver.resolveModulePath('@org/lib/deep/path', 'src/nested/file.ts'),
+      ).toBe('@org/lib/deep/path')
     })
   })
 
@@ -177,10 +193,7 @@ describe('resolver edge cases', () => {
       })
 
       // From src/main.ts, "./utils" -> "./utils"
-      const resolved = resolver.resolveModulePath(
-        './utils',
-        'src/main.ts',
-      )
+      const resolved = resolver.resolveModulePath('./utils', 'src/main.ts')
       expect(resolved).toBe('./utils')
     })
   })
@@ -245,10 +258,7 @@ describe('resolver edge cases', () => {
       // From src/file.ts, "../utils" -> "./utils"
       // Wait, entry point is at root, so from src/file.ts going up should go above root
       // Actually "../utils" from src/file.ts would be at root level = ./utils
-      const resolved = resolver.resolveModulePath(
-        './utils',
-        'src/file.ts',
-      )
+      const resolved = resolver.resolveModulePath('./utils', 'src/file.ts')
       expect(resolved).toBe('./src/utils')
     })
 
@@ -266,7 +276,10 @@ describe('resolver edge cases', () => {
 
       const resolver = createResolver({
         projectFolder: project.baseDir,
-        mainEntryPointFilePath: path.join(project.baseDir, 'src/core/lib/index.ts'),
+        mainEntryPointFilePath: path.join(
+          project.baseDir,
+          'src/core/lib/index.ts',
+        ),
       })
 
       // From src/core/lib/utils/helper.ts, "../types" -> "./types"

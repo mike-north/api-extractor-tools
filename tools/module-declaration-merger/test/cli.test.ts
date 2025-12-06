@@ -444,7 +444,9 @@ declare module "./registry" {
       }
       await project.write()
 
-      const result = runCli(['--dry-run', '--verbose'], { cwd: project.baseDir })
+      const result = runCli(['--dry-run', '--verbose'], {
+        cwd: project.baseDir,
+      })
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('Would augment')
@@ -477,4 +479,3 @@ declare module "./registry" {
     })
   })
 })
-

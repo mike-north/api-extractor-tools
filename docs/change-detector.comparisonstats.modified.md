@@ -9,5 +9,5 @@ Number of symbols modified
 **Signature:**
 
 ```typescript
-modified: number;
+modified: number
 ```

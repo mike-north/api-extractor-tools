@@ -9,7 +9,7 @@ Options for comparing declarations.
 **Signature:**
 
 ```typescript
-export interface CompareOptions 
+export interface CompareOptions
 ```
 
 ## Properties
@@ -18,60 +18,47 @@ export interface CompareOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [newFile](./change-detector.compareoptions.newfile.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 Path to the new declaration file to compare against
-
 
 </td></tr>
 <tr><td>
 
 [oldFile](./change-detector.compareoptions.oldfile.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 Path to the old (baseline) declaration file
 
-
 </td></tr>
 </tbody></table>
-

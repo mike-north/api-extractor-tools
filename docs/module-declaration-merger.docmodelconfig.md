@@ -9,7 +9,7 @@ Configuration for the doc model (.api.json) output
 **Signature:**
 
 ```typescript
-export interface DocModelConfig 
+export interface DocModelConfig
 ```
 
 ## Properties
@@ -18,60 +18,47 @@ export interface DocModelConfig
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiJsonFilePath](./module-declaration-merger.docmodelconfig.apijsonfilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 Absolute path to the .api.json file
-
 
 </td></tr>
 <tr><td>
 
 [enabled](./module-declaration-merger.docmodelconfig.enabled.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 Whether doc model generation is enabled
 
-
 </td></tr>
 </tbody></table>
-

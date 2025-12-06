@@ -9,7 +9,7 @@ A module augmentation block extracted from a source file
 **Signature:**
 
 ```typescript
-export interface ExtractedModuleAugmentation 
+export interface ExtractedModuleAugmentation
 ```
 
 ## Properties
@@ -18,98 +18,77 @@ export interface ExtractedModuleAugmentation
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [declarations](./module-declaration-merger.extractedmoduleaugmentation.declarations.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ExtractedDeclaration](./module-declaration-merger.extracteddeclaration.md)<!-- -->\[\]
 
-
 </td><td>
 
 Individual declarations within this module block
-
 
 </td></tr>
 <tr><td>
 
 [moduleSpecifier](./module-declaration-merger.extractedmoduleaugmentation.modulespecifier.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 The module specifier from `declare module "..."`
-
 
 </td></tr>
 <tr><td>
 
 [originalText](./module-declaration-merger.extractedmoduleaugmentation.originaltext.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 The original full text of the declare module block (for reference)
-
 
 </td></tr>
 <tr><td>
 
 [sourceFilePath](./module-declaration-merger.extractedmoduleaugmentation.sourcefilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 The source file path this augmentation came from
 
-
 </td></tr>
 </tbody></table>
-

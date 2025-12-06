@@ -9,7 +9,7 @@ Rollup file paths extracted from api-extractor.json, keyed by maturity level. - 
 **Signature:**
 
 ```typescript
-export type RollupPaths = Partial<Record<MaturityLevel, string>>;
+export type RollupPaths = Partial<Record<MaturityLevel, string>>
 ```
-**References:** [MaturityLevel](./module-declaration-merger.maturitylevel.md)
 
+**References:** [MaturityLevel](./module-declaration-merger.maturitylevel.md)

@@ -25,25 +25,25 @@ src/
 flowchart TD
     OLD[old.d.ts] --> PARSER
     NEW[new.d.ts] --> PARSER
-    
+
     subgraph PARSER[parser.ts]
         P[parseDeclarationFileWithTypes]
     end
-    
+
     PARSER --> COMPARATOR
-    
+
     subgraph COMPARATOR[comparator.ts]
         C[compareDeclarationFiles]
     end
-    
+
     COMPARATOR --> CLASSIFIER
-    
+
     subgraph CLASSIFIER[classifier.ts]
         CL[classifyChanges]
     end
-    
+
     CLASSIFIER --> REPORTER
-    
+
     subgraph REPORTER[reporter.ts]
         R[formatReportAsText / formatReportAsMarkdown]
     end
@@ -65,37 +65,45 @@ Defines all public interfaces. Key types:
 Parses `.d.ts` files using the TypeScript Compiler API.
 
 **Key functions:**
+
 - `parseDeclarationFile()` - Returns symbols with human-readable signatures
 - `parseDeclarationFileWithTypes()` - Returns symbols with TypeScript `ts.Symbol` references for deep comparison
 
 **Important implementation details:**
 
 1. **Creating a TypeScript Program**: We create a standalone `ts.Program` for each file:
+
    ```typescript
    const program = ts.createProgram([filePath], {
      target: ts.ScriptTarget.Latest,
      module: ts.ModuleKind.ESNext,
      moduleResolution: ts.ModuleResolutionKind.Node10,
-   });
+   })
    ```
 
 2. **Getting Exports**: We use the TypeChecker to get module exports:
+
    ```typescript
-   const moduleSymbol = checker.getSymbolAtLocation(sourceFile);
-   const exports = checker.getExportsOfModule(moduleSymbol);
+   const moduleSymbol = checker.getSymbolAtLocation(sourceFile)
+   const exports = checker.getExportsOfModule(moduleSymbol)
    ```
 
 3. **Resolving Aliases**: Export symbols may be aliases; resolve them:
+
    ```typescript
-   const resolvedSymbol = exportSymbol.flags & ts.SymbolFlags.Alias
-     ? checker.getAliasedSymbol(exportSymbol)
-     : exportSymbol;
+   const resolvedSymbol =
+     exportSymbol.flags & ts.SymbolFlags.Alias
+       ? checker.getAliasedSymbol(exportSymbol)
+       : exportSymbol
    ```
 
 4. **Structural Signatures for Interfaces**: The default `typeToString()` for interfaces just returns the name. We expand them to show properties:
    ```typescript
-   function getStructuralSignature(type: ts.Type, checker: ts.TypeChecker): string {
-     const properties = type.getProperties();
+   function getStructuralSignature(
+     type: ts.Type,
+     checker: ts.TypeChecker,
+   ): string {
+     const properties = type.getProperties()
      // Build "{ prop1: type1; prop2?: type2 }" format
    }
    ```
@@ -125,51 +133,54 @@ Compares symbols between old and new parsed files.
 Groups changes by impact and determines overall release type.
 
 **Logic:**
+
 - If any change is `"major"` → overall is `"major"`
-- Else if any change is `"minor"` → overall is `"minor"`  
+- Else if any change is `"minor"` → overall is `"minor"`
 - Else if any change is `"patch"` → overall is `"patch"`
 - Else → `"none"`
 
 ### reporter.ts
 
 Formats reports in three formats:
+
 - **Text**: Human-readable console output
 - **Markdown**: For documentation/changelogs
 - **JSON**: For programmatic consumption
 
 ## Change Categories and Their Semver Impact
 
-| Category | Release Type | Description |
-|----------|--------------|-------------|
-| `symbol-removed` | major | Export was removed from public API |
-| `symbol-added` | minor | New export added to public API |
-| `type-narrowed` | major | Type became more restrictive |
-| `type-widened` | minor | Type became more permissive |
-| `param-added-required` | major | New required parameter added |
-| `param-added-optional` | minor | New optional parameter added |
-| `param-removed` | major | Parameter was removed |
-| `return-type-changed` | major | Function return type changed |
-| `signature-identical` | none | No changes detected |
+| Category               | Release Type | Description                        |
+| ---------------------- | ------------ | ---------------------------------- |
+| `symbol-removed`       | major        | Export was removed from public API |
+| `symbol-added`         | minor        | New export added to public API     |
+| `type-narrowed`        | major        | Type became more restrictive       |
+| `type-widened`         | minor        | Type became more permissive        |
+| `param-added-required` | major        | New required parameter added       |
+| `param-added-optional` | minor        | New optional parameter added       |
+| `param-removed`        | major        | Parameter was removed              |
+| `return-type-changed`  | major        | Function return type changed       |
+| `signature-identical`  | none         | No changes detected                |
 
 ## Testing Approach
 
 Tests use `vitest` with `fixturify-project` to create temporary test fixtures.
 
 **Pattern:**
+
 ```typescript
-const project = new Project("test-pkg");
+const project = new Project('test-pkg')
 project.files = {
-  "old.d.ts": `export declare function foo(): void;`,
-  "new.d.ts": `export declare function foo(): string;`,
-};
-await project.write();
+  'old.d.ts': `export declare function foo(): void;`,
+  'new.d.ts': `export declare function foo(): string;`,
+}
+await project.write()
 
 const report = compareDeclarations({
-  oldFile: path.join(project.baseDir, "old.d.ts"),
-  newFile: path.join(project.baseDir, "new.d.ts"),
-});
+  oldFile: path.join(project.baseDir, 'old.d.ts'),
+  newFile: path.join(project.baseDir, 'new.d.ts'),
+})
 
-expect(report.releaseType).toBe("major");
+expect(report.releaseType).toBe('major')
 ```
 
 ## Known Limitations
@@ -214,27 +225,26 @@ Options:
 ## Library Usage
 
 ```typescript
-import { 
+import {
   compareDeclarations,
   formatReportAsText,
   formatReportAsMarkdown,
   reportToJSON,
-} from '@api-extractor-tools/change-detector';
+} from '@api-extractor-tools/change-detector'
 
 const report = compareDeclarations({
   oldFile: './dist/v1/index.d.ts',
   newFile: './dist/v2/index.d.ts',
-});
+})
 
 // Access structured data
-console.log(report.releaseType);           // "major" | "minor" | "patch" | "none"
-console.log(report.changes.breaking);      // Change[]
-console.log(report.changes.nonBreaking);   // Change[]
-console.log(report.stats);                 // { added, removed, modified, unchanged }
+console.log(report.releaseType) // "major" | "minor" | "patch" | "none"
+console.log(report.changes.breaking) // Change[]
+console.log(report.changes.nonBreaking) // Change[]
+console.log(report.stats) // { added, removed, modified, unchanged }
 
 // Format for output
-console.log(formatReportAsText(report));
-console.log(formatReportAsMarkdown(report));
-console.log(JSON.stringify(reportToJSON(report), null, 2));
+console.log(formatReportAsText(report))
+console.log(formatReportAsMarkdown(report))
+console.log(JSON.stringify(reportToJSON(report), null, 2))
 ```
-

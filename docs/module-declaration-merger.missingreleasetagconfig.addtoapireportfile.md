@@ -9,5 +9,5 @@ If true, add the message as a comment in the rollup file. If false, print to con
 **Signature:**
 
 ```typescript
-addToApiReportFile: boolean;
+addToApiReportFile: boolean
 ```

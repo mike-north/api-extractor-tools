@@ -660,4 +660,3 @@ declare module "./registry" {
     })
   })
 })
-

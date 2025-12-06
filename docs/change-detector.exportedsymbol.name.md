@@ -9,5 +9,5 @@ The name of the exported symbol
 **Signature:**
 
 ```typescript
-name: string;
+name: string
 ```

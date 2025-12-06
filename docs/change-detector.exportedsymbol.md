@@ -9,7 +9,7 @@ Information about a single exported symbol extracted from a declaration file.
 **Signature:**
 
 ```typescript
-export interface ExportedSymbol 
+export interface ExportedSymbol
 ```
 
 ## Properties
@@ -18,79 +18,62 @@ export interface ExportedSymbol
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [kind](./change-detector.exportedsymbol.kind.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [SymbolKind](./change-detector.symbolkind.md)
 
-
 </td><td>
 
 The kind of symbol (function, class, interface, etc.)
-
 
 </td></tr>
 <tr><td>
 
 [name](./change-detector.exportedsymbol.name.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 The name of the exported symbol
-
 
 </td></tr>
 <tr><td>
 
 [signature](./change-detector.exportedsymbol.signature.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 Human-readable type signature
 
-
 </td></tr>
 </tbody></table>
-

@@ -9,5 +9,5 @@ Number of declarations added to the doc model
 **Signature:**
 
 ```typescript
-declarationsAdded: number;
+declarationsAdded: number
 ```

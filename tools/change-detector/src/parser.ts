@@ -122,9 +122,7 @@ function getStructuralSignature(
         ts.isPropertyDeclaration(propDecl)
       ) {
         const modifiers = ts.getModifiers(propDecl)
-        if (
-          modifiers?.some((m) => m.kind === ts.SyntaxKind.ReadonlyKeyword)
-        ) {
+        if (modifiers?.some((m) => m.kind === ts.SyntaxKind.ReadonlyKeyword)) {
           readonlyMark = 'readonly '
         }
       }
@@ -284,10 +282,7 @@ function getClassSignature(
 
       const memberSymbol = checker.getSymbolAtLocation(member.name)
       if (memberSymbol) {
-        const propType = checker.getTypeOfSymbolAtLocation(
-          memberSymbol,
-          member,
-        )
+        const propType = checker.getTypeOfSymbolAtLocation(memberSymbol, member)
         const typeStr = checker.typeToString(
           propType,
           undefined,
@@ -417,17 +412,31 @@ function getNormalizedSignature(
       const defaultType = tp.getDefault()
       let str = normalizedName
       if (constraint) {
-        let constraintStr = checker.typeToString(constraint, undefined, ts.TypeFormatFlags.NoTruncation)
+        let constraintStr = checker.typeToString(
+          constraint,
+          undefined,
+          ts.TypeFormatFlags.NoTruncation,
+        )
         // Replace type parameter references with normalized names
         for (const [orig, norm] of typeParamRenames) {
-          constraintStr = constraintStr.replace(new RegExp(`\\b${orig}\\b`, 'g'), norm)
+          constraintStr = constraintStr.replace(
+            new RegExp(`\\b${orig}\\b`, 'g'),
+            norm,
+          )
         }
         str += ` extends ${constraintStr}`
       }
       if (defaultType) {
-        let defaultStr = checker.typeToString(defaultType, undefined, ts.TypeFormatFlags.NoTruncation)
+        let defaultStr = checker.typeToString(
+          defaultType,
+          undefined,
+          ts.TypeFormatFlags.NoTruncation,
+        )
         for (const [orig, norm] of typeParamRenames) {
-          defaultStr = defaultStr.replace(new RegExp(`\\b${orig}\\b`, 'g'), norm)
+          defaultStr = defaultStr.replace(
+            new RegExp(`\\b${orig}\\b`, 'g'),
+            norm,
+          )
         }
         str += ` = ${defaultStr}`
       }
@@ -503,7 +512,9 @@ function getSymbolSignature(
     const signatures = type.getCallSignatures()
     if (signatures.length > 1) {
       // Multiple overloads - include all
-      return signatures.map((sig) => getNormalizedSignature(sig, checker)).join('; ')
+      return signatures
+        .map((sig) => getNormalizedSignature(sig, checker))
+        .join('; ')
     }
     if (signatures.length > 0) {
       return getNormalizedSignature(signatures[0]!, checker)
@@ -616,7 +627,9 @@ function getSymbolSignature(
     const callSigs = type.getCallSignatures()
     if (callSigs.length > 0) {
       if (callSigs.length > 1) {
-        return callSigs.map((sig) => getNormalizedSignature(sig, checker)).join('; ')
+        return callSigs
+          .map((sig) => getNormalizedSignature(sig, checker))
+          .join('; ')
       }
       return getNormalizedSignature(callSigs[0]!, checker)
     }

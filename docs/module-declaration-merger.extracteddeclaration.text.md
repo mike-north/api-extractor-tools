@@ -9,5 +9,5 @@ The full text of the declaration including its TSDoc comment
 **Signature:**
 
 ```typescript
-text: string;
+text: string
 ```

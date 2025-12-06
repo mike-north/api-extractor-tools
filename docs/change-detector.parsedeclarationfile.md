@@ -9,7 +9,7 @@ Parses a declaration file and extracts all exported symbols.
 **Signature:**
 
 ```typescript
-export declare function parseDeclarationFile(filePath: string): ParseResult;
+export declare function parseDeclarationFile(filePath: string): ParseResult
 ```
 
 ## Parameters
@@ -18,30 +18,24 @@ export declare function parseDeclarationFile(filePath: string): ParseResult;
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 filePath
 
-
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
@@ -49,4 +43,3 @@ string
 **Returns:**
 
 [ParseResult](./change-detector.parseresult.md)
-

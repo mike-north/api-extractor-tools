@@ -9,7 +9,7 @@ JSON-serializable representation of a comparison report.
 **Signature:**
 
 ```typescript
-export interface ComparisonReportJSON 
+export interface ComparisonReportJSON
 ```
 
 ## Properties
@@ -18,107 +18,82 @@ export interface ComparisonReportJSON
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changes](./change-detector.comparisonreportjson.changes.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ChangesByImpact](./change-detector.changesbyimpact.md)
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 [newFile](./change-detector.comparisonreportjson.newfile.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 [oldFile](./change-detector.comparisonreportjson.oldfile.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 [releaseType](./change-detector.comparisonreportjson.releasetype.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ReleaseType](./change-detector.releasetype.md)
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 [stats](./change-detector.comparisonreportjson.stats.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ComparisonStats](./change-detector.comparisonstats.md)
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
-

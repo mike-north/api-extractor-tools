@@ -9,7 +9,7 @@ Options for augmenting the doc model
 **Signature:**
 
 ```typescript
-export interface DocModelAugmentOptions 
+export interface DocModelAugmentOptions
 ```
 
 ## Properties
@@ -18,98 +18,77 @@ export interface DocModelAugmentOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiJsonFilePath](./module-declaration-merger.docmodelaugmentoptions.apijsonfilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 Path to the .api.json file
-
 
 </td></tr>
 <tr><td>
 
 [augmentations](./module-declaration-merger.docmodelaugmentoptions.augmentations.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ExtractedModuleAugmentation](./module-declaration-merger.extractedmoduleaugmentation.md)<!-- -->\[\]
 
-
 </td><td>
 
 Extracted module augmentations
-
 
 </td></tr>
 <tr><td>
 
 [dryRun?](./module-declaration-merger.docmodelaugmentoptions.dryrun.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 _(Optional)_ If true, don't actually write files
-
 
 </td></tr>
 <tr><td>
 
 [resolver](./module-declaration-merger.docmodelaugmentoptions.resolver.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [Resolver](./module-declaration-merger.resolver.md)
 
-
 </td><td>
 
 Module path resolver
 
-
 </td></tr>
 </tbody></table>
-

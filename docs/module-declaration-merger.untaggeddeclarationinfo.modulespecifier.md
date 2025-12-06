@@ -9,5 +9,5 @@ The module specifier it was found in
 **Signature:**
 
 ```typescript
-moduleSpecifier: string;
+moduleSpecifier: string
 ```

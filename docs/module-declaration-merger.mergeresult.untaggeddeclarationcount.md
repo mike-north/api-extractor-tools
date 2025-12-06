@@ -9,5 +9,5 @@ Number of untagged declarations (missing release tags)
 **Signature:**
 
 ```typescript
-untaggedDeclarationCount: number;
+untaggedDeclarationCount: number
 ```

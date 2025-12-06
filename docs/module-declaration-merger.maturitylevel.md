@@ -9,5 +9,7 @@ Maturity levels for API declarations, derived from api-extractor's ReleaseTagFor
 **Signature:**
 
 ```typescript
-export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}` ? Tag : never;
+export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}`
+  ? Tag
+  : never
 ```

@@ -9,5 +9,5 @@ Path to the new declaration file to compare against
 **Signature:**
 
 ```typescript
-newFile: string;
+newFile: string
 ```
