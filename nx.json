@@ -2,7 +2,10 @@
   "$schema": "https://nx.dev/nx.schema.json",
   "namedInputs": {
     "source": ["{projectRoot}/src/**/*"],
-    "tsConfig": ["{projectRoot}/tsconfig.json", "{workspaceRoot}/tsconfig.json"],
+    "tsConfig": [
+      "{projectRoot}/tsconfig.json",
+      "{workspaceRoot}/tsconfig.json"
+    ],
     "eslintConfig": ["{workspaceRoot}/eslint.config.mts"]
   },
   "targetDefaults": {
@@ -13,7 +16,12 @@
     },
     "test": {
       "cache": true,
-      "inputs": ["source", "tsConfig", "{projectRoot}/test/**/*", "{projectRoot}/vitest.config.mts"],
+      "inputs": [
+        "source",
+        "tsConfig",
+        "{projectRoot}/test/**/*",
+        "{projectRoot}/vitest.config.mts"
+      ],
       "outputs": []
     },
     "check:eslint": {
@@ -23,7 +31,13 @@
     },
     "check:typecheck-tests": {
       "cache": true,
-      "inputs": ["source", "tsConfig", "{projectRoot}/test/**/*", "{projectRoot}/vitest.config.mts", "{projectRoot}/test/tsconfig.json"],
+      "inputs": [
+        "source",
+        "tsConfig",
+        "{projectRoot}/test/**/*",
+        "{projectRoot}/vitest.config.mts",
+        "{projectRoot}/test/tsconfig.json"
+      ],
       "outputs": []
     }
   }

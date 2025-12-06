@@ -9,39 +9,33 @@ export type {
   ComparisonStats,
   ComparisonReport,
   CompareOptions,
-} from "./types";
+} from './types'
 
 // Parser exports
-export {
-  parseDeclarationFile,
-  type ParseResult,
-} from "./parser";
+export { parseDeclarationFile, type ParseResult } from './parser'
 
 // Comparator exports
 export {
   compareFiles,
   compareDeclarationFiles,
   type CompareResult,
-} from "./comparator";
+} from './comparator'
 
 // Classifier exports
-export {
-  classifyChanges,
-  type ClassificationResult,
-} from "./classifier";
+export { classifyChanges, type ClassificationResult } from './classifier'
 
 // Reporter exports
 export {
   formatReportAsText,
   formatReportAsMarkdown,
   reportToJSON,
-} from "./reporter";
+} from './reporter'
 
 // Main API
-import type { CompareOptions, ComparisonReport } from "./types";
-import { parseDeclarationFileWithTypes } from "./parser";
-import { compareDeclarationFiles } from "./comparator";
-import { classifyChanges } from "./classifier";
+import type { CompareOptions, ComparisonReport } from './types'
+import { parseDeclarationFileWithTypes } from './parser'
+import { compareDeclarationFiles } from './comparator'
+import { classifyChanges } from './classifier'
 
 /**
  * Compares two declaration files and generates a comprehensive report.
@@ -65,19 +59,19 @@ import { classifyChanges } from "./classifier";
  * ```
  */
 export function compareDeclarations(options: CompareOptions): ComparisonReport {
-  const { oldFile, newFile } = options;
+  const { oldFile, newFile } = options
 
   // Parse both files with type information
-  const oldParsed = parseDeclarationFileWithTypes(oldFile);
-  const newParsed = parseDeclarationFileWithTypes(newFile);
+  const oldParsed = parseDeclarationFileWithTypes(oldFile)
+  const newParsed = parseDeclarationFileWithTypes(newFile)
 
   // Compare the files
-  const { changes, errors } = compareDeclarationFiles(oldParsed, newParsed);
+  const { changes, errors } = compareDeclarationFiles(oldParsed, newParsed)
 
   // Log errors if any (but don't fail)
   if (errors.length > 0) {
     for (const error of errors) {
-      console.warn(`[change-detector] ${error}`);
+      console.warn(`[change-detector] ${error}`)
     }
   }
 
@@ -85,8 +79,8 @@ export function compareDeclarations(options: CompareOptions): ComparisonReport {
   const { releaseType, changesByImpact, stats } = classifyChanges(
     changes,
     oldParsed.symbols.size,
-    newParsed.symbols.size
-  );
+    newParsed.symbols.size,
+  )
 
   return {
     releaseType,
@@ -94,5 +88,5 @@ export function compareDeclarations(options: CompareOptions): ComparisonReport {
     stats,
     oldFile,
     newFile,
-  };
+  }
 }

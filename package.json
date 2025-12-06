@@ -6,7 +6,8 @@
   "scripts": {
     "build": "NX_TUI=false nx run-many -t build",
     "test": "NX_TUI=false nx run-many -t test",
-    "check": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests"
+    "check": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests",
+    "format": "prettier --write \"**/*.{js,ts,json,md}\""
   },
   "keywords": [],
   "author": "Mike North <michael.l.north@gmail.com>",

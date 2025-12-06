@@ -5,44 +5,44 @@
  * - "patch": Bug fixes or internal changes with no API impact
  * - "none": No changes detected
  */
-export type ReleaseType = "major" | "minor" | "patch" | "none";
+export type ReleaseType = 'major' | 'minor' | 'patch' | 'none'
 
 /**
  * Categories of API changes and their typical semver impact.
  */
 export type ChangeCategory =
-  | "symbol-removed" // Export removed (MAJOR)
-  | "symbol-added" // New export (MINOR)
-  | "type-narrowed" // More restrictive (MAJOR)
-  | "type-widened" // More permissive (MINOR)
-  | "param-added-required" // New required param (MAJOR)
-  | "param-added-optional" // New optional param (MINOR)
-  | "param-removed" // Param removed (MAJOR)
-  | "return-type-changed" // Return modified (varies)
-  | "signature-identical"; // No change (NONE)
+  | 'symbol-removed' // Export removed (MAJOR)
+  | 'symbol-added' // New export (MINOR)
+  | 'type-narrowed' // More restrictive (MAJOR)
+  | 'type-widened' // More permissive (MINOR)
+  | 'param-added-required' // New required param (MAJOR)
+  | 'param-added-optional' // New optional param (MINOR)
+  | 'param-removed' // Param removed (MAJOR)
+  | 'return-type-changed' // Return modified (varies)
+  | 'signature-identical' // No change (NONE)
 
 /**
  * Kinds of exported symbols we track.
  */
 export type SymbolKind =
-  | "function"
-  | "class"
-  | "interface"
-  | "type"
-  | "variable"
-  | "enum"
-  | "namespace";
+  | 'function'
+  | 'class'
+  | 'interface'
+  | 'type'
+  | 'variable'
+  | 'enum'
+  | 'namespace'
 
 /**
  * Information about a single exported symbol extracted from a declaration file.
  */
 export interface ExportedSymbol {
   /** The name of the exported symbol */
-  name: string;
+  name: string
   /** The kind of symbol (function, class, interface, etc.) */
-  kind: SymbolKind;
+  kind: SymbolKind
   /** Human-readable type signature */
-  signature: string;
+  signature: string
 }
 
 /**
@@ -50,19 +50,19 @@ export interface ExportedSymbol {
  */
 export interface Change {
   /** The name of the symbol that changed */
-  symbolName: string;
+  symbolName: string
   /** The kind of symbol */
-  symbolKind: SymbolKind;
+  symbolKind: SymbolKind
   /** What kind of change occurred */
-  category: ChangeCategory;
+  category: ChangeCategory
   /** Semver impact of this change */
-  releaseType: ReleaseType;
+  releaseType: ReleaseType
   /** Human-readable explanation of the change */
-  explanation: string;
+  explanation: string
   /** Old signature (for modified/removed symbols) */
-  before?: string;
+  before?: string
   /** New signature (for modified/added symbols) */
-  after?: string;
+  after?: string
 }
 
 /**
@@ -70,11 +70,11 @@ export interface Change {
  */
 export interface ChangesByImpact {
   /** Changes requiring a major version bump (breaking changes) */
-  breaking: Change[];
+  breaking: Change[]
   /** Changes requiring a minor version bump (additions/compatible changes) */
-  nonBreaking: Change[];
+  nonBreaking: Change[]
   /** Changes with no version impact (patch or none) */
-  unchanged: Change[];
+  unchanged: Change[]
 }
 
 /**
@@ -82,17 +82,17 @@ export interface ChangesByImpact {
  */
 export interface ComparisonStats {
   /** Total number of symbols in the old declaration file */
-  totalSymbolsOld: number;
+  totalSymbolsOld: number
   /** Total number of symbols in the new declaration file */
-  totalSymbolsNew: number;
+  totalSymbolsNew: number
   /** Number of symbols added */
-  added: number;
+  added: number
   /** Number of symbols removed */
-  removed: number;
+  removed: number
   /** Number of symbols modified */
-  modified: number;
+  modified: number
   /** Number of symbols unchanged */
-  unchanged: number;
+  unchanged: number
 }
 
 /**
@@ -100,15 +100,15 @@ export interface ComparisonStats {
  */
 export interface ComparisonReport {
   /** Overall release type classification based on all changes */
-  releaseType: ReleaseType;
+  releaseType: ReleaseType
   /** All changes grouped by impact */
-  changes: ChangesByImpact;
+  changes: ChangesByImpact
   /** Numeric statistics about the comparison */
-  stats: ComparisonStats;
+  stats: ComparisonStats
   /** Path to the old declaration file */
-  oldFile: string;
+  oldFile: string
   /** Path to the new declaration file */
-  newFile: string;
+  newFile: string
 }
 
 /**
@@ -116,8 +116,7 @@ export interface ComparisonReport {
  */
 export interface CompareOptions {
   /** Path to the old (baseline) declaration file */
-  oldFile: string;
+  oldFile: string
   /** Path to the new declaration file to compare against */
-  newFile: string;
+  newFile: string
 }
-

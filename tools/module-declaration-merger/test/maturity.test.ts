@@ -1,67 +1,71 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { Project } from "fixturify-project";
-import * as fs from "fs";
-import * as path from "path";
-import { extractModuleAugmentations, mergeModuleDeclarations } from "@";
-import { createApiExtractorConfig } from "./helpers";
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { Project } from 'fixturify-project'
+import * as fs from 'fs'
+import * as path from 'path'
+import { extractModuleAugmentations, mergeModuleDeclarations } from '@'
+import { createApiExtractorConfig } from './helpers'
 
-describe("complex maturity scenarios", () => {
-  let project: Project;
+describe('complex maturity scenarios', () => {
+  let project: Project
 
   beforeEach(() => {
-    project = new Project("test-pkg");
-  });
+    project = new Project('test-pkg')
+  })
 
   afterEach(async () => {
-    await project.dispose();
-  });
+    await project.dispose()
+  })
 
-  it("defaults untagged declarations to @public", async () => {
+  it('defaults untagged declarations to @public', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /** Just a plain comment, no release tag */
   interface UntaggedInterface {}
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe("public");
-    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(true);
-  });
+    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe(
+      'public',
+    )
+    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(true)
+  })
 
-  it("marks explicitly @public as not untagged", async () => {
+  it('marks explicitly @public as not untagged', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /** @public */
   interface ExplicitPublic {}
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe("public");
-    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(false);
-  });
+    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe(
+      'public',
+    )
+    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(false)
+  })
 
-  it("handles maturity tag in middle of comment", async () => {
+  it('handles maturity tag in middle of comment', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /**
    * This is a description
@@ -73,40 +77,44 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe("internal");
-  });
+    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe(
+      'internal',
+    )
+  })
 
-  it("handles declaration without any comment", async () => {
+  it('handles declaration without any comment', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   interface NoComment {}
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe("public");
-    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(true);
-  });
+    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe(
+      'public',
+    )
+    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(true)
+  })
 
-  it("tracks untagged declarations in extraction result", async () => {
+  it('tracks untagged declarations in extraction result', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /** @public */
   interface Tagged {}
@@ -118,290 +126,292 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.untaggedDeclarations).toHaveLength(2);
-    expect(result.untaggedDeclarations[0]?.name).toBe("Untagged1");
-    expect(result.untaggedDeclarations[1]?.name).toBe("Untagged2");
-  });
-});
+    expect(result.untaggedDeclarations).toHaveLength(2)
+    expect(result.untaggedDeclarations[0]?.name).toBe('Untagged1')
+    expect(result.untaggedDeclarations[1]?.name).toBe('Untagged2')
+  })
+})
 
-describe("ae-missing-release-tag handling", () => {
-  let project: Project;
+describe('ae-missing-release-tag handling', () => {
+  let project: Project
 
   beforeEach(() => {
-    project = new Project("test-pkg");
-  });
+    project = new Project('test-pkg')
+  })
 
   afterEach(async () => {
-    await project.dispose();
-  });
+    await project.dispose()
+  })
 
-  it("silently defaults to @public when no config", async () => {
+  it('silently defaults to @public when no config', async () => {
     project.files = {
-      "api-extractor.json": createApiExtractorConfig(),
+      'api-extractor.json': createApiExtractorConfig(),
       src: {
-        "index.ts": "export {}",
-        "augment.ts": `
+        'index.ts': 'export {}',
+        'augment.ts': `
 declare module "./registry" {
   interface Untagged {}
 }
 `,
       },
       dist: {
-        "index.d.ts": "// rollup\n",
+        'index.d.ts': '// rollup\n',
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await mergeModuleDeclarations({
-      configPath: path.join(project.baseDir, "api-extractor.json"),
-    });
+      configPath: path.join(project.baseDir, 'api-extractor.json'),
+    })
 
-    expect(result.success).toBe(true);
-    expect(result.errors).toHaveLength(0);
-    expect(result.warnings).toHaveLength(0);
-  });
+    expect(result.success).toBe(true)
+    expect(result.errors).toHaveLength(0)
+    expect(result.warnings).toHaveLength(0)
+  })
 
-  it("logs warning when logLevel is warning and addToApiReportFile is false", async () => {
+  it('logs warning when logLevel is warning and addToApiReportFile is false', async () => {
     project.files = {
-      "api-extractor.json": JSON.stringify({
-        mainEntryPointFilePath: "<projectFolder>/src/index.ts",
+      'api-extractor.json': JSON.stringify({
+        mainEntryPointFilePath: '<projectFolder>/src/index.ts',
         apiReport: { enabled: false },
         docModel: { enabled: false },
         dtsRollup: {
           enabled: true,
-          publicTrimmedFilePath: "<projectFolder>/dist/index.d.ts",
+          publicTrimmedFilePath: '<projectFolder>/dist/index.d.ts',
         },
         messages: {
           extractorMessageReporting: {
-            "ae-missing-release-tag": {
-              logLevel: "warning",
+            'ae-missing-release-tag': {
+              logLevel: 'warning',
               addToApiReportFile: false,
             },
           },
         },
       }),
       src: {
-        "index.ts": "export {}",
-        "augment.ts": `
+        'index.ts': 'export {}',
+        'augment.ts': `
 declare module "./registry" {
   interface Untagged {}
 }
 `,
       },
       dist: {
-        "index.d.ts": "// rollup\n",
+        'index.d.ts': '// rollup\n',
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await mergeModuleDeclarations({
-      configPath: path.join(project.baseDir, "api-extractor.json"),
-    });
+      configPath: path.join(project.baseDir, 'api-extractor.json'),
+    })
 
-    expect(result.success).toBe(true);
-    expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0]).toContain("ae-missing-release-tag");
-    expect(result.warnings[0]).toContain("Untagged");
-    
+    expect(result.success).toBe(true)
+    expect(result.warnings).toHaveLength(1)
+    expect(result.warnings[0]).toContain('ae-missing-release-tag')
+    expect(result.warnings[0]).toContain('Untagged')
+
     // Check no warning comment in rollup
     const content = fs.readFileSync(
-      path.join(project.baseDir, "dist/index.d.ts"),
-      "utf-8"
-    );
-    expect(content).not.toContain("Missing Release Tag Warnings");
-  });
+      path.join(project.baseDir, 'dist/index.d.ts'),
+      'utf-8',
+    )
+    expect(content).not.toContain('Missing Release Tag Warnings')
+  })
 
-  it("adds warning comment to rollup when addToApiReportFile is true", async () => {
+  it('adds warning comment to rollup when addToApiReportFile is true', async () => {
     project.files = {
-      "api-extractor.json": JSON.stringify({
-        mainEntryPointFilePath: "<projectFolder>/src/index.ts",
+      'api-extractor.json': JSON.stringify({
+        mainEntryPointFilePath: '<projectFolder>/src/index.ts',
         apiReport: { enabled: false },
         docModel: { enabled: false },
         dtsRollup: {
           enabled: true,
-          publicTrimmedFilePath: "<projectFolder>/dist/index.d.ts",
+          publicTrimmedFilePath: '<projectFolder>/dist/index.d.ts',
         },
         messages: {
           extractorMessageReporting: {
-            "ae-missing-release-tag": {
-              logLevel: "warning",
+            'ae-missing-release-tag': {
+              logLevel: 'warning',
               addToApiReportFile: true,
             },
           },
         },
       }),
       src: {
-        "index.ts": "export {}",
-        "augment.ts": `
+        'index.ts': 'export {}',
+        'augment.ts': `
 declare module "./registry" {
   interface Untagged {}
 }
 `,
       },
       dist: {
-        "index.d.ts": "// rollup\n",
+        'index.d.ts': '// rollup\n',
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await mergeModuleDeclarations({
-      configPath: path.join(project.baseDir, "api-extractor.json"),
-    });
+      configPath: path.join(project.baseDir, 'api-extractor.json'),
+    })
 
-    expect(result.success).toBe(true);
-    
+    expect(result.success).toBe(true)
+
     const content = fs.readFileSync(
-      path.join(project.baseDir, "dist/index.d.ts"),
-      "utf-8"
-    );
-    expect(content).toContain("Missing Release Tag Warnings");
-    expect(content).toContain("WARNING:");
-    expect(content).toContain("Untagged");
-  });
+      path.join(project.baseDir, 'dist/index.d.ts'),
+      'utf-8',
+    )
+    expect(content).toContain('Missing Release Tag Warnings')
+    expect(content).toContain('WARNING:')
+    expect(content).toContain('Untagged')
+  })
 
-  it("stops processing when logLevel is error and addToApiReportFile is false", async () => {
+  it('stops processing when logLevel is error and addToApiReportFile is false', async () => {
     project.files = {
-      "api-extractor.json": JSON.stringify({
-        mainEntryPointFilePath: "<projectFolder>/src/index.ts",
+      'api-extractor.json': JSON.stringify({
+        mainEntryPointFilePath: '<projectFolder>/src/index.ts',
         apiReport: { enabled: false },
         docModel: { enabled: false },
         dtsRollup: {
           enabled: true,
-          publicTrimmedFilePath: "<projectFolder>/dist/index.d.ts",
+          publicTrimmedFilePath: '<projectFolder>/dist/index.d.ts',
         },
         messages: {
           extractorMessageReporting: {
-            "ae-missing-release-tag": {
-              logLevel: "error",
+            'ae-missing-release-tag': {
+              logLevel: 'error',
               addToApiReportFile: false,
             },
           },
         },
       }),
       src: {
-        "index.ts": "export {}",
-        "augment.ts": `
+        'index.ts': 'export {}',
+        'augment.ts': `
 declare module "./registry" {
   interface Untagged {}
 }
 `,
       },
       dist: {
-        "index.d.ts": "// rollup\n",
+        'index.d.ts': '// rollup\n',
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await mergeModuleDeclarations({
-      configPath: path.join(project.baseDir, "api-extractor.json"),
-    });
+      configPath: path.join(project.baseDir, 'api-extractor.json'),
+    })
 
-    expect(result.success).toBe(false);
-    expect(result.errors).toHaveLength(1);
-    expect(result.augmentedFiles).toHaveLength(0); // Stopped before augmenting
-  });
+    expect(result.success).toBe(false)
+    expect(result.errors).toHaveLength(1)
+    expect(result.augmentedFiles).toHaveLength(0) // Stopped before augmenting
+  })
 
-  it("continues processing when logLevel is error and addToApiReportFile is true", async () => {
+  it('continues processing when logLevel is error and addToApiReportFile is true', async () => {
     project.files = {
-      "api-extractor.json": JSON.stringify({
-        mainEntryPointFilePath: "<projectFolder>/src/index.ts",
+      'api-extractor.json': JSON.stringify({
+        mainEntryPointFilePath: '<projectFolder>/src/index.ts',
         apiReport: { enabled: false },
         docModel: { enabled: false },
         dtsRollup: {
           enabled: true,
-          publicTrimmedFilePath: "<projectFolder>/dist/index.d.ts",
+          publicTrimmedFilePath: '<projectFolder>/dist/index.d.ts',
         },
         messages: {
           extractorMessageReporting: {
-            "ae-missing-release-tag": {
-              logLevel: "error",
+            'ae-missing-release-tag': {
+              logLevel: 'error',
               addToApiReportFile: true,
             },
           },
         },
       }),
       src: {
-        "index.ts": "export {}",
-        "augment.ts": `
+        'index.ts': 'export {}',
+        'augment.ts': `
 declare module "./registry" {
   interface Untagged {}
 }
 `,
       },
       dist: {
-        "index.d.ts": "// rollup\n",
+        'index.d.ts': '// rollup\n',
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await mergeModuleDeclarations({
-      configPath: path.join(project.baseDir, "api-extractor.json"),
-    });
+      configPath: path.join(project.baseDir, 'api-extractor.json'),
+    })
 
-    expect(result.success).toBe(true);
-    expect(result.errors).toHaveLength(1); // Error is recorded
-    expect(result.augmentedFiles).toHaveLength(1); // But file was still augmented
-    
+    expect(result.success).toBe(true)
+    expect(result.errors).toHaveLength(1) // Error is recorded
+    expect(result.augmentedFiles).toHaveLength(1) // But file was still augmented
+
     const content = fs.readFileSync(
-      path.join(project.baseDir, "dist/index.d.ts"),
-      "utf-8"
-    );
-    expect(content).toContain("Missing Release Tag Warnings");
-  });
-});
+      path.join(project.baseDir, 'dist/index.d.ts'),
+      'utf-8',
+    )
+    expect(content).toContain('Missing Release Tag Warnings')
+  })
+})
 
-describe("multiple source files", () => {
-  let project: Project;
+describe('multiple source files', () => {
+  let project: Project
 
   beforeEach(() => {
-    project = new Project("test-pkg");
-  });
+    project = new Project('test-pkg')
+  })
 
   afterEach(async () => {
-    await project.dispose();
-  });
+    await project.dispose()
+  })
 
-  it("extracts augmentations from multiple files", async () => {
+  it('extracts augmentations from multiple files', async () => {
     project.files = {
       src: {
-        "first.ts": `
+        'first.ts': `
 declare module "./registry" {
   /** @public */
   interface First {}
 }
 `,
-        "second.ts": `
+        'second.ts': `
 declare module "./registry" {
   /** @public */
   interface Second {}
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations).toHaveLength(2);
-    
-    const names = result.augmentations.flatMap(a => a.declarations.map(d => d.name));
-    expect(names).toContain("First");
-    expect(names).toContain("Second");
-  });
+    expect(result.augmentations).toHaveLength(2)
 
-  it("handles files at different directory depths", async () => {
+    const names = result.augmentations.flatMap((a) =>
+      a.declarations.map((d) => d.name),
+    )
+    expect(names).toContain('First')
+    expect(names).toContain('Second')
+  })
+
+  it('handles files at different directory depths', async () => {
     project.files = {
       src: {
-        "shallow.ts": `
+        'shallow.ts': `
 declare module "./registry" {
   /** @public */
   interface Shallow {}
@@ -409,7 +419,7 @@ declare module "./registry" {
 `,
         deep: {
           nested: {
-            "deep.ts": `
+            'deep.ts': `
 declare module "../../../registry" {
   /** @public */
   interface Deep {}
@@ -418,20 +428,20 @@ declare module "../../../registry" {
           },
         },
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations).toHaveLength(2);
-  });
+    expect(result.augmentations).toHaveLength(2)
+  })
 
-  it("handles multiple declare module blocks in one file", async () => {
+  it('handles multiple declare module blocks in one file', async () => {
     project.files = {
       src: {
-        "multi.ts": `
+        'multi.ts': `
 declare module "./registry-a" {
   /** @public */
   interface FromA {}
@@ -443,16 +453,15 @@ declare module "./registry-b" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations).toHaveLength(2);
-    expect(result.augmentations[0]?.moduleSpecifier).toBe("./registry-a");
-    expect(result.augmentations[1]?.moduleSpecifier).toBe("./registry-b");
-  });
-});
-
+    expect(result.augmentations).toHaveLength(2)
+    expect(result.augmentations[0]?.moduleSpecifier).toBe('./registry-a')
+    expect(result.augmentations[1]?.moduleSpecifier).toBe('./registry-b')
+  })
+})

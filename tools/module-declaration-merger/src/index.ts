@@ -7,10 +7,10 @@ export {
   type MaturityLevel,
   type MissingReleaseTagConfig,
   type DocModelConfig,
-} from "./config";
+} from './config'
 
 // Re-export ExtractorLogLevel from api-extractor for consumers
-export { ExtractorLogLevel } from "@microsoft/api-extractor";
+export { ExtractorLogLevel } from '@microsoft/api-extractor'
 
 // Extractor exports
 export {
@@ -21,14 +21,10 @@ export {
   type ExtractOptions,
   type DeclarationKind,
   type UntaggedDeclarationInfo,
-} from "./extractor";
+} from './extractor'
 
 // Resolver exports
-export {
-  createResolver,
-  type Resolver,
-  type ResolverOptions,
-} from "./resolver";
+export { createResolver, type Resolver, type ResolverOptions } from './resolver'
 
 // Augmenter exports
 export {
@@ -36,7 +32,7 @@ export {
   getAugmentationPreview,
   type AugmentResult,
   type AugmentOptions,
-} from "./augmenter";
+} from './augmenter'
 
 // Doc Model Augmenter exports
 export {
@@ -44,27 +40,27 @@ export {
   canAugmentDocModel,
   type DocModelAugmentResult,
   type DocModelAugmentOptions,
-} from "./doc-model-augmenter";
+} from './doc-model-augmenter'
 
 // Main API
-import { parseConfig } from "./config";
-import { extractModuleAugmentations } from "./extractor";
-import { createResolver } from "./resolver";
-import { augmentRollups } from "./augmenter";
-import { augmentDocModel, canAugmentDocModel } from "./doc-model-augmenter";
+import { parseConfig } from './config'
+import { extractModuleAugmentations } from './extractor'
+import { createResolver } from './resolver'
+import { augmentRollups } from './augmenter'
+import { augmentDocModel, canAugmentDocModel } from './doc-model-augmenter'
 
 /**
  * Options for merging module declarations
  */
 export interface MergeOptions {
   /** Path to the api-extractor.json config file */
-  configPath: string;
+  configPath: string
   /** If true, don't actually write files */
-  dryRun?: boolean;
+  dryRun?: boolean
   /** Custom glob patterns for source files to include */
-  include?: string[];
+  include?: string[]
   /** Custom glob patterns for files to exclude */
-  exclude?: string[];
+  exclude?: string[]
 }
 
 /**
@@ -72,23 +68,23 @@ export interface MergeOptions {
  */
 export interface MergeResult {
   /** Whether the merge completed successfully (no errors, or errors only added to report) */
-  success: boolean;
+  success: boolean
   /** Rollup files that were successfully augmented */
-  augmentedFiles: string[];
+  augmentedFiles: string[]
   /** Rollup files that were skipped (didn't exist) */
-  skippedFiles: string[];
+  skippedFiles: string[]
   /** Number of module augmentations found */
-  augmentationCount: number;
+  augmentationCount: number
   /** Number of individual declarations processed */
-  declarationCount: number;
+  declarationCount: number
   /** Number of untagged declarations (missing release tags) */
-  untaggedDeclarationCount: number;
+  untaggedDeclarationCount: number
   /** Whether the doc model (.api.json) was augmented */
-  docModelAugmented: boolean;
+  docModelAugmented: boolean
   /** Errors encountered during processing */
-  errors: string[];
+  errors: string[]
   /** Warnings encountered during processing */
-  warnings: string[];
+  warnings: string[]
 }
 
 /**
@@ -118,30 +114,30 @@ export interface MergeResult {
  * ```
  */
 export async function mergeModuleDeclarations(
-  options: MergeOptions
+  options: MergeOptions,
 ): Promise<MergeResult> {
-  const { configPath, dryRun = false, include, exclude } = options;
+  const { configPath, dryRun = false, include, exclude } = options
 
-  const errors: string[] = [];
-  const warnings: string[] = [];
+  const errors: string[] = []
+  const warnings: string[] = []
 
   // 1. Parse config
-  const config = parseConfig(configPath);
+  const config = parseConfig(configPath)
 
   // 2. Extract module augmentations from source files
   const extractionResult = await extractModuleAugmentations({
     projectFolder: config.projectFolder,
     include,
     exclude,
-  });
+  })
 
-  errors.push(...extractionResult.errors);
+  errors.push(...extractionResult.errors)
 
   // 3. Create resolver
   const resolver = createResolver({
     projectFolder: config.projectFolder,
     mainEntryPointFilePath: config.mainEntryPointFilePath,
-  });
+  })
 
   // 4. Augment rollup files (with missing release tag handling)
   const augmentResult = augmentRollups({
@@ -151,38 +147,39 @@ export async function mergeModuleDeclarations(
     dryRun,
     missingReleaseTagConfig: config.missingReleaseTagConfig,
     untaggedDeclarations: extractionResult.untaggedDeclarations,
-  });
+  })
 
-  errors.push(...augmentResult.errors);
-  warnings.push(...augmentResult.warnings);
+  errors.push(...augmentResult.errors)
+  warnings.push(...augmentResult.warnings)
 
   // 5. Augment doc model if enabled
-  let docModelAugmented = false;
+  let docModelAugmented = false
   if (canAugmentDocModel(config.docModel) && !augmentResult.shouldStop) {
     const docModelResult = augmentDocModel({
       apiJsonFilePath: config.docModel!.apiJsonFilePath,
       augmentations: extractionResult.augmentations,
       resolver,
       dryRun,
-    });
+    })
 
-    docModelAugmented = docModelResult.success;
-    errors.push(...docModelResult.errors);
-    warnings.push(...docModelResult.warnings);
+    docModelAugmented = docModelResult.success
+    errors.push(...docModelResult.errors)
+    warnings.push(...docModelResult.warnings)
   }
 
   // Calculate statistics
-  const augmentationCount = extractionResult.augmentations.length;
+  const augmentationCount = extractionResult.augmentations.length
   const declarationCount = extractionResult.augmentations.reduce(
     (sum, aug) => sum + aug.declarations.length,
-    0
-  );
-  const untaggedDeclarationCount = extractionResult.untaggedDeclarations.length;
+    0,
+  )
+  const untaggedDeclarationCount = extractionResult.untaggedDeclarations.length
 
   // Determine success:
   // - If shouldStop is true, we failed with blocking errors
   // - If there are errors but they were added to report (shouldStop=false), we still succeeded
-  const success = !augmentResult.shouldStop && extractionResult.errors.length === 0;
+  const success =
+    !augmentResult.shouldStop && extractionResult.errors.length === 0
 
   return {
     success,
@@ -194,5 +191,5 @@ export async function mergeModuleDeclarations(
     docModelAugmented,
     errors,
     warnings,
-  };
+  }
 }

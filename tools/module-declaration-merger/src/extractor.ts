@@ -1,36 +1,36 @@
-import * as ts from "typescript";
-import * as fs from "fs";
-import * as path from "path";
-import { TSDocParser, type ParserContext } from "@microsoft/tsdoc";
-import { glob } from "fast-glob";
-import type { MaturityLevel } from "./config";
+import * as ts from 'typescript'
+import * as fs from 'fs'
+import * as path from 'path'
+import { TSDocParser, type ParserContext } from '@microsoft/tsdoc'
+import { glob } from 'fast-glob'
+import type { MaturityLevel } from './config'
 
 /**
  * The kinds of declarations we extract from module augmentation blocks
  */
 export type DeclarationKind =
-  | "interface"
-  | "type"
-  | "function"
-  | "variable"
-  | "class"
-  | "enum"
-  | "namespace";
+  | 'interface'
+  | 'type'
+  | 'function'
+  | 'variable'
+  | 'class'
+  | 'enum'
+  | 'namespace'
 
 /**
  * A single declaration extracted from within a `declare module` block
  */
 export interface ExtractedDeclaration {
   /** The full text of the declaration including its TSDoc comment */
-  text: string;
+  text: string
   /** The maturity level determined from TSDoc tags (@ public, @ beta, @ alpha, @ internal) */
-  maturityLevel: MaturityLevel;
+  maturityLevel: MaturityLevel
   /** The name of the declaration (e.g., interface name, type name) */
-  name: string;
+  name: string
   /** The kind of declaration */
-  kind: DeclarationKind;
+  kind: DeclarationKind
   /** True if no release tag was found (defaulted to public) */
-  isUntagged: boolean;
+  isUntagged: boolean
 }
 
 /**
@@ -38,13 +38,13 @@ export interface ExtractedDeclaration {
  */
 export interface ExtractedModuleAugmentation {
   /** The module specifier from `declare module "..."` */
-  moduleSpecifier: string;
+  moduleSpecifier: string
   /** The source file path this augmentation came from */
-  sourceFilePath: string;
+  sourceFilePath: string
   /** Individual declarations within this module block */
-  declarations: ExtractedDeclaration[];
+  declarations: ExtractedDeclaration[]
   /** The original full text of the declare module block (for reference) */
-  originalText: string;
+  originalText: string
 }
 
 /**
@@ -52,13 +52,13 @@ export interface ExtractedModuleAugmentation {
  */
 export interface UntaggedDeclarationInfo {
   /** The declaration name */
-  name: string;
+  name: string
   /** The source file path */
-  sourceFilePath: string;
+  sourceFilePath: string
   /** The module specifier it was found in */
-  moduleSpecifier: string;
+  moduleSpecifier: string
   /** The kind of declaration */
-  kind: DeclarationKind;
+  kind: DeclarationKind
 }
 
 /**
@@ -66,25 +66,25 @@ export interface UntaggedDeclarationInfo {
  */
 export interface ExtractionResult {
   /** All extracted module augmentations grouped by source file */
-  augmentations: ExtractedModuleAugmentation[];
+  augmentations: ExtractedModuleAugmentation[]
   /** Any errors encountered during extraction */
-  errors: string[];
+  errors: string[]
   /** Declarations that had no release tag (defaulted to @public) */
-  untaggedDeclarations: UntaggedDeclarationInfo[];
+  untaggedDeclarations: UntaggedDeclarationInfo[]
 }
 
 // Create a TSDoc parser - the standard tags (@public, @beta, @alpha, @internal)
 // are built into TSDocConfiguration by default
-const tsdocParser = new TSDocParser();
+const tsdocParser = new TSDocParser()
 
 /**
  * Result of parsing a TSDoc comment for maturity level
  */
 interface MaturityParseResult {
   /** The maturity level (defaults to "public" if no tag found) */
-  maturityLevel: MaturityLevel;
+  maturityLevel: MaturityLevel
   /** True if no release tag was found (defaulted to public) */
-  isUntagged: boolean;
+  isUntagged: boolean
 }
 
 /**
@@ -92,34 +92,34 @@ interface MaturityParseResult {
  * This correctly handles TSDoc syntax and won't match false positives like email addresses.
  */
 function getMaturityLevelFromComment(
-  commentText: string | undefined
+  commentText: string | undefined,
 ): MaturityParseResult {
   if (!commentText) {
-    return { maturityLevel: "public", isUntagged: true }; // Default to public if no comment
+    return { maturityLevel: 'public', isUntagged: true } // Default to public if no comment
   }
 
   // Parse the comment with TSDoc
-  const parserContext: ParserContext = tsdocParser.parseString(commentText);
+  const parserContext: ParserContext = tsdocParser.parseString(commentText)
 
   // Check for modifier tags in order of specificity
   // (more restrictive tags take precedence)
-  const modifierTags = parserContext.docComment.modifierTagSet;
+  const modifierTags = parserContext.docComment.modifierTagSet
 
-  if (modifierTags.hasTagName("@internal")) {
-    return { maturityLevel: "internal", isUntagged: false };
+  if (modifierTags.hasTagName('@internal')) {
+    return { maturityLevel: 'internal', isUntagged: false }
   }
-  if (modifierTags.hasTagName("@alpha")) {
-    return { maturityLevel: "alpha", isUntagged: false };
+  if (modifierTags.hasTagName('@alpha')) {
+    return { maturityLevel: 'alpha', isUntagged: false }
   }
-  if (modifierTags.hasTagName("@beta")) {
-    return { maturityLevel: "beta", isUntagged: false };
+  if (modifierTags.hasTagName('@beta')) {
+    return { maturityLevel: 'beta', isUntagged: false }
   }
-  if (modifierTags.hasTagName("@public")) {
-    return { maturityLevel: "public", isUntagged: false };
+  if (modifierTags.hasTagName('@public')) {
+    return { maturityLevel: 'public', isUntagged: false }
   }
 
   // No release tag found - default to public but mark as untagged
-  return { maturityLevel: "public", isUntagged: true };
+  return { maturityLevel: 'public', isUntagged: true }
 }
 
 /**
@@ -127,22 +127,22 @@ function getMaturityLevelFromComment(
  */
 function getLeadingCommentText(
   node: ts.Node,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
 ): string | undefined {
-  const fullText = sourceFile.getFullText();
+  const fullText = sourceFile.getFullText()
   const commentRanges = ts.getLeadingCommentRanges(
     fullText,
-    node.getFullStart()
-  );
+    node.getFullStart(),
+  )
 
   if (!commentRanges || commentRanges.length === 0) {
-    return undefined;
+    return undefined
   }
 
   // Get all comments and join them
   return commentRanges
     .map((range) => fullText.slice(range.pos, range.end))
-    .join("\n");
+    .join('\n')
 }
 
 /**
@@ -150,12 +150,12 @@ function getLeadingCommentText(
  */
 function getNodeTextWithComments(
   node: ts.Node,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
 ): string {
-  const fullText = sourceFile.getFullText();
-  const start = node.getFullStart();
-  const end = node.getEnd();
-  return fullText.slice(start, end).trim();
+  const fullText = sourceFile.getFullText()
+  const start = node.getFullStart()
+  const end = node.getEnd()
+  return fullText.slice(start, end).trim()
 }
 
 /**
@@ -168,7 +168,7 @@ type SupportedDeclarationSyntaxKind =
   | ts.SyntaxKind.VariableStatement
   | ts.SyntaxKind.ClassDeclaration
   | ts.SyntaxKind.EnumDeclaration
-  | ts.SyntaxKind.ModuleDeclaration;
+  | ts.SyntaxKind.ModuleDeclaration
 
 /**
  * Maps TypeScript syntax kinds to our declaration kind type
@@ -177,22 +177,22 @@ const SYNTAX_KIND_TO_DECLARATION_KIND: Record<
   SupportedDeclarationSyntaxKind,
   DeclarationKind
 > = {
-  [ts.SyntaxKind.InterfaceDeclaration]: "interface",
-  [ts.SyntaxKind.TypeAliasDeclaration]: "type",
-  [ts.SyntaxKind.FunctionDeclaration]: "function",
-  [ts.SyntaxKind.VariableStatement]: "variable",
-  [ts.SyntaxKind.ClassDeclaration]: "class",
-  [ts.SyntaxKind.EnumDeclaration]: "enum",
-  [ts.SyntaxKind.ModuleDeclaration]: "namespace",
-};
+  [ts.SyntaxKind.InterfaceDeclaration]: 'interface',
+  [ts.SyntaxKind.TypeAliasDeclaration]: 'type',
+  [ts.SyntaxKind.FunctionDeclaration]: 'function',
+  [ts.SyntaxKind.VariableStatement]: 'variable',
+  [ts.SyntaxKind.ClassDeclaration]: 'class',
+  [ts.SyntaxKind.EnumDeclaration]: 'enum',
+  [ts.SyntaxKind.ModuleDeclaration]: 'namespace',
+}
 
 /**
  * Checks if a node is a supported declaration type
  */
 function isSupportedDeclaration(
-  node: ts.Node
+  node: ts.Node,
 ): node is ts.Node & { kind: SupportedDeclarationSyntaxKind } {
-  return node.kind in SYNTAX_KIND_TO_DECLARATION_KIND;
+  return node.kind in SYNTAX_KIND_TO_DECLARATION_KIND
 }
 
 /**
@@ -200,9 +200,9 @@ function isSupportedDeclaration(
  * This is exhaustive over all supported declaration types.
  */
 function getDeclarationKind(
-  node: ts.Node & { kind: SupportedDeclarationSyntaxKind }
+  node: ts.Node & { kind: SupportedDeclarationSyntaxKind },
 ): DeclarationKind {
-  return SYNTAX_KIND_TO_DECLARATION_KIND[node.kind];
+  return SYNTAX_KIND_TO_DECLARATION_KIND[node.kind]
 }
 
 /**
@@ -217,13 +217,13 @@ function getDeclarationName(node: ts.Node): string {
     ts.isEnumDeclaration(node) ||
     ts.isModuleDeclaration(node)
   ) {
-    return node.name?.getText() ?? "<anonymous>";
+    return node.name?.getText() ?? '<anonymous>'
   }
   if (ts.isVariableStatement(node)) {
-    const declarations = node.declarationList.declarations;
-    return declarations.map((d) => d.name.getText()).join(", ");
+    const declarations = node.declarationList.declarations
+    return declarations.map((d) => d.name.getText()).join(', ')
   }
-  return "<unknown>";
+  return '<unknown>'
 }
 
 /**
@@ -231,21 +231,22 @@ function getDeclarationName(node: ts.Node): string {
  */
 function extractDeclarationsFromModuleBlock(
   moduleBlock: ts.ModuleBlock,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
 ): ExtractedDeclaration[] {
-  const declarations: ExtractedDeclaration[] = [];
+  const declarations: ExtractedDeclaration[] = []
 
   for (const statement of moduleBlock.statements) {
     // Skip non-declaration statements
     if (!isSupportedDeclaration(statement)) {
-      continue;
+      continue
     }
 
-    const commentText = getLeadingCommentText(statement, sourceFile);
-    const { maturityLevel, isUntagged } = getMaturityLevelFromComment(commentText);
-    const text = getNodeTextWithComments(statement, sourceFile);
-    const name = getDeclarationName(statement);
-    const kind = getDeclarationKind(statement);
+    const commentText = getLeadingCommentText(statement, sourceFile)
+    const { maturityLevel, isUntagged } =
+      getMaturityLevelFromComment(commentText)
+    const text = getNodeTextWithComments(statement, sourceFile)
+    const name = getDeclarationName(statement)
+    const kind = getDeclarationKind(statement)
 
     declarations.push({
       text,
@@ -253,10 +254,10 @@ function extractDeclarationsFromModuleBlock(
       name,
       kind,
       isUntagged,
-    });
+    })
   }
 
-  return declarations;
+  return declarations
 }
 
 /**
@@ -264,9 +265,9 @@ function extractDeclarationsFromModuleBlock(
  */
 function extractFromSourceFile(
   sourceFile: ts.SourceFile,
-  filePath: string
+  filePath: string,
 ): ExtractedModuleAugmentation[] {
-  const augmentations: ExtractedModuleAugmentation[] = [];
+  const augmentations: ExtractedModuleAugmentation[] = []
 
   function visit(node: ts.Node): void {
     // Look for `declare module "..."` statements
@@ -275,16 +276,13 @@ function extractFromSourceFile(
       node.modifiers?.some((m) => m.kind === ts.SyntaxKind.DeclareKeyword) &&
       ts.isStringLiteral(node.name)
     ) {
-      const moduleSpecifier = node.name.text;
-      const originalText = getNodeTextWithComments(node, sourceFile);
+      const moduleSpecifier = node.name.text
+      const originalText = getNodeTextWithComments(node, sourceFile)
 
       // Get the module body
-      let declarations: ExtractedDeclaration[] = [];
+      let declarations: ExtractedDeclaration[] = []
       if (node.body && ts.isModuleBlock(node.body)) {
-        declarations = extractDeclarationsFromModuleBlock(
-          node.body,
-          sourceFile
-        );
+        declarations = extractDeclarationsFromModuleBlock(node.body, sourceFile)
       }
 
       if (declarations.length > 0) {
@@ -293,15 +291,15 @@ function extractFromSourceFile(
           sourceFilePath: filePath,
           declarations,
           originalText,
-        });
+        })
       }
     }
 
-    ts.forEachChild(node, visit);
+    ts.forEachChild(node, visit)
   }
 
-  visit(sourceFile);
-  return augmentations;
+  visit(sourceFile)
+  return augmentations
 }
 
 /**
@@ -309,11 +307,11 @@ function extractFromSourceFile(
  */
 export interface ExtractOptions {
   /** The project folder to search for source files */
-  projectFolder: string;
+  projectFolder: string
   /** Glob patterns for source files to include (default: ['**\/*.ts', '**\/*.tsx']) */
-  include?: string[];
+  include?: string[]
   /** Glob patterns for files to exclude (default: ['**\/node_modules\/**', '**\/*.d.ts']) */
-  exclude?: string[];
+  exclude?: string[]
 }
 
 /**
@@ -323,39 +321,39 @@ export interface ExtractOptions {
  * @returns Extraction result with all augmentations and any errors
  */
 export async function extractModuleAugmentations(
-  options: ExtractOptions
+  options: ExtractOptions,
 ): Promise<ExtractionResult> {
   const {
     projectFolder,
-    include = ["**/*.ts", "**/*.tsx"],
-    exclude = ["**/node_modules/**", "**/*.d.ts", "**/dist/**"],
-  } = options;
+    include = ['**/*.ts', '**/*.tsx'],
+    exclude = ['**/node_modules/**', '**/*.d.ts', '**/dist/**'],
+  } = options
 
-  const augmentations: ExtractedModuleAugmentation[] = [];
-  const errors: string[] = [];
-  const untaggedDeclarations: UntaggedDeclarationInfo[] = [];
+  const augmentations: ExtractedModuleAugmentation[] = []
+  const errors: string[] = []
+  const untaggedDeclarations: UntaggedDeclarationInfo[] = []
 
   // Find all TypeScript files
   const files = await glob(include, {
     cwd: projectFolder,
     ignore: exclude,
     absolute: true,
-  });
+  })
 
   for (const filePath of files) {
     try {
-      const content = fs.readFileSync(filePath, "utf-8");
+      const content = fs.readFileSync(filePath, 'utf-8')
       const sourceFile = ts.createSourceFile(
         filePath,
         content,
         ts.ScriptTarget.Latest,
         true, // setParentNodes
-        ts.ScriptKind.TS
-      );
+        ts.ScriptKind.TS,
+      )
 
-      const relativePath = path.relative(projectFolder, filePath);
-      const fileAugmentations = extractFromSourceFile(sourceFile, relativePath);
-      augmentations.push(...fileAugmentations);
+      const relativePath = path.relative(projectFolder, filePath)
+      const fileAugmentations = extractFromSourceFile(sourceFile, relativePath)
+      augmentations.push(...fileAugmentations)
 
       // Collect untagged declarations info
       for (const aug of fileAugmentations) {
@@ -366,16 +364,16 @@ export async function extractModuleAugmentations(
               sourceFilePath: aug.sourceFilePath,
               moduleSpecifier: aug.moduleSpecifier,
               kind: decl.kind,
-            });
+            })
           }
         }
       }
     } catch (error) {
       errors.push(
-        `Error processing ${filePath}: ${error instanceof Error ? error.message : String(error)}`
-      );
+        `Error processing ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
-  return { augmentations, errors, untaggedDeclarations };
+  return { augmentations, errors, untaggedDeclarations }
 }

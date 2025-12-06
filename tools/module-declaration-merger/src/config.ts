@@ -1,13 +1,15 @@
-import * as fs from "fs";
-import * as path from "path";
-import { ExtractorLogLevel } from "@microsoft/api-extractor";
-import type { ReleaseTagForTrim } from "@microsoft/api-extractor";
+import * as fs from 'fs'
+import * as path from 'path'
+import { ExtractorLogLevel } from '@microsoft/api-extractor'
+import type { ReleaseTagForTrim } from '@microsoft/api-extractor'
 
 /**
  * Maturity levels for API declarations, derived from api-extractor's ReleaseTagForTrim.
  * Strips the '@' prefix for easier use.
  */
-export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}` ? Tag : never;
+export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}`
+  ? Tag
+  : never
 
 /**
  * Rollup file paths extracted from api-extractor.json, keyed by maturity level.
@@ -16,7 +18,7 @@ export type MaturityLevel = ReleaseTagForTrim extends `@${infer Tag}` ? Tag : ne
  * - alpha: alphaTrimmedFilePath
  * - internal: untrimmedFilePath
  */
-export type RollupPaths = Partial<Record<MaturityLevel, string>>;
+export type RollupPaths = Partial<Record<MaturityLevel, string>>
 
 /**
  * Configuration for how to handle missing release tags (ae-missing-release-tag)
@@ -28,12 +30,12 @@ export interface MissingReleaseTagConfig {
    * - "warning": Treat as a warning
    * - "none": Silently ignore (treat as @public)
    */
-  logLevel: ExtractorLogLevel;
+  logLevel: ExtractorLogLevel
   /**
    * If true, add the message as a comment in the rollup file.
    * If false, print to console (and stop processing if logLevel is "error").
    */
-  addToApiReportFile: boolean;
+  addToApiReportFile: boolean
 }
 
 /**
@@ -41,9 +43,9 @@ export interface MissingReleaseTagConfig {
  */
 export interface DocModelConfig {
   /** Whether doc model generation is enabled */
-  enabled: boolean;
+  enabled: boolean
   /** Absolute path to the .api.json file */
-  apiJsonFilePath: string;
+  apiJsonFilePath: string
 }
 
 /**
@@ -51,51 +53,51 @@ export interface DocModelConfig {
  */
 export interface ParsedConfig {
   /** Absolute path to the api-extractor.json file */
-  configPath: string;
+  configPath: string
   /** Absolute path to the project folder */
-  projectFolder: string;
+  projectFolder: string
   /** Absolute path to the main entry point file */
-  mainEntryPointFilePath: string;
+  mainEntryPointFilePath: string
   /** Absolute paths to rollup files by maturity level */
-  rollupPaths: RollupPaths;
+  rollupPaths: RollupPaths
   /** Configuration for handling missing release tags */
-  missingReleaseTagConfig: MissingReleaseTagConfig;
+  missingReleaseTagConfig: MissingReleaseTagConfig
   /** Configuration for the doc model (.api.json) output */
-  docModel?: DocModelConfig;
+  docModel?: DocModelConfig
 }
 
 /**
  * Message reporting rule shape (from JSON, so logLevel is a string)
  */
 interface MessageReportingRule {
-  logLevel?: string;
-  addToApiReportFile?: boolean;
+  logLevel?: string
+  addToApiReportFile?: boolean
 }
 
 /**
  * Shape of relevant parts of api-extractor.json
  */
 interface ApiExtractorConfig {
-  extends?: string;
-  projectFolder?: string;
-  mainEntryPointFilePath: string;
+  extends?: string
+  projectFolder?: string
+  mainEntryPointFilePath: string
   dtsRollup?: {
-    enabled?: boolean;
-    untrimmedFilePath?: string;
-    alphaTrimmedFilePath?: string;
-    betaTrimmedFilePath?: string;
-    publicTrimmedFilePath?: string;
-  };
+    enabled?: boolean
+    untrimmedFilePath?: string
+    alphaTrimmedFilePath?: string
+    betaTrimmedFilePath?: string
+    publicTrimmedFilePath?: string
+  }
   docModel?: {
-    enabled?: boolean;
-    apiJsonFilePath?: string;
-  };
+    enabled?: boolean
+    apiJsonFilePath?: string
+  }
   messages?: {
     extractorMessageReporting?: {
-      "ae-missing-release-tag"?: MessageReportingRule;
-      [key: string]: MessageReportingRule | undefined;
-    };
-  };
+      'ae-missing-release-tag'?: MessageReportingRule
+      [key: string]: MessageReportingRule | undefined
+    }
+  }
 }
 
 /**
@@ -104,39 +106,39 @@ interface ApiExtractorConfig {
 function resolvePath(
   rawPath: string,
   projectFolder: string,
-  configDir: string
+  configDir: string,
 ): string {
   // Replace <projectFolder> token with actual project folder
-  const resolved = rawPath.replace(/<projectFolder>/g, projectFolder);
+  const resolved = rawPath.replace(/<projectFolder>/g, projectFolder)
 
   // If path is absolute, return as-is; otherwise resolve relative to config dir
   if (path.isAbsolute(resolved)) {
-    return resolved;
+    return resolved
   }
-  return path.resolve(configDir, resolved);
+  return path.resolve(configDir, resolved)
 }
 
 /**
  * Loads and merges a config file, following the "extends" chain
  */
 function loadConfigFile(configPath: string): ApiExtractorConfig {
-  const configContent = fs.readFileSync(configPath, "utf-8");
-  let config: ApiExtractorConfig;
+  const configContent = fs.readFileSync(configPath, 'utf-8')
+  let config: ApiExtractorConfig
 
   try {
-    config = JSON.parse(configContent) as ApiExtractorConfig;
+    config = JSON.parse(configContent) as ApiExtractorConfig
   } catch (error) {
     throw new Error(
-      `Failed to parse config file: ${configPath}. ${error instanceof Error ? error.message : String(error)}`
-    );
+      `Failed to parse config file: ${configPath}. ${error instanceof Error ? error.message : String(error)}`,
+    )
   }
 
   // Handle extends
   if (config.extends) {
-    const configDir = path.dirname(configPath);
-    const baseConfigPath = path.resolve(configDir, config.extends);
-    const baseConfig = loadConfigFile(baseConfigPath);
-    
+    const configDir = path.dirname(configPath)
+    const baseConfigPath = path.resolve(configDir, config.extends)
+    const baseConfig = loadConfigFile(baseConfigPath)
+
     // Merge configs (current config takes precedence)
     config = {
       ...baseConfig,
@@ -157,10 +159,10 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
           ...config.messages?.extractorMessageReporting,
         },
       },
-    };
+    }
   }
 
-  return config;
+  return config
 }
 
 /**
@@ -169,13 +171,13 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
  * For "my-package", returns "my-package".
  */
 function getUnscopedPackageName(packageName: string): string {
-  if (packageName.startsWith("@")) {
-    const slashIndex = packageName.indexOf("/");
+  if (packageName.startsWith('@')) {
+    const slashIndex = packageName.indexOf('/')
     if (slashIndex !== -1) {
-      return packageName.slice(slashIndex + 1);
+      return packageName.slice(slashIndex + 1)
     }
   }
-  return packageName;
+  return packageName
 }
 
 /**
@@ -183,16 +185,16 @@ function getUnscopedPackageName(packageName: string): string {
  * Returns undefined if package.json doesn't exist or has no name.
  */
 function readPackageName(projectFolder: string): string | undefined {
-  const packageJsonPath = path.join(projectFolder, "package.json");
+  const packageJsonPath = path.join(projectFolder, 'package.json')
   if (!fs.existsSync(packageJsonPath)) {
-    return undefined;
+    return undefined
   }
   try {
-    const content = fs.readFileSync(packageJsonPath, "utf-8");
-    const pkg = JSON.parse(content) as { name?: string };
-    return pkg.name;
+    const content = fs.readFileSync(packageJsonPath, 'utf-8')
+    const pkg = JSON.parse(content) as { name?: string }
+    return pkg.name
   } catch {
-    return undefined;
+    return undefined
   }
 }
 
@@ -204,38 +206,46 @@ function readPackageName(projectFolder: string): string | undefined {
 function getDocModelConfig(
   config: ApiExtractorConfig,
   projectFolder: string,
-  configDir: string
+  configDir: string,
 ): DocModelConfig | undefined {
-  const docModel = config.docModel;
-  
+  const docModel = config.docModel
+
   // Default to enabled if not explicitly set (api-extractor default behavior)
   // But we only return config if we can determine a valid path
-  const enabled = docModel?.enabled ?? true;
-  
+  const enabled = docModel?.enabled ?? true
+
   if (!enabled) {
-    return undefined;
+    return undefined
   }
 
-  let apiJsonFilePath: string;
-  
+  let apiJsonFilePath: string
+
   if (docModel?.apiJsonFilePath) {
     // Use configured path, resolving tokens
-    apiJsonFilePath = resolvePath(docModel.apiJsonFilePath, projectFolder, configDir);
+    apiJsonFilePath = resolvePath(
+      docModel.apiJsonFilePath,
+      projectFolder,
+      configDir,
+    )
   } else {
     // Use default path: temp/<unscopedPackageName>.api.json
-    const packageName = readPackageName(projectFolder);
+    const packageName = readPackageName(projectFolder)
     if (!packageName) {
       // Can't determine default path without package name
-      return undefined;
+      return undefined
     }
-    const unscopedName = getUnscopedPackageName(packageName);
-    apiJsonFilePath = path.join(projectFolder, "temp", `${unscopedName}.api.json`);
+    const unscopedName = getUnscopedPackageName(packageName)
+    apiJsonFilePath = path.join(
+      projectFolder,
+      'temp',
+      `${unscopedName}.api.json`,
+    )
   }
 
   return {
     enabled: true,
     apiJsonFilePath,
-  };
+  }
 }
 
 /**
@@ -243,35 +253,36 @@ function getDocModelConfig(
  * Defaults to "none" logLevel (silently treat as @public).
  */
 function getMissingReleaseTagConfig(
-  config: ApiExtractorConfig
+  config: ApiExtractorConfig,
 ): MissingReleaseTagConfig {
-  const rule = config.messages?.extractorMessageReporting?.["ae-missing-release-tag"];
-  
+  const rule =
+    config.messages?.extractorMessageReporting?.['ae-missing-release-tag']
+
   // Map string values to ExtractorLogLevel enum
-  let logLevel: ExtractorLogLevel = ExtractorLogLevel.None;
+  let logLevel: ExtractorLogLevel = ExtractorLogLevel.None
   if (rule?.logLevel) {
-    const level = rule.logLevel;
-    if (level === "error") logLevel = ExtractorLogLevel.Error;
-    else if (level === "warning") logLevel = ExtractorLogLevel.Warning;
-    else if (level === "info") logLevel = ExtractorLogLevel.Info;
-    else if (level === "verbose") logLevel = ExtractorLogLevel.Verbose;
-    else if (level === "none") logLevel = ExtractorLogLevel.None;
+    const level = rule.logLevel
+    if (level === 'error') logLevel = ExtractorLogLevel.Error
+    else if (level === 'warning') logLevel = ExtractorLogLevel.Warning
+    else if (level === 'info') logLevel = ExtractorLogLevel.Info
+    else if (level === 'verbose') logLevel = ExtractorLogLevel.Verbose
+    else if (level === 'none') logLevel = ExtractorLogLevel.None
   }
-  
+
   return {
     logLevel,
     addToApiReportFile: rule?.addToApiReportFile ?? false,
-  };
+  }
 }
 
 /**
  * Parses an api-extractor.json file and extracts relevant configuration.
- * 
+ *
  * This is a lightweight parser that handles:
  * - <projectFolder> token resolution
  * - Config file inheritance (extends)
  * - Path resolution
- * 
+ *
  * Unlike the full api-extractor, this doesn't require the entry point
  * to be a .d.ts file, since our tool runs AFTER api-extractor has
  * already generated the rollups.
@@ -280,72 +291,72 @@ function getMissingReleaseTagConfig(
  * @returns Parsed configuration with resolved absolute paths
  */
 export function parseConfig(configPath: string): ParsedConfig {
-  const absoluteConfigPath = path.resolve(configPath);
-  const configDir = path.dirname(absoluteConfigPath);
+  const absoluteConfigPath = path.resolve(configPath)
+  const configDir = path.dirname(absoluteConfigPath)
 
   if (!fs.existsSync(absoluteConfigPath)) {
-    throw new Error(`Config file not found: ${absoluteConfigPath}`);
+    throw new Error(`Config file not found: ${absoluteConfigPath}`)
   }
 
-  const config = loadConfigFile(absoluteConfigPath);
+  const config = loadConfigFile(absoluteConfigPath)
 
   // Resolve project folder - defaults to config directory
   const projectFolder = config.projectFolder
     ? resolvePath(config.projectFolder, configDir, configDir)
-    : configDir;
+    : configDir
 
   // Resolve main entry point
   if (!config.mainEntryPointFilePath) {
     throw new Error(
-      `Missing required field 'mainEntryPointFilePath' in ${absoluteConfigPath}`
-    );
+      `Missing required field 'mainEntryPointFilePath' in ${absoluteConfigPath}`,
+    )
   }
   const mainEntryPointFilePath = resolvePath(
     config.mainEntryPointFilePath,
     projectFolder,
-    configDir
-  );
+    configDir,
+  )
 
   // Resolve rollup paths
-  const rollupPaths: RollupPaths = {};
-  const dtsRollup = config.dtsRollup;
+  const rollupPaths: RollupPaths = {}
+  const dtsRollup = config.dtsRollup
 
   if (dtsRollup) {
     if (dtsRollup.publicTrimmedFilePath) {
       rollupPaths.public = resolvePath(
         dtsRollup.publicTrimmedFilePath,
         projectFolder,
-        configDir
-      );
+        configDir,
+      )
     }
     if (dtsRollup.betaTrimmedFilePath) {
       rollupPaths.beta = resolvePath(
         dtsRollup.betaTrimmedFilePath,
         projectFolder,
-        configDir
-      );
+        configDir,
+      )
     }
     if (dtsRollup.alphaTrimmedFilePath) {
       rollupPaths.alpha = resolvePath(
         dtsRollup.alphaTrimmedFilePath,
         projectFolder,
-        configDir
-      );
+        configDir,
+      )
     }
     if (dtsRollup.untrimmedFilePath) {
       rollupPaths.internal = resolvePath(
         dtsRollup.untrimmedFilePath,
         projectFolder,
-        configDir
-      );
+        configDir,
+      )
     }
   }
 
   // Get missing release tag configuration
-  const missingReleaseTagConfig = getMissingReleaseTagConfig(config);
+  const missingReleaseTagConfig = getMissingReleaseTagConfig(config)
 
   // Get doc model configuration
-  const docModel = getDocModelConfig(config, projectFolder, configDir);
+  const docModel = getDocModelConfig(config, projectFolder, configDir)
 
   return {
     configPath: absoluteConfigPath,
@@ -354,7 +365,7 @@ export function parseConfig(configPath: string): ParsedConfig {
     rollupPaths,
     missingReleaseTagConfig,
     docModel,
-  };
+  }
 }
 
 /**
@@ -371,37 +382,37 @@ export function parseConfig(configPath: string): ParsedConfig {
  */
 export function getRollupPathsForMaturity(
   maturityLevel: MaturityLevel,
-  rollupPaths: RollupPaths
+  rollupPaths: RollupPaths,
 ): string[] {
-  const paths: string[] = [];
+  const paths: string[] = []
 
   // Internal rollup gets everything
   if (rollupPaths.internal) {
-    paths.push(rollupPaths.internal);
+    paths.push(rollupPaths.internal)
   }
 
   // Alpha, beta, and public go to alpha rollup
   if (
     rollupPaths.alpha &&
-    (maturityLevel === "alpha" ||
-      maturityLevel === "beta" ||
-      maturityLevel === "public")
+    (maturityLevel === 'alpha' ||
+      maturityLevel === 'beta' ||
+      maturityLevel === 'public')
   ) {
-    paths.push(rollupPaths.alpha);
+    paths.push(rollupPaths.alpha)
   }
 
   // Beta and public go to beta rollup
   if (
     rollupPaths.beta &&
-    (maturityLevel === "beta" || maturityLevel === "public")
+    (maturityLevel === 'beta' || maturityLevel === 'public')
   ) {
-    paths.push(rollupPaths.beta);
+    paths.push(rollupPaths.beta)
   }
 
   // Only public goes to public rollup
-  if (rollupPaths.public && maturityLevel === "public") {
-    paths.push(rollupPaths.public);
+  if (rollupPaths.public && maturityLevel === 'public') {
+    paths.push(rollupPaths.public)
   }
 
-  return paths;
+  return paths
 }

@@ -17,7 +17,7 @@ If, through analysis of the old and new `.d.ts` rollups, we found
  * Greet a planet!
  * @public
  */
-export function greet(planet: "earth" | "mars"): string;
+export function greet(planet: 'earth' | 'mars'): string
 ```
 
 and
@@ -28,7 +28,7 @@ and
  * Greet a planet!
  * @public
  */
-export function greet(planet: "earth" | "mars", prefix?: string): string;
+export function greet(planet: 'earth' | 'mars', prefix?: string): string
 ```
 
 We could regard recommend this change as compatible with a MINOR release. New functionality has been added and so the API signature changed, but it should not interfere with established use of the library. We'd recommend a version of `1.2.0`
@@ -41,7 +41,7 @@ But if instead in the new rollup we found
  * Greet a planet!
  * @public
  */
-export function greet(planet: "earth" | "mars", prefix: string): string;
+export function greet(planet: 'earth' | 'mars', prefix: string): string
 ```
 
 The fact that the new parameter is not optional means this should be modeled as a MAJOR release. Established users who engage with this function must change their code to align with the new contract.

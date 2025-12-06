@@ -1,22 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { Project } from "fixturify-project";
-import { extractModuleAugmentations } from "@";
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { Project } from 'fixturify-project'
+import { extractModuleAugmentations } from '@'
 
-describe("TSDoc comment preservation", () => {
-  let project: Project;
+describe('TSDoc comment preservation', () => {
+  let project: Project
 
   beforeEach(() => {
-    project = new Project("test-pkg");
-  });
+    project = new Project('test-pkg')
+  })
 
   afterEach(async () => {
-    await project.dispose();
-  });
+    await project.dispose()
+  })
 
-  it("preserves multi-line descriptions", async () => {
+  it('preserves multi-line descriptions', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /**
    * This is a multi-line description
@@ -30,23 +30,23 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    const text = result.augmentations[0]?.declarations[0]?.text ?? "";
-    expect(text).toContain("This is a multi-line description");
-    expect(text).toContain("that spans several lines");
-    expect(text).toContain("It even has blank lines");
-  });
+    const text = result.augmentations[0]?.declarations[0]?.text ?? ''
+    expect(text).toContain('This is a multi-line description')
+    expect(text).toContain('that spans several lines')
+    expect(text).toContain('It even has blank lines')
+  })
 
-  it("preserves @param and @returns tags", async () => {
+  it('preserves @param and @returns tags', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /**
    * Calculates the sum of two numbers.
@@ -59,23 +59,23 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    const text = result.augmentations[0]?.declarations[0]?.text ?? "";
-    expect(text).toContain("@param a - The first number");
-    expect(text).toContain("@param b - The second number");
-    expect(text).toContain("@returns The sum of a and b");
-  });
+    const text = result.augmentations[0]?.declarations[0]?.text ?? ''
+    expect(text).toContain('@param a - The first number')
+    expect(text).toContain('@param b - The second number')
+    expect(text).toContain('@returns The sum of a and b')
+  })
 
-  it("preserves @example tags with code blocks", async () => {
+  it('preserves @example tags with code blocks', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /**
    * Creates a greeter.
@@ -92,22 +92,22 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    const text = result.augmentations[0]?.declarations[0]?.text ?? "";
-    expect(text).toContain("@example");
-    expect(text).toContain("createGreeter(\"World\")");
-  });
+    const text = result.augmentations[0]?.declarations[0]?.text ?? ''
+    expect(text).toContain('@example')
+    expect(text).toContain('createGreeter("World")')
+  })
 
-  it("preserves @see and @remarks tags", async () => {
+  it('preserves @see and @remarks tags', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /**
    * Process data with specific handling.
@@ -124,23 +124,23 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    const text = result.augmentations[0]?.declarations[0]?.text ?? "";
-    expect(text).toContain("@remarks");
-    expect(text).toContain("specialized algorithm");
-    expect(text).toContain("@see");
-  });
+    const text = result.augmentations[0]?.declarations[0]?.text ?? ''
+    expect(text).toContain('@remarks')
+    expect(text).toContain('specialized algorithm')
+    expect(text).toContain('@see')
+  })
 
-  it("non-maturity tags do not affect routing", async () => {
+  it('non-maturity tags do not affect routing', async () => {
     project.files = {
       src: {
-        "augment.ts": `
+        'augment.ts': `
 declare module "./registry" {
   /**
    * @deprecated Use newFunction instead
@@ -151,15 +151,16 @@ declare module "./registry" {
 }
 `,
       },
-    };
-    await project.write();
+    }
+    await project.write()
 
     const result = await extractModuleAugmentations({
       projectFolder: project.baseDir,
-    });
+    })
 
-    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe("public");
-    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(false);
-  });
-});
-
+    expect(result.augmentations[0]?.declarations[0]?.maturityLevel).toBe(
+      'public',
+    )
+    expect(result.augmentations[0]?.declarations[0]?.isUntagged).toBe(false)
+  })
+})

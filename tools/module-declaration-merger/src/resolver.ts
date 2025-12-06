@@ -1,13 +1,13 @@
-import * as path from "path";
+import * as path from 'path'
 
 /**
  * Options for resolving module paths
  */
 export interface ResolverOptions {
   /** The project folder (root of the source files) */
-  projectFolder: string;
+  projectFolder: string
   /** The main entry point file path (used to determine module base) */
-  mainEntryPointFilePath: string;
+  mainEntryPointFilePath: string
 }
 
 /**
@@ -21,10 +21,10 @@ export interface ResolverOptions {
  * should be `./registry` (relative to where the rollup would be imported from).
  */
 export function createResolver(options: ResolverOptions) {
-  const { projectFolder, mainEntryPointFilePath } = options;
+  const { projectFolder, mainEntryPointFilePath } = options
 
   // Get the directory of the main entry point - this is our reference point
-  const entryDir = path.dirname(mainEntryPointFilePath);
+  const entryDir = path.dirname(mainEntryPointFilePath)
 
   /**
    * Resolves a module specifier from a source file to be relative to the entry point.
@@ -35,41 +35,40 @@ export function createResolver(options: ResolverOptions) {
    */
   function resolveModulePath(
     moduleSpecifier: string,
-    sourceFilePath: string
+    sourceFilePath: string,
   ): string {
     // If it's not a relative path, return as-is (it's a package import)
-    if (!moduleSpecifier.startsWith(".")) {
-      return moduleSpecifier;
+    if (!moduleSpecifier.startsWith('.')) {
+      return moduleSpecifier
     }
 
     // Get the absolute path of the source file
-    const absoluteSourcePath = path.resolve(projectFolder, sourceFilePath);
-    const sourceDir = path.dirname(absoluteSourcePath);
+    const absoluteSourcePath = path.resolve(projectFolder, sourceFilePath)
+    const sourceDir = path.dirname(absoluteSourcePath)
 
     // Resolve the module specifier relative to the source file
-    const absoluteModulePath = path.resolve(sourceDir, moduleSpecifier);
+    const absoluteModulePath = path.resolve(sourceDir, moduleSpecifier)
 
     // Now make it relative to the entry point directory
-    let relativePath = path.relative(entryDir, absoluteModulePath);
+    let relativePath = path.relative(entryDir, absoluteModulePath)
 
     // Ensure it starts with ./ for relative imports
-    if (!relativePath.startsWith(".")) {
-      relativePath = "./" + relativePath;
+    if (!relativePath.startsWith('.')) {
+      relativePath = './' + relativePath
     }
 
     // Normalize path separators for cross-platform compatibility
-    relativePath = relativePath.replace(/\\/g, "/");
+    relativePath = relativePath.replace(/\\/g, '/')
 
-    return relativePath;
+    return relativePath
   }
 
   return {
     resolveModulePath,
-  };
+  }
 }
 
 /**
  * Type for the resolver returned by createResolver
  */
-export type Resolver = ReturnType<typeof createResolver>;
-
+export type Resolver = ReturnType<typeof createResolver>

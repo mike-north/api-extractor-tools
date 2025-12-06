@@ -29,24 +29,24 @@ module-declaration-merger --verbose
 ### Library
 
 ```typescript
-import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger';
+import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger'
 
 const result = await mergeModuleDeclarations({
   configPath: './api-extractor.json',
   dryRun: false,
-});
+})
 
 if (!result.success) {
-  console.error('Merge failed with errors:', result.errors);
-  process.exit(1);
+  console.error('Merge failed with errors:', result.errors)
+  process.exit(1)
 }
 
-console.log(`Augmented ${result.augmentedFiles.length} rollup files`);
-console.log(`Found ${result.augmentationCount} module augmentations`);
-console.log(`Processed ${result.declarationCount} declarations`);
+console.log(`Augmented ${result.augmentedFiles.length} rollup files`)
+console.log(`Found ${result.augmentationCount} module augmentations`)
+console.log(`Processed ${result.declarationCount} declarations`)
 
 if (result.warnings.length > 0) {
-  console.warn('Warnings:', result.warnings);
+  console.warn('Warnings:', result.warnings)
 }
 ```
 
@@ -62,12 +62,12 @@ if (result.warnings.length > 0) {
 
 Declarations are routed to rollups based on their TSDoc release tags:
 
-| Tag | Rollups |
-|-----|---------|
-| `@internal` | untrimmed only |
-| `@alpha` | untrimmed, alpha |
-| `@beta` | untrimmed, alpha, beta |
-| `@public` | untrimmed, alpha, beta, public |
+| Tag         | Rollups                        |
+| ----------- | ------------------------------ |
+| `@internal` | untrimmed only                 |
+| `@alpha`    | untrimmed, alpha               |
+| `@beta`     | untrimmed, alpha, beta         |
+| `@public`   | untrimmed, alpha, beta, public |
 
 Declarations without a release tag default to `@public`.
 
@@ -88,13 +88,13 @@ This tool respects the `ae-missing-release-tag` configuration in your `api-extra
 }
 ```
 
-| `logLevel` | `addToApiReportFile` | Behavior |
-|------------|---------------------|----------|
-| `"error"` | `true` | Add warning comment in rollup, continue processing (non-zero exit) |
-| `"error"` | `false` | Print error to console, **stop processing** (non-zero exit) |
-| `"warning"` | `true` | Add warning comment in rollup, continue (zero exit) |
-| `"warning"` | `false` | Print warning to console, continue (zero exit) |
-| `"none"` or absent | any | Silently treat as `@public` (zero exit) |
+| `logLevel`         | `addToApiReportFile` | Behavior                                                           |
+| ------------------ | -------------------- | ------------------------------------------------------------------ |
+| `"error"`          | `true`               | Add warning comment in rollup, continue processing (non-zero exit) |
+| `"error"`          | `false`              | Print error to console, **stop processing** (non-zero exit)        |
+| `"warning"`        | `true`               | Add warning comment in rollup, continue (zero exit)                |
+| `"warning"`        | `false`              | Print warning to console, continue (zero exit)                     |
+| `"none"` or absent | any                  | Silently treat as `@public` (zero exit)                            |
 
 When `addToApiReportFile: true`, warnings are added as comments in the rollup:
 
@@ -112,6 +112,7 @@ When `addToApiReportFile: true`, warnings are added as comments in the rollup:
 This tool also augments the `.api.json` files used by [@microsoft/api-documenter](https://api-extractor.com/pages/setup/generating_docs/) to generate documentation.
 
 When `docModel.enabled` is `true` in your `api-extractor.json`, the tool will:
+
 - Load the existing `.api.json` file
 - Add information about module augmentations
 - Save the updated model
@@ -139,13 +140,13 @@ The tool appends declarations to rollups with clear attribution:
 // ============================================
 
 // #region Module augmentation from src/things/first.ts
-declare module "./registry" {
+declare module './registry' {
   /**
    * Register FirstThing in the registry
    * @public
    */
   interface Registry {
-    first: FirstThing;
+    first: FirstThing
   }
 }
 // #endregion
@@ -159,8 +160,8 @@ This tool is particularly useful with the [registry pattern](https://www.typescr
 // src/registry.ts
 export interface Registry {}
 
-export type NamesOfThingsInRegistry = keyof Registry;
-export type AllPossibleRegistryThings = Registry[keyof Registry];
+export type NamesOfThingsInRegistry = keyof Registry
+export type AllPossibleRegistryThings = Registry[keyof Registry]
 ```
 
 With module augmentations in separate files:
@@ -168,13 +169,13 @@ With module augmentations in separate files:
 ```typescript
 // src/things/first.ts
 export interface FirstThing {
-  type: "first";
+  type: 'first'
 }
 
-declare module "../registry" {
+declare module '../registry' {
   /** @public */
   interface Registry {
-    first: FirstThing;
+    first: FirstThing
   }
 }
 ```
@@ -182,13 +183,13 @@ declare module "../registry" {
 ```typescript
 // src/things/second.ts
 export interface SecondThing {
-  type: "second";
+  type: 'second'
 }
 
-declare module "../registry" {
+declare module '../registry' {
   /** @public */
   interface Registry {
-    second: SecondThing;
+    second: SecondThing
   }
 }
 ```
@@ -203,22 +204,22 @@ Main function to merge module declarations into rollups.
 
 ```typescript
 interface MergeOptions {
-  configPath: string;    // Path to api-extractor.json
-  dryRun?: boolean;      // Preview without writing (default: false)
-  include?: string[];    // Glob patterns for source files
-  exclude?: string[];    // Glob patterns to exclude
+  configPath: string // Path to api-extractor.json
+  dryRun?: boolean // Preview without writing (default: false)
+  include?: string[] // Glob patterns for source files
+  exclude?: string[] // Glob patterns to exclude
 }
 
 interface MergeResult {
-  success: boolean;               // Whether merge completed successfully
-  augmentedFiles: string[];       // Rollup files that were modified
-  skippedFiles: string[];         // Rollup files that didn't exist
-  augmentationCount: number;      // Number of declare module blocks found
-  declarationCount: number;       // Number of individual declarations
-  untaggedDeclarationCount: number; // Declarations missing release tags
-  docModelAugmented: boolean;     // Whether .api.json was augmented
-  errors: string[];               // Errors encountered
-  warnings: string[];             // Warnings encountered
+  success: boolean // Whether merge completed successfully
+  augmentedFiles: string[] // Rollup files that were modified
+  skippedFiles: string[] // Rollup files that didn't exist
+  augmentationCount: number // Number of declare module blocks found
+  declarationCount: number // Number of individual declarations
+  untaggedDeclarationCount: number // Declarations missing release tags
+  docModelAugmented: boolean // Whether .api.json was augmented
+  errors: string[] // Errors encountered
+  warnings: string[] // Warnings encountered
 }
 ```
 

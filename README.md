@@ -9,6 +9,7 @@ A collection of tools that extend [@microsoft/api-extractor](https://api-extract
 When api-extractor creates declaration file rollups, it omits ambient module declarations (`declare module "..."` blocks). This tool adds them back.
 
 **Key features:**
+
 - Extracts `declare module` blocks from your TypeScript source files
 - Routes declarations to appropriate rollups based on TSDoc release tags (`@public`, `@beta`, `@alpha`, `@internal`)
 - Augments `.api.json` doc models for documentation generation
@@ -31,6 +32,7 @@ const result = await mergeModuleDeclarations({
 Analyzes a pair of `.d.ts` rollups and classifies the delta according to [Semantic Versioning](https://semver.org/) rules. Helps library authors understand whether their changes require a major, minor, or patch release.
 
 **Key features:**
+
 - Detects added, removed, and modified exports
 - Analyzes function parameter changes (optional vs required)
 - Compares interface and type structures
@@ -72,4 +74,3 @@ pnpm -r test
 ## License
 
 MIT
-
