@@ -1,4 +1,21 @@
-import type { Change, ComparisonReport, ReleaseType } from './types'
+import type {
+  Change,
+  ChangesByImpact,
+  ComparisonReport,
+  ComparisonStats,
+  ReleaseType,
+} from './types'
+
+/**
+ * JSON-serializable representation of a comparison report.
+ */
+export interface ComparisonReportJSON {
+  releaseType: ReleaseType
+  changes: ChangesByImpact
+  stats: ComparisonStats
+  oldFile: string
+  newFile: string
+}
 
 /**
  * Formats the release type as a human-readable label.
@@ -72,12 +89,13 @@ export function formatReportAsText(report: ComparisonReport): string {
   }
   lines.push('')
 
-  // Summary
+  // Statistics
   const { stats } = report
-  lines.push(
-    `Summary: ${stats.added} addition(s), ${stats.removed} removal(s), ` +
-      `${stats.modified} modification(s), ${stats.unchanged} unchanged`,
-  )
+  lines.push(`Statistics:`)
+  lines.push(`  Added: ${stats.added}`)
+  lines.push(`  Removed: ${stats.removed}`)
+  lines.push(`  Modified: ${stats.modified}`)
+  lines.push(`  Unchanged: ${stats.unchanged}`)
 
   return lines.join('\n')
 }
@@ -160,9 +178,7 @@ export function formatReportAsMarkdown(report: ComparisonReport): string {
 /**
  * Converts the report to a plain JSON-serializable object.
  */
-export function reportToJSON(
-  report: ComparisonReport,
-): Record<string, unknown> {
+export function reportToJSON(report: ComparisonReport): ComparisonReportJSON {
   return {
     releaseType: report.releaseType,
     changes: {

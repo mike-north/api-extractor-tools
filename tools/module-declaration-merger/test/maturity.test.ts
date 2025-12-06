@@ -465,3 +465,6 @@ declare module "./registry-b" {
     expect(result.augmentations[1]?.moduleSpecifier).toBe('./registry-b')
   })
 })
+
+
+

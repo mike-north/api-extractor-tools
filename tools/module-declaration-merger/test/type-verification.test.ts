@@ -155,3 +155,6 @@ export type RegistryKeys = keyof Registry;
     expect(rollupContent).toContain('second:')
   })
 })
+
+
+

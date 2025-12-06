@@ -39,23 +39,17 @@ function analyzeTypeChange(
 
   // Signatures are different - analyze the nature of the change
 
-  // For function types, analyze parameters and return types
-  const oldCallSigs = oldType.getCallSignatures()
-  const newCallSigs = newType.getCallSignatures()
-
-  if (oldCallSigs.length > 0 && newCallSigs.length > 0) {
-    const oldSig = oldCallSigs[0]!
-    const newSig = newCallSigs[0]!
-
-    const oldParams = oldSig.getParameters()
-    const newParams = newSig.getParameters()
-
-    // Check for removed parameters (breaking if non-optional removed)
+  // Helper to analyze signature parameter changes
+  function analyzeSignatureParams(
+    oldParams: readonly ts.Symbol[],
+    newParams: readonly ts.Symbol[],
+  ): { category: ChangeCategory; releaseType: ReleaseType } | null {
+    // Check for removed parameters (breaking)
     if (newParams.length < oldParams.length) {
       return { category: 'param-removed', releaseType: 'major' }
     }
 
-    // Check for added required parameters
+    // Check for added parameters
     if (newParams.length > oldParams.length) {
       // Check if new parameters are optional
       for (let i = oldParams.length; i < newParams.length; i++) {
@@ -65,20 +59,14 @@ function analyzeTypeChange(
           const isOptional =
             paramDecl.questionToken !== undefined ||
             paramDecl.initializer !== undefined
-          if (!isOptional) {
+          // Also check for rest parameters - they're like optional
+          const isRest = paramDecl.dotDotDotToken !== undefined
+          if (!isOptional && !isRest) {
             return { category: 'param-added-required', releaseType: 'major' }
           }
         }
       }
       return { category: 'param-added-optional', releaseType: 'minor' }
-    }
-
-    // Check return type changes
-    const oldReturnType = oldChecker.typeToString(oldSig.getReturnType())
-    const newReturnType = newChecker.typeToString(newSig.getReturnType())
-
-    if (oldReturnType !== newReturnType) {
-      return { category: 'return-type-changed', releaseType: 'major' }
     }
 
     // Check parameter type changes
@@ -103,11 +91,53 @@ function analyzeTypeChange(
         const newParamStr = newChecker.typeToString(newParamType)
 
         if (oldParamStr !== newParamStr) {
-          // Parameter types changed - this is generally breaking
-          // (could be widening which is safe, but we err on the side of caution)
           return { category: 'type-narrowed', releaseType: 'major' }
         }
       }
+    }
+
+    return null // No parameter changes detected
+  }
+
+  // For function types, analyze parameters and return types
+  const oldCallSigs = oldType.getCallSignatures()
+  const newCallSigs = newType.getCallSignatures()
+
+  if (oldCallSigs.length > 0 && newCallSigs.length > 0) {
+    const oldSig = oldCallSigs[0]!
+    const newSig = newCallSigs[0]!
+
+    const paramResult = analyzeSignatureParams(
+      oldSig.getParameters(),
+      newSig.getParameters(),
+    )
+    if (paramResult) {
+      return paramResult
+    }
+
+    // Check return type changes
+    const oldReturnType = oldChecker.typeToString(oldSig.getReturnType())
+    const newReturnType = newChecker.typeToString(newSig.getReturnType())
+
+    if (oldReturnType !== newReturnType) {
+      return { category: 'return-type-changed', releaseType: 'major' }
+    }
+  }
+
+  // For class types (typeof Class), analyze construct signatures
+  const oldConstructSigs = oldType.getConstructSignatures()
+  const newConstructSigs = newType.getConstructSignatures()
+
+  if (oldConstructSigs.length > 0 && newConstructSigs.length > 0) {
+    const oldSig = oldConstructSigs[0]!
+    const newSig = newConstructSigs[0]!
+
+    const paramResult = analyzeSignatureParams(
+      oldSig.getParameters(),
+      newSig.getParameters(),
+    )
+    if (paramResult) {
+      return paramResult
     }
   }
 

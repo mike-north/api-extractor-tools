@@ -70,3 +70,6 @@ export interface Registry {}
     expect(content).toContain('// #endregion')
   })
 })
+
+
+

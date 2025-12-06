@@ -248,3 +248,6 @@ declare module "../registry" {
     expect(content).toContain('src/things/second.ts')
   })
 })
+
+
+

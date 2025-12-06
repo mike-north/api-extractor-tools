@@ -314,7 +314,7 @@ export interface Service {
   })
 
   describe('index signatures', () => {
-    it.fails('detects index signature addition', async () => {
+    it('detects index signature addition', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -351,7 +351,7 @@ export interface Dictionary {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects index signature type change', async () => {
+    it('detects index signature type change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -369,7 +369,7 @@ export interface Dictionary {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects number index signature changes', async () => {
+    it('detects number index signature changes', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -389,7 +389,7 @@ export interface ArrayLike {
   })
 
   describe('callable interfaces', () => {
-    it.fails('detects callable interface addition', async () => {
+    it('detects callable interface addition', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -426,7 +426,7 @@ export interface Handler {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects callable interface signature change', async () => {
+    it('detects callable interface signature change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -446,7 +446,7 @@ export interface Handler {
   })
 
   describe('constructor signatures', () => {
-    it.fails('detects construct signature addition', async () => {
+    it('detects construct signature addition', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -465,7 +465,7 @@ export interface Factory {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects construct signature change', async () => {
+    it('detects construct signature change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -508,7 +508,7 @@ export interface Child {
   })
 
   describe('readonly modifier', () => {
-    it.fails('detects adding readonly modifier', async () => {
+    it('detects adding readonly modifier', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -527,7 +527,7 @@ export interface Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing readonly modifier', async () => {
+    it('detects removing readonly modifier', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -570,7 +570,7 @@ export interface Config {
       expect(report.changes.unchanged).toHaveLength(1)
     })
 
-    it.fails('reports no changes when property order differs', async () => {
+    it('reports no changes when property order differs', async () => {
       // Property order shouldn't matter for interfaces
       const report = await compareDeclarationStrings(
         project,
@@ -632,4 +632,7 @@ export interface Config {
     })
   })
 })
+
+
+
 

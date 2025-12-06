@@ -133,7 +133,7 @@ export declare function greet(name: string): string;
       expect(report.releaseType).toBe('none') // Structural comparison
     })
 
-    it.fails('detects function to const arrow function change', async () => {
+    it('detects function to const arrow function change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare function handler(event: string): void;`,
@@ -321,7 +321,7 @@ export { greet as sayHello };
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('handles namespace exports', async () => {
+    it('handles namespace exports', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -500,7 +500,7 @@ export declare namespace Utils {}
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('handles unicode in string literal types', async () => {
+    it('handles unicode in string literal types', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export type Emoji = "😀" | "😢";`,
@@ -522,6 +522,7 @@ export declare namespace Utils {}
   })
 
   describe('module and namespace', () => {
+    // Known limitation: nested namespace member tracking not yet implemented
     it.fails('handles internal namespaces', async () => {
       const report = await compareDeclarationStrings(
         project,
@@ -571,4 +572,7 @@ export declare namespace Config {
     })
   })
 })
+
+
+
 

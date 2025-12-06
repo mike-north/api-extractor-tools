@@ -49,6 +49,7 @@ export { classifyChanges, type ClassificationResult } from './classifier'
 
 // Reporter exports
 export {
+  type ComparisonReportJSON,
   formatReportAsText,
   formatReportAsMarkdown,
   reportToJSON,

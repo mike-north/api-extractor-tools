@@ -14,7 +14,7 @@ describe('class changes', () => {
   })
 
   describe('constructor changes', () => {
-    it.fails('detects constructor parameter addition as major', async () => {
+    it('detects constructor parameter addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -32,7 +32,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects constructor parameter removal as major', async () => {
+    it('detects constructor parameter removal as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -50,7 +50,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects constructor parameter type change as major', async () => {
+    it('detects constructor parameter type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -68,7 +68,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects adding optional constructor parameter as minor', async () => {
+    it('detects adding optional constructor parameter as minor', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -89,7 +89,7 @@ export declare class Service {
   })
 
   describe('instance method changes', () => {
-    it.fails('detects method addition as major (changes class shape)', async () => {
+    it('detects method addition as major (changes class shape)', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -108,7 +108,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects method removal as major', async () => {
+    it('detects method removal as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -127,7 +127,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects method return type change as major', async () => {
+    it('detects method return type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -145,7 +145,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects method parameter type change as major', async () => {
+    it('detects method parameter type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -163,7 +163,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects method parameter addition as major', async () => {
+    it('detects method parameter addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -181,7 +181,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects method becoming async as major', async () => {
+    it('detects method becoming async as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -201,7 +201,7 @@ export declare class Service {
   })
 
   describe('instance property changes', () => {
-    it.fails('detects property addition as major', async () => {
+    it('detects property addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -220,7 +220,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects property removal as major', async () => {
+    it('detects property removal as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -239,7 +239,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects property type change as major', async () => {
+    it('detects property type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -257,7 +257,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects optional property becoming required as major', async () => {
+    it('detects optional property becoming required as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -275,7 +275,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects readonly modifier addition', async () => {
+    it('detects readonly modifier addition', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -295,7 +295,7 @@ export declare class Config {
   })
 
   describe('static member changes', () => {
-    it.fails('detects static method addition as major', async () => {
+    it('detects static method addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -314,7 +314,7 @@ export declare class Factory {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects static method removal as major', async () => {
+    it('detects static method removal as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -333,7 +333,7 @@ export declare class Factory {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects static property change as major', async () => {
+    it('detects static property change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -351,7 +351,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects static method return type change as major', async () => {
+    it('detects static method return type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -371,7 +371,7 @@ export declare class Factory {
   })
 
   describe('abstract class changes', () => {
-    it.fails('detects class becoming abstract as major', async () => {
+    it('detects class becoming abstract as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -389,7 +389,7 @@ export declare abstract class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects class becoming concrete as major', async () => {
+    it('detects class becoming concrete as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -407,7 +407,7 @@ export declare class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects abstract method addition as major', async () => {
+    it('detects abstract method addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -426,7 +426,7 @@ export declare abstract class Service {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects abstract method removal as major', async () => {
+    it('detects abstract method removal as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -447,7 +447,7 @@ export declare abstract class Service {
   })
 
   describe('getter/setter changes', () => {
-    it.fails('detects getter addition as major', async () => {
+    it('detects getter addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -466,7 +466,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects getter removal as major', async () => {
+    it('detects getter removal as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -485,7 +485,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects getter return type change as major', async () => {
+    it('detects getter return type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -503,7 +503,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects setter addition as major', async () => {
+    it('detects setter addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -522,7 +522,7 @@ export declare class Config {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects setter parameter type change as major', async () => {
+    it('detects setter parameter type change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -562,7 +562,7 @@ declare class BaseB {}
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects adding base class as major', async () => {
+    it('detects adding base class as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -602,7 +602,7 @@ export declare class Child {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects adding interface implementation as major', async () => {
+    it('detects adding interface implementation as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -625,7 +625,7 @@ interface Startable {
   })
 
   describe('class with generics', () => {
-    it.fails('detects generic type parameter addition as major', async () => {
+    it('detects generic type parameter addition as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -643,7 +643,7 @@ export declare class Container<T> {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects generic constraint change as major', async () => {
+    it('detects generic constraint change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -710,7 +710,7 @@ export declare class Service {
   })
 
   describe('empty classes', () => {
-    it.fails('detects adding members to empty class', async () => {
+    it('detects adding members to empty class', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare class Empty {}`,
@@ -724,7 +724,7 @@ export declare class Empty {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing all members from class', async () => {
+    it('detects removing all members from class', async () => {
       const report = await compareDeclarationStrings(
         project,
         `

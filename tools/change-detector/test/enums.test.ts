@@ -25,7 +25,7 @@ describe('enum changes', () => {
 
   describe('numeric enum member changes', () => {
     // Known limitation: enum member tracking not implemented
-    it.fails('detects adding enum member as major (conservative)', async () => {
+    it('detects adding enum member as major (conservative)', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -47,7 +47,7 @@ export declare enum Status {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing enum member as major', async () => {
+    it('detects removing enum member as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -69,7 +69,7 @@ export declare enum Status {
       expect(report.changes.breaking).toHaveLength(1)
     })
 
-    it.fails('detects changing enum member value as major', async () => {
+    it('detects changing enum member value as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -89,7 +89,7 @@ export declare enum Status {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects renaming enum member as major', async () => {
+    it('detects renaming enum member as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -109,7 +109,7 @@ export declare enum Status {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects reordering enum members (with implicit values) as major', async () => {
+    it('detects reordering enum members (with implicit values) as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -135,7 +135,7 @@ export declare enum Direction {
   })
 
   describe('string enum changes', () => {
-    it.fails('detects adding string enum member as major', async () => {
+    it('detects adding string enum member as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -156,7 +156,7 @@ export declare enum Color {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing string enum member as major', async () => {
+    it('detects removing string enum member as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -177,7 +177,7 @@ export declare enum Color {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects changing string enum value as major', async () => {
+    it('detects changing string enum value as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -199,7 +199,7 @@ export declare enum Color {
   })
 
   describe('const enum changes', () => {
-    it.fails('detects adding const enum member as major', async () => {
+    it('detects adding const enum member as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -220,7 +220,7 @@ export declare const enum Priority {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing const enum member as major', async () => {
+    it('detects removing const enum member as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -241,7 +241,7 @@ export declare const enum Priority {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects const enum value change as major', async () => {
+    it('detects const enum value change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -261,7 +261,7 @@ export declare const enum Priority {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects enum becoming const enum as major', async () => {
+    it('detects enum becoming const enum as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -281,7 +281,7 @@ export declare const enum Status {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects const enum becoming regular enum as major', async () => {
+    it('detects const enum becoming regular enum as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -303,7 +303,7 @@ export declare enum Status {
   })
 
   describe('heterogeneous enum changes', () => {
-    it.fails('detects mixed string/number enum changes', async () => {
+    it('detects mixed string/number enum changes', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -323,7 +323,7 @@ export declare enum Mixed {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects adding mixed member type as major', async () => {
+    it('detects adding mixed member type as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -344,7 +344,7 @@ export declare enum Mixed {
   })
 
   describe('computed enum members', () => {
-    it.fails('handles computed enum member values', async () => {
+    it('handles computed enum member values', async () => {
       // In .d.ts files, computed values are resolved to their actual values
       const report = await compareDeclarationStrings(
         project,
@@ -369,7 +369,7 @@ export declare enum Computed {
   })
 
   describe('enum used as type', () => {
-    it.fails('detects change when enum is used as function parameter type', async () => {
+    it('detects change when enum is used as function parameter type', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -395,7 +395,7 @@ export declare function setStatus(s: Status): void;
   })
 
   describe('empty enums', () => {
-    it.fails('detects adding members to empty enum', async () => {
+    it('detects adding members to empty enum', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare enum Empty {}`,
@@ -409,7 +409,7 @@ export declare enum Empty {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing all members from enum', async () => {
+    it('detects removing all members from enum', async () => {
       const report = await compareDeclarationStrings(
         project,
         `
@@ -497,4 +497,7 @@ export declare const enum Priority {
     })
   })
 })
+
+
+
 

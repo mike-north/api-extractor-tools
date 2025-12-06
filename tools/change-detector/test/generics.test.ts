@@ -54,7 +54,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects type parameter name change as no change (structurally same)', async () => {
+    it('detects type parameter name change as no change (structurally same)', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare function identity<T>(value: T): T;`,
@@ -181,7 +181,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects interface constraint change as major', async () => {
+    it('detects interface constraint change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export interface Repository<T> { find(id: string): T; }`,
@@ -213,7 +213,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects type alias constraint change as major', async () => {
+    it('detects type alias constraint change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export type Wrapper<T> = { value: T };`,
@@ -225,7 +225,7 @@ describe('generic type changes', () => {
   })
 
   describe('generic class changes', () => {
-    it.fails('detects adding type parameter to class as major', async () => {
+    it('detects adding type parameter to class as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare class Box { value: unknown; }`,
@@ -235,7 +235,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects removing type parameter from class as major', async () => {
+    it('detects removing type parameter from class as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare class Box<T> { value: T; }`,
@@ -245,7 +245,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects class constraint change as major', async () => {
+    it('detects class constraint change as major', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export declare class Repository<T> { find(id: string): T; }`,
@@ -267,7 +267,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects mapped type with generic change', async () => {
+    it('detects mapped type with generic change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export type Readonly<T> = { readonly [K in keyof T]: T[K] };`,
@@ -287,7 +287,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects infer type change', async () => {
+    it('detects infer type change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export type Unpacked<T> = T extends (infer U)[] ? U : T;`,
@@ -309,7 +309,7 @@ describe('generic type changes', () => {
   })
 
   describe('variance changes', () => {
-    it.fails('detects covariant position change', async () => {
+    it('detects covariant position change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export interface Producer<T> { get(): T; }`,
@@ -319,7 +319,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects contravariant position change', async () => {
+    it('detects contravariant position change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export interface Consumer<T> { accept(value: T): void; }`,
@@ -329,7 +329,7 @@ describe('generic type changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    it.fails('detects invariant position change', async () => {
+    it('detects invariant position change', async () => {
       const report = await compareDeclarationStrings(
         project,
         `export interface Mutable<T> { value: T; }`,
@@ -383,4 +383,7 @@ describe('generic type changes', () => {
     })
   })
 })
+
+
+
 
