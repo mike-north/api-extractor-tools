@@ -60,6 +60,19 @@ export {
   reportToJSON,
 } from './reporter'
 
+// Parameter analysis exports
+export {
+  type ParameterInfo,
+  type ParameterPositionAnalysis,
+  type ParameterOrderAnalysis,
+  type ReorderingConfidence,
+  extractParameterInfo,
+  detectParameterReordering,
+  editDistance,
+  nameSimilarity,
+  interpretNameChange,
+} from './parameter-analysis'
+
 // Main API
 import type { CompareOptions, ComparisonReport } from './types'
 import { parseDeclarationFileWithTypes } from './parser'

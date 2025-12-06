@@ -4,6 +4,11 @@ import {
   parseDeclarationFileWithTypes,
   type ParseResultWithTypes,
 } from './parser'
+import {
+  extractParameterInfo,
+  detectParameterReordering,
+  type ParameterOrderAnalysis,
+} from './parameter-analysis'
 
 /**
  * Result of comparing two declaration files.
@@ -15,6 +20,15 @@ export interface CompareResult {
   changes: Change[]
   /** Errors encountered during comparison */
   errors: string[]
+}
+
+/**
+ * Result of analyzing a type change, including optional parameter reordering info.
+ */
+interface TypeChangeAnalysis {
+  category: ChangeCategory
+  releaseType: ReleaseType
+  parameterAnalysis?: ParameterOrderAnalysis
 }
 
 /**
@@ -33,9 +47,58 @@ function analyzeTypeChange(
   newChecker: ts.TypeChecker,
   oldSignature: string,
   newSignature: string,
-): { category: ChangeCategory; releaseType: ReleaseType } {
-  // Simple signature comparison first - this is authoritative
+): TypeChangeAnalysis {
+  // When normalized signatures are identical, check for parameter reordering
   if (oldSignature === newSignature) {
+    // Check call signatures for parameter reordering
+    const oldCallSigs = oldType.getCallSignatures()
+    const newCallSigs = newType.getCallSignatures()
+
+    if (oldCallSigs.length > 0 && newCallSigs.length > 0) {
+      const oldParams = extractParameterInfo(oldCallSigs[0]!, oldChecker)
+      const newParams = extractParameterInfo(newCallSigs[0]!, newChecker)
+      const paramAnalysis = detectParameterReordering(oldParams, newParams)
+
+      if (paramAnalysis.hasReordering) {
+        return {
+          category: 'param-order-changed',
+          releaseType: 'major',
+          parameterAnalysis: paramAnalysis,
+        }
+      }
+
+      // Even if no reordering detected, include the analysis for informational purposes
+      return {
+        category: 'signature-identical',
+        releaseType: 'none',
+        parameterAnalysis: paramAnalysis,
+      }
+    }
+
+    // Check construct signatures for parameter reordering
+    const oldConstructSigs = oldType.getConstructSignatures()
+    const newConstructSigs = newType.getConstructSignatures()
+
+    if (oldConstructSigs.length > 0 && newConstructSigs.length > 0) {
+      const oldParams = extractParameterInfo(oldConstructSigs[0]!, oldChecker)
+      const newParams = extractParameterInfo(newConstructSigs[0]!, newChecker)
+      const paramAnalysis = detectParameterReordering(oldParams, newParams)
+
+      if (paramAnalysis.hasReordering) {
+        return {
+          category: 'param-order-changed',
+          releaseType: 'major',
+          parameterAnalysis: paramAnalysis,
+        }
+      }
+
+      return {
+        category: 'signature-identical',
+        releaseType: 'none',
+        parameterAnalysis: paramAnalysis,
+      }
+    }
+
     return { category: 'signature-identical', releaseType: 'none' }
   }
 
@@ -45,7 +108,7 @@ function analyzeTypeChange(
   function analyzeSignatureParams(
     oldParams: readonly ts.Symbol[],
     newParams: readonly ts.Symbol[],
-  ): { category: ChangeCategory; releaseType: ReleaseType } | null {
+  ): TypeChangeAnalysis | null {
     // Check for removed parameters (breaking)
     if (newParams.length < oldParams.length) {
       return { category: 'param-removed', releaseType: 'major' }
@@ -156,8 +219,7 @@ function generateExplanation(
   symbolName: string,
   symbolKind: SymbolKind,
   category: ChangeCategory,
-  _before?: string,
-  _after?: string,
+  parameterAnalysis?: ParameterOrderAnalysis,
 ): string {
   switch (category) {
     case 'symbol-removed':
@@ -174,6 +236,11 @@ function generateExplanation(
       return `Added optional parameter to ${symbolKind} '${symbolName}'`
     case 'param-removed':
       return `Removed parameter from ${symbolKind} '${symbolName}'`
+    case 'param-order-changed':
+      if (parameterAnalysis) {
+        return `Parameter order changed in ${symbolKind} '${symbolName}': ${parameterAnalysis.summary}`
+      }
+      return `Parameter order changed in ${symbolKind} '${symbolName}'`
     case 'return-type-changed':
       return `Return type of ${symbolKind} '${symbolName}' changed`
     case 'signature-identical':
@@ -292,7 +359,7 @@ export function compareDeclarationFiles(
       ? newParsed.checker.getDeclaredTypeOfSymbol(newTypeSym)
       : newParsed.checker.getTypeOfSymbolAtLocation(newTypeSym, newDecl)
 
-    const { category, releaseType } = analyzeTypeChange(
+    const { category, releaseType, parameterAnalysis } = analyzeTypeChange(
       oldType,
       newType,
       oldParsed.checker,
@@ -306,7 +373,7 @@ export function compareDeclarationFiles(
       symbolKind: newSymbol.kind,
       category,
       releaseType,
-      explanation: generateExplanation(name, newSymbol.kind, category),
+      explanation: generateExplanation(name, newSymbol.kind, category, parameterAnalysis),
       before: oldSymbol.signature,
       after: newSymbol.signature,
     })
