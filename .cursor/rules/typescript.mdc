@@ -1,0 +1,4 @@
+---
+globs: **/*.ts
+alwaysApply: false
+---

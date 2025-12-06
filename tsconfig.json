@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["eslint.config.mts"]
+}

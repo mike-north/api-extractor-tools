@@ -1,0 +1,20 @@
+{
+  "name": "api-extractor-tools",
+  "version": "0.0.1",
+  "description": "Tools for working with API Extractor",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mike North <michael.l.north@gmail.com>",
+  "license": "MIT",
+  "packageManager": "pnpm@10.24.0",
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1"
+  }
+}

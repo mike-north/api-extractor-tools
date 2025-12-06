@@ -1,0 +1,6 @@
+---
+globs: tsconfig.json
+alwaysApply: false
+---
+
+- Never enable `skipLibCheck`, `esmoduleInterop`, `allowSyntheticDefaultImports` or other compiler options that would force consumers of this library to _also_ enable them
