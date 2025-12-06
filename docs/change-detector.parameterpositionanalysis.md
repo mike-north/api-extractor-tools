@@ -5,13 +5,14 @@
 ## ParameterPositionAnalysis interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Analysis of a single parameter position change.
 
 **Signature:**
 
 ```typescript
-export interface ParameterPositionAnalysis
+export interface ParameterPositionAnalysis 
 ```
 
 ## Properties
@@ -20,107 +21,136 @@ export interface ParameterPositionAnalysis
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [interpretation](./change-detector.parameterpositionanalysis.interpretation.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Human-readable interpretation of the change
+
 
 </td></tr>
 <tr><td>
 
 [newName](./change-detector.parameterpositionanalysis.newname.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** New parameter name
+
 
 </td></tr>
 <tr><td>
 
 [oldName](./change-detector.parameterpositionanalysis.oldname.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Old parameter name
+
 
 </td></tr>
 <tr><td>
 
 [position](./change-detector.parameterpositionanalysis.position.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Position in the parameter list
+
 
 </td></tr>
 <tr><td>
 
 [similarity](./change-detector.parameterpositionanalysis.similarity.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Similarity score between old and new names (0-1)
+
 
 </td></tr>
 <tr><td>
 
 [type](./change-detector.parameterpositionanalysis.type.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Type at this position (same in both if types match)
 
+
 </td></tr>
 </tbody></table>
+

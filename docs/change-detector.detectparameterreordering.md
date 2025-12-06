@@ -5,6 +5,7 @@
 ## detectParameterReordering() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Detects if parameters have been reordered between two signatures.
 
@@ -13,10 +14,7 @@ This provides rich analysis including: - Whether reordering is detected - Confid
 **Signature:**
 
 ```typescript
-export declare function detectParameterReordering(
-  oldParams: ParameterInfo[],
-  newParams: ParameterInfo[],
-): ParameterOrderAnalysis
+export declare function detectParameterReordering(oldParams: ParameterInfo[], newParams: ParameterInfo[]): ParameterOrderAnalysis;
 ```
 
 ## Parameters
@@ -25,39 +23,48 @@ export declare function detectParameterReordering(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 oldParams
 
+
 </td><td>
 
 [ParameterInfo](./change-detector.parameterinfo.md)<!-- -->\[\]
 
+
 </td><td>
 
 Parameter info from the old signature
+
 
 </td></tr>
 <tr><td>
 
 newParams
 
+
 </td><td>
 
 [ParameterInfo](./change-detector.parameterinfo.md)<!-- -->\[\]
 
+
 </td><td>
 
 Parameter info from the new signature
+
 
 </td></tr>
 </tbody></table>
@@ -67,3 +74,4 @@ Parameter info from the new signature
 [ParameterOrderAnalysis](./change-detector.parameterorderanalysis.md)
 
 Detailed analysis result
+

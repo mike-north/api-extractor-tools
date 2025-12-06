@@ -5,11 +5,12 @@
 ## ReorderingConfidence type
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Confidence level for parameter reordering detection.
 
 **Signature:**
 
 ```typescript
-export type ReorderingConfidence = 'high' | 'medium' | 'low'
+export type ReorderingConfidence = 'high' | 'medium' | 'low';
 ```

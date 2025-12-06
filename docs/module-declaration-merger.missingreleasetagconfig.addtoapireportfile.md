@@ -5,11 +5,12 @@
 ## MissingReleaseTagConfig.addToApiReportFile property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 If true, add the message as a comment in the rollup file. If false, print to console (and stop processing if logLevel is "error").
 
 **Signature:**
 
 ```typescript
-addToApiReportFile: boolean
+addToApiReportFile: boolean;
 ```

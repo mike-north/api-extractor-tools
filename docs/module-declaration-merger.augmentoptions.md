@@ -5,13 +5,14 @@
 ## AugmentOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Options for augmenting rollup files
 
 **Signature:**
 
 ```typescript
-export interface AugmentOptions
+export interface AugmentOptions 
 ```
 
 ## Properties
@@ -20,107 +21,136 @@ export interface AugmentOptions
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [augmentations](./module-declaration-merger.augmentoptions.augmentations.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ExtractedModuleAugmentation](./module-declaration-merger.extractedmoduleaugmentation.md)<!-- -->\[\]
 
+
 </td><td>
 
 **_(ALPHA)_** Extracted module augmentations
+
 
 </td></tr>
 <tr><td>
 
 [dryRun?](./module-declaration-merger.augmentoptions.dryrun.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ If true, don't actually write files (for testing)
+
 
 </td></tr>
 <tr><td>
 
 [missingReleaseTagConfig?](./module-declaration-merger.augmentoptions.missingreleasetagconfig.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [MissingReleaseTagConfig](./module-declaration-merger.missingreleasetagconfig.md)
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Configuration for handling missing release tags
+
 
 </td></tr>
 <tr><td>
 
 [resolver](./module-declaration-merger.augmentoptions.resolver.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Resolver](./module-declaration-merger.resolver.md)
 
+
 </td><td>
 
 **_(ALPHA)_** Module path resolver
+
 
 </td></tr>
 <tr><td>
 
 [rollupPaths](./module-declaration-merger.augmentoptions.rolluppaths.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [RollupPaths](./module-declaration-merger.rolluppaths.md)
 
+
 </td><td>
 
 **_(ALPHA)_** Rollup paths from config
+
 
 </td></tr>
 <tr><td>
 
 [untaggedDeclarations?](./module-declaration-merger.augmentoptions.untaggeddeclarations.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [UntaggedDeclarationInfo](./module-declaration-merger.untaggeddeclarationinfo.md)<!-- -->\[\]
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Untagged declarations found during extraction
 
+
 </td></tr>
 </tbody></table>
+

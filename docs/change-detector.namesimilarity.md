@@ -5,13 +5,14 @@
 ## nameSimilarity() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Calculates a normalized similarity score between two strings (0-1). 1 means identical, 0 means completely different.
 
 **Signature:**
 
 ```typescript
-export declare function nameSimilarity(a: string, b: string): number
+export declare function nameSimilarity(a: string, b: string): number;
 ```
 
 ## Parameters
@@ -20,35 +21,44 @@ export declare function nameSimilarity(a: string, b: string): number
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 a
 
+
 </td><td>
 
 string
 
+
 </td><td>
+
 
 </td></tr>
 <tr><td>
 
 b
 
+
 </td><td>
 
 string
 
+
 </td><td>
+
 
 </td></tr>
 </tbody></table>
@@ -56,3 +66,4 @@ string
 **Returns:**
 
 number
+

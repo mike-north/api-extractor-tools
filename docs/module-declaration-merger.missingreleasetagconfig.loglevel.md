@@ -5,11 +5,12 @@
 ## MissingReleaseTagConfig.logLevel property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The log level for missing release tag messages. - "error": Treat as an error - "warning": Treat as a warning - "none": Silently ignore (treat as `\@public`<!-- -->)
 
 **Signature:**
 
 ```typescript
-logLevel: ExtractorLogLevel
+logLevel: ExtractorLogLevel;
 ```

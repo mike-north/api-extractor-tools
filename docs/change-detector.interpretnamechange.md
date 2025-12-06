@@ -5,17 +5,14 @@
 ## interpretNameChange() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Generates a human-readable interpretation of a name change based on similarity.
 
 **Signature:**
 
 ```typescript
-export declare function interpretNameChange(
-  oldName: string,
-  newName: string,
-  similarity: number,
-): string
+export declare function interpretNameChange(oldName: string, newName: string, similarity: number): string;
 ```
 
 ## Parameters
@@ -24,52 +21,64 @@ export declare function interpretNameChange(
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 oldName
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The original parameter name
+
 
 </td></tr>
 <tr><td>
 
 newName
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The new parameter name
+
 
 </td></tr>
 <tr><td>
 
 similarity
 
+
 </td><td>
 
 number
 
+
 </td><td>
 
 Pre-computed similarity score
+
 
 </td></tr>
 </tbody></table>
@@ -79,3 +88,4 @@ Pre-computed similarity score
 string
 
 Human-readable interpretation
+

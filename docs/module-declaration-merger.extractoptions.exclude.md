@@ -5,8 +5,9 @@
 ## ExtractOptions.exclude property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
-Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
+Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node\_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
 
 **Signature:**
 

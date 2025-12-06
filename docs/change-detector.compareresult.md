@@ -5,13 +5,14 @@
 ## CompareResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Result of comparing two declaration files.
 
 **Signature:**
 
 ```typescript
-export interface CompareResult
+export interface CompareResult 
 ```
 
 ## Properties
@@ -20,47 +21,60 @@ export interface CompareResult
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changes](./change-detector.compareresult.changes.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Change](./change-detector.change.md)<!-- -->\[\]
 
+
 </td><td>
 
 **_(ALPHA)_** All detected changes
+
 
 </td></tr>
 <tr><td>
 
 [errors](./change-detector.compareresult.errors.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 **_(ALPHA)_** Errors encountered during comparison
 
+
 </td></tr>
 </tbody></table>
+

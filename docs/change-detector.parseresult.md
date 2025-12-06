@@ -5,13 +5,14 @@
 ## ParseResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Result of parsing a declaration file.
 
 **Signature:**
 
 ```typescript
-export interface ParseResult
+export interface ParseResult 
 ```
 
 ## Properties
@@ -20,47 +21,60 @@ export interface ParseResult
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [errors](./change-detector.parseresult.errors.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
 
 **_(ALPHA)_** Any errors encountered during parsing
+
 
 </td></tr>
 <tr><td>
 
 [symbols](./change-detector.parseresult.symbols.md)
 
+
 </td><td>
+
 
 </td><td>
 
 Map&lt;string, [ExportedSymbol](./change-detector.exportedsymbol.md)<!-- -->&gt;
 
+
 </td><td>
 
 **_(ALPHA)_** Map of symbol name to exported symbol info
 
+
 </td></tr>
 </tbody></table>
+

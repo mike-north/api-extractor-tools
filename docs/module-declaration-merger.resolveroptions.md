@@ -5,13 +5,14 @@
 ## ResolverOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Options for resolving module paths
 
 **Signature:**
 
 ```typescript
-export interface ResolverOptions
+export interface ResolverOptions 
 ```
 
 ## Properties
@@ -20,47 +21,60 @@ export interface ResolverOptions
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [mainEntryPointFilePath](./module-declaration-merger.resolveroptions.mainentrypointfilepath.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** The main entry point file path (used to determine module base)
+
 
 </td></tr>
 <tr><td>
 
 [projectFolder](./module-declaration-merger.resolveroptions.projectfolder.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** The project folder (root of the source files)
 
+
 </td></tr>
 </tbody></table>
+

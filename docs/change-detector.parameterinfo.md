@@ -5,13 +5,14 @@
 ## ParameterInfo interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Information about a single parameter in a function signature.
 
 **Signature:**
 
 ```typescript
-export interface ParameterInfo
+export interface ParameterInfo 
 ```
 
 ## Properties
@@ -20,92 +21,117 @@ export interface ParameterInfo
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [isOptional](./change-detector.parameterinfo.isoptional.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** Whether the parameter is optional
+
 
 </td></tr>
 <tr><td>
 
 [isRest](./change-detector.parameterinfo.isrest.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** Whether the parameter is a rest parameter
+
 
 </td></tr>
 <tr><td>
 
 [name](./change-detector.parameterinfo.name.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Original parameter name from source
+
 
 </td></tr>
 <tr><td>
 
 [position](./change-detector.parameterinfo.position.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Position in the parameter list (0-indexed)
+
 
 </td></tr>
 <tr><td>
 
 [type](./change-detector.parameterinfo.type.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Type as a string
 
+
 </td></tr>
 </tbody></table>
+

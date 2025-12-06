@@ -5,13 +5,14 @@
 ## ComparisonStats interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Statistics about the comparison.
 
 **Signature:**
 
 ```typescript
-export interface ComparisonStats
+export interface ComparisonStats 
 ```
 
 ## Properties
@@ -20,107 +21,136 @@ export interface ComparisonStats
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [added](./change-detector.comparisonstats.added.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Number of symbols added
+
 
 </td></tr>
 <tr><td>
 
 [modified](./change-detector.comparisonstats.modified.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Number of symbols modified
+
 
 </td></tr>
 <tr><td>
 
 [removed](./change-detector.comparisonstats.removed.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Number of symbols removed
+
 
 </td></tr>
 <tr><td>
 
 [totalSymbolsNew](./change-detector.comparisonstats.totalsymbolsnew.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Total number of symbols in the new declaration file
+
 
 </td></tr>
 <tr><td>
 
 [totalSymbolsOld](./change-detector.comparisonstats.totalsymbolsold.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Total number of symbols in the old declaration file
+
 
 </td></tr>
 <tr><td>
 
 [unchanged](./change-detector.comparisonstats.unchanged.md)
 
+
 </td><td>
+
 
 </td><td>
 
 number
 
+
 </td><td>
 
 **_(ALPHA)_** Number of symbols unchanged
 
+
 </td></tr>
 </tbody></table>
+

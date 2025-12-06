@@ -5,13 +5,14 @@
 ## DocModelAugmentOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Options for augmenting the doc model
 
 **Signature:**
 
 ```typescript
-export interface DocModelAugmentOptions
+export interface DocModelAugmentOptions 
 ```
 
 ## Properties
@@ -20,77 +21,98 @@ export interface DocModelAugmentOptions
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiJsonFilePath](./module-declaration-merger.docmodelaugmentoptions.apijsonfilepath.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Path to the .api.json file
+
 
 </td></tr>
 <tr><td>
 
 [augmentations](./module-declaration-merger.docmodelaugmentoptions.augmentations.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ExtractedModuleAugmentation](./module-declaration-merger.extractedmoduleaugmentation.md)<!-- -->\[\]
 
+
 </td><td>
 
 **_(ALPHA)_** Extracted module augmentations
+
 
 </td></tr>
 <tr><td>
 
 [dryRun?](./module-declaration-merger.docmodelaugmentoptions.dryrun.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ If true, don't actually write files
+
 
 </td></tr>
 <tr><td>
 
 [resolver](./module-declaration-merger.docmodelaugmentoptions.resolver.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [Resolver](./module-declaration-merger.resolver.md)
 
+
 </td><td>
 
 **_(ALPHA)_** Module path resolver
 
+
 </td></tr>
 </tbody></table>
+

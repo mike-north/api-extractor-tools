@@ -5,6 +5,7 @@
 ## parseConfig() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Parses an api-extractor.json file and extracts relevant configuration.
 
@@ -15,7 +16,7 @@ Unlike the full api-extractor, this doesn't require the entry point to be a .d.t
 **Signature:**
 
 ```typescript
-export declare function parseConfig(configPath: string): ParsedConfig
+export declare function parseConfig(configPath: string): ParsedConfig;
 ```
 
 ## Parameters
@@ -24,26 +25,32 @@ export declare function parseConfig(configPath: string): ParsedConfig
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 configPath
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 Path to the api-extractor.json file
+
 
 </td></tr>
 </tbody></table>
@@ -53,3 +60,4 @@ Path to the api-extractor.json file
 [ParsedConfig](./module-declaration-merger.parsedconfig.md)
 
 Parsed configuration with resolved absolute paths
+
