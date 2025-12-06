@@ -167,7 +167,7 @@ function loadConfigFile(configPath: string): ApiExtractorConfig {
 
 /**
  * Gets the unscoped package name from a package.json name field.
- * For "@scope/my-package", returns "my-package".
+ * For "\@scope/my-package", returns "my-package".
  * For "my-package", returns "my-package".
  */
 function getUnscopedPackageName(packageName: string): string {
@@ -250,7 +250,7 @@ function getDocModelConfig(
 
 /**
  * Extracts the missing release tag configuration from api-extractor config.
- * Defaults to "none" logLevel (silently treat as @public).
+ * Defaults to "none" logLevel (silently treat as `\@public`).
  */
 function getMissingReleaseTagConfig(
   config: ApiExtractorConfig,

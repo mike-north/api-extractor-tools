@@ -56,20 +56,13 @@ console.log(report.releaseType);  // "major" | "minor" | "patch" | "none"
 console.log(formatReportAsText(report));
 ```
 
-## Development
+## Contributing
 
-This is a pnpm workspace monorepo.
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm -r build
-
-# Run tests for all packages
-pnpm -r test
-```
+See [DEVELOPMENT.md](./DEVELOPMENT.md) for detailed instructions on:
+- Setting up your development environment
+- Working with changesets for versioning
+- Running tests and checks
+- The release process
 
 ## License
 

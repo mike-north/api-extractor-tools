@@ -1,7 +1,6 @@
 {
   "name": "@api-extractor-tools/module-declaration-merger",
   "version": "0.0.1",
-  "private": true,
   "description": "Merges ambient module declarations into api-extractor rollup files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

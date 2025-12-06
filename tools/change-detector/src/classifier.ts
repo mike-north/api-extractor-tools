@@ -20,10 +20,10 @@ export interface ClassificationResult {
 /**
  * Determines the overall release type from a set of changes.
  * The highest impact change determines the overall release type:
- * - Any major change -> major
- * - Any minor change (no major) -> minor
- * - Any patch change (no major or minor) -> patch
- * - No changes -> none
+ * - Any major change -\> major
+ * - Any minor change (no major) -\> minor
+ * - Any patch change (no major or minor) -\> patch
+ * - No changes -\> none
  */
 function determineOverallReleaseType(changes: Change[]): ReleaseType {
   let hasMajor = false
