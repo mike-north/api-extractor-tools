@@ -7,6 +7,10 @@ describe('App', () => {
   beforeEach(() => {
     // Reset URL before each test
     window.history.replaceState(null, '', '/')
+    // Clear localStorage
+    localStorage.clear()
+    // Reset data-theme attribute
+    document.documentElement.removeAttribute('data-theme')
     vi.clearAllMocks()
   })
 
@@ -37,6 +41,12 @@ describe('App', () => {
       expect(
         screen.getByRole('button', { name: /copy for llm/i }),
       ).toBeInTheDocument()
+    })
+
+    it('renders the theme toggle button', () => {
+      render(<App />)
+      const themeButton = screen.getByRole('button', { name: /light|dark/i })
+      expect(themeButton).toBeInTheDocument()
     })
 
     it('loads the first example by default', () => {
@@ -360,6 +370,121 @@ describe('App', () => {
         },
         { timeout: 500 },
       )
+    })
+  })
+
+  describe('Theme functionality', () => {
+    it('defaults to dark theme when no preference is stored', () => {
+      // Mock matchMedia to return dark preference
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: query === '(prefers-color-scheme: dark)',
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
+    })
+
+    it('defaults to light theme when system prefers light', () => {
+      // Mock matchMedia to return light preference
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: query === '(prefers-color-scheme: light)',
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+    })
+
+    it('loads theme from localStorage', () => {
+      localStorage.setItem('theme', 'light')
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+    })
+
+    it('toggles theme when button is clicked', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const initialTheme = document.documentElement.getAttribute('data-theme')
+      const themeButton = screen.getByRole('button', { name: /light|dark/i })
+
+      await user.click(themeButton)
+
+      const newTheme = document.documentElement.getAttribute('data-theme')
+      expect(newTheme).not.toBe(initialTheme)
+      expect(['light', 'dark']).toContain(newTheme)
+    })
+
+    it('persists theme to localStorage when toggled', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const themeButton = screen.getByRole('button', { name: /light|dark/i })
+      await user.click(themeButton)
+
+      const storedTheme = localStorage.getItem('theme')
+      expect(storedTheme).toBeTruthy()
+      expect(['light', 'dark']).toContain(storedTheme)
+    })
+
+    it('toggles between light and dark themes', async () => {
+      const user = userEvent.setup()
+      localStorage.setItem('theme', 'light')
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      
+      const themeButton = screen.getByRole('button', { name: 'Dark' })
+      await user.click(themeButton)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(localStorage.getItem('theme')).toBe('dark')
+      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
+
+      const newThemeButton = screen.getByRole('button', { name: 'Light' })
+      await user.click(newThemeButton)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(localStorage.getItem('theme')).toBe('light')
+      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+    })
+
+    it('applies theme to document root', () => {
+      localStorage.setItem('theme', 'dark')
+
+      render(<App />)
+
+      const rootElement = document.documentElement
+      expect(rootElement.getAttribute('data-theme')).toBe('dark')
     })
   })
 

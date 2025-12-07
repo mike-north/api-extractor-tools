@@ -9,6 +9,17 @@ import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
 import { examples, type Example } from './examples'
 
+type Theme = 'light' | 'dark'
+
+function getInitialTheme(): Theme {
+  const storedTheme = localStorage.getItem('theme') as Theme | null
+  if (storedTheme === 'light' || storedTheme === 'dark') {
+    return storedTheme
+  }
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  return prefersDark ? 'dark' : 'light'
+}
+
 // Helper functions for base64 URL encoding (using modern TextEncoder/TextDecoder)
 function encodeBase64(str: string): string {
   const bytes = new TextEncoder().encode(str)
@@ -51,9 +62,20 @@ function App() {
   const [newContent, setNewContent] = useState(initialContent.new)
   const [report, setReport] = useState<ComparisonReport | null>(null)
   const [editorHeight, setEditorHeight] = useState(250)
+  const [theme, setTheme] = useState<Theme>(getInitialTheme())
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
+
+  // Apply theme to document root
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'))
+  }, [])
 
   // Auto-analyze with 100ms debounce
   useEffect(() => {
@@ -177,6 +199,9 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
               </option>
             ))}
           </select>
+          <button className="theme-toggle" onClick={toggleTheme}>
+            {theme === 'light' ? 'Dark' : 'Light'}
+          </button>
           <button className="copy-button" onClick={handleCopyForLLM}>
             {copyFeedback ?? 'Copy for LLM'}
           </button>
@@ -188,13 +213,13 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
           <div className="editor-panel">
             <div className="editor-header">Old API (.d.ts)</div>
             <div className="editor-wrapper">
-              <DtsEditor value={oldContent} onChange={setOldContent} />
+              <DtsEditor value={oldContent} onChange={setOldContent} theme={theme} />
             </div>
           </div>
           <div className="editor-panel">
             <div className="editor-header">New API (.d.ts)</div>
             <div className="editor-wrapper">
-              <DtsEditor value={newContent} onChange={setNewContent} />
+              <DtsEditor value={newContent} onChange={setNewContent} theme={theme} />
             </div>
           </div>
         </div>
