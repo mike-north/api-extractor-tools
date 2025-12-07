@@ -95,6 +95,11 @@ body {
   border-color: var(--color-primary);
 }
 
+.copy-button:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
 .copy-button:active {
   background-color: var(--color-primary);
 }
