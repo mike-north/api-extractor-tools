@@ -1,5 +1,5 @@
 ---
-'@api-extractor-tools/change-detector': patch
+"@api-extractor-tools/change-detector": patch
 ---
 
 Fixed angle bracket tracking in optional parameter detection to properly handle generic types.
