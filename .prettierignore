@@ -1,0 +1,15 @@
+# Generated API reports
+api-reports/
+
+# Generated API documentation
+docs/
+
+# Generated temp API files
+**/temp/*.api.md
+**/temp/*.api.json
+
+# Build outputs
+**/dist/
+
+# Dependencies
+node_modules/

@@ -347,8 +347,7 @@ function generateExplanation(
       return `Parameter order changed in ${symbolKind} '${symbolName}'`
     case 'return-type-changed':
       return (
-        `Return type of ${symbolKind} '${symbolName}' changed` +
-        signatureDetail
+        `Return type of ${symbolKind} '${symbolName}' changed` + signatureDetail
       )
     case 'signature-identical':
       return `No changes to ${symbolKind} '${symbolName}'`
