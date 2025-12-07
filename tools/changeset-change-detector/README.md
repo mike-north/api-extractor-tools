@@ -1,5 +1,7 @@
 # @api-extractor-tools/changeset-change-detector
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchangeset-change-detector)](https://www.npmjs.com/package/@api-extractor-tools/changeset-change-detector)
+
 Automate semantic version bump decisions in your [Changesets](https://github.com/changesets/changesets) workflow by analyzing actual API changes in TypeScript declaration files.
 
 ## The Problem

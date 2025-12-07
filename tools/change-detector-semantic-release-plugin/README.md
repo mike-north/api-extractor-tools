@@ -1,5 +1,7 @@
 # @api-extractor-tools/change-detector-semantic-release-plugin
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchange-detector-semantic-release-plugin)](https://www.npmjs.com/package/@api-extractor-tools/change-detector-semantic-release-plugin)
+
 A [semantic-release](https://semantic-release.gitbook.io/) plugin that uses `@api-extractor-tools/change-detector` to validate and enhance version bumping based on actual API changes in TypeScript declaration files.
 
 ## Features

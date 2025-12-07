@@ -1,5 +1,7 @@
 # @api-extractor-tools/eslint-plugin
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Feslint-plugin)](https://www.npmjs.com/package/@api-extractor-tools/eslint-plugin)
+
 ESLint plugin providing authoring-time feedback for [API Extractor](https://api-extractor.com/). Catch common API Extractor issues during development rather than waiting for the build step.
 
 ## Installation
@@ -174,3 +176,8 @@ The `recommended` configuration enables all rules with these defaults:
 ## License
 
 MIT
+
+
+
+
+

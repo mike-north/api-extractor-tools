@@ -1,5 +1,7 @@
 # Module Declaration Merger
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fmodule-declaration-merger)](https://www.npmjs.com/package/@api-extractor-tools/module-declaration-merger)
+
 When [@microsoft/api-extractor](https://api-extractor.com/) creates declaration file rollups, it omits ambient module declarations. This package provides a CLI and library that adds the appropriate module declarations to `.d.ts` rollup files _after_ `api-extractor` has generated them.
 
 ## Installation
