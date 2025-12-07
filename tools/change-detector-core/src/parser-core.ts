@@ -945,3 +945,5 @@ export function parseDeclarationStringWithTypes(
 
   return { symbols, errors, program, checker, typeSymbols }
 }
+
+
