@@ -67,6 +67,37 @@ importers:
         specifier: ^4.0.15
         version: 4.0.15(@types/node@22.19.1)(jiti@2.6.1)(yaml@2.8.2)
 
+  tools/changeset-change-detector:
+    dependencies:
+      '@api-extractor-tools/change-detector':
+        specifier: workspace:*
+        version: link:../change-detector
+      '@changesets/read':
+        specifier: ^0.6.5
+        version: 0.6.6
+      '@changesets/types':
+        specifier: ^6.1.0
+        version: 6.1.0
+      '@changesets/write':
+        specifier: ^0.4.0
+        version: 0.4.0
+    devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.55.1
+        version: 7.55.1(@types/node@22.19.1)
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.1
+      fixturify-project:
+        specifier: ^7.1.3
+        version: 7.1.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.15
+        version: 4.0.15(@types/node@22.19.1)(jiti@2.6.1)(yaml@2.8.2)
+
   tools/module-declaration-merger:
     dependencies:
       '@microsoft/api-extractor':

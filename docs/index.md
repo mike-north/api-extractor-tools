@@ -30,6 +30,17 @@ A library for detecting and classifying changes between TypeScript declaration f
 </td></tr>
 <tr><td>
 
+[@api-extractor-tools/changeset-change-detector](./changeset-change-detector.md)
+
+
+</td><td>
+
+A Changesets plugin that uses change-detector to automate version bump determination.
+
+
+</td></tr>
+<tr><td>
+
 [@api-extractor-tools/module-declaration-merger](./module-declaration-merger.md)
 
 

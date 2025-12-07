@@ -59,6 +59,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
 2. **Make your changes** to the relevant package(s):
    - `tools/change-detector/` - API change detection tool
    - `tools/module-declaration-merger/` - Module declaration merger tool
+   - `tools/changeset-change-detector/` - Changesets plugin for automated version bumps
 
 3. **Build and test your changes**
 
@@ -89,6 +90,28 @@ A changeset is a markdown file that describes:
 - A human-readable description of what changed
 
 ### Creating a Changeset
+
+You have two options for creating changesets:
+
+#### Option 1: Auto-generate from API changes (Recommended)
+
+Use the changeset-change-detector plugin to automatically analyze your API changes and create a changeset with the correct version bump:
+
+```bash
+pnpm changeset:auto
+```
+
+This will:
+1. Analyze API changes in all packages by comparing declaration files
+2. Determine the appropriate version bump (major/minor/patch) based on the changes
+3. Generate a changeset file with a summary of detected changes
+
+For non-interactive usage (CI):
+```bash
+pnpm changeset:auto --yes
+```
+
+#### Option 2: Manual changeset creation
 
 Run the interactive changeset CLI:
 
@@ -181,6 +204,19 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `test:` - Adding tests
 - `refactor:` - Code refactoring
 - `chore:` - Maintenance tasks
+
+### Validating Changesets
+
+Before submitting a PR, you can validate that your changesets have appropriate version bumps:
+
+```bash
+pnpm changeset:validate
+```
+
+This checks that:
+- All packages with API changes have corresponding changesets
+- The declared version bumps are at least as severe as what the API changes require
+- Breaking changes have detailed descriptions
 
 ### Creating a Pull Request
 
@@ -297,35 +333,42 @@ git push
 
 ## Common Commands
 
-| Command                 | Description                         |
-| ----------------------- | ----------------------------------- |
-| `pnpm install`          | Install dependencies                |
-| `pnpm build`            | Build all packages                  |
-| `pnpm test`             | Run all tests                       |
-| `pnpm check`            | Lint and type-check everything      |
-| `pnpm format`           | Format code with Prettier           |
-| `pnpm changeset`        | Create a new changeset              |
-| `pnpm version-packages` | Version packages (maintainers only) |
-| `pnpm release`          | Publish packages (maintainers only) |
+| Command                 | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `pnpm install`          | Install dependencies                     |
+| `pnpm build`            | Build all packages                       |
+| `pnpm test`             | Run all tests                            |
+| `pnpm check`            | Lint and type-check everything           |
+| `pnpm format`           | Format code with Prettier                |
+| `pnpm changeset`        | Create a new changeset (manual)          |
+| `pnpm changeset:auto`   | Auto-generate changeset from API changes |
+| `pnpm changeset:validate` | Validate changesets against API changes |
+| `pnpm version-packages` | Version packages (maintainers only)      |
+| `pnpm release`          | Publish packages (maintainers only)      |
 
 ## Package Structure
 
 ```
 api-extractor-tools/
 ├── tools/
-│   ├── change-detector/          # Detects API changes
-│   │   ├── src/                  # Source code
-│   │   ├── test/                 # Tests
-│   │   ├── dist/                 # Built output
+│   ├── change-detector/             # Detects API changes
+│   │   ├── src/                     # Source code
+│   │   ├── test/                    # Tests
+│   │   ├── dist/                    # Built output
 │   │   └── package.json
-│   └── module-declaration-merger/ # Merges module declarations
+│   ├── module-declaration-merger/   # Merges module declarations
+│   │   ├── src/
+│   │   ├── test/
+│   │   ├── dist/
+│   │   └── package.json
+│   └── changeset-change-detector/   # Changesets plugin for auto version bumps
 │       ├── src/
 │       ├── test/
 │       ├── dist/
 │       └── package.json
-├── .changeset/                   # Changeset configuration and files
-├── .github/workflows/            # CI/CD workflows
-└── package.json                  # Root workspace config
+├── .changeset/                      # Changeset configuration and files
+├── .github/workflows/               # CI/CD workflows
+└── package.json                     # Root workspace config
 ```
 
 ## Getting Help

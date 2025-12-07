@@ -1,0 +1,41 @@
+{
+  "name": "@api-extractor-tools/changeset-change-detector",
+  "version": "0.0.1",
+  "description": "Changesets plugin that uses change-detector to automate version bump determination",
+  "main": "dist/index.js",
+  "types": "dist/changeset-change-detector-public.d.ts",
+  "bin": {
+    "changeset-change-detector": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "generate:api-report": "api-extractor run --local --verbose",
+    "test": "vitest run",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
+    "check:eslint": "eslint src",
+    "check:typecheck-tests": "tsc -p test/tsconfig.json",
+    "check:api-report": "api-extractor run"
+  },
+  "keywords": [
+    "changesets",
+    "semantic-versioning",
+    "api-extractor"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.24.0",
+  "dependencies": {
+    "@api-extractor-tools/change-detector": "workspace:*",
+    "@changesets/read": "^0.6.5",
+    "@changesets/types": "^6.1.0",
+    "@changesets/write": "^0.4.0"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.55.1",
+    "@types/node": "^22.10.2",
+    "fixturify-project": "^7.1.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  }
+}
+
