@@ -109,7 +109,8 @@ body {
 }
 
 .copy-button,
-.theme-toggle {
+.theme-toggle,
+.report-issue-button {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: 1px solid var(--color-border);
@@ -122,20 +123,29 @@ body {
 }
 
 .copy-button:hover,
-.theme-toggle:hover {
+.theme-toggle:hover,
+.report-issue-button:hover:not(:disabled) {
   background-color: var(--color-surface);
   border-color: var(--color-primary);
 }
 
 .copy-button:focus,
-.theme-toggle:focus {
+.theme-toggle:focus,
+.report-issue-button:focus {
   outline: none;
   border-color: var(--color-primary);
 }
 
 .copy-button:active,
-.theme-toggle:active {
+.theme-toggle:active,
+.report-issue-button:active:not(:disabled) {
   background-color: var(--color-primary);
+  color: var(--color-bg);
+}
+
+.report-issue-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .main-content {

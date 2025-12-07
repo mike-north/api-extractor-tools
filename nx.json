@@ -29,6 +29,16 @@
       ],
       "outputs": []
     },
+    "test:coverage": {
+      "cache": true,
+      "inputs": [
+        "source",
+        "tsConfig",
+        "{projectRoot}/test/**/*",
+        "{projectRoot}/vitest.config.mts"
+      ],
+      "outputs": ["{projectRoot}/coverage"]
+    },
     "check:eslint": {
       "cache": true,
       "inputs": ["source", "eslintConfig"],
