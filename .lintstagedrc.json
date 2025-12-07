@@ -1,4 +1,5 @@
 {
   "*.{ts,mts,cts}": ["eslint --fix --cache"],
-  "*.{js,ts,json,md,mts,cts,mjs,cjs}": ["prettier --write"]
+  "*.{js,ts,json,md,mts,cts,mjs,cjs}": ["prettier --write"],
+  "*.md": ["markdownlint-cli2 --fix"]
 }

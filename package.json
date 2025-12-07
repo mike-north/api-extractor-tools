@@ -14,13 +14,9 @@
     "test:changed": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests",
     "test:uncommitted": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed --passWithNoTests",
     "check:packages": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests,check:api-report",
-    "check:markdown": "markdownlint-cli2 \"**/*.md\"",
-    "check:workspace": "NX_TUI=false nx knip && pnpm check:markdown",
+    "check:workspace": "NX_TUI=false nx knip",
     "check": "pnpm check:packages && pnpm check:workspace",
-    "fix": "NX_TUI=false nx run-many -t fix:format,fix:markdownlint",
-    "fix:format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
-    "fix:markdownlint": "markdownlint-cli2 --fix \"**/*.md\"",
-    "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+    "fix": "NX_TUI=false nx run-many -t fix:lint,fix:format",
     "changeset": "changeset",
     "changeset:auto": "changeset-change-detector generate",
     "changeset:validate": "changeset-change-detector validate",
@@ -31,12 +27,52 @@
   "author": "Mike North <michael.l.north@gmail.com>",
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
+  "nx": {
+    "targets": {
+      "knip": {
+        "cache": true,
+        "command": "knip",
+        "inputs": [
+          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
+        ]
+      },
+      "fix:lint": {
+        "cache": true,
+        "command": "eslint --fix \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+        "inputs": [
+          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
+        ]
+      },
+      "fix:format": {
+        "cache": true,
+        "command": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+        "inputs": [
+          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
+        ]
+      },
+      "api-documenter": {
+        "cache": true,
+        "command": "api-documenter markdown --input-folder temp --output-folder docs",
+        "dependsOn": [
+          {
+            "projects": "@api-extractor-tools/*",
+            "target": "generate:api-report"
+          }
+        ],
+        "inputs": [
+          "{workspaceRoot}/temp/**/*.api.json"
+        ],
+        "outputs": [
+          "{workspaceRoot}/docs/**/*.md"
+        ]
+      }
+    }
+  },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.10",
     "@eslint/js": "^9.39.1",
     "@microsoft/api-documenter": "^7.28.2",
-    "@vitest/coverage-v8": "^4.0.15",
     "eslint": "^9.39.1",
     "eslint-plugin-tsdoc": "^0.5.0",
     "husky": "^9.1.7",
@@ -48,6 +84,7 @@
     "prettier": "^3.7.4",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.48.1",
+    "@vitest/coverage-v8": "^4.0.15",
     "vitest": "^4.0.15"
   },
   "engines": {

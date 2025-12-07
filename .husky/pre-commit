@@ -1,8 +1,11 @@
 #!/bin/sh
 set -e
 
-# Fix all issues (lint, format, markdown)
-pnpm fix
+# Lint and format staged files
+pnpm lint:staged
+
+# Run workspace-wide checks (knip)
+pnpm run check:workspace
 
 # Build all packages
 pnpm build

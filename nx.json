@@ -23,21 +23,6 @@
     ]
   },
   "targetDefaults": {
-    "check:markdown": {
-      "cache": true,
-      "inputs": ["markdownConfig", "markdownFiles"],
-      "outputs": []
-    },
-    "fix:format": {
-      "cache": true,
-      "inputs": ["source"],
-      "outputs": []
-    },
-    "fix:markdownlint": {
-      "cache": true,
-      "inputs": ["markdownConfig", "markdownFiles"],
-      "outputs": []
-    },
     "build": {
       "cache": true,
       "dependsOn": ["^build", "^generate:api-report"],
