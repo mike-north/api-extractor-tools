@@ -80,19 +80,9 @@ function App() {
     localStorage.setItem('theme', themePreference)
   }, [resolvedTheme, themePreference])
 
-  const toggleTheme = useCallback(() => {
-    setThemePreference((prev) => {
-      if (prev === 'light') return 'dark'
-      if (prev === 'dark') return 'auto'
-      return 'light'
-    })
+  const handleThemeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setThemePreference(e.target.value as ThemePreference)
   }, [])
-
-  const getThemeButtonText = () => {
-    if (themePreference === 'light') return 'Dark'
-    if (themePreference === 'dark') return 'Auto'
-    return `Light` // Auto mode
-  }
 
   // Auto-analyze with 100ms debounce
   useEffect(() => {
@@ -224,14 +214,16 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
               </option>
             ))}
           </select>
-          <button 
-            className="theme-toggle" 
-            onClick={toggleTheme} 
-            aria-label={themePreference === 'auto' ? `Theme: Auto (currently ${resolvedTheme}). Click to switch to light mode` : `Theme: ${themePreference}. Click to switch to ${getThemeButtonText().toLowerCase()} mode`}
-            title={themePreference === 'auto' ? `Auto (currently ${resolvedTheme})` : `Switch to ${getThemeButtonText()} mode`}
+          <select
+            className="theme-toggle"
+            value={themePreference}
+            onChange={handleThemeChange}
+            aria-label="Theme preference"
           >
-            {getThemeButtonText()}
-          </button>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="auto">Auto (System)</option>
+          </select>
           <button className="copy-button" onClick={handleCopyForLLM}>
             {copyFeedback ?? 'Copy for LLM'}
           </button>

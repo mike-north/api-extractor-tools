@@ -93,7 +93,8 @@ body {
   align-items: center;
 }
 
-.example-select {
+.example-select,
+.theme-toggle {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: 1px solid var(--color-border);
@@ -101,15 +102,22 @@ body {
   color: var(--color-text);
   font-size: 0.875rem;
   cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
 }
 
-.example-select:focus {
+.example-select:focus,
+.theme-toggle:focus {
   outline: none;
   border-color: var(--color-primary);
 }
 
+.example-select:hover,
+.theme-toggle:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
 .copy-button,
-.theme-toggle,
 .report-issue-button {
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -123,21 +131,18 @@ body {
 }
 
 .copy-button:hover,
-.theme-toggle:hover,
 .report-issue-button:hover:not(:disabled) {
   background-color: var(--color-surface);
   border-color: var(--color-primary);
 }
 
 .copy-button:focus,
-.theme-toggle:focus,
 .report-issue-button:focus {
   outline: none;
   border-color: var(--color-primary);
 }
 
 .copy-button:active,
-.theme-toggle:active,
 .report-issue-button:active:not(:disabled) {
   background-color: var(--color-primary);
   color: var(--color-bg);

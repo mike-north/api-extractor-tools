@@ -31,9 +31,12 @@ describe('App', () => {
 
     it('renders the example selector', () => {
       render(<App />)
-      const select = screen.getByRole('combobox')
-      expect(select).toBeInTheDocument()
-      expect(within(select).getByText('Load example...')).toBeInTheDocument()
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )
+      expect(exampleSelect).toBeInTheDocument()
+      expect(within(exampleSelect!).getByText('Load example...')).toBeInTheDocument()
     })
 
     it('renders the copy button', () => {
@@ -43,10 +46,13 @@ describe('App', () => {
       ).toBeInTheDocument()
     })
 
-    it('renders the theme toggle button', () => {
+    it('renders the theme selector', () => {
       render(<App />)
-      const themeButton = screen.getByRole('button', { name: /light|dark/i })
-      expect(themeButton).toBeInTheDocument()
+      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
+      expect(themeSelect).toBeInTheDocument()
+      expect(within(themeSelect).getByRole('option', { name: 'Light' })).toBeInTheDocument()
+      expect(within(themeSelect).getByRole('option', { name: 'Dark' })).toBeInTheDocument()
+      expect(within(themeSelect).getByRole('option', { name: /auto/i })).toBeInTheDocument()
     })
 
     it('loads the first example by default', () => {
@@ -68,8 +74,11 @@ describe('App', () => {
       const user = userEvent.setup()
       render(<App />)
 
-      const select = screen.getByRole('combobox')
-      await user.selectOptions(select, 'Export Removed (Major)')
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )!
+      await user.selectOptions(exampleSelect, 'Export Removed (Major)')
 
       await waitFor(() => {
         const editors = screen.getAllByTestId('monaco-editor')
@@ -83,19 +92,22 @@ describe('App', () => {
 
     it('shows all available examples in the dropdown', () => {
       render(<App />)
-      const select = screen.getByRole('combobox')
-      const options = within(select).getAllByRole('option')
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )!
+      const options = within(exampleSelect).getAllByRole('option')
 
       // Should have placeholder + all examples
       expect(options.length).toBeGreaterThan(5)
       expect(
-        within(select).getByText('Optional Parameter Added (Minor)'),
+        within(exampleSelect).getByText('Optional Parameter Added (Minor)'),
       ).toBeInTheDocument()
       expect(
-        within(select).getByText('Required Parameter Added (Major)'),
+        within(exampleSelect).getByText('Required Parameter Added (Major)'),
       ).toBeInTheDocument()
       expect(
-        within(select).getByText('Export Removed (Major)'),
+        within(exampleSelect).getByText('Export Removed (Major)'),
       ).toBeInTheDocument()
     })
   })
@@ -323,8 +335,11 @@ describe('App', () => {
       render(<App />)
 
       // Load example with breaking changes
-      const select = screen.getByRole('combobox')
-      await user.selectOptions(select, 'Export Removed (Major)')
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )!
+      await user.selectOptions(exampleSelect, 'Export Removed (Major)')
 
       // Wait for analysis to complete
       await waitFor(
@@ -342,8 +357,11 @@ describe('App', () => {
       render(<App />)
 
       // Load example with non-breaking changes
-      const select = screen.getByRole('combobox')
-      await user.selectOptions(select, 'New Export Added (Minor)')
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )!
+      await user.selectOptions(exampleSelect, 'New Export Added (Minor)')
 
       // Wait for analysis to complete
       await waitFor(
@@ -359,8 +377,11 @@ describe('App', () => {
       const user = userEvent.setup()
       render(<App />)
 
-      const select = screen.getByRole('combobox')
-      await user.selectOptions(select, 'No Changes')
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )!
+      await user.selectOptions(exampleSelect, 'No Changes')
 
       // Wait for analysis
       await waitFor(
@@ -395,7 +416,8 @@ describe('App', () => {
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
       expect(localStorage.getItem('theme')).toBe('auto')
-      expect(screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })).toBeInTheDocument()
+      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
+      expect(themeSelect).toHaveValue('auto')
     })
 
     it('defaults to auto mode with light theme when system prefers light', () => {
@@ -419,7 +441,8 @@ describe('App', () => {
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
       expect(localStorage.getItem('theme')).toBe('auto')
-      expect(screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })).toBeInTheDocument()
+      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
+      expect(themeSelect).toHaveValue('auto')
     })
 
     it('loads theme preference from localStorage', () => {
@@ -428,7 +451,8 @@ describe('App', () => {
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })).toBeInTheDocument()
+      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
+      expect(themeSelect).toHaveValue('light')
     })
 
     it('loads auto mode from localStorage and follows system', () => {
@@ -456,46 +480,44 @@ describe('App', () => {
       expect(localStorage.getItem('theme')).toBe('auto')
     })
 
-    it('cycles through light -> dark -> auto when toggled', async () => {
+    it('allows selecting different themes from dropdown', async () => {
       const user = userEvent.setup()
       localStorage.setItem('theme', 'light')
 
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      const darkButton = screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })
-      expect(darkButton).toBeInTheDocument()
+      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
+      expect(themeSelect).toHaveValue('light')
 
-      // Click to go to dark
-      await user.click(darkButton)
+      // Select dark theme
+      await user.selectOptions(themeSelect, 'dark')
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-      const autoButton = screen.getByRole('button', { name: /Theme: dark.*Click to switch to auto mode/i })
-      expect(autoButton).toBeInTheDocument()
+      expect(themeSelect).toHaveValue('dark')
 
-      // Click to go to auto
-      await user.click(autoButton)
+      // Select auto theme
+      await user.selectOptions(themeSelect, 'auto')
       expect(localStorage.getItem('theme')).toBe('auto')
-      const lightButton = screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })
-      expect(lightButton).toBeInTheDocument()
+      expect(themeSelect).toHaveValue('auto')
 
-      // Click to go back to light
-      await user.click(lightButton)
+      // Select light theme
+      await user.selectOptions(themeSelect, 'light')
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })).toBeInTheDocument()
+      expect(themeSelect).toHaveValue('light')
     })
 
-    it('persists theme preference to localStorage when toggled', async () => {
+    it('persists theme preference to localStorage when changed', async () => {
       const user = userEvent.setup()
       localStorage.setItem('theme', 'light')
       
       render(<App />)
 
-      const themeButton = screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })
-      await user.click(themeButton)
+      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
+      await user.selectOptions(themeSelect, 'dark')
 
       expect(localStorage.getItem('theme')).toBe('dark')
 
-      await user.click(screen.getByRole('button', { name: /Theme: dark.*Click to switch to auto mode/i }))
+      await user.selectOptions(themeSelect, 'auto')
       expect(localStorage.getItem('theme')).toBe('auto')
     })
 
@@ -572,12 +594,15 @@ describe('App', () => {
       const user = userEvent.setup()
       render(<App />)
 
-      const select = screen.getByRole('combobox')
+      const selects = screen.getAllByRole('combobox')
+      const exampleSelect = selects.find(select => 
+        within(select).queryByText('Load example...') !== null
+      )!
 
       // Rapidly switch between examples
-      await user.selectOptions(select, 'Export Removed (Major)')
-      await user.selectOptions(select, 'New Export Added (Minor)')
-      await user.selectOptions(select, 'No Changes')
+      await user.selectOptions(exampleSelect, 'Export Removed (Major)')
+      await user.selectOptions(exampleSelect, 'New Export Added (Minor)')
+      await user.selectOptions(exampleSelect, 'No Changes')
 
       // Should eventually settle on the last selection
       await waitFor(() => {
