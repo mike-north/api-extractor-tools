@@ -194,30 +194,10 @@ export const missingReleaseTag = createRule<
         checkDeclaration(node)
       },
 
-      // Check export specifiers (export { foo })
-      ExportNamedDeclaration(node): void {
-        // If there's a declaration, it will be handled by the specific handlers above
-        if (node.declaration) {
-          return
-        }
-
-        // Handle re-exports: export { foo } from './bar'
-        // These don't need release tags as the original declaration should have them
-
-        // Handle named exports: export { foo }
-        // The original declaration should have the release tag
-        for (const specifier of node.specifiers) {
-          if (specifier.type !== AST_NODE_TYPES.ExportSpecifier) {
-            continue
-          }
-
-          // Check if the export statement itself has a release tag
-          if (!hasReleaseTag(node)) {
-            // We don't report here because the original declaration
-            // should have the release tag, not the re-export
-          }
-        }
-      },
+      // Note: We intentionally don't handle ExportNamedDeclaration with specifiers
+      // (e.g., `export { foo }` or `export { foo } from './bar'`) because:
+      // - Re-exports should have release tags on the original declaration
+      // - Named exports reference declarations that are checked elsewhere
     }
   },
 })

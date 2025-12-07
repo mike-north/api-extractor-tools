@@ -29,7 +29,7 @@
  * ```js
  * module.exports = {
  *   plugins: ['@api-extractor-tools'],
- *   extends: ['plugin:@api-extractor-tools/recommended'],
+ *   extends: ['plugin:@api-extractor-tools/recommended-legacy'],
  * };
  * ```
  *

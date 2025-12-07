@@ -6,7 +6,6 @@ import { clearPackageJsonCache } from '../../src/utils/entry-point.js'
 import {
   findPackageJson,
   isEntryPoint,
-  findAllTSDocComments,
   hasPackageDocumentation,
   parseTSDocComment,
 } from '../../src/utils'
