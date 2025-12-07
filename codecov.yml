@@ -1,0 +1,54 @@
+# Codecov configuration for api-extractor-tools monorepo
+# https://docs.codecov.com/docs/codecovyml-reference
+
+coverage:
+  precision: 2
+  round: down
+  range: "60...100"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        # Don't fail CI if coverage drops slightly
+        informational: false
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+# Comment configuration for PR comments
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+
+# Flag management for monorepo packages
+flags:
+  change-detector:
+    paths:
+      - tools/change-detector/src/
+    carryforward: true
+  module-declaration-merger:
+    paths:
+      - tools/module-declaration-merger/src/
+    carryforward: true
+  changeset-change-detector:
+    paths:
+      - tools/changeset-change-detector/src/
+    carryforward: true
+  change-detector-semantic-release-plugin:
+    paths:
+      - tools/change-detector-semantic-release-plugin/src/
+    carryforward: true
+
+# Ignore patterns
+ignore:
+  - "**/*.d.ts"
+  - "**/dist/**"
+  - "**/node_modules/**"
+  - "**/test/**"
+  - "docs/**"
+

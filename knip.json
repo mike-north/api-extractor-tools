@@ -2,7 +2,8 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
     ".": {
-      "ignoreBinaries": ["changeset-change-detector"]
+      "ignoreBinaries": ["changeset-change-detector"],
+      "ignoreDependencies": ["@vitest/coverage-v8"]
     },
     "lib/*": {
       "entry": ["src/index.ts"],

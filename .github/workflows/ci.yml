@@ -43,6 +43,19 @@ jobs:
       - name: Lint
         run: pnpm check
 
-      - name: Test
-        run: pnpm test
+      - name: Test with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            tools/change-detector/coverage/coverage-final.json,
+            tools/module-declaration-merger/coverage/coverage-final.json,
+            tools/changeset-change-detector/coverage/coverage-final.json,
+            tools/change-detector-semantic-release-plugin/coverage/coverage-final.json
+          flags: change-detector,module-declaration-merger,changeset-change-detector,change-detector-semantic-release-plugin
+          fail_ci_if_error: false
+          verbose: true
 
