@@ -14,7 +14,8 @@
       "entry": ["src/index.ts"],
       "paths": {
         "@": ["./src/index.ts"]
-      }
+      },
+      "ignoreDependencies": ["semantic-release"]
     }
   }
 }
