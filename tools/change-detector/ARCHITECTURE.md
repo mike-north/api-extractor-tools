@@ -98,6 +98,7 @@ Parses `.d.ts` files using the TypeScript Compiler API.
    ```
 
 4. **Structural Signatures for Interfaces**: The default `typeToString()` for interfaces just returns the name. We expand them to show properties:
+
    ```typescript
    function getStructuralSignature(
      type: ts.Type,

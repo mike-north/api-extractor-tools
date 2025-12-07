@@ -164,7 +164,9 @@ async function main(): Promise<void> {
 
   if (!options.command) {
     console.error('Error: No command specified.')
-    console.error("Run 'changeset-change-detector --help' for usage information.")
+    console.error(
+      "Run 'changeset-change-detector --help' for usage information.",
+    )
     process.exitCode = 1
     return
   }
@@ -189,5 +191,3 @@ main().catch((err) => {
   console.error('Unexpected error:', err)
   process.exitCode = 1
 })
-
-

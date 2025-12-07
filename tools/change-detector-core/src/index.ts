@@ -161,5 +161,3 @@ export function compareDeclarations(
     newFile: newFilename,
   }
 }
-
-

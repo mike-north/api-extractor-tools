@@ -48,5 +48,3 @@ describe('compareBumpSeverity', () => {
     expect(compareBumpSeverity(null, null)).toBe(0)
   })
 })
-
-

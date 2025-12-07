@@ -264,4 +264,3 @@ describe('generateDetailedDescription', () => {
     expect(description).toBe('')
   })
 })
-

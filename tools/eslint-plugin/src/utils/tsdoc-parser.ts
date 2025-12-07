@@ -94,7 +94,7 @@ export function hasPackageDocumentation(docComment: DocComment): boolean {
  */
 function isBlockComment(comment: TSESTree.Comment): boolean {
   // TSESTree.Comment.type is 'Line' | 'Block' - comparing to string literal
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+   
   return comment.type === 'Block'
 }
 

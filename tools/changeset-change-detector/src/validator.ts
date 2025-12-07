@@ -35,7 +35,9 @@ function versionTypeToBumpType(vt: VersionType): ChangesetBumpType | null {
  *
  * @alpha
  */
-export async function readPendingChangesets(cwd: string): Promise<NewChangeset[]> {
+export async function readPendingChangesets(
+  cwd: string,
+): Promise<NewChangeset[]> {
   const changesetDir = path.join(cwd, '.changeset')
 
   if (!fs.existsSync(changesetDir)) {
@@ -162,7 +164,10 @@ export async function validateChangesets(
     }
 
     const recommendedBump = detected.bump
-    if (recommendedBump && compareBumpSeverity(recommendedBump, declaredBump) > 0) {
+    if (
+      recommendedBump &&
+      compareBumpSeverity(recommendedBump, declaredBump) > 0
+    ) {
       // Detected changes are more severe than declared bump
       issues.push({
         severity: 'error',
@@ -199,7 +204,9 @@ export async function validateChangesets(
   const warningCount = issues.filter((i) => i.severity === 'warning').length
 
   // Determine validity
-  const valid = options.strict ? errorCount === 0 && warningCount === 0 : errorCount === 0
+  const valid = options.strict
+    ? errorCount === 0 && warningCount === 0
+    : errorCount === 0
 
   return {
     valid,
@@ -254,7 +261,9 @@ export function formatValidationResult(result: ValidationResult): string {
 
   // Summary
   lines.push('Summary:')
-  lines.push(`  Packages with changesets: ${result.packagesWithChangesets.length}`)
+  lines.push(
+    `  Packages with changesets: ${result.packagesWithChangesets.length}`,
+  )
   if (result.packagesMissingChangesets.length > 0) {
     lines.push(
       `  Packages missing changesets: ${result.packagesMissingChangesets.length}`,
@@ -266,4 +275,3 @@ export function formatValidationResult(result: ValidationResult): string {
 
   return lines.join('\n')
 }
-

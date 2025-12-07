@@ -230,8 +230,7 @@ export function validateVersionBump(
         valid: false,
         proposedBump: null,
         detectedBump,
-        message:
-          `No release proposed, but API analysis detected ${detectedBump}-level changes.`,
+        message: `No release proposed, but API analysis detected ${detectedBump}-level changes.`,
         changes: analysis.report?.changes,
       }
     }

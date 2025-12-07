@@ -121,7 +121,9 @@ export async function writeChangeset(
 
   // Ensure .changeset directory exists
   if (!fs.existsSync(changesetDir)) {
-    throw new Error('.changeset directory not found. Is this a changesets workspace?')
+    throw new Error(
+      '.changeset directory not found. Is this a changesets workspace?',
+    )
   }
 
   // Convert to Changeset format for @changesets/write
@@ -267,4 +269,3 @@ export async function generateChangeset(
     }
   }
 }
-

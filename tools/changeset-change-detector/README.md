@@ -18,16 +18,16 @@ This is error-prone and inconsistent. A developer might accidentally mark a brea
 
 This package integrates with [@api-extractor-tools/change-detector](../change-detector/) to **automatically analyze your TypeScript declaration files** and determine the correct semantic version bump based on actual API changes.
 
-| Change Type | Examples | Version Bump |
-|-------------|----------|--------------|
-| Removing exports | Deleted function, removed interface | **major** |
-| Adding required parameters | `fn(a)` → `fn(a, b)` | **major** |
-| Narrowing types | `string \| number` → `string` | **major** |
-| Changing return types | `(): string` → `(): number` | **major** |
-| Adding exports | New function, new interface | minor |
-| Adding optional parameters | `fn(a)` → `fn(a, b?)` | minor |
-| Widening types | `string` → `string \| number` | minor |
-| Internal changes only | Implementation details | patch |
+| Change Type                | Examples                            | Version Bump |
+| -------------------------- | ----------------------------------- | ------------ |
+| Removing exports           | Deleted function, removed interface | **major**    |
+| Adding required parameters | `fn(a)` → `fn(a, b)`                | **major**    |
+| Narrowing types            | `string \| number` → `string`       | **major**    |
+| Changing return types      | `(): string` → `(): number`         | **major**    |
+| Adding exports             | New function, new interface         | minor        |
+| Adding optional parameters | `fn(a)` → `fn(a, b?)`               | minor        |
+| Widening types             | `string` → `string \| number`       | minor        |
+| Internal changes only      | Implementation details              | patch        |
 
 ## Features
 
@@ -160,33 +160,35 @@ import {
   analyzeWorkspace,
   generateChangeset,
   validateChangesets,
-} from '@api-extractor-tools/changeset-change-detector';
+} from '@api-extractor-tools/changeset-change-detector'
 
 // Analyze API changes in the workspace
-const analysis = analyzeWorkspace({ baseRef: 'main' });
+const analysis = analyzeWorkspace({ baseRef: 'main' })
 
-console.log(`Found ${analysis.packagesWithChanges.length} packages with changes`);
+console.log(
+  `Found ${analysis.packagesWithChanges.length} packages with changes`,
+)
 
 for (const pkg of analysis.packagesWithChanges) {
-  console.log(`${pkg.package.name}: ${pkg.recommendedBump}`);
+  console.log(`${pkg.package.name}: ${pkg.recommendedBump}`)
 }
 
 // Generate a changeset automatically
-const result = await generateChangeset({ 
+const result = await generateChangeset({
   yes: true,
   baseRef: 'main',
-});
+})
 
 if (result.success && result.changesetPath) {
-  console.log(`Created: ${result.changesetPath}`);
+  console.log(`Created: ${result.changesetPath}`)
 }
 
 // Validate existing changesets
-const validation = await validateChangesets({ baseRef: 'main' });
+const validation = await validateChangesets({ baseRef: 'main' })
 
 if (!validation.valid) {
-  console.error('Validation failed!');
-  process.exit(1);
+  console.error('Validation failed!')
+  process.exit(1)
 }
 ```
 
@@ -209,18 +211,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for git history comparison
-      
+          fetch-depth: 0 # Needed for git history comparison
+
       - uses: pnpm/action-setup@v2
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-      
+
       - run: pnpm install
       - run: pnpm build
-      
+
       - name: Validate changesets
         run: pnpm changeset-change-detector validate --base origin/main
 ```
@@ -292,6 +294,7 @@ For most workflows, the automatic detection works well. Use `--base` when you ne
 ### "No declaration file found"
 
 Ensure your packages have:
+
 - A `types` field in `package.json` pointing to the `.d.ts` file
 - Or a `main` field with a corresponding `.d.ts` file next to it
 
@@ -305,12 +308,14 @@ Ensure your packages have:
 ### "Could not determine baseline"
 
 The tool couldn't find a git ref to compare against. Either:
+
 - Ensure you have git tags for published versions
 - Use `--base main` or another explicit ref
 
 ### Changes not detected
 
 If API changes aren't being detected:
+
 - Ensure declaration files are built (`pnpm build`)
 - Check that the baseline ref has the old declaration files
 - Verify your tsconfig produces declaration files

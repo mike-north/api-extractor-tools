@@ -43,6 +43,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
    ```
 
 4. **Run tests**
+
    ```bash
    pnpm test
    ```
@@ -73,6 +74,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
    ```
 
 4. **Lint and type-check**
+
    ```bash
    pnpm check
    ```
@@ -426,7 +428,7 @@ api-extractor-tools/
 
 - **Issues**: Open an issue on GitHub
 - **Discussions**: Use GitHub Discussions for questions
-- **Changesets Docs**: https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md
+- **Changesets Docs**: <https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md>
 
 ## Additional Resources
 

@@ -177,7 +177,9 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli(['generate', '-b', 'main'], { cwd: project.baseDir })
+      const result = runCli(['generate', '-b', 'main'], {
+        cwd: project.baseDir,
+      })
 
       expect(result.stdout).toContain('Analyzing')
     })
@@ -270,7 +272,9 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli(['validate', '-b', 'main'], { cwd: project.baseDir })
+      const result = runCli(['validate', '-b', 'main'], {
+        cwd: project.baseDir,
+      })
 
       expect(result.stdout).toContain('Validating')
     })

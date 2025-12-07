@@ -117,5 +117,3 @@ export interface Config {
     new: `export declare function process<T extends Record<string, unknown>>(value: T): T;`,
   },
 ]
-
-

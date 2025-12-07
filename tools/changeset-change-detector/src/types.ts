@@ -231,4 +231,3 @@ export function compareBumpSeverity(
   const bVal = b === null ? 0 : (severity[b] ?? 0)
   return aVal - bVal
 }
-

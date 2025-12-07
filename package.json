@@ -14,8 +14,13 @@
     "test:changed": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests",
     "test:uncommitted": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed --passWithNoTests",
     "check:packages": "NX_TUI=false nx run-many -t check:eslint,check:typecheck-tests,check:api-report",
-    "check:workspace": "NX_TUI=false nx knip",
+    "check:markdown": "markdownlint-cli2 \"**/*.md\"",
+    "check:workspace": "NX_TUI=false nx knip && pnpm check:markdown",
     "check": "pnpm check:packages && pnpm check:workspace",
+    "fix": "NX_TUI=false nx run-many -t fix:lint,fix:format,fix:markdownlint",
+    "fix:format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+    "fix:lint": "eslint --fix \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+    "fix:markdownlint": "markdownlint-cli2 --fix \"**/*.md\"",
     "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
     "changeset": "changeset",
     "changeset:auto": "changeset-change-detector generate",
@@ -34,6 +39,30 @@
         "command": "knip",
         "inputs": [
           "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
+        ]
+      },
+      "fix:lint": {
+        "cache": true,
+        "command": "eslint --fix \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+        "inputs": [
+          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
+        ]
+      },
+      "fix:format": {
+        "cache": true,
+        "command": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
+        "inputs": [
+          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
+        ]
+      },
+      "fix:markdownlint": {
+        "cache": true,
+        "command": "markdownlint-cli2 --fix \"**/*.md\"",
+        "inputs": [
+          "{workspaceRoot}/**/*.md",
+          "{workspaceRoot}/.markdownlint-cli2.jsonc",
+          "!{workspaceRoot}/docs/**",
+          "!{workspaceRoot}/api-reports/**"
         ]
       },
       "api-documenter": {
@@ -59,17 +88,18 @@
     "@changesets/cli": "^2.27.10",
     "@eslint/js": "^9.39.1",
     "@microsoft/api-documenter": "^7.28.2",
+    "@vitest/coverage-v8": "^4.0.15",
     "eslint": "^9.39.1",
     "eslint-plugin-tsdoc": "^0.5.0",
     "husky": "^9.1.7",
     "jiti": "^2.6.1",
     "knip": "^5.71.0",
     "lint-staged": "^15.5.2",
+    "markdownlint-cli2": "^0.20.0",
     "nx": "^22.1.3",
     "prettier": "^3.7.4",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.48.1",
-    "@vitest/coverage-v8": "^4.0.15",
     "vitest": "^4.0.15"
   },
   "engines": {
