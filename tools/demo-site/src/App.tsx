@@ -9,14 +9,21 @@ import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
 import { examples, type Example } from './examples'
 
-// Helper functions for base64 URL encoding
+// Helper functions for base64 URL encoding (using modern TextEncoder/TextDecoder)
 function encodeBase64(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)))
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
 }
 
 function decodeBase64(str: string): string {
   try {
-    return decodeURIComponent(escape(atob(str)))
+    const binary = atob(str)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
   } catch {
     return ''
   }
@@ -142,6 +149,9 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
 `
     navigator.clipboard.writeText(text).then(() => {
       setCopyFeedback('Copied!')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    }).catch(() => {
+      setCopyFeedback('Failed to copy')
       setTimeout(() => setCopyFeedback(null), 2000)
     })
   }, [oldContent, newContent, report])
