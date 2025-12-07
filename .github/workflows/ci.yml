@@ -29,10 +29,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .nx/cache
-          key: nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          key: nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json') }}-${{ github.sha }}
           restore-keys: |
-            nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
-            nx-${{ runner.os }}-
+            nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json') }}-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,10 +51,10 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
             tools/change-detector/coverage/coverage-final.json,
+            tools/change-detector-core/coverage/coverage-final.json,
             tools/module-declaration-merger/coverage/coverage-final.json,
             tools/changeset-change-detector/coverage/coverage-final.json,
             tools/change-detector-semantic-release-plugin/coverage/coverage-final.json
-          flags: change-detector,module-declaration-merger,changeset-change-detector,change-detector-semantic-release-plugin
+          flags: change-detector,change-detector-core,module-declaration-merger,changeset-change-detector,change-detector-semantic-release-plugin
           fail_ci_if_error: false
           verbose: true
-
