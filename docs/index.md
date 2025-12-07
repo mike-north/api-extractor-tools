@@ -30,6 +30,17 @@ A library for detecting and classifying changes between TypeScript declaration f
 </td></tr>
 <tr><td>
 
+[@api-extractor-tools/change-detector-semantic-release-plugin](./change-detector-semantic-release-plugin.md)
+
+
+</td><td>
+
+A semantic-release plugin that uses change-detector to validate and enhance version bumping.
+
+
+</td></tr>
+<tr><td>
+
 [@api-extractor-tools/changeset-change-detector](./changeset-change-detector.md)
 
 
