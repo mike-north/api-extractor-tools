@@ -1,5 +1,7 @@
 # Change Detector Core
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchange-detector-core)](https://www.npmjs.com/package/@api-extractor-tools/change-detector-core)
+
 Isomorphic core library for detecting and analyzing changes between TypeScript declaration files. This package provides the core comparison logic that works in both Node.js and browser environments.
 
 ## Overview

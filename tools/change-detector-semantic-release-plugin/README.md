@@ -1,5 +1,7 @@
 # @api-extractor-tools/change-detector-semantic-release-plugin
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchange-detector-semantic-release-plugin)](https://www.npmjs.com/package/@api-extractor-tools/change-detector-semantic-release-plugin)
+
 A [semantic-release](https://semantic-release.gitbook.io/) plugin that uses `@api-extractor-tools/change-detector` to validate and enhance version bumping based on actual API changes in TypeScript declaration files.
 
 ## Features
@@ -25,11 +27,14 @@ Add the plugin to your semantic-release configuration:
 {
   "plugins": [
     "@semantic-release/commit-analyzer",
-    ["@api-extractor-tools/change-detector-semantic-release-plugin", {
-      "mode": "validate",
-      "declarationPath": "./dist/index.d.ts",
-      "includeAPIChangesInNotes": true
-    }],
+    [
+      "@api-extractor-tools/change-detector-semantic-release-plugin",
+      {
+        "mode": "validate",
+        "declarationPath": "./dist/index.d.ts",
+        "includeAPIChangesInNotes": true
+      }
+    ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
     "@semantic-release/github"
@@ -39,20 +44,21 @@ Add the plugin to your semantic-release configuration:
 
 ## Configuration
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `mode` | `'validate' \| 'override' \| 'advisory'` | `'validate'` | Operating mode for the plugin |
-| `declarationPath` | `string` | `null` | Path to the declaration file (relative or absolute). If not provided, uses `package.json` types field |
-| `apiExtractorConfig` | `string` | `null` | Path to api-extractor.json config file |
-| `includeAPIChangesInNotes` | `boolean` | `true` | Whether to add API changes to release notes |
-| `failOnMismatch` | `boolean` | `true` | Fail release when version bump doesn't match API changes (validate mode only) |
-| `baseRef` | `string` | `null` | Git ref to use as baseline (defaults to last release tag or main) |
+| Option                     | Type                                     | Default      | Description                                                                                           |
+| -------------------------- | ---------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
+| `mode`                     | `'validate' \| 'override' \| 'advisory'` | `'validate'` | Operating mode for the plugin                                                                         |
+| `declarationPath`          | `string`                                 | `null`       | Path to the declaration file (relative or absolute). If not provided, uses `package.json` types field |
+| `apiExtractorConfig`       | `string`                                 | `null`       | Path to api-extractor.json config file                                                                |
+| `includeAPIChangesInNotes` | `boolean`                                | `true`       | Whether to add API changes to release notes                                                           |
+| `failOnMismatch`           | `boolean`                                | `true`       | Fail release when version bump doesn't match API changes (validate mode only)                         |
+| `baseRef`                  | `string`                                 | `null`       | Git ref to use as baseline (defaults to last release tag or main)                                     |
 
 ### Modes
 
 #### Validate Mode (Default)
 
 Validates that the commit-derived version bump is sufficient for the detected API changes. Fails the release if:
+
 - A `patch` bump is proposed but breaking changes are detected (requires `major`)
 - A `minor` bump is proposed but breaking changes are detected (requires `major`)
 
@@ -139,30 +145,30 @@ import {
   validateVersionBump,
   formatAPIChangesAsMarkdown,
   resolveConfig,
-} from '@api-extractor-tools/change-detector-semantic-release-plugin';
+} from '@api-extractor-tools/change-detector-semantic-release-plugin'
 
 // Resolve configuration
 const config = resolveConfig({
   declarationPath: './dist/index.d.ts',
-});
+})
 
 // Analyze API changes
 const analysis = analyzeAPIChanges(process.cwd(), config, {
   gitTag: 'v1.0.0',
   version: '1.0.0',
-});
+})
 
-console.log(analysis.recommendedBump); // 'major' | 'minor' | 'patch' | 'none'
+console.log(analysis.recommendedBump) // 'major' | 'minor' | 'patch' | 'none'
 
 // Validate a proposed version bump
-const validation = validateVersionBump('minor', analysis, 'validate');
-console.log(validation.valid); // true or false
-console.log(validation.message);
+const validation = validateVersionBump('minor', analysis, 'validate')
+console.log(validation.valid) // true or false
+console.log(validation.message)
 
 // Generate release notes
 if (analysis.report) {
-  const notes = formatAPIChangesAsMarkdown(analysis.report);
-  console.log(notes);
+  const notes = formatAPIChangesAsMarkdown(analysis.report)
+  console.log(notes)
 }
 ```
 
@@ -187,4 +193,8 @@ if (analysis.report) {
 ## License
 
 MIT
+
+
+
+
 

@@ -8,6 +8,8 @@ A collection of tools that extend [@microsoft/api-extractor](https://api-extract
 
 ### [@api-extractor-tools/module-declaration-merger](./tools/module-declaration-merger)
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fmodule-declaration-merger)](https://www.npmjs.com/package/@api-extractor-tools/module-declaration-merger)
+
 When api-extractor creates declaration file rollups, it omits ambient module declarations (`declare module "..."` blocks). This tool adds them back.
 
 **Key features:**
@@ -30,6 +32,8 @@ const result = await mergeModuleDeclarations({
 ```
 
 ### [@api-extractor-tools/change-detector](./tools/change-detector)
+
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchange-detector)](https://www.npmjs.com/package/@api-extractor-tools/change-detector)
 
 Analyzes a pair of `.d.ts` rollups and classifies the delta according to [Semantic Versioning](https://semver.org/) rules. Helps library authors understand whether their changes require a major, minor, or patch release.
 
@@ -59,6 +63,8 @@ console.log(formatReportAsText(report));
 ```
 
 ### [@api-extractor-tools/change-detector-core](./tools/change-detector-core)
+
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchange-detector-core)](https://www.npmjs.com/package/@api-extractor-tools/change-detector-core)
 
 Isomorphic core library for change detection that works in both Node.js and browser environments. This package was extracted from `change-detector` to enable browser-based usage in interactive demos and playgrounds.
 
@@ -95,6 +101,8 @@ console.log(formatReportAsMarkdown(report))
 
 ### [@api-extractor-tools/change-detector-semantic-release-plugin](./tools/change-detector-semantic-release-plugin)
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchange-detector-semantic-release-plugin)](https://www.npmjs.com/package/@api-extractor-tools/change-detector-semantic-release-plugin)
+
 A [semantic-release](https://semantic-release.gitbook.io/) plugin that validates and enhances version bumping based on actual API changes in TypeScript declaration files.
 
 **Key features:**
@@ -124,6 +132,8 @@ A [semantic-release](https://semantic-release.gitbook.io/) plugin that validates
 
 ### [@api-extractor-tools/eslint-plugin](./tools/eslint-plugin)
 
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Feslint-plugin)](https://www.npmjs.com/package/@api-extractor-tools/eslint-plugin)
+
 ESLint plugin providing authoring-time feedback for API Extractor. Catch common API Extractor issues during development rather than waiting for the build step.
 
 **Key features:**
@@ -150,6 +160,8 @@ module.exports = {
 ```
 
 ### [@api-extractor-tools/changeset-change-detector](./tools/changeset-change-detector)
+
+[![npm version](https://img.shields.io/npm/v/%40api-extractor-tools%2Fchangeset-change-detector)](https://www.npmjs.com/package/@api-extractor-tools/changeset-change-detector)
 
 Automate semantic version bump decisions in your [Changesets](https://github.com/changesets/changesets) workflow by analyzing actual API changes in TypeScript declaration files.
 
