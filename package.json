@@ -17,9 +17,8 @@
     "check:markdown": "markdownlint-cli2 \"**/*.md\"",
     "check:workspace": "NX_TUI=false nx knip && pnpm check:markdown",
     "check": "pnpm check:packages && pnpm check:workspace",
-    "fix": "NX_TUI=false nx run-many -t fix:lint,fix:format,fix:markdownlint",
+    "fix": "NX_TUI=false nx run-many -t fix:format,fix:markdownlint",
     "fix:format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
-    "fix:lint": "eslint --fix \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
     "fix:markdownlint": "markdownlint-cli2 --fix \"**/*.md\"",
     "format": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
     "changeset": "changeset",
@@ -32,57 +31,6 @@
   "author": "Mike North <michael.l.north@gmail.com>",
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
-  "nx": {
-    "targets": {
-      "knip": {
-        "cache": true,
-        "command": "knip",
-        "inputs": [
-          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
-        ]
-      },
-      "fix:lint": {
-        "cache": true,
-        "command": "eslint --fix \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
-        "inputs": [
-          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
-        ]
-      },
-      "fix:format": {
-        "cache": true,
-        "command": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
-        "inputs": [
-          "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
-        ]
-      },
-      "fix:markdownlint": {
-        "cache": true,
-        "command": "markdownlint-cli2 --fix \"**/*.md\"",
-        "inputs": [
-          "{workspaceRoot}/**/*.md",
-          "{workspaceRoot}/.markdownlint-cli2.jsonc",
-          "!{workspaceRoot}/docs/**",
-          "!{workspaceRoot}/api-reports/**"
-        ]
-      },
-      "api-documenter": {
-        "cache": true,
-        "command": "api-documenter markdown --input-folder temp --output-folder docs",
-        "dependsOn": [
-          {
-            "projects": "@api-extractor-tools/*",
-            "target": "generate:api-report"
-          }
-        ],
-        "inputs": [
-          "{workspaceRoot}/temp/**/*.api.json"
-        ],
-        "outputs": [
-          "{workspaceRoot}/docs/**/*.md"
-        ]
-      }
-    }
-  },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.10",
