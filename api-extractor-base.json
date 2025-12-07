@@ -16,7 +16,8 @@
     "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-untrimmed.d.ts",
     "alphaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-alpha.d.ts",
     "betaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-beta.d.ts",
-    "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts"
+    // DO NOT CHANGE THIS PATH. The public declaration file rollup should have `-public` in it
+    "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
   },
 
   "tsdocMetadata": {

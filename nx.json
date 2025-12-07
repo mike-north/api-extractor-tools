@@ -15,6 +15,7 @@
   "targetDefaults": {
     "build": {
       "cache": true,
+      "dependsOn": ["^generate:api-report"],
       "inputs": ["source", "tsConfig"],
       "outputs": ["{projectRoot}/dist"]
     },
