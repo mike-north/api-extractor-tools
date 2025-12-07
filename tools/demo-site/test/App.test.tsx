@@ -374,7 +374,7 @@ describe('App', () => {
   })
 
   describe('Theme functionality', () => {
-    it('defaults to dark theme when no preference is stored', () => {
+    it('defaults to auto mode with dark theme when system prefers dark', () => {
       // Mock matchMedia to return dark preference
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
@@ -394,10 +394,11 @@ describe('App', () => {
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(localStorage.getItem('theme')).toBe('auto')
       expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
     })
 
-    it('defaults to light theme when system prefers light', () => {
+    it('defaults to auto mode with light theme when system prefers light', () => {
       // Mock matchMedia to return light preference
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
@@ -417,10 +418,11 @@ describe('App', () => {
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+      expect(localStorage.getItem('theme')).toBe('auto')
+      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
     })
 
-    it('loads theme from localStorage', () => {
+    it('loads theme preference from localStorage', () => {
       localStorage.setItem('theme', 'light')
 
       render(<App />)
@@ -429,53 +431,109 @@ describe('App', () => {
       expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
     })
 
-    it('toggles theme when button is clicked', async () => {
-      const user = userEvent.setup()
+    it('loads auto mode from localStorage and follows system', () => {
+      localStorage.setItem('theme', 'auto')
+
+      // Mock system prefers dark
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: query === '(prefers-color-scheme: dark)',
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
       render(<App />)
 
-      const initialTheme = document.documentElement.getAttribute('data-theme')
-      const themeButton = screen.getByRole('button', { name: /light|dark/i })
-
-      await user.click(themeButton)
-
-      const newTheme = document.documentElement.getAttribute('data-theme')
-      expect(newTheme).not.toBe(initialTheme)
-      expect(['light', 'dark']).toContain(newTheme)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(localStorage.getItem('theme')).toBe('auto')
     })
 
-    it('persists theme to localStorage when toggled', async () => {
-      const user = userEvent.setup()
-      render(<App />)
-
-      const themeButton = screen.getByRole('button', { name: /light|dark/i })
-      await user.click(themeButton)
-
-      const storedTheme = localStorage.getItem('theme')
-      expect(storedTheme).toBeTruthy()
-      expect(['light', 'dark']).toContain(storedTheme)
-    })
-
-    it('toggles between light and dark themes', async () => {
+    it('cycles through light -> dark -> auto when toggled', async () => {
       const user = userEvent.setup()
       localStorage.setItem('theme', 'light')
 
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+
+      // Click to go to dark
+      await user.click(screen.getByRole('button', { name: 'Dark' }))
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(screen.getByRole('button', { name: 'Auto' })).toBeInTheDocument()
+
+      // Click to go to auto
+      await user.click(screen.getByRole('button', { name: 'Auto' }))
+      expect(localStorage.getItem('theme')).toBe('auto')
+      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
+
+      // Click to go back to light
+      await user.click(screen.getByRole('button', { name: 'Light' }))
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+    })
+
+    it('persists theme preference to localStorage when toggled', async () => {
+      const user = userEvent.setup()
+      localStorage.setItem('theme', 'light')
       
+      render(<App />)
+
       const themeButton = screen.getByRole('button', { name: 'Dark' })
       await user.click(themeButton)
 
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
       expect(localStorage.getItem('theme')).toBe('dark')
-      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
 
-      const newThemeButton = screen.getByRole('button', { name: 'Light' })
-      await user.click(newThemeButton)
+      await user.click(screen.getByRole('button', { name: 'Auto' }))
+      expect(localStorage.getItem('theme')).toBe('auto')
+    })
 
+    it('auto mode responds to system theme changes', async () => {
+      let mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null
+      
+      // Mock matchMedia with ability to trigger changes
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: false, // Start with light
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn((event: string, listener: (e: MediaQueryListEvent) => void) => {
+            if (event === 'change') {
+              mediaQueryListener = listener
+            }
+          }),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      localStorage.setItem('theme', 'auto')
+      render(<App />)
+
+      // Should start with light theme (matches: false)
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(localStorage.getItem('theme')).toBe('light')
-      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+
+      // Simulate system theme change to dark
+      if (mediaQueryListener) {
+        mediaQueryListener({ matches: true } as MediaQueryListEvent)
+      }
+
+      // Should now be dark
+      await waitFor(() => {
+        expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      })
     })
 
     it('applies theme to document root', () => {

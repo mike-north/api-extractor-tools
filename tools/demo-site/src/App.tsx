@@ -9,15 +9,19 @@ import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
 import { examples, type Example } from './examples'
 
-type Theme = 'light' | 'dark'
+type ThemePreference = 'light' | 'dark' | 'auto'
+type ResolvedTheme = 'light' | 'dark'
 
-function getInitialTheme(): Theme {
-  const storedTheme = localStorage.getItem('theme') as Theme | null
-  if (storedTheme === 'light' || storedTheme === 'dark') {
+function getSystemTheme(): ResolvedTheme {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getInitialTheme(): ThemePreference {
+  const storedTheme = localStorage.getItem('theme') as ThemePreference | null
+  if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') {
     return storedTheme
   }
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  return prefersDark ? 'dark' : 'light'
+  return 'auto'
 }
 
 // Helper functions for base64 URL encoding (using modern TextEncoder/TextDecoder)
@@ -62,20 +66,50 @@ function App() {
   const [newContent, setNewContent] = useState(initialContent.new)
   const [report, setReport] = useState<ComparisonReport | null>(null)
   const [editorHeight, setEditorHeight] = useState(250)
-  const [theme, setTheme] = useState<Theme>(getInitialTheme())
+  const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
+  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
 
-  // Apply theme to document root
+  // Resolve the actual theme to apply
+  const resolvedTheme: ResolvedTheme = themePreference === 'auto' ? systemTheme : themePreference
+
+  // Listen for system theme changes
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('theme', theme)
-  }, [theme])
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      setSystemTheme(e.matches ? 'dark' : 'light')
+    }
+
+    // Set initial value
+    handleChange(mediaQuery)
+
+    // Listen for changes
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  // Apply resolved theme to document root
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolvedTheme)
+    localStorage.setItem('theme', themePreference)
+  }, [resolvedTheme, themePreference])
 
   const toggleTheme = useCallback(() => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'))
+    setThemePreference((prev) => {
+      if (prev === 'light') return 'dark'
+      if (prev === 'dark') return 'auto'
+      return 'light'
+    })
   }, [])
+
+  const getThemeButtonText = () => {
+    if (themePreference === 'light') return 'Dark'
+    if (themePreference === 'dark') return 'Auto'
+    return `Light` // Auto mode
+  }
 
   // Auto-analyze with 100ms debounce
   useEffect(() => {
@@ -199,8 +233,8 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
               </option>
             ))}
           </select>
-          <button className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'light' ? 'Dark' : 'Light'}
+          <button className="theme-toggle" onClick={toggleTheme} title={themePreference === 'auto' ? `Auto (currently ${resolvedTheme})` : `Switch to ${getThemeButtonText()} mode`}>
+            {getThemeButtonText()}
           </button>
           <button className="copy-button" onClick={handleCopyForLLM}>
             {copyFeedback ?? 'Copy for LLM'}
@@ -213,13 +247,13 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
           <div className="editor-panel">
             <div className="editor-header">Old API (.d.ts)</div>
             <div className="editor-wrapper">
-              <DtsEditor value={oldContent} onChange={setOldContent} theme={theme} />
+              <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} />
             </div>
           </div>
           <div className="editor-panel">
             <div className="editor-header">New API (.d.ts)</div>
             <div className="editor-wrapper">
-              <DtsEditor value={newContent} onChange={setNewContent} theme={theme} />
+              <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} />
             </div>
           </div>
         </div>
