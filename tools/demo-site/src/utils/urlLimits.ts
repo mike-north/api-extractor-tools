@@ -46,17 +46,6 @@ export function getMaxUrlLength(): number {
 }
 
 /**
- * Calculates the remaining space available in a URL for additional content.
- *
- * @param baseUrl - The base URL structure (without the variable content)
- * @returns Number of characters available for additional content
- */
-function calculateRemainingUrlSpace(baseUrl: string): number {
-  const maxLength = getMaxUrlLength()
-  return Math.max(0, maxLength - baseUrl.length)
-}
-
-/**
  * Checks if a URL exceeds the browser's safe length limit.
  *
  * @param url - The URL to check
