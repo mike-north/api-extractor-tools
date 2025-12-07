@@ -1,7 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
-    ".": {},
+    ".": {
+      "ignoreBinaries": ["changeset-change-detector"]
+    },
     "lib/*": {
       "entry": ["src/index.ts"],
       "paths": {
