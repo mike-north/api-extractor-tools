@@ -58,6 +58,41 @@ console.log(report.releaseType);  // "major" | "minor" | "patch" | "none"
 console.log(formatReportAsText(report));
 ```
 
+### [@api-extractor-tools/change-detector-core](./tools/change-detector-core)
+
+Isomorphic core library for change detection that works in both Node.js and browser environments. This package was extracted from `change-detector` to enable browser-based usage in interactive demos and playgrounds.
+
+**Key features:**
+
+- In-memory TypeScript parsing without file system access
+- Same comparison and classification logic as `change-detector`
+- Works in browsers (used by the [demo site](./tools/demo-site))
+- Suitable for building custom tooling
+
+```typescript
+import {
+  compareDeclarations,
+  formatReportAsMarkdown,
+} from '@api-extractor-tools/change-detector-core'
+import * as ts from 'typescript'
+
+const report = compareDeclarations(
+  {
+    oldContent: `export declare function greet(name: string): string;`,
+    newContent: `export declare function greet(name: string, prefix?: string): string;`,
+  },
+  ts,
+)
+
+console.log(report.releaseType) // 'minor'
+console.log(formatReportAsMarkdown(report))
+```
+
+> **When to use which?**
+>
+> - Need file-based APIs or CLI? → `change-detector`
+> - Running in a browser or want in-memory parsing? → `change-detector-core`
+
 ### [@api-extractor-tools/change-detector-semantic-release-plugin](./tools/change-detector-semantic-release-plugin)
 
 A [semantic-release](https://semantic-release.gitbook.io/) plugin that validates and enhances version bumping based on actual API changes in TypeScript declaration files.
@@ -73,11 +108,14 @@ A [semantic-release](https://semantic-release.gitbook.io/) plugin that validates
 {
   "plugins": [
     "@semantic-release/commit-analyzer",
-    ["@api-extractor-tools/change-detector-semantic-release-plugin", {
-      "mode": "validate",
-      "declarationPath": "./dist/index.d.ts",
-      "includeAPIChangesInNotes": true
-    }],
+    [
+      "@api-extractor-tools/change-detector-semantic-release-plugin",
+      {
+        "mode": "validate",
+        "declarationPath": "./dist/index.d.ts",
+        "includeAPIChangesInNotes": true
+      }
+    ],
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm"
   ]
@@ -108,12 +146,16 @@ import {
   analyzeWorkspace,
   generateChangeset,
   validateChangesets,
-} from '@api-extractor-tools/changeset-change-detector';
+} from '@api-extractor-tools/changeset-change-detector'
 
-const analysis = analyzeWorkspace({ baseRef: 'main' });
-const result = await generateChangeset({ yes: true, baseRef: 'main' });
-const validation = await validateChangesets({ baseRef: 'main' });
+const analysis = analyzeWorkspace({ baseRef: 'main' })
+const result = await generateChangeset({ yes: true, baseRef: 'main' })
+const validation = await validateChangesets({ baseRef: 'main' })
 ```
+
+### [Demo Site](./tools/demo-site)
+
+An interactive web application for exploring the change detection capabilities. Try it online or run it locally to compare TypeScript declaration files and visualize breaking vs non-breaking changes.
 
 ## Contributing
 

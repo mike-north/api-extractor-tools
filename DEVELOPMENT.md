@@ -11,6 +11,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
 - [Development Workflow](#development-workflow)
 - [Working with Changesets](#working-with-changesets)
 - [Testing](#testing)
+- [Demo Site](#demo-site)
 - [Release Process](#release-process)
 - [Common Commands](#common-commands)
 
@@ -57,9 +58,12 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
    ```
 
 2. **Make your changes** to the relevant package(s):
-   - `tools/change-detector/` - API change detection tool
+   - `tools/change-detector/` - API change detection tool (file-based, CLI)
+   - `tools/change-detector-core/` - Isomorphic core for change detection (browser + Node.js)
    - `tools/module-declaration-merger/` - Module declaration merger tool
    - `tools/changeset-change-detector/` - Changesets plugin for automated version bumps
+   - `tools/change-detector-semantic-release-plugin/` - semantic-release plugin
+   - `tools/demo-site/` - Interactive demo web application
 
 3. **Build and test your changes**
 
@@ -102,11 +106,13 @@ pnpm changeset:auto
 ```
 
 This will:
+
 1. Analyze API changes in all packages by comparing declaration files
 2. Determine the appropriate version bump (major/minor/patch) based on the changes
 3. Generate a changeset file with a summary of detected changes
 
 For non-interactive usage (CI):
+
 ```bash
 pnpm changeset:auto --yes
 ```
@@ -214,6 +220,7 @@ pnpm changeset:validate
 ```
 
 This checks that:
+
 - All packages with API changes have corresponding changesets
 - The declared version bumps are at least as severe as what the API changes require
 - Breaking changes have detailed descriptions
@@ -283,6 +290,58 @@ cd tools/change-detector
 pnpm check:eslint
 ```
 
+## Demo Site
+
+The demo site (`tools/demo-site/`) is an interactive web application that showcases the change detection capabilities. It's useful for:
+
+- **Testing changes** to `change-detector-core` in a browser environment
+- **Demonstrating** the library's capabilities to potential users
+- **Debugging** edge cases with visual feedback
+
+### Running the Demo Site
+
+```bash
+cd tools/demo-site
+pnpm dev
+```
+
+This starts a local dev server (usually at `http://localhost:5173`).
+
+### Demo Site Features
+
+- **Side-by-side editors** - Monaco-based TypeScript editors for old/new declarations
+- **Real-time analysis** - Automatic change detection as you type
+- **Example library** - Pre-loaded examples demonstrating various change scenarios
+- **Shareable URLs** - State is encoded in URL parameters for easy sharing
+- **LLM-friendly export** - Copy formatted analysis for use with AI assistants
+
+### Testing the Demo Site
+
+```bash
+cd tools/demo-site
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode with UI
+pnpm test:ui
+
+# Run tests with coverage
+pnpm test:coverage
+```
+
+The test suite covers component rendering, user interactions, URL encoding, and edge cases.
+
+### Building for Production
+
+```bash
+cd tools/demo-site
+pnpm build
+pnpm preview  # Preview the production build locally
+```
+
+**Note**: The demo site is `private: true` and is not published to npm. It's deployed separately via GitHub Actions.
+
 ## Release Process
 
 Releases are **semi-automated** using GitHub Actions.
@@ -333,42 +392,34 @@ git push
 
 ## Common Commands
 
-| Command                 | Description                              |
-| ----------------------- | ---------------------------------------- |
-| `pnpm install`          | Install dependencies                     |
-| `pnpm build`            | Build all packages                       |
-| `pnpm test`             | Run all tests                            |
-| `pnpm check`            | Lint and type-check everything           |
-| `pnpm format`           | Format code with Prettier                |
-| `pnpm changeset`        | Create a new changeset (manual)          |
-| `pnpm changeset:auto`   | Auto-generate changeset from API changes |
-| `pnpm changeset:validate` | Validate changesets against API changes |
-| `pnpm version-packages` | Version packages (maintainers only)      |
-| `pnpm release`          | Publish packages (maintainers only)      |
+| Command                       | Description                              |
+| ----------------------------- | ---------------------------------------- |
+| `pnpm install`                | Install dependencies                     |
+| `pnpm build`                  | Build all packages                       |
+| `pnpm test`                   | Run all tests                            |
+| `pnpm check`                  | Lint and type-check everything           |
+| `pnpm format`                 | Format code with Prettier                |
+| `pnpm changeset`              | Create a new changeset (manual)          |
+| `pnpm changeset:auto`         | Auto-generate changeset from API changes |
+| `pnpm changeset:validate`     | Validate changesets against API changes  |
+| `pnpm version-packages`       | Version packages (maintainers only)      |
+| `pnpm release`                | Publish packages (maintainers only)      |
+| `pnpm --filter demo-site dev` | Run the demo site locally                |
 
 ## Package Structure
 
 ```
 api-extractor-tools/
 ├── tools/
-│   ├── change-detector/             # Detects API changes
-│   │   ├── src/                     # Source code
-│   │   ├── test/                    # Tests
-│   │   ├── dist/                    # Built output
-│   │   └── package.json
-│   ├── module-declaration-merger/   # Merges module declarations
-│   │   ├── src/
-│   │   ├── test/
-│   │   ├── dist/
-│   │   └── package.json
-│   └── changeset-change-detector/   # Changesets plugin for auto version bumps
-│       ├── src/
-│       ├── test/
-│       ├── dist/
-│       └── package.json
-├── .changeset/                      # Changeset configuration and files
-├── .github/workflows/               # CI/CD workflows
-└── package.json                     # Root workspace config
+│   ├── change-detector/                        # File-based API change detection with CLI
+│   ├── change-detector-core/                   # Isomorphic core (browser + Node.js)
+│   ├── change-detector-semantic-release-plugin/ # semantic-release integration
+│   ├── changeset-change-detector/              # Changesets plugin for auto version bumps
+│   ├── module-declaration-merger/              # Merges module declarations
+│   └── demo-site/                              # Interactive web demo (private, not published)
+├── .changeset/                                 # Changeset configuration and files
+├── .github/workflows/                          # CI/CD workflows
+└── package.json                                # Root workspace config
 ```
 
 ## Getting Help
