@@ -4,11 +4,11 @@
     "noEmit": false,
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": "src",
+    "baseUrl": ".",
     "module": "CommonJS",
     "moduleResolution": "node",
     "paths": {
-      "@api-extractor-tools/change-detector": ["../../change-detector/dist/change-detector-alpha.d.ts"]
+      "@api-extractor-tools/change-detector": ["../change-detector/dist/change-detector-alpha.d.ts"]
     }
   },
   "include": ["src/**/*.ts"]
