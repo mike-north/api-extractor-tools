@@ -50,3 +50,47 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          # Get the list of published packages
+          PUBLISHED_PACKAGES='${{ steps.changesets.outputs.publishedPackages }}'
+          
+          echo "Published packages:"
+          echo "${PUBLISHED_PACKAGES}" | jq -r '.[] | "- \(.name)@\(.version)"'
+          
+          # Use timestamp-based release tag for monorepo releases
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          RELEASE_TAG="release-${TIMESTAMP}"
+          RELEASE_NAME="Release ${TIMESTAMP}"
+          
+          # Build release notes
+          cat << 'EOF' > release_notes.md
+          ## Published Packages
+          
+          EOF
+          
+          echo "${PUBLISHED_PACKAGES}" | jq -r '.[] | "- [\(.name)](https://www.npmjs.com/package/\(.name)/v/\(.version)) - `\(.version)`"' >> release_notes.md
+          
+          cat << 'EOF' >> release_notes.md
+          
+          ## Installation
+          
+          Install any of the published packages:
+          
+          ```bash
+          EOF
+          
+          echo "${PUBLISHED_PACKAGES}" | jq -r '.[] | "npm install \(.name)@\(.version)"' >> release_notes.md
+          
+          cat << 'EOF' >> release_notes.md
+          ```
+          EOF
+          
+          # Create the GitHub release
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_NAME}" \
+            --notes-file release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
