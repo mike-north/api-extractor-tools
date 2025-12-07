@@ -78,6 +78,27 @@ body {
   border-color: var(--color-primary);
 }
 
+.copy-button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.copy-button:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.copy-button:active {
+  background-color: var(--color-primary);
+}
+
 .main-content {
   flex: 1;
   display: flex;
@@ -90,8 +111,35 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  flex: 1;
-  min-height: 400px;
+  min-height: 150px;
+}
+
+.resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  cursor: ns-resize;
+  user-select: none;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+.resize-handle:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.resize-handle-grip {
+  width: 48px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  transition: background-color 0.15s, width 0.15s;
+}
+
+.resize-handle:hover .resize-handle-grip {
+  background: var(--color-text-muted);
+  width: 64px;
 }
 
 .editor-panel {
@@ -101,6 +149,7 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .editor-header {
@@ -114,7 +163,8 @@ body {
 
 .editor-wrapper {
   flex: 1;
-  min-height: 300px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .analyze-button {
@@ -295,6 +345,11 @@ body {
 @media (max-width: 768px) {
   .editors-container {
     grid-template-columns: 1fr;
+    height: auto !important;
+  }
+
+  .editor-panel {
+    height: 300px;
   }
   
   .stats-grid {

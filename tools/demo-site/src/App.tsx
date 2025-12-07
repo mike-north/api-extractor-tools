@@ -1,42 +1,150 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import * as ts from 'typescript'
 import {
   compareDeclarations,
+  formatReportAsText,
   type ComparisonReport,
 } from '@api-extractor-tools/change-detector-core'
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
 import { examples, type Example } from './examples'
 
-function App() {
-  const [oldContent, setOldContent] = useState(examples[0].old)
-  const [newContent, setNewContent] = useState(examples[0].new)
-  const [report, setReport] = useState<ComparisonReport | null>(null)
-  const [selectedExample, setSelectedExample] = useState(examples[0].name)
+// Helper functions for base64 URL encoding
+function encodeBase64(str: string): string {
+  return btoa(unescape(encodeURIComponent(str)))
+}
 
-  const handleAnalyze = useCallback(() => {
-    const result = compareDeclarations(
-      {
-        oldContent,
-        newContent,
-      },
-      ts,
-    )
-    setReport(result)
+function decodeBase64(str: string): string {
+  try {
+    return decodeURIComponent(escape(atob(str)))
+  } catch {
+    return ''
+  }
+}
+
+function getInitialContent(): { old: string; new: string } {
+  const params = new URLSearchParams(window.location.search)
+  const oldParam = params.get('old')
+  const newParam = params.get('new')
+
+  if (oldParam && newParam) {
+    const oldDecoded = decodeBase64(oldParam)
+    const newDecoded = decodeBase64(newParam)
+    if (oldDecoded && newDecoded) {
+      return { old: oldDecoded, new: newDecoded }
+    }
+  }
+  return { old: examples[0].old, new: examples[0].new }
+}
+
+const initialContent = getInitialContent()
+
+function App() {
+  const [oldContent, setOldContent] = useState(initialContent.old)
+  const [newContent, setNewContent] = useState(initialContent.new)
+  const [report, setReport] = useState<ComparisonReport | null>(null)
+  const [editorHeight, setEditorHeight] = useState(250)
+  const isDragging = useRef(false)
+  const startY = useRef(0)
+  const startHeight = useRef(0)
+
+  // Auto-analyze with 100ms debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const result = compareDeclarations(
+        {
+          oldContent,
+          newContent,
+        },
+        ts,
+      )
+      setReport(result)
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
   }, [oldContent, newContent])
+
+  // Update URL with debounce when content changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const params = new URLSearchParams()
+      params.set('old', encodeBase64(oldContent))
+      params.set('new', encodeBase64(newContent))
+      const newUrl = `${window.location.pathname}?${params.toString()}`
+      window.history.replaceState(null, '', newUrl)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [oldContent, newContent])
+
+  // Handle resize drag
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true
+    startY.current = e.clientY
+    startHeight.current = editorHeight
+    document.body.style.cursor = 'ns-resize'
+    document.body.style.userSelect = 'none'
+  }, [editorHeight])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return
+      const delta = e.clientY - startY.current
+      const newHeight = Math.max(150, Math.min(800, startHeight.current + delta))
+      setEditorHeight(newHeight)
+    }
+
+    const handleMouseUp = () => {
+      if (isDragging.current) {
+        isDragging.current = false
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
 
   const handleExampleChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const example = examples.find((ex) => ex.name === e.target.value)
       if (example) {
-        setSelectedExample(example.name)
         setOldContent(example.old)
         setNewContent(example.new)
-        setReport(null)
       }
     },
     [],
   )
+
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
+
+  const handleCopyForLLM = useCallback(() => {
+    const text = `## Old API (.d.ts)
+
+\`\`\`typescript
+${oldContent}
+\`\`\`
+
+## New API (.d.ts)
+
+\`\`\`typescript
+${newContent}
+\`\`\`
+
+## Analysis Result
+
+${report ? formatReportAsText(report) : 'No analysis available'}
+`
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyFeedback('Copied!')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    })
+  }, [oldContent, newContent, report])
 
   return (
     <div className="app">
@@ -47,20 +155,26 @@ function App() {
         <div className="controls">
           <select
             className="example-select"
-            value={selectedExample}
+            value=""
             onChange={handleExampleChange}
           >
+            <option value="" disabled>
+              Load example...
+            </option>
             {examples.map((example: Example) => (
               <option key={example.name} value={example.name}>
                 {example.name}
               </option>
             ))}
           </select>
+          <button className="copy-button" onClick={handleCopyForLLM}>
+            {copyFeedback ?? 'Copy for LLM'}
+          </button>
         </div>
       </header>
 
       <main className="main-content">
-        <div className="editors-container">
+        <div className="editors-container" style={{ height: editorHeight }}>
           <div className="editor-panel">
             <div className="editor-header">Old API (.d.ts)</div>
             <div className="editor-wrapper">
@@ -75,16 +189,20 @@ function App() {
           </div>
         </div>
 
-        <button className="analyze-button" onClick={handleAnalyze}>
-          Analyze Changes
-        </button>
+        <div
+          className="resize-handle"
+          onMouseDown={handleMouseDown}
+          title="Drag to resize"
+        >
+          <div className="resize-handle-grip" />
+        </div>
 
         <div className="report-container">
           {report ? (
             <ChangeReport report={report} />
           ) : (
             <div className="empty-state">
-              Click "Analyze Changes" to see the comparison report
+              Edit the declarations above to see the comparison report
             </div>
           )}
         </div>
