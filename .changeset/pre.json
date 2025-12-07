@@ -3,7 +3,9 @@
   "tag": "alpha",
   "initialVersions": {
     "@api-extractor-tools/change-detector": "0.0.1",
-    "@api-extractor-tools/module-declaration-merger": "0.0.1"
+    "@api-extractor-tools/module-declaration-merger": "0.0.1",
+    "@api-extractor-tools/changeset-change-detector": "0.0.1",
+    "@api-extractor-tools/change-detector-semantic-release-plugin": "0.0.1"
   },
   "changesets": []
 }
