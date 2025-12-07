@@ -3,3 +3,4 @@ alwaysApply: true
 ---
 * Consult `/DEVELOPMENT.md` for instructions about how to contribute to this repo
 * I have `GIT_EDITOR` set up to use nvim. When running git commands that might use an editor, remember that you may need to set `GIT_EDITOR=true`
+* If you see that a `./scratch` folder is in `.gitignore`, feel free to use that for temporary files like markdown for git commit messages, PR descriptions, etc...
