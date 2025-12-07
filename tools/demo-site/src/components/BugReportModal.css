@@ -173,7 +173,6 @@
 .bug-report-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
 }
 
 .bug-report-char-count {
@@ -193,8 +192,8 @@
 
 .bug-report-error {
   padding: 12px;
-  background-color: rgba(233, 69, 96, 0.1);
-  border: 1px solid var(--color-primary);
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-error);
   border-radius: 6px;
   color: var(--color-text);
   font-size: 0.875rem;
@@ -231,11 +230,11 @@
 
 .bug-report-button-primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-bg);
 }
 
 .bug-report-button-primary:hover {
-  background-color: #d63851;
+  filter: brightness(1.1);
 }
 
 .bug-report-button-primary:active {
