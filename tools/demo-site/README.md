@@ -39,7 +39,7 @@ The demo site includes comprehensive UI tests to protect against regressions:
 # Run all tests
 pnpm test
 
-# Run tests in watch mode (requires vitest UI)
+# Run tests in interactive UI mode
 pnpm test:ui
 
 # Run tests with coverage

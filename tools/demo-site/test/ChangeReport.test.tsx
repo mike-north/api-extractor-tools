@@ -47,7 +47,7 @@ describe('ChangeReport', () => {
       },
     }
 
-    const { container } = render(<ChangeReport report={report} />)
+    render(<ChangeReport report={report} />)
     expect(screen.getByText('Breaking Changes')).toBeInTheDocument()
     
     // Check the count badge specifically
@@ -80,7 +80,7 @@ describe('ChangeReport', () => {
       },
     }
 
-    const { container } = render(<ChangeReport report={report} />)
+    render(<ChangeReport report={report} />)
     expect(screen.getByText('Non-Breaking Changes')).toBeInTheDocument()
     
     // Check the count badge specifically

@@ -166,8 +166,6 @@ describe('App', () => {
       // For this test, we'll just verify the URL encoding/decoding logic works
       render(<App />)
 
-      const editors = screen.getAllByTestId('monaco-editor')
-      
       // The app will load with default content since App.tsx caches initialContent
       // But we can verify that if we manually decode the URL params, they work correctly
       const params = new URLSearchParams(window.location.search)
@@ -214,6 +212,11 @@ describe('App', () => {
   })
 
   describe('Copy functionality', () => {
+    afterEach(() => {
+      // Clean up clipboard mock to prevent test pollution
+      delete (navigator as any).clipboard
+    })
+
     it('copies formatted content for LLM', async () => {
       const user = userEvent.setup()
       
