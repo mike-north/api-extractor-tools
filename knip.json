@@ -19,8 +19,8 @@
       "ignoreDependencies": ["semantic-release"]
     },
     "tools/demo-site": {
-      "entry": ["src/main.tsx"],
-      "ignore": ["src/**/*.tsx", "src/**/*.ts"]
+      "entry": ["src/main.tsx", "src/App.tsx"],
+      "project": ["src/**/*.{ts,tsx}"]
     }
   }
 }
