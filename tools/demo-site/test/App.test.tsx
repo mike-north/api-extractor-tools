@@ -7,6 +7,10 @@ describe('App', () => {
   beforeEach(() => {
     // Reset URL before each test
     window.history.replaceState(null, '', '/')
+    // Clear localStorage
+    localStorage.clear()
+    // Reset data-theme attribute
+    document.documentElement.removeAttribute('data-theme')
     vi.clearAllMocks()
   })
 
@@ -37,6 +41,12 @@ describe('App', () => {
       expect(
         screen.getByRole('button', { name: /copy for llm/i }),
       ).toBeInTheDocument()
+    })
+
+    it('renders the theme toggle button', () => {
+      render(<App />)
+      const themeButton = screen.getByRole('button', { name: /light|dark/i })
+      expect(themeButton).toBeInTheDocument()
     })
 
     it('loads the first example by default', () => {
@@ -360,6 +370,182 @@ describe('App', () => {
         },
         { timeout: 500 },
       )
+    })
+  })
+
+  describe('Theme functionality', () => {
+    it('defaults to auto mode with dark theme when system prefers dark', () => {
+      // Mock matchMedia to return dark preference
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: query === '(prefers-color-scheme: dark)',
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(localStorage.getItem('theme')).toBe('auto')
+      expect(screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })).toBeInTheDocument()
+    })
+
+    it('defaults to auto mode with light theme when system prefers light', () => {
+      // Mock matchMedia to return light preference
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: query === '(prefers-color-scheme: light)',
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(localStorage.getItem('theme')).toBe('auto')
+      expect(screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })).toBeInTheDocument()
+    })
+
+    it('loads theme preference from localStorage', () => {
+      localStorage.setItem('theme', 'light')
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })).toBeInTheDocument()
+    })
+
+    it('loads auto mode from localStorage and follows system', () => {
+      localStorage.setItem('theme', 'auto')
+
+      // Mock system prefers dark
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: query === '(prefers-color-scheme: dark)',
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      expect(localStorage.getItem('theme')).toBe('auto')
+    })
+
+    it('cycles through light -> dark -> auto when toggled', async () => {
+      const user = userEvent.setup()
+      localStorage.setItem('theme', 'light')
+
+      render(<App />)
+
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      const darkButton = screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })
+      expect(darkButton).toBeInTheDocument()
+
+      // Click to go to dark
+      await user.click(darkButton)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      const autoButton = screen.getByRole('button', { name: /Theme: dark.*Click to switch to auto mode/i })
+      expect(autoButton).toBeInTheDocument()
+
+      // Click to go to auto
+      await user.click(autoButton)
+      expect(localStorage.getItem('theme')).toBe('auto')
+      const lightButton = screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })
+      expect(lightButton).toBeInTheDocument()
+
+      // Click to go back to light
+      await user.click(lightButton)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+      expect(screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })).toBeInTheDocument()
+    })
+
+    it('persists theme preference to localStorage when toggled', async () => {
+      const user = userEvent.setup()
+      localStorage.setItem('theme', 'light')
+      
+      render(<App />)
+
+      const themeButton = screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })
+      await user.click(themeButton)
+
+      expect(localStorage.getItem('theme')).toBe('dark')
+
+      await user.click(screen.getByRole('button', { name: /Theme: dark.*Click to switch to auto mode/i }))
+      expect(localStorage.getItem('theme')).toBe('auto')
+    })
+
+    it('auto mode responds to system theme changes', async () => {
+      let mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null
+      
+      // Mock matchMedia with ability to trigger changes
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        configurable: true,
+        value: vi.fn().mockImplementation((query) => ({
+          matches: false, // Start with light
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn((event: string, listener: (e: MediaQueryListEvent) => void) => {
+            if (event === 'change') {
+              mediaQueryListener = listener
+            }
+          }),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      })
+
+      localStorage.setItem('theme', 'auto')
+      render(<App />)
+
+      // Should start with light theme (matches: false)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+
+      // Simulate system theme change to dark
+      if (mediaQueryListener) {
+        mediaQueryListener({ matches: true } as MediaQueryListEvent)
+      }
+
+      // Should now be dark
+      await waitFor(() => {
+        expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+      })
+    })
+
+    it('applies theme to document root', () => {
+      localStorage.setItem('theme', 'dark')
+
+      render(<App />)
+
+      const rootElement = document.documentElement
+      expect(rootElement.getAttribute('data-theme')).toBe('dark')
     })
   })
 
