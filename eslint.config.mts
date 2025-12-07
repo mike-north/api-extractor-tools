@@ -1,6 +1,6 @@
 import * as eslint from '@eslint/js'
 import { defineConfig } from 'eslint/config'
- 
+
 import tsdocPlugin from 'eslint-plugin-tsdoc'
 import tseslint from 'typescript-eslint'
 

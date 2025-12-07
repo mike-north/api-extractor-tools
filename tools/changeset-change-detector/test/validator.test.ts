@@ -120,7 +120,8 @@ describe('formatValidationResult', () => {
     expect(output).toContain('✅ Changeset validation passed!')
     expect(output).toContain('(1 warning(s))')
     expect(output).toContain('Warnings:')
-    expect(output).toContain('Breaking changes should have detailed descriptions')
+    expect(output).toContain(
+      'Breaking changes should have detailed descriptions',
+    )
   })
 })
-

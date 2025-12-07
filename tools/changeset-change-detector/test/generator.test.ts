@@ -225,5 +225,3 @@ describe('formatChangesetPreview', () => {
     expect(preview).toContain('🟢')
   })
 })
-
-

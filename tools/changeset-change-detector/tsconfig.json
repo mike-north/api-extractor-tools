@@ -8,9 +8,10 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "paths": {
-      "@api-extractor-tools/change-detector": ["../change-detector/dist/index.d.ts"]
+      "@api-extractor-tools/change-detector": [
+        "../change-detector/dist/index.d.ts"
+      ]
     }
   },
   "include": ["src/**/*.ts"]
 }
-

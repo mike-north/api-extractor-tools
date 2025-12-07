@@ -232,4 +232,3 @@ describe('resolveConfig', () => {
     expect(config.failOnMismatch).toBe(false)
   })
 })
-

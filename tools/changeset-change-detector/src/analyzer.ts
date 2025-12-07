@@ -35,7 +35,9 @@ export function discoverPackages(cwd: string): PackageInfo[] {
 
   const workspaceContent = fs.readFileSync(workspaceYamlPath, 'utf-8')
   // Simple parsing - look for packages: section
-  const packagesMatch = workspaceContent.match(/packages:\s*\n((?:\s+-\s+.+\n?)+)/)
+  const packagesMatch = workspaceContent.match(
+    /packages:\s*\n((?:\s+-\s+.+\n?)+)/,
+  )
   if (!packagesMatch) {
     throw new Error('Could not parse packages from pnpm-workspace.yaml')
   }
@@ -282,7 +284,9 @@ export function analyzePackage(
  *
  * @alpha
  */
-export function analyzeWorkspace(options: AnalyzeOptions = {}): WorkspaceAnalysisResult {
+export function analyzeWorkspace(
+  options: AnalyzeOptions = {},
+): WorkspaceAnalysisResult {
   const cwd = options.cwd ?? process.cwd()
 
   // Discover all packages
@@ -292,7 +296,16 @@ export function analyzeWorkspace(options: AnalyzeOptions = {}): WorkspaceAnalysi
   // For simplicity, use the same baseline for all packages initially
   const firstPackage = packages[0]
   const baselineRef =
-    options.baseRef ?? determineBaseline(firstPackage ?? { name: '', path: '', version: '', declarationFile: null }, cwd)
+    options.baseRef ??
+    determineBaseline(
+      firstPackage ?? {
+        name: '',
+        path: '',
+        version: '',
+        declarationFile: null,
+      },
+      cwd,
+    )
 
   // Analyze each package
   const results: PackageAnalysisResult[] = packages.map((pkg) =>
@@ -357,7 +370,9 @@ export function formatChangeSummary(result: PackageAnalysisResult): string {
  *
  * @alpha
  */
-export function generateChangeDescription(result: PackageAnalysisResult): string {
+export function generateChangeDescription(
+  result: PackageAnalysisResult,
+): string {
   if (!result.report) {
     if (result.recommendedBump === 'minor') {
       return 'Initial release of package'
@@ -393,4 +408,3 @@ export function generateChangeDescription(result: PackageAnalysisResult): string
 
   return lines.join('\n').trim()
 }
-

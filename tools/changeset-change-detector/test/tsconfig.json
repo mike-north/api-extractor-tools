@@ -10,9 +10,10 @@
     "paths": {
       "@": ["../src/index.ts"],
       "@/*": ["../src/*"],
-      "@api-extractor-tools/change-detector": ["../../change-detector/dist/change-detector-alpha.d.ts"]
+      "@api-extractor-tools/change-detector": [
+        "../../change-detector/dist/change-detector-alpha.d.ts"
+      ]
     }
   },
   "include": ["../src/**/*.ts", "**/*.ts"]
 }
-

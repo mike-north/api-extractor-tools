@@ -10,6 +10,16 @@
     "apiExtractorConfig": [
       "{projectRoot}/api-extractor.json",
       "{workspaceRoot}/api-extractor-base.json"
+    ],
+    "markdownConfig": ["{workspaceRoot}/.markdownlint-cli2.jsonc"],
+    "markdownFiles": [
+      "{workspaceRoot}/**/*.md",
+      "!{workspaceRoot}/docs/**",
+      "!{workspaceRoot}/api-reports/**",
+      "!{workspaceRoot}/node_modules/**",
+      "!{workspaceRoot}/**/node_modules/**",
+      "!{workspaceRoot}/dist/**",
+      "!{workspaceRoot}/**/dist/**"
     ]
   },
   "targetDefaults": {

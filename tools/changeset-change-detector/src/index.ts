@@ -71,5 +71,3 @@ export {
   validateChangesets,
   formatValidationResult,
 } from './validator'
-
-

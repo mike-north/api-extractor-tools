@@ -4,7 +4,10 @@
  * @packageDocumentation
  */
 
-import type { ComparisonReport, Change } from '@api-extractor-tools/change-detector'
+import type {
+  ComparisonReport,
+  Change,
+} from '@api-extractor-tools/change-detector'
 import type {
   PluginConfig,
   SemanticReleaseContext,
@@ -80,10 +83,7 @@ export function formatAPIChangesAsMarkdown(report: ComparisonReport): string {
   const sections: string[] = []
 
   // Only include section if there are changes
-  if (
-    changes.breaking.length === 0 &&
-    changes.nonBreaking.length === 0
-  ) {
+  if (changes.breaking.length === 0 && changes.nonBreaking.length === 0) {
     return ''
   }
 

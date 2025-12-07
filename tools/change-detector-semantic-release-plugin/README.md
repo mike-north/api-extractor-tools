@@ -193,8 +193,3 @@ if (analysis.report) {
 ## License
 
 MIT
-
-
-
-
-

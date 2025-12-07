@@ -313,4 +313,3 @@ describe('generateChangeDescription', () => {
     expect(description).toContain('...and 5 more')
   })
 })
-

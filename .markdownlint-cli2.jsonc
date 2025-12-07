@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/main/schema/markdownlint-config-schema.json",
+  "config": {
+    // Default rules - all enabled with default settings
+    "default": true,
+    // Allow inline HTML (common in documentation)
+    "no-inline-html": false,
+    // Allow long lines (common in documentation with long URLs)
+    "line-length": false
+  },
+  "globs": [
+    // Scan all markdown files
+    "**/*.md"
+  ],
+  "ignores": [
+    // Ignore generated documentation
+    "docs/**",
+    "api-reports/**",
+    // Ignore node_modules and other common directories
+    "node_modules/**",
+    "**/node_modules/**",
+    "dist/**",
+    "**/dist/**",
+    "coverage/**",
+    "**/coverage/**"
+  ]
+}
+

@@ -549,5 +549,3 @@ export function compareDeclarationStrings(
 
   return compareDeclarationResults(oldParsed, newParsed, tsModule)
 }
-
-

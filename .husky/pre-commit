@@ -4,6 +4,9 @@ set -e
 # Lint and format staged files
 pnpm lint:staged
 
+# Run workspace-wide checks (knip)
+pnpm run check:workspace
+
 # Build all packages
 pnpm build
 
