@@ -52,6 +52,17 @@ A Changesets plugin that uses change-detector to automate version bump determina
 </td></tr>
 <tr><td>
 
+[@api-extractor-tools/eslint-plugin](./eslint-plugin.md)
+
+
+</td><td>
+
+ESLint plugin providing authoring-time feedback for API Extractor.
+
+
+</td></tr>
+<tr><td>
+
 [@api-extractor-tools/module-declaration-merger](./module-declaration-merger.md)
 
 

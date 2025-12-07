@@ -1,0 +1,45 @@
+{
+  "name": "@api-extractor-tools/eslint-plugin",
+  "version": "0.0.1",
+  "description": "ESLint plugin providing authoring-time feedback for API Extractor",
+  "main": "dist/index.js",
+  "types": "dist/eslint-plugin-public.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "generate:api-report": "api-extractor run --local --verbose",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
+    "check:eslint": "eslint src",
+    "check:typecheck-tests": "tsc -p test/tsconfig.json",
+    "check:api-report": "api-extractor run"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "api-extractor",
+    "tsdoc",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.24.0",
+  "peerDependencies": {
+    "eslint": ">=8.0.0",
+    "typescript": ">=5.5.0"
+  },
+  "dependencies": {
+    "@microsoft/tsdoc": "^0.15.1",
+    "@typescript-eslint/utils": "^8.48.1"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.55.1",
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/parser": "^8.48.1",
+    "@typescript-eslint/rule-tester": "^8.48.1",
+    "eslint": "^9.39.1",
+    "typescript": "5.8.3",
+    "@vitest/coverage-v8": "^4.0.15",
+    "vitest": "^4.0.15"
+  }
+}

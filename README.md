@@ -122,6 +122,33 @@ A [semantic-release](https://semantic-release.gitbook.io/) plugin that validates
 }
 ```
 
+### [@api-extractor-tools/eslint-plugin](./tools/eslint-plugin)
+
+ESLint plugin providing authoring-time feedback for API Extractor. Catch common API Extractor issues during development rather than waiting for the build step.
+
+**Key features:**
+
+- `api-extractor/missing-release-tag`: Detects exported symbols missing release tags (`@public`, `@beta`, `@alpha`, `@internal`)
+- `api-extractor/override-keyword`: Requires TypeScript `override` keyword when `@override` TSDoc tag is present
+- `api-extractor/package-documentation`: Ensures entry point files have `@packageDocumentation` comment
+- Auto-discovery of api-extractor.json configuration
+- Sharable `recommended` config for both flat and legacy ESLint formats
+
+```javascript
+// eslint.config.js (flat config)
+import apiExtractorPlugin from '@api-extractor-tools/eslint-plugin'
+
+export default [apiExtractorPlugin.configs.recommended]
+```
+
+```javascript
+// .eslintrc.js (legacy config)
+module.exports = {
+  plugins: ['@api-extractor-tools'],
+  extends: ['plugin:@api-extractor-tools/recommended-legacy'],
+}
+```
+
 ### [@api-extractor-tools/changeset-change-detector](./tools/changeset-change-detector)
 
 Automate semantic version bump decisions in your [Changesets](https://github.com/changesets/changesets) workflow by analyzing actual API changes in TypeScript declaration files.
