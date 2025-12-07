@@ -233,7 +233,12 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
               </option>
             ))}
           </select>
-          <button className="theme-toggle" onClick={toggleTheme} title={themePreference === 'auto' ? `Auto (currently ${resolvedTheme})` : `Switch to ${getThemeButtonText()} mode`}>
+          <button 
+            className="theme-toggle" 
+            onClick={toggleTheme} 
+            aria-label={themePreference === 'auto' ? `Theme: Auto (currently ${resolvedTheme}). Click to switch to light mode` : `Theme: ${themePreference}. Click to switch to ${getThemeButtonText().toLowerCase()} mode`}
+            title={themePreference === 'auto' ? `Auto (currently ${resolvedTheme})` : `Switch to ${getThemeButtonText()} mode`}
+          >
             {getThemeButtonText()}
           </button>
           <button className="copy-button" onClick={handleCopyForLLM}>

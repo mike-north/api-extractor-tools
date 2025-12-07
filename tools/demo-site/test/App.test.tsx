@@ -395,7 +395,7 @@ describe('App', () => {
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
       expect(localStorage.getItem('theme')).toBe('auto')
-      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })).toBeInTheDocument()
     })
 
     it('defaults to auto mode with light theme when system prefers light', () => {
@@ -419,7 +419,7 @@ describe('App', () => {
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
       expect(localStorage.getItem('theme')).toBe('auto')
-      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })).toBeInTheDocument()
     })
 
     it('loads theme preference from localStorage', () => {
@@ -428,7 +428,7 @@ describe('App', () => {
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })).toBeInTheDocument()
     })
 
     it('loads auto mode from localStorage and follows system', () => {
@@ -463,22 +463,25 @@ describe('App', () => {
       render(<App />)
 
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+      const darkButton = screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })
+      expect(darkButton).toBeInTheDocument()
 
       // Click to go to dark
-      await user.click(screen.getByRole('button', { name: 'Dark' }))
+      await user.click(darkButton)
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-      expect(screen.getByRole('button', { name: 'Auto' })).toBeInTheDocument()
+      const autoButton = screen.getByRole('button', { name: /Theme: dark.*Click to switch to auto mode/i })
+      expect(autoButton).toBeInTheDocument()
 
       // Click to go to auto
-      await user.click(screen.getByRole('button', { name: 'Auto' }))
+      await user.click(autoButton)
       expect(localStorage.getItem('theme')).toBe('auto')
-      expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument()
+      const lightButton = screen.getByRole('button', { name: /Theme: Auto.*Click to switch to light mode/i })
+      expect(lightButton).toBeInTheDocument()
 
       // Click to go back to light
-      await user.click(screen.getByRole('button', { name: 'Light' }))
+      await user.click(lightButton)
       expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-      expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })).toBeInTheDocument()
     })
 
     it('persists theme preference to localStorage when toggled', async () => {
@@ -487,12 +490,12 @@ describe('App', () => {
       
       render(<App />)
 
-      const themeButton = screen.getByRole('button', { name: 'Dark' })
+      const themeButton = screen.getByRole('button', { name: /Theme: light.*Click to switch to dark mode/i })
       await user.click(themeButton)
 
       expect(localStorage.getItem('theme')).toBe('dark')
 
-      await user.click(screen.getByRole('button', { name: 'Auto' }))
+      await user.click(screen.getByRole('button', { name: /Theme: dark.*Click to switch to auto mode/i }))
       expect(localStorage.getItem('theme')).toBe('auto')
     })
 

@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import Editor, { type Monaco } from '@monaco-editor/react'
 import { gruvboxLight, gruvboxDark } from '../themes/gruvbox'
 
@@ -8,10 +9,10 @@ interface DtsEditorProps {
 }
 
 export function DtsEditor({ value, onChange, theme }: DtsEditorProps) {
-  const handleEditorWillMount = (monaco: Monaco) => {
+  const handleEditorWillMount = useCallback((monaco: Monaco) => {
     monaco.editor.defineTheme('gruvbox-light', gruvboxLight)
     monaco.editor.defineTheme('gruvbox-dark', gruvboxDark)
-  }
+  }, [])
 
   return (
     <Editor

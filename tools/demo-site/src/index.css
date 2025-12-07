@@ -1,5 +1,17 @@
 :root {
   --font-mono: 'Fira Code', 'Consolas', 'Monaco', monospace;
+  
+  /* Fallback colors (light theme) in case JavaScript fails to load */
+  --color-bg: #fbf1c7;
+  --color-surface: #f2e5bc;
+  --color-surface-2: #ebdbb2;
+  --color-primary: #d65d0e;
+  --color-success: #79740e;
+  --color-warning: #b57614;
+  --color-error: #cc241d;
+  --color-text: #282828;
+  --color-text-muted: #665c54;
+  --color-border: #d5c4a1;
 }
 
 /* Light theme - Gruvbox Light inspired */
