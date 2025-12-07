@@ -12,13 +12,13 @@
  * Maximum URL length for Chromium-based browsers.
  * GitHub's nginx servers support up to 8201, so we use 8000 for safety margin.
  */
-export const CHROMIUM_URL_LIMIT = 8000
+const CHROMIUM_URL_LIMIT = 8000
 
 /**
  * Maximum URL length for broad browser compatibility.
  * This conservative limit works across Safari, Firefox, and older browsers.
  */
-export const SAFE_URL_LIMIT = 2000
+const SAFE_URL_LIMIT = 2000
 
 /**
  * Detects if the current browser is Chromium-based.
@@ -26,7 +26,7 @@ export const SAFE_URL_LIMIT = 2000
  *
  * @returns true if browser is Chromium-based, false otherwise
  */
-export function isChromiumBrowser(): boolean {
+function isChromiumBrowser(): boolean {
   const ua = navigator.userAgent
   return (
     ua.includes('Chrome') ||
@@ -51,7 +51,7 @@ export function getMaxUrlLength(): number {
  * @param baseUrl - The base URL structure (without the variable content)
  * @returns Number of characters available for additional content
  */
-export function calculateRemainingUrlSpace(baseUrl: string): number {
+function calculateRemainingUrlSpace(baseUrl: string): number {
   const maxLength = getMaxUrlLength()
   return Math.max(0, maxLength - baseUrl.length)
 }
