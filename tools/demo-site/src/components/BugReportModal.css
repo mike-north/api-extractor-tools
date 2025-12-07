@@ -1,0 +1,243 @@
+.bug-report-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.bug-report-modal {
+  background: var(--color-surface);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+}
+
+.bug-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.bug-report-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.bug-report-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.bug-report-close:hover {
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.bug-report-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.bug-report-section {
+  margin-bottom: 24px;
+}
+
+.bug-report-section:last-child {
+  margin-bottom: 0;
+}
+
+.bug-report-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.bug-report-section h4 {
+  margin: 16px 0 8px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.bug-report-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--color-surface-2);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-item.release-type {
+  grid-column: 1 / -1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.stat-value.release-major {
+  color: var(--color-primary);
+}
+
+.stat-value.release-minor {
+  color: var(--color-warning);
+}
+
+.stat-value.release-patch {
+  color: var(--color-success);
+}
+
+.stat-value.release-none {
+  color: var(--color-text-muted);
+}
+
+.changes-summary {
+  margin-top: 16px;
+}
+
+.changes-summary ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.changes-summary li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.bug-report-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.bug-report-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+}
+
+.bug-report-char-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.bug-report-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.bug-report-error {
+  padding: 12px;
+  background-color: rgba(233, 69, 96, 0.1);
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.bug-report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.bug-report-button-secondary,
+.bug-report-button-primary {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.bug-report-button-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.bug-report-button-secondary:hover {
+  background-color: var(--color-surface-2);
+  border-color: var(--color-text-muted);
+}
+
+.bug-report-button-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.bug-report-button-primary:hover {
+  background-color: #d63851;
+}
+
+.bug-report-button-primary:active {
+  transform: translateY(1px);
+}

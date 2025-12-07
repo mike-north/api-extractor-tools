@@ -7,7 +7,10 @@ import {
 } from '@api-extractor-tools/change-detector-core'
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
+import { BugReportModal } from './components/BugReportModal'
 import { examples, type Example } from './examples'
+import { encodeBase64, decodeBase64 } from './utils/encoding'
+import { isUrlTooLong } from './utils/urlLimits'
 
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
@@ -22,26 +25,6 @@ function getInitialTheme(): ThemePreference {
     return storedTheme
   }
   return 'auto'
-}
-
-// Helper functions for base64 URL encoding (using modern TextEncoder/TextDecoder)
-function encodeBase64(str: string): string {
-  const bytes = new TextEncoder().encode(str)
-  let binary = ''
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i])
-  }
-  return btoa(binary)
-}
-
-function decodeBase64(str: string): string {
-  try {
-    const binary = atob(str)
-    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
-    return new TextDecoder().decode(bytes)
-  } catch {
-    return ''
-  }
 }
 
 function getInitialContent(): { old: string; new: string } {
@@ -134,7 +117,14 @@ function App() {
       params.set('old', encodeBase64(oldContent))
       params.set('new', encodeBase64(newContent))
       const newUrl = `${window.location.pathname}?${params.toString()}`
-      window.history.replaceState(null, '', newUrl)
+      
+      // Only update URL if it's within safe length limits
+      // If too long, clear the URL params to avoid issues
+      if (isUrlTooLong(newUrl)) {
+        window.history.replaceState(null, '', window.location.pathname)
+      } else {
+        window.history.replaceState(null, '', newUrl)
+      }
     }, 300)
 
     return () => clearTimeout(timeoutId)
@@ -185,6 +175,7 @@ function App() {
   )
 
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
+  const [isBugReportOpen, setIsBugReportOpen] = useState(false)
 
   const handleCopyForLLM = useCallback(() => {
     const text = `## Old API (.d.ts)
@@ -244,6 +235,18 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
           <button className="copy-button" onClick={handleCopyForLLM}>
             {copyFeedback ?? 'Copy for LLM'}
           </button>
+          <button
+            className="report-issue-button"
+            onClick={() => setIsBugReportOpen(true)}
+            disabled={!report}
+            title={
+              report
+                ? 'Report an issue with change detection'
+                : 'Run analysis first to report issues'
+            }
+          >
+            Something Looks Wrong?
+          </button>
         </div>
       </header>
 
@@ -281,6 +284,15 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
           )}
         </div>
       </main>
+
+      {isBugReportOpen && (
+        <BugReportModal
+          report={report}
+          oldContent={oldContent}
+          newContent={newContent}
+          onClose={() => setIsBugReportOpen(false)}
+        />
+      )}
     </div>
   )
 }
