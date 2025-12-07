@@ -58,6 +58,63 @@ console.log(report.releaseType);  // "major" | "minor" | "patch" | "none"
 console.log(formatReportAsText(report));
 ```
 
+### [@api-extractor-tools/change-detector-semantic-release-plugin](./tools/change-detector-semantic-release-plugin)
+
+A [semantic-release](https://semantic-release.gitbook.io/) plugin that validates and enhances version bumping based on actual API changes in TypeScript declaration files.
+
+**Key features:**
+
+- Validates that commit-derived version bumps match detected API changes
+- Supports validate, override, and advisory modes for different workflows
+- Automatically adds detailed API change information to release notes
+- Compares current declaration files against the last release tag
+
+```json
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    ["@api-extractor-tools/change-detector-semantic-release-plugin", {
+      "mode": "validate",
+      "declarationPath": "./dist/index.d.ts",
+      "includeAPIChangesInNotes": true
+    }],
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/npm"
+  ]
+}
+```
+
+### [@api-extractor-tools/changeset-change-detector](./tools/changeset-change-detector)
+
+Automate semantic version bump decisions in your [Changesets](https://github.com/changesets/changesets) workflow by analyzing actual API changes in TypeScript declaration files.
+
+**Key features:**
+
+- Auto-generates changeset files with correct version bumps based on API analysis
+- Validates existing changesets match detected API changes (ideal for CI)
+- Smart baseline detection against published versions or git refs
+- Monorepo support with pnpm workspaces
+
+```bash
+# Generate a changeset automatically
+changeset-change-detector generate
+
+# Validate existing changesets against API changes
+changeset-change-detector validate --base main
+```
+
+```typescript
+import {
+  analyzeWorkspace,
+  generateChangeset,
+  validateChangesets,
+} from '@api-extractor-tools/changeset-change-detector';
+
+const analysis = analyzeWorkspace({ baseRef: 'main' });
+const result = await generateChangeset({ yes: true, baseRef: 'main' });
+const validation = await validateChangesets({ baseRef: 'main' });
+```
+
 ## Contributing
 
 See [DEVELOPMENT.md](./DEVELOPMENT.md) for detailed instructions on:
