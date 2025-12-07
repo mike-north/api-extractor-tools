@@ -2,3 +2,4 @@
 alwaysApply: true
 ---
 * Consult `/DEVELOPMENT.md` for instructions about how to contribute to this repo
+* I have `GIT_EDITOR` set up to use nvim. When running git commands that might use an editor, remember that you may need to set `GIT_EDITOR=true`
