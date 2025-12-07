@@ -5,6 +5,8 @@
  * This package analyzes `.d.ts` files to identify API changes and classify them
  * according to semantic versioning impact (major, minor, patch, or none).
  *
+ * For browser/isomorphic usage, see the `@api-extractor-tools/change-detector-core` package.
+ *
  * @example
  * ```ts
  * import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector';
@@ -21,7 +23,7 @@
  * @packageDocumentation
  */
 
-// Type exports
+// Type exports (local types + re-exported from core)
 export type {
   ReleaseType,
   ChangeCategory,
@@ -33,6 +35,9 @@ export type {
   ComparisonReport,
   CompareOptions,
 } from './types'
+
+// Re-export CompareStringOptions from core for users who want to use string-based API
+export type { CompareStringOptions } from '@api-extractor-tools/change-detector-core'
 
 // Parser exports
 export {
@@ -49,10 +54,10 @@ export {
   type CompareResult,
 } from './comparator'
 
-// Classifier exports
+// Classifier exports (re-exported from core)
 export { classifyChanges, type ClassificationResult } from './classifier'
 
-// Reporter exports
+// Reporter exports (re-exported from core)
 export {
   type ComparisonReportJSON,
   formatReportAsText,
@@ -60,7 +65,7 @@ export {
   reportToJSON,
 } from './reporter'
 
-// Parameter analysis exports
+// Parameter analysis exports (re-exported from core)
 export {
   type ParameterInfo,
   type ParameterPositionAnalysis,
@@ -72,6 +77,9 @@ export {
   nameSimilarity,
   interpretNameChange,
 } from './parameter-analysis'
+
+// Re-export core's string-based comparison function for convenience
+export { compareDeclarations as compareDeclarationStrings } from '@api-extractor-tools/change-detector-core'
 
 // Main API
 import type { CompareOptions, ComparisonReport } from './types'

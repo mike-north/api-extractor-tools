@@ -17,6 +17,10 @@
         "@": ["./src/index.ts"]
       },
       "ignoreDependencies": ["semantic-release"]
+    },
+    "tools/demo-site": {
+      "entry": ["src/main.tsx"],
+      "ignore": ["src/**/*.tsx", "src/**/*.ts"]
     }
   }
 }

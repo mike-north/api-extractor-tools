@@ -53,7 +53,7 @@ Path to the declaration file to parse
 
 **Returns:**
 
-[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
+ParseResultWithTypes
 
 Parse result with TypeScript program and type checker for deep analysis
 

@@ -55,7 +55,7 @@ Comparison options including paths to old and new files
 
 **Returns:**
 
-[ComparisonReport](./change-detector.comparisonreport.md)
+ComparisonReport
 
 A comparison report with release type classification and detailed changes
 

@@ -4,7 +4,9 @@
 
 ```ts
 
+import { ComparisonReport } from '@api-extractor-tools/change-detector-core';
 import type { NewChangeset } from '@changesets/types';
+import { ReleaseType } from '@api-extractor-tools/change-detector-core';
 
 // @alpha
 export function aggregateChangesetBumps(changesets: NewChangeset[]): Map<string, ChangesetBumpType>;
@@ -24,8 +26,6 @@ export function analyzeWorkspace(options?: AnalyzeOptions): WorkspaceAnalysisRes
 // @alpha
 export type ChangesetBumpType = 'major' | 'minor' | 'patch';
 
-// Warning: (ae-forgotten-export) The symbol "ReleaseType" needs to be exported by the entry point index.d.ts
-//
 // @alpha
 export function compareBumpSeverity(a: ChangesetBumpType | ReleaseType | null, b: ChangesetBumpType | ReleaseType | null): number;
 
@@ -77,7 +77,6 @@ export interface PackageAnalysisResult {
     error?: string;
     package: PackageInfo;
     recommendedBump: ReleaseType;
-    // Warning: (ae-forgotten-export) The symbol "ComparisonReport" needs to be exported by the entry point index.d.ts
     report: ComparisonReport | null;
 }
 

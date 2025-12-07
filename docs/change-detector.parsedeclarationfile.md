@@ -7,7 +7,7 @@
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Parses a declaration file and extracts all exported symbols.
+Parses a declaration file from a file path and extracts all exported symbols.
 
 **Signature:**
 
@@ -51,5 +51,5 @@ string
 
 **Returns:**
 
-[ParseResult](./change-detector.parseresult.md)
+ParseResult
 

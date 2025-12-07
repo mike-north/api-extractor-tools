@@ -4,13 +4,14 @@
 
 ```ts
 
+import { ComparisonReport } from '@api-extractor-tools/change-detector-core';
+import { ReleaseType } from '@api-extractor-tools/change-detector-core';
+
 // @alpha
 export interface AnalysisResult {
     error?: string;
     isNewPackage: boolean;
-    // Warning: (ae-forgotten-export) The symbol "ReleaseType" needs to be exported by the entry point index.d.ts
     recommendedBump: ReleaseType;
-    // Warning: (ae-forgotten-export) The symbol "ComparisonReport" needs to be exported by the entry point index.d.ts
     report: ComparisonReport | null;
 }
 

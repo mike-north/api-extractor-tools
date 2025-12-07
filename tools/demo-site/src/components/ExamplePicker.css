@@ -1,0 +1,35 @@
+.example-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.example-picker label {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.example-picker select {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #d4d4d4;
+  background: #3c3c3c;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 280px;
+}
+
+.example-picker select:hover {
+  border-color: #666;
+}
+
+.example-picker select:focus {
+  outline: none;
+  border-color: #0e639c;
+}
+
+.example-picker select option {
+  background: #3c3c3c;
+  color: #d4d4d4;
+}
