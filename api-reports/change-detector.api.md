@@ -4,44 +4,52 @@
 
 ```ts
 
-import * as ts from 'typescript';
+import { Change } from '@api-extractor-tools/change-detector-core';
+import { ChangeCategory } from '@api-extractor-tools/change-detector-core';
+import { ChangesByImpact } from '@api-extractor-tools/change-detector-core';
+import { ClassificationResult } from '@api-extractor-tools/change-detector-core';
+import { classifyChanges } from '@api-extractor-tools/change-detector-core';
+import { compareDeclarations as compareDeclarationStrings } from '@api-extractor-tools/change-detector-core';
+import { CompareResult } from '@api-extractor-tools/change-detector-core';
+import { CompareStringOptions } from '@api-extractor-tools/change-detector-core';
+import { ComparisonReport } from '@api-extractor-tools/change-detector-core';
+import { ComparisonReportJSON } from '@api-extractor-tools/change-detector-core';
+import { ComparisonStats } from '@api-extractor-tools/change-detector-core';
+import { detectParameterReordering } from '@api-extractor-tools/change-detector-core';
+import { editDistance } from '@api-extractor-tools/change-detector-core';
+import { ExportedSymbol } from '@api-extractor-tools/change-detector-core';
+import { extractParameterInfo } from '@api-extractor-tools/change-detector-core';
+import { formatReportAsMarkdown } from '@api-extractor-tools/change-detector-core';
+import { formatReportAsText } from '@api-extractor-tools/change-detector-core';
+import { interpretNameChange } from '@api-extractor-tools/change-detector-core';
+import { nameSimilarity } from '@api-extractor-tools/change-detector-core';
+import { ParameterInfo } from '@api-extractor-tools/change-detector-core';
+import { ParameterOrderAnalysis } from '@api-extractor-tools/change-detector-core';
+import { ParameterPositionAnalysis } from '@api-extractor-tools/change-detector-core';
+import { ParseResult } from '@api-extractor-tools/change-detector-core';
+import { ParseResultWithTypes } from '@api-extractor-tools/change-detector-core';
+import { ReleaseType } from '@api-extractor-tools/change-detector-core';
+import { ReorderingConfidence } from '@api-extractor-tools/change-detector-core';
+import { reportToJSON } from '@api-extractor-tools/change-detector-core';
+import { SymbolKind } from '@api-extractor-tools/change-detector-core';
 
-// @alpha
-export interface Change {
-    after?: string;
-    before?: string;
-    category: ChangeCategory;
-    explanation: string;
-    releaseType: ReleaseType;
-    symbolKind: SymbolKind;
-    symbolName: string;
-}
+export { Change }
 
-// @alpha
-export type ChangeCategory = 'symbol-removed' | 'symbol-added' | 'type-narrowed' | 'type-widened' | 'param-added-required' | 'param-added-optional' | 'param-removed' | 'param-order-changed' | 'return-type-changed' | 'signature-identical';
+export { ChangeCategory }
 
-// @alpha
-export interface ChangesByImpact {
-    breaking: Change[];
-    nonBreaking: Change[];
-    unchanged: Change[];
-}
+export { ChangesByImpact }
 
-// @alpha
-export interface ClassificationResult {
-    changesByImpact: ChangesByImpact;
-    releaseType: ReleaseType;
-    stats: ComparisonStats;
-}
+export { ClassificationResult }
 
-// @alpha
-export function classifyChanges(changes: Change[], totalSymbolsOld: number, totalSymbolsNew: number): ClassificationResult;
+export { classifyChanges }
 
 // @alpha
 export function compareDeclarationFiles(oldParsed: ParseResultWithTypes, newParsed: ParseResultWithTypes): CompareResult;
 
 // @alpha
 export function compareDeclarations(options: CompareOptions): ComparisonReport;
+
+export { compareDeclarationStrings }
 
 // @alpha
 export function compareFiles(oldFilePath: string, newFilePath: string): CompareResult;
@@ -52,101 +60,37 @@ export interface CompareOptions {
     oldFile: string;
 }
 
-// @alpha
-export interface CompareResult {
-    changes: Change[];
-    errors: string[];
-}
+export { CompareResult }
 
-// @alpha
-export interface ComparisonReport {
-    changes: ChangesByImpact;
-    newFile: string;
-    oldFile: string;
-    releaseType: ReleaseType;
-    stats: ComparisonStats;
-}
+export { CompareStringOptions }
 
-// @alpha
-export interface ComparisonReportJSON {
-    // (undocumented)
-    changes: ChangesByImpact;
-    // (undocumented)
-    newFile: string;
-    // (undocumented)
-    oldFile: string;
-    // (undocumented)
-    releaseType: ReleaseType;
-    // (undocumented)
-    stats: ComparisonStats;
-}
+export { ComparisonReport }
 
-// @alpha
-export interface ComparisonStats {
-    added: number;
-    modified: number;
-    removed: number;
-    totalSymbolsNew: number;
-    totalSymbolsOld: number;
-    unchanged: number;
-}
+export { ComparisonReportJSON }
 
-// @alpha
-export function detectParameterReordering(oldParams: ParameterInfo[], newParams: ParameterInfo[]): ParameterOrderAnalysis;
+export { ComparisonStats }
 
-// @alpha
-export function editDistance(a: string, b: string): number;
+export { detectParameterReordering }
 
-// @alpha
-export interface ExportedSymbol {
-    kind: SymbolKind;
-    name: string;
-    signature: string;
-}
+export { editDistance }
 
-// @alpha
-export function extractParameterInfo(sig: ts.Signature, checker: ts.TypeChecker): ParameterInfo[];
+export { ExportedSymbol }
 
-// @alpha
-export function formatReportAsMarkdown(report: ComparisonReport): string;
+export { extractParameterInfo }
 
-// @alpha
-export function formatReportAsText(report: ComparisonReport): string;
+export { formatReportAsMarkdown }
 
-// @alpha
-export function interpretNameChange(oldName: string, newName: string, similarity: number): string;
+export { formatReportAsText }
 
-// @alpha
-export function nameSimilarity(a: string, b: string): number;
+export { interpretNameChange }
 
-// @alpha
-export interface ParameterInfo {
-    isOptional: boolean;
-    isRest: boolean;
-    name: string;
-    position: number;
-    type: string;
-}
+export { nameSimilarity }
 
-// @alpha
-export interface ParameterOrderAnalysis {
-    confidence: ReorderingConfidence;
-    hasReordering: boolean;
-    newParams: ParameterInfo[];
-    oldParams: ParameterInfo[];
-    positionAnalysis: ParameterPositionAnalysis[];
-    summary: string;
-}
+export { ParameterInfo }
 
-// @alpha
-export interface ParameterPositionAnalysis {
-    interpretation: string;
-    newName: string;
-    oldName: string;
-    position: number;
-    similarity: number;
-    type: string;
-}
+export { ParameterOrderAnalysis }
+
+export { ParameterPositionAnalysis }
 
 // @alpha
 export function parseDeclarationFile(filePath: string): ParseResult;
@@ -154,29 +98,16 @@ export function parseDeclarationFile(filePath: string): ParseResult;
 // @alpha
 export function parseDeclarationFileWithTypes(filePath: string): ParseResultWithTypes;
 
-// @alpha
-export interface ParseResult {
-    errors: string[];
-    symbols: Map<string, ExportedSymbol>;
-}
+export { ParseResult }
 
-// @alpha
-export interface ParseResultWithTypes extends ParseResult {
-    checker: ts.TypeChecker;
-    program: ts.Program;
-    typeSymbols: Map<string, ts.Symbol>;
-}
+export { ParseResultWithTypes }
 
-// @alpha
-export type ReleaseType = 'major' | 'minor' | 'patch' | 'none';
+export { ReleaseType }
 
-// @alpha
-export type ReorderingConfidence = 'high' | 'medium' | 'low';
+export { ReorderingConfidence }
 
-// @alpha
-export function reportToJSON(report: ComparisonReport): ComparisonReportJSON;
+export { reportToJSON }
 
-// @alpha
-export type SymbolKind = 'function' | 'class' | 'interface' | 'type' | 'variable' | 'enum' | 'namespace';
+export { SymbolKind }
 
 ```

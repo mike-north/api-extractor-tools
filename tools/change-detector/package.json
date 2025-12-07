@@ -22,6 +22,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
+    "@api-extractor-tools/change-detector-core": "workspace:*",
     "typescript": "5.8.3"
   },
   "devDependencies": {

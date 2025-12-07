@@ -40,7 +40,7 @@ oldParsed
 
 </td><td>
 
-[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
+ParseResultWithTypes
 
 
 </td><td>
@@ -54,7 +54,7 @@ newParsed
 
 </td><td>
 
-[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
+ParseResultWithTypes
 
 
 </td><td>
@@ -65,5 +65,5 @@ newParsed
 
 **Returns:**
 
-[CompareResult](./change-detector.compareresult.md)
+CompareResult
 

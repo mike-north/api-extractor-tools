@@ -10,6 +10,8 @@ A library for detecting and classifying changes between TypeScript declaration f
 
 This package analyzes `.d.ts` files to identify API changes and classify them according to semantic versioning impact (major, minor, patch, or none).
 
+For browser/isomorphic usage, see the `@api-extractor-tools/change-detector-core` package.
+
 ## Example
 
 
@@ -39,17 +41,6 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
-
-[classifyChanges(changes, totalSymbolsOld, totalSymbolsNew)](./change-detector.classifychanges.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Classifies a set of changes and computes the overall release type.
-
-
-</td></tr>
-<tr><td>
 
 [compareDeclarationFiles(oldParsed, newParsed)](./change-detector.comparedeclarationfiles.md)
 
@@ -86,91 +77,12 @@ This is the main entry point for programmatic usage of the change detector.
 </td></tr>
 <tr><td>
 
-[detectParameterReordering(oldParams, newParams)](./change-detector.detectparameterreordering.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Detects if parameters have been reordered between two signatures.
-
-This provides rich analysis including: - Whether reordering is detected - Confidence level based on the evidence - Detailed per-position analysis with similarity scores - Human-readable interpretations for user feedback
-
-
-</td></tr>
-<tr><td>
-
-[editDistance(a, b)](./change-detector.editdistance.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Calculates the Levenshtein edit distance between two strings. This measures the minimum number of single-character edits (insertions, deletions, substitutions) needed to transform one string into another.
-
-
-</td></tr>
-<tr><td>
-
-[extractParameterInfo(sig, checker)](./change-detector.extractparameterinfo.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Extracts parameter information from a TypeScript signature.
-
-
-</td></tr>
-<tr><td>
-
-[formatReportAsMarkdown(report)](./change-detector.formatreportasmarkdown.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Formats the comparison report as markdown.
-
-
-</td></tr>
-<tr><td>
-
-[formatReportAsText(report)](./change-detector.formatreportastext.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Formats the comparison report as plain text.
-
-
-</td></tr>
-<tr><td>
-
-[interpretNameChange(oldName, newName, similarity)](./change-detector.interpretnamechange.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Generates a human-readable interpretation of a name change based on similarity.
-
-
-</td></tr>
-<tr><td>
-
-[nameSimilarity(a, b)](./change-detector.namesimilarity.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Calculates a normalized similarity score between two strings (0-1). 1 means identical, 0 means completely different.
-
-
-</td></tr>
-<tr><td>
-
 [parseDeclarationFile(filePath)](./change-detector.parsedeclarationfile.md)
 
 
 </td><td>
 
-**_(ALPHA)_** Parses a declaration file and extracts all exported symbols.
+**_(ALPHA)_** Parses a declaration file from a file path and extracts all exported symbols.
 
 
 </td></tr>
@@ -182,17 +94,6 @@ This provides rich analysis including: - Whether reordering is detected - Confid
 </td><td>
 
 **_(ALPHA)_** Parses a declaration file and returns TypeScript type information for deep comparison.
-
-
-</td></tr>
-<tr><td>
-
-[reportToJSON(report)](./change-detector.reporttojson.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Converts the report to a plain JSON-serializable object.
 
 
 </td></tr>
@@ -213,214 +114,12 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[Change](./change-detector.change.md)
-
-
-</td><td>
-
-**_(ALPHA)_** A detected change between old and new API.
-
-
-</td></tr>
-<tr><td>
-
-[ChangesByImpact](./change-detector.changesbyimpact.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Changes grouped by their semver impact.
-
-
-</td></tr>
-<tr><td>
-
-[ClassificationResult](./change-detector.classificationresult.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Result of classifying a set of changes.
-
-
-</td></tr>
-<tr><td>
-
 [CompareOptions](./change-detector.compareoptions.md)
 
 
 </td><td>
 
-**_(ALPHA)_** Options for comparing declarations.
-
-
-</td></tr>
-<tr><td>
-
-[CompareResult](./change-detector.compareresult.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Result of comparing two declaration files.
-
-
-</td></tr>
-<tr><td>
-
-[ComparisonReport](./change-detector.comparisonreport.md)
-
-
-</td><td>
-
-**_(ALPHA)_** The complete comparison report.
-
-
-</td></tr>
-<tr><td>
-
-[ComparisonReportJSON](./change-detector.comparisonreportjson.md)
-
-
-</td><td>
-
-**_(ALPHA)_** JSON-serializable representation of a comparison report.
-
-
-</td></tr>
-<tr><td>
-
-[ComparisonStats](./change-detector.comparisonstats.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Statistics about the comparison.
-
-
-</td></tr>
-<tr><td>
-
-[ExportedSymbol](./change-detector.exportedsymbol.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Information about a single exported symbol extracted from a declaration file.
-
-
-</td></tr>
-<tr><td>
-
-[ParameterInfo](./change-detector.parameterinfo.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Information about a single parameter in a function signature.
-
-
-</td></tr>
-<tr><td>
-
-[ParameterOrderAnalysis](./change-detector.parameterorderanalysis.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Result of analyzing parameter order changes between two function signatures.
-
-
-</td></tr>
-<tr><td>
-
-[ParameterPositionAnalysis](./change-detector.parameterpositionanalysis.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Analysis of a single parameter position change.
-
-
-</td></tr>
-<tr><td>
-
-[ParseResult](./change-detector.parseresult.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Result of parsing a declaration file.
-
-
-</td></tr>
-<tr><td>
-
-[ParseResultWithTypes](./change-detector.parseresultwithtypes.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Internal access to TypeScript types for comparison. This is used by the comparator for deep type analysis.
-
-
-</td></tr>
-</tbody></table>
-
-## Type Aliases
-
-<table><thead><tr><th>
-
-Type Alias
-
-
-</th><th>
-
-Description
-
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[ChangeCategory](./change-detector.changecategory.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Categories of API changes and their typical semver impact.
-
-
-</td></tr>
-<tr><td>
-
-[ReleaseType](./change-detector.releasetype.md)
-
-
-</td><td>
-
-**_(ALPHA)_** The release type this delta represents according to semantic versioning. - "major": Breaking changes that require a major version bump - "minor": New features/additions that are backwards compatible - "patch": Bug fixes or internal changes with no API impact - "none": No changes detected
-
-
-</td></tr>
-<tr><td>
-
-[ReorderingConfidence](./change-detector.reorderingconfidence.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Confidence level for parameter reordering detection.
-
-
-</td></tr>
-<tr><td>
-
-[SymbolKind](./change-detector.symbolkind.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Kinds of exported symbols we track.
+**_(ALPHA)_** Options for comparing declarations from file paths.
 
 
 </td></tr>

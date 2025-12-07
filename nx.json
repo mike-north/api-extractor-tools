@@ -15,7 +15,7 @@
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": ["^generate:api-report"],
+      "dependsOn": ["^build", "^generate:api-report"],
       "inputs": ["source", "tsConfig"],
       "outputs": ["{projectRoot}/dist"]
     },
@@ -56,7 +56,7 @@
     },
     "check:api-report": {
       "cache": true,
-      "dependsOn": ["build", "^build"],
+      "dependsOn": ["build", "^build", "^generate:api-report"],
       "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
       "outputs": [
         "{workspaceRoot}/api-reports/{projectName}.api.md",

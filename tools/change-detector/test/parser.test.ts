@@ -1,9 +1,20 @@
+/**
+ * File-based parser tests for change-detector.
+ *
+ * These tests verify that `parseDeclarationFile` correctly handles file system
+ * operations (reading files, error handling) and export variations that require
+ * actual file parsing.
+ *
+ * For comprehensive symbol parsing and signature generation tests, see
+ * @api-extractor-tools/change-detector-core which tests the string-based parser.
+ */
+
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
 import { parseDeclarationFile } from '@'
 
-describe('parseDeclarationFile', () => {
+describe('parseDeclarationFile (file-based API)', () => {
   let project: Project
 
   beforeEach(() => {
@@ -14,12 +25,12 @@ describe('parseDeclarationFile', () => {
     project.dispose()
   })
 
-  describe('basic symbol extraction', () => {
-    it('extracts exported functions', async () => {
+  describe('file reading', () => {
+    it('reads and parses a declaration file from disk', async () => {
       project.files = {
         'index.d.ts': `
 export declare function greet(name: string): string;
-export declare function add(a: number, b: number): number;
+export interface User { id: number; }
 `,
       }
       await project.write()
@@ -30,150 +41,8 @@ export declare function add(a: number, b: number): number;
 
       expect(result.errors).toHaveLength(0)
       expect(result.symbols.size).toBe(2)
-
-      const greet = result.symbols.get('greet')
-      expect(greet).toBeDefined()
-      expect(greet?.kind).toBe('function')
-      expect(greet?.signature).toContain('string')
-
-      const add = result.symbols.get('add')
-      expect(add).toBeDefined()
-      expect(add?.kind).toBe('function')
-    })
-
-    it('extracts exported interfaces', async () => {
-      project.files = {
-        'index.d.ts': `
-export interface User {
-  id: number;
-  name: string;
-}
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.errors).toHaveLength(0)
-      expect(result.symbols.size).toBe(1)
-
-      const user = result.symbols.get('User')
-      expect(user).toBeDefined()
-      expect(user?.kind).toBe('interface')
-    })
-
-    it('extracts exported type aliases', async () => {
-      project.files = {
-        'index.d.ts': `
-export type ID = string | number;
-export type Status = "active" | "inactive";
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.errors).toHaveLength(0)
-      expect(result.symbols.size).toBe(2)
-
-      const id = result.symbols.get('ID')
-      expect(id).toBeDefined()
-      expect(id?.kind).toBe('type')
-    })
-
-    it('extracts exported classes', async () => {
-      project.files = {
-        'index.d.ts': `
-export declare class MyService {
-  constructor(config: object);
-  start(): void;
-}
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.errors).toHaveLength(0)
-      expect(result.symbols.size).toBe(1)
-
-      const service = result.symbols.get('MyService')
-      expect(service).toBeDefined()
-      expect(service?.kind).toBe('class')
-    })
-
-    it('extracts exported enums', async () => {
-      project.files = {
-        'index.d.ts': `
-export declare enum Color {
-  Red = 0,
-  Green = 1,
-  Blue = 2
-}
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.errors).toHaveLength(0)
-      expect(result.symbols.size).toBe(1)
-
-      const color = result.symbols.get('Color')
-      expect(color).toBeDefined()
-      expect(color?.kind).toBe('enum')
-    })
-
-    it('extracts exported variables', async () => {
-      project.files = {
-        'index.d.ts': `
-export declare const VERSION: string;
-export declare const CONFIG: { debug: boolean };
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.errors).toHaveLength(0)
-      expect(result.symbols.size).toBe(2)
-
-      const version = result.symbols.get('VERSION')
-      expect(version).toBeDefined()
-      expect(version?.kind).toBe('variable')
-    })
-
-    it('extracts exported namespaces', async () => {
-      project.files = {
-        'index.d.ts': `
-export declare namespace Utils {
-  function helper(): void;
-  const VERSION: string;
-}
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.errors).toHaveLength(0)
-      expect(result.symbols.size).toBe(1)
-
-      const utils = result.symbols.get('Utils')
-      expect(utils).toBeDefined()
-      expect(utils?.kind).toBe('namespace')
+      expect(result.symbols.has('greet')).toBe(true)
+      expect(result.symbols.has('User')).toBe(true)
     })
   })
 
@@ -214,157 +83,6 @@ export declare namespace Utils {
 
       expect(result.errors).toHaveLength(0)
       expect(result.symbols.size).toBe(0)
-    })
-  })
-
-  describe('signature generation', () => {
-    it('generates function signature with parameters and return type', async () => {
-      project.files = {
-        'index.d.ts': `
-export declare function process(input: string, count: number): Promise<boolean>;
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      const process = result.symbols.get('process')
-      expect(process?.signature).toContain('string')
-      expect(process?.signature).toContain('number')
-      expect(process?.signature).toContain('Promise')
-      expect(process?.signature).toContain('boolean')
-    })
-
-    it('generates interface signature with properties', async () => {
-      project.files = {
-        'index.d.ts': `
-export interface Config {
-  name: string;
-  count: number;
-  enabled?: boolean;
-}
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      const config = result.symbols.get('Config')
-      expect(config?.signature).toContain('name')
-      expect(config?.signature).toContain('string')
-      expect(config?.signature).toContain('count')
-      expect(config?.signature).toContain('number')
-    })
-
-    it('generates type alias signature', async () => {
-      project.files = {
-        'index.d.ts': `
-export type Status = "pending" | "active" | "completed";
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      const status = result.symbols.get('Status')
-      expect(status?.signature).toContain('pending')
-      expect(status?.signature).toContain('active')
-      expect(status?.signature).toContain('completed')
-    })
-  })
-
-  describe('complex declarations', () => {
-    it('handles generic functions', async () => {
-      project.files = {
-        'index.d.ts': `
-export declare function identity<T>(value: T): T;
-export declare function map<T, U>(arr: T[], fn: (x: T) => U): U[];
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.symbols.size).toBe(2)
-      expect(result.symbols.get('identity')?.kind).toBe('function')
-      expect(result.symbols.get('map')?.kind).toBe('function')
-    })
-
-    it('handles generic interfaces', async () => {
-      project.files = {
-        'index.d.ts': `
-export interface Container<T> {
-  value: T;
-  map<U>(fn: (x: T) => U): Container<U>;
-}
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.symbols.size).toBe(1)
-      expect(result.symbols.get('Container')?.kind).toBe('interface')
-    })
-
-    it('handles intersection and union types', async () => {
-      project.files = {
-        'index.d.ts': `
-export type Combined = { a: string } & { b: number };
-export type Either = string | number | boolean;
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.symbols.size).toBe(2)
-      expect(result.symbols.get('Combined')?.kind).toBe('type')
-      expect(result.symbols.get('Either')?.kind).toBe('type')
-    })
-
-    it('handles mapped types', async () => {
-      project.files = {
-        'index.d.ts': `
-export type Readonly<T> = { readonly [K in keyof T]: T[K] };
-export type Partial<T> = { [K in keyof T]?: T[K] };
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.symbols.size).toBe(2)
-    })
-
-    it('handles conditional types', async () => {
-      project.files = {
-        'index.d.ts': `
-export type IsString<T> = T extends string ? true : false;
-export type Unwrap<T> = T extends Promise<infer U> ? U : T;
-`,
-      }
-      await project.write()
-
-      const result = parseDeclarationFile(
-        path.join(project.baseDir, 'index.d.ts'),
-      )
-
-      expect(result.symbols.size).toBe(2)
     })
   })
 
@@ -418,6 +136,37 @@ export { helper as util };
 
       expect(result.symbols.has('helper')).toBe(true)
       expect(result.symbols.has('util')).toBe(true)
+    })
+
+    it('extracts all symbol kinds from a single file', async () => {
+      project.files = {
+        'index.d.ts': `
+export declare function fn(): void;
+export declare const CONST: number;
+export interface Iface {}
+export type Alias = string;
+export declare class Cls {}
+export declare enum Enum { A }
+export declare namespace NS {}
+`,
+      }
+      await project.write()
+
+      const result = parseDeclarationFile(
+        path.join(project.baseDir, 'index.d.ts'),
+      )
+
+      expect(result.errors).toHaveLength(0)
+      expect(result.symbols.size).toBe(7)
+
+      // Verify each symbol kind is correctly identified
+      expect(result.symbols.get('fn')?.kind).toBe('function')
+      expect(result.symbols.get('CONST')?.kind).toBe('variable')
+      expect(result.symbols.get('Iface')?.kind).toBe('interface')
+      expect(result.symbols.get('Alias')?.kind).toBe('type')
+      expect(result.symbols.get('Cls')?.kind).toBe('class')
+      expect(result.symbols.get('Enum')?.kind).toBe('enum')
+      expect(result.symbols.get('NS')?.kind).toBe('namespace')
     })
   })
 })

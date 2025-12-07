@@ -1,0 +1,91 @@
+.app {
+  min-height: 100vh;
+  padding: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 28px;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #252526;
+  border-radius: 8px;
+}
+
+.analyze-button {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: #0e639c;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.analyze-button:hover:not(:disabled) {
+  background: #1177bb;
+}
+
+.analyze-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.editors-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  background: #252526;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.editor-title {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ccc;
+  background: #2d2d2d;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+.report-container {
+  background: #252526;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+@media (max-width: 1000px) {
+  .editors-container {
+    grid-template-columns: 1fr;
+  }
+}

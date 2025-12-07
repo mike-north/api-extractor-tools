@@ -4,6 +4,8 @@
 
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
 
+  "bundledPackages": ["@api-extractor-tools/change-detector"],
+
   "compiler": {
     "tsconfigFilePath": "<projectFolder>/tsconfig.json"
   }

@@ -65,5 +65,5 @@ string
 
 **Returns:**
 
-[CompareResult](./change-detector.compareresult.md)
+CompareResult
 

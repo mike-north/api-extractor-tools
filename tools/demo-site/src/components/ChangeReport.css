@@ -1,0 +1,195 @@
+.change-report {
+  color: #d4d4d4;
+}
+
+.report-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+.report-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+}
+
+.release-type-badge {
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.change-section {
+  margin-bottom: 20px;
+}
+
+.section-header {
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: #2d2d2d;
+  border-radius: 6px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.section-header::-webkit-details-marker {
+  display: none;
+}
+
+.section-header::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+details[open] .section-header::before {
+  transform: rotate(90deg);
+}
+
+.no-changes {
+  padding: 12px 16px;
+  color: #888;
+  font-style: italic;
+}
+
+.change-list {
+  padding: 12px;
+}
+
+.change-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #1e1e1e;
+  border-radius: 6px;
+  border-left: 3px solid #3c3c3c;
+}
+
+.change-item:last-child {
+  margin-bottom: 0;
+}
+
+.change-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.change-badge {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 3px;
+}
+
+.change-symbol {
+  font-size: 14px;
+  font-weight: 600;
+  color: #dcdcaa;
+}
+
+.change-kind {
+  font-size: 12px;
+  color: #888;
+}
+
+.change-explanation {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.change-diff {
+  font-size: 12px;
+  padding: 8px;
+  background: #252526;
+  border-radius: 4px;
+}
+
+.change-before,
+.change-after {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.diff-label {
+  color: #888;
+  min-width: 60px;
+}
+
+.change-before code {
+  color: #f14c4c;
+}
+
+.change-after code {
+  color: #89d185;
+}
+
+.stats-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #3c3c3c;
+}
+
+.stats-section h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: #fff;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: #2d2d2d;
+  border-radius: 6px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.stat-added .stat-value {
+  color: #89d185;
+}
+
+.stat-removed .stat-value {
+  color: #f14c4c;
+}
+
+.stat-modified .stat-value {
+  color: #cca700;
+}
+
+@media (max-width: 800px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

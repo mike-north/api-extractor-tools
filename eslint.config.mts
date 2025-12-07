@@ -1,5 +1,6 @@
 import * as eslint from '@eslint/js'
 import { defineConfig } from 'eslint/config'
+ 
 import tsdocPlugin from 'eslint-plugin-tsdoc'
 import tseslint from 'typescript-eslint'
 
@@ -13,6 +14,7 @@ export default defineConfig(
       },
     },
     plugins: {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- plugin has no types
       tsdoc: tsdocPlugin,
     },
     rules: {
@@ -25,5 +27,9 @@ export default defineConfig(
       ],
       'tsdoc/syntax': 'warn',
     },
+  },
+  {
+    // Ignore test files, config files, and demo-site from type-aware linting
+    ignores: ['**/test/**', '**/vitest.config.*', 'tools/demo-site/**'],
   },
 )
