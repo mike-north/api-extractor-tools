@@ -48,6 +48,13 @@ export function findDeclarationFile(
     main?: string
   }
 
+  // Error if both types and typings are specified - there's no good reason to use both
+  if (pkgJson.types && pkgJson.typings) {
+    throw new Error(
+      "package.json has both 'types' and 'typings' fields. Please use only 'types' (the 'typings' field is deprecated).",
+    )
+  }
+
   // Check "types" field
   if (pkgJson.types) {
     const typesPath = path.join(cwd, pkgJson.types)
@@ -56,7 +63,7 @@ export function findDeclarationFile(
     }
   }
 
-  // Check "typings" field (alternative to types)
+  // Check "typings" field (legacy alternative to types)
   if (pkgJson.typings) {
     const typingsPath = path.join(cwd, pkgJson.typings)
     if (fs.existsSync(typingsPath)) {
