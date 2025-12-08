@@ -3,6 +3,8 @@ import * as ts from 'typescript'
 import {
   compareDeclarations,
   defaultPolicy,
+  readOnlyPolicy,
+  writeOnlyPolicy,
   type AnalyzedChange,
   type ReleaseType,
   type VersioningPolicy,
@@ -166,6 +168,216 @@ describe('Versioning Policies', () => {
 
       expect(report.releaseType).toBe('major')
       expect(report.changes.breaking).toHaveLength(1)
+    })
+  })
+
+  describe('readOnlyPolicy', () => {
+    it('classifies symbol-removed as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'symbol-removed',
+        explanation: 'removed',
+      }
+      expect(readOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies symbol-added as minor', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'symbol-added',
+        explanation: 'added',
+      }
+      expect(readOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies type-narrowed as major (readers expect old values)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-narrowed',
+        explanation: 'narrowed',
+      }
+      expect(readOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies type-widened as minor (readers can handle old values)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-widened',
+        explanation: 'widened',
+      }
+      expect(readOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies param-added-required as minor (readers receive more data)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-added-required',
+        explanation: 'required param added',
+      }
+      expect(readOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies param-removed as major (readers expect the field)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-removed',
+        explanation: 'param removed',
+      }
+      expect(readOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('works with compareDeclarations for type narrowing', () => {
+      const oldContent = 'export declare function foo(): string | null;'
+      const newContent = 'export declare function foo(): string;'
+
+      const report = compareDeclarations(
+        {
+          oldContent,
+          newContent,
+          policy: readOnlyPolicy,
+        },
+        ts,
+      )
+
+      // Type narrowing is breaking for readers
+      expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking).toHaveLength(1)
+    })
+  })
+
+  describe('writeOnlyPolicy', () => {
+    it('classifies symbol-removed as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'symbol-removed',
+        explanation: 'removed',
+      }
+      expect(writeOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies symbol-added as minor', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'symbol-added',
+        explanation: 'added',
+      }
+      expect(writeOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies type-narrowed as minor (writers can provide valid values)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-narrowed',
+        explanation: 'narrowed',
+      }
+      expect(writeOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies type-widened as major (writers must handle new values)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-widened',
+        explanation: 'widened',
+      }
+      expect(writeOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies param-added-required as major (writers must provide it)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-added-required',
+        explanation: 'required param added',
+      }
+      expect(writeOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies param-removed as minor (writers no longer need to provide it)', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-removed',
+        explanation: 'param removed',
+      }
+      expect(writeOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('works with compareDeclarations for type widening', () => {
+      const oldContent = 'export declare function foo(): string;'
+      const newContent = 'export declare function foo(): string | null;'
+
+      const report = compareDeclarations(
+        {
+          oldContent,
+          newContent,
+          policy: writeOnlyPolicy,
+        },
+        ts,
+      )
+
+      // Type widening is breaking for writers
+      expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking).toHaveLength(1)
+    })
+  })
+
+  describe('policy comparisons', () => {
+    it('readOnly treats type-narrowing as breaking, writeOnly as non-breaking', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-narrowed',
+        explanation: 'narrowed',
+      }
+
+      expect(readOnlyPolicy.classify(change)).toBe('major')
+      expect(writeOnlyPolicy.classify(change)).toBe('minor')
+    })
+
+    it('readOnly treats type-widening as non-breaking, writeOnly as breaking', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-widened',
+        explanation: 'widened',
+      }
+
+      expect(readOnlyPolicy.classify(change)).toBe('minor')
+      expect(writeOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('readOnly treats param-added-required as non-breaking, writeOnly as breaking', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-added-required',
+        explanation: 'required param added',
+      }
+
+      expect(readOnlyPolicy.classify(change)).toBe('minor')
+      expect(writeOnlyPolicy.classify(change)).toBe('major')
+    })
+
+    it('readOnly treats param-removed as breaking, writeOnly as non-breaking', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-removed',
+        explanation: 'param removed',
+      }
+
+      expect(readOnlyPolicy.classify(change)).toBe('major')
+      expect(writeOnlyPolicy.classify(change)).toBe('minor')
     })
   })
 })

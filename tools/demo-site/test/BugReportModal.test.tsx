@@ -62,6 +62,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -77,6 +78,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={null}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -90,6 +92,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -108,6 +111,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -123,6 +127,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -153,6 +158,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={reportWithManyChanges}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -169,6 +175,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -186,6 +193,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -203,6 +211,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -221,6 +230,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -238,6 +248,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -259,6 +270,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -274,6 +286,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -296,6 +309,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -320,6 +334,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -344,6 +359,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -373,6 +389,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -387,6 +404,30 @@ describe('BugReportModal', () => {
       expect(issueUrl).toContain('major')
     })
 
+    it('includes policy name in issue body', async () => {
+      const user = userEvent.setup()
+      const mockOpen = vi.fn(() => ({} as Window))
+      vi.stubGlobal('open', mockOpen)
+
+      render(
+        <BugReportModal
+          report={mockReport}
+          oldContent={oldContent}
+          policyName="read-only"
+          newContent={newContent}
+          onClose={mockOnClose}
+        />,
+      )
+
+      const fileTicketButton = screen.getByText('File Ticket on GitHub')
+      await user.click(fileTicketButton)
+
+      const issueUrl = mockOpen.mock.calls[0][0] as string
+      // The URL contains the policy name (URL-encoded)
+      expect(issueUrl).toContain('Versioning+Policy')
+      expect(issueUrl).toContain('read-only')
+    })
+
     it('adds bug and change-detector-core labels', async () => {
       const user = userEvent.setup()
       const mockOpen = vi.fn(() => ({} as Window))
@@ -396,6 +437,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -417,6 +459,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -435,6 +478,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -455,6 +499,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -469,6 +514,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -487,6 +533,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -512,6 +559,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -527,6 +575,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
@@ -546,6 +595,7 @@ describe('BugReportModal', () => {
         <BugReportModal
           report={mockReport}
           oldContent={oldContent}
+          policyName="default"
           newContent={newContent}
           onClose={mockOnClose}
         />,
