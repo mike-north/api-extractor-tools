@@ -13,7 +13,7 @@ import type { TSESLint } from '@typescript-eslint/utils'
 /**
  * Recommended rule configuration.
  * These are the rules enabled by default with appropriate severity.
- * @public
+ * @alpha
  */
 export const recommendedRules: TSESLint.Linter.RulesRecord = {
   '@api-extractor-tools/missing-release-tag': 'warn',

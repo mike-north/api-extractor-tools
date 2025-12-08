@@ -1,16 +1,18 @@
 /**
  * ESLint rule for detecting missing release tags on exported symbols.
+ *
+ * @remarks
+ * Configuration is provided explicitly via rule options.
+ *
  * @internal
  */
 
 import { AST_NODE_TYPES, ESLintUtils, TSESTree } from '@typescript-eslint/utils'
 import {
-  resolveConfig,
-  getMessageLogLevel,
   getLeadingTSDocComment,
   parseTSDocComment,
   extractReleaseTag,
-} from '../utils'
+} from '../utils/tsdoc-parser'
 import type { MissingReleaseTagRuleOptions } from '../types'
 
 const createRule = ESLintUtils.RuleCreator(
@@ -39,9 +41,10 @@ export const missingReleaseTag = createRule<
       {
         type: 'object',
         properties: {
-          configPath: {
+          severity: {
             type: 'string',
-            description: 'Path to api-extractor.json configuration file',
+            enum: ['error', 'warning', 'none'],
+            description: 'Severity level for missing release tags',
           },
         },
         additionalProperties: false,
@@ -51,12 +54,10 @@ export const missingReleaseTag = createRule<
   defaultOptions: [{}],
   create(context) {
     const options = context.options[0] ?? {}
-    const filename = context.filename
-    const config = resolveConfig(filename, options.configPath)
-    const logLevel = getMessageLogLevel(config, 'ae-missing-release-tag')
+    const severity = options.severity ?? 'warning'
 
-    // If configured to 'none', disable the rule
-    if (logLevel === 'none') {
+    // If severity is 'none', disable the rule
+    if (severity === 'none') {
       return {}
     }
 
@@ -164,40 +165,24 @@ export const missingReleaseTag = createRule<
     }
 
     return {
-      // Check exported function declarations
       FunctionDeclaration(node): void {
         checkDeclaration(node)
       },
-
-      // Check exported class declarations
       ClassDeclaration(node): void {
         checkDeclaration(node)
       },
-
-      // Check exported interface declarations
       TSInterfaceDeclaration(node): void {
         checkDeclaration(node)
       },
-
-      // Check exported type alias declarations
       TSTypeAliasDeclaration(node): void {
         checkDeclaration(node)
       },
-
-      // Check exported enum declarations
       TSEnumDeclaration(node): void {
         checkDeclaration(node)
       },
-
-      // Check exported variable declarations
       VariableDeclaration(node): void {
         checkDeclaration(node)
       },
-
-      // Note: We intentionally don't handle ExportNamedDeclaration with specifiers
-      // (e.g., `export { foo }` or `export { foo } from './bar'`) because:
-      // - Re-exports should have release tags on the original declaration
-      // - Named exports reference declarations that are checked elsewhere
     }
   },
 })

@@ -9,7 +9,7 @@ import { packageDocumentation } from './package-documentation'
 
 /**
  * All available ESLint rules.
- * @public
+ * @alpha
  */
 export const rules = {
   'missing-release-tag': missingReleaseTag,
