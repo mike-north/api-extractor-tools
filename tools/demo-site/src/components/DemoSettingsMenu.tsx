@@ -40,8 +40,10 @@ export function DemoSettingsMenu({
       }
     }
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
   }, [isOpen])
 
   const handlePolicySelect = useCallback((policy: PolicyName) => {
