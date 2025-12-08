@@ -37,6 +37,8 @@ export default [
       '@api-extractor-tools/forgotten-export': 'warn',
       '@api-extractor-tools/incompatible-release-tags': 'warn',
       '@api-extractor-tools/extra-release-tag': 'error',
+      '@api-extractor-tools/public-on-private-member': 'error',
+      '@api-extractor-tools/public-on-non-exported': 'error',
     },
   },
 ]
@@ -63,6 +65,8 @@ module.exports = {
     '@api-extractor-tools/forgotten-export': 'warn',
     '@api-extractor-tools/incompatible-release-tags': 'warn',
     '@api-extractor-tools/extra-release-tag': 'error',
+    '@api-extractor-tools/public-on-private-member': 'error',
+    '@api-extractor-tools/public-on-non-exported': 'error',
   },
 }
 ```
@@ -270,6 +274,105 @@ export function myFunction(): void {}
 }
 ```
 
+### `@api-extractor-tools/public-on-private-member`
+
+Prevents the use of `@public` tag on private or protected class members.
+
+Private and protected members cannot be public API since they are not accessible outside the class or to external consumers.
+
+```ts
+// ❌ Bad - @public on private member
+export class MyClass {
+  /**
+   * A private property.
+   * @public
+   */
+  private myProperty: string = ''
+}
+
+// ✅ Good - @internal on private member
+export class MyClass {
+  /**
+   * A private property.
+   * @internal
+   */
+  private myProperty: string = ''
+}
+
+// ✅ Good - @public on public member
+export class MyClass {
+  /**
+   * A public property.
+   * @public
+   */
+  public myProperty: string = ''
+}
+```
+
+**Options:**
+
+- `severity` (optional): Severity level for public tags on private/protected members. Default: `'error'`
+
+```json
+{
+  "@api-extractor-tools/public-on-private-member": [
+    "error",
+    { "severity": "error" }
+  ]
+}
+```
+
+### `@api-extractor-tools/public-on-non-exported`
+
+Prevents the use of `@public` tag on symbols that are not exported.
+
+The `@public` tag indicates that a symbol is part of the public API, but non-exported symbols cannot be accessed by consumers.
+
+```ts
+// ❌ Bad - @public on non-exported symbol
+/**
+ * A function.
+ * @public
+ */
+function myFunction(): void {}
+
+// ✅ Good - @public on exported symbol
+/**
+ * A function.
+ * @public
+ */
+export function myFunction(): void {}
+
+// ✅ Good - @internal on non-exported symbol
+/**
+ * A function.
+ * @internal
+ */
+function myFunction(): void {}
+
+// ✅ Good - exported separately
+/**
+ * A function.
+ * @public
+ */
+function myFunction(): void {}
+
+export { myFunction }
+```
+
+**Options:**
+
+- `severity` (optional): Severity level for public tags on non-exported symbols. Default: `'error'`
+
+```json
+{
+  "@api-extractor-tools/public-on-non-exported": [
+    "error",
+    { "severity": "error" }
+  ]
+}
+```
+
 ## Configuration Discovery
 
 Rules that read from `api-extractor.json` use the following strategy:
@@ -290,6 +393,8 @@ The `recommended` configuration enables all rules with these defaults:
 | `forgotten-export`          | warn     |
 | `incompatible-release-tags` | warn     |
 | `extra-release-tag`         | error    |
+| `public-on-private-member`  | error    |
+| `public-on-non-exported`    | error    |
 
 ## Requirements
 

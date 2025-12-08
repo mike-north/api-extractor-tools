@@ -5,7 +5,7 @@
 ## SemanticReleaseContext interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Context provided by semantic-release to plugin hooks. This is a simplified version of the actual context.
 
@@ -21,122 +21,155 @@ export interface SemanticReleaseContext
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [branch?](./change-detector-semantic-release-plugin.semanticreleasecontext.branch.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { name: string; main: boolean; }
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Branch configuration
+
 
 </td></tr>
 <tr><td>
 
 [commits?](./change-detector-semantic-release-plugin.semanticreleasecontext.commits.md)
 
+
 </td><td>
+
 
 </td><td>
 
 Array&lt;{ hash: string; message: string; subject: string; body: string \| null; }&gt;
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Commits since the last release
+
 
 </td></tr>
 <tr><td>
 
 [cwd](./change-detector-semantic-release-plugin.semanticreleasecontext.cwd.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** The current working directory
+
 
 </td></tr>
 <tr><td>
 
 [env](./change-detector-semantic-release-plugin.semanticreleasecontext.env.md)
 
+
 </td><td>
+
 
 </td><td>
 
 Record&lt;string, string \| undefined&gt;
 
+
 </td><td>
 
 **_(ALPHA)_** Environment variables
+
 
 </td></tr>
 <tr><td>
 
 [lastRelease?](./change-detector-semantic-release-plugin.semanticreleasecontext.lastrelease.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { version: string; gitTag: string; gitHead: string; }
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Information about the last release
+
 
 </td></tr>
 <tr><td>
 
 [logger](./change-detector-semantic-release-plugin.semanticreleasecontext.logger.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { log: (message: string, ...args: unknown\[\]) =&gt; void; error: (message: string, ...args: unknown\[\]) =&gt; void; warn: (message: string, ...args: unknown\[\]) =&gt; void; success: (message: string, ...args: unknown\[\]) =&gt; void; }
 
+
 </td><td>
 
 **_(ALPHA)_** Logger instance
+
 
 </td></tr>
 <tr><td>
 
 [nextRelease?](./change-detector-semantic-release-plugin.semanticreleasecontext.nextrelease.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { type: [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)<!-- -->; version: string; gitTag: string; notes: string; }
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Information about the next release (populated during lifecycle)
 
+
 </td></tr>
 </tbody></table>
+

@@ -5,7 +5,7 @@
 ## DocModelConfig interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Configuration for the doc model (.api.json) output
 
@@ -21,47 +21,60 @@ export interface DocModelConfig
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiJsonFilePath](./module-declaration-merger.docmodelconfig.apijsonfilepath.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Absolute path to the .api.json file
+
 
 </td></tr>
 <tr><td>
 
 [enabled](./module-declaration-merger.docmodelconfig.enabled.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** Whether doc model generation is enabled
 
+
 </td></tr>
 </tbody></table>
+

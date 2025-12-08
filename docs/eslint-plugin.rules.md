@@ -4,6 +4,9 @@
 
 ## rules variable
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 All available ESLint rules.
 
 **Signature:**
@@ -13,5 +16,8 @@ rules: {
     readonly 'missing-release-tag': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"missingReleaseTag", [import("..").MissingReleaseTagRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
     readonly 'override-keyword': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"missingOverrideKeyword", [import("..").OverrideKeywordRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
     readonly 'package-documentation': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"missingPackageDocumentation", [import("..").PackageDocumentationRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
+    readonly 'forgotten-export': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"forgottenExport", [import("./forgotten-export").ForgottenExportRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
+    readonly 'incompatible-release-tags': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"incompatibleReleaseTags", [import("./incompatible-release-tags").IncompatibleReleaseTagsRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
+    readonly 'extra-release-tag': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"extraReleaseTag", [import("./extra-release-tag").ExtraReleaseTagRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
 }
 ```

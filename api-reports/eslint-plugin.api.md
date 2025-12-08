@@ -127,6 +127,16 @@ const plugin: ApiExtractorEslintPlugin;
 export default plugin;
 
 // @alpha
+export interface PublicOnNonExportedRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
+
+// @alpha
+export interface PublicOnPrivateMemberRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
+
+// @alpha
 export const recommendedRules: TSESLint.Linter.RulesRecord;
 
 // @alpha
@@ -153,6 +163,8 @@ export const rules: {
     readonly 'forgotten-export': RuleModule<"forgottenExport", [ForgottenExportRuleOptions], unknown, RuleListener>;
     readonly 'incompatible-release-tags': RuleModule<"incompatibleReleaseTags", [IncompatibleReleaseTagsRuleOptions], unknown, RuleListener>;
     readonly 'extra-release-tag': RuleModule<"extraReleaseTag", [ExtraReleaseTagRuleOptions], unknown, RuleListener>;
+    readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>;
+    readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>;
 };
 
 ```

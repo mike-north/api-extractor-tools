@@ -4,6 +4,9 @@
 
 ## ResolvedEntryPoints interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Resolved entry points from package.json.
 
 **Signature:**
@@ -18,60 +21,79 @@ export interface ResolvedEntryPoints
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [exports](./eslint-plugin.resolvedentrypoints.exports.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string\[\]
 
+
 </td><td>
+
+**_(ALPHA)_**
+
 
 </td></tr>
 <tr><td>
 
 [main?](./eslint-plugin.resolvedentrypoints.main.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
-_(Optional)_
+**_(ALPHA)_** _(Optional)_
+
 
 </td></tr>
 <tr><td>
 
 [types?](./eslint-plugin.resolvedentrypoints.types.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
-_(Optional)_
+**_(ALPHA)_** _(Optional)_
+
 
 </td></tr>
 </tbody></table>
+

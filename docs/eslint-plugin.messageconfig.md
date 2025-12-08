@@ -4,6 +4,9 @@
 
 ## MessageConfig interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Configuration for a single message type in API Extractor.
 
 **Signature:**
@@ -18,45 +21,60 @@ export interface MessageConfig
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [addToApiReportFile?](./eslint-plugin.messageconfig.addtoapireportfile.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
-_(Optional)_
+**_(ALPHA)_** _(Optional)_
+
 
 </td></tr>
 <tr><td>
 
 [logLevel](./eslint-plugin.messageconfig.loglevel.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ApiExtractorLogLevel](./eslint-plugin.apiextractorloglevel.md)
 
+
 </td><td>
+
+**_(ALPHA)_**
+
 
 </td></tr>
 </tbody></table>
+

@@ -5,7 +5,7 @@
 ## releaseTypeToBumpType() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Maps change-detector ReleaseType to changeset bump type. Returns null for 'none' since no changeset is needed.
 
@@ -21,26 +21,32 @@ export declare function releaseTypeToBumpType(releaseType: ReleaseType): Changes
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 releaseType
 
+
 </td><td>
 
 ReleaseType
 
+
 </td><td>
 
 The release type from change-detector
+
 
 </td></tr>
 </tbody></table>
@@ -50,3 +56,4 @@ The release type from change-detector
 [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| null
 
 The corresponding changeset bump type, or null if no bump needed
+

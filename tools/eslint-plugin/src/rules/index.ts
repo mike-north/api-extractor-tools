@@ -9,6 +9,8 @@ import { packageDocumentation } from './package-documentation'
 import { forgottenExport } from './forgotten-export'
 import { incompatibleReleaseTags } from './incompatible-release-tags'
 import { extraReleaseTag } from './extra-release-tag'
+import { publicOnPrivateMember } from './public-on-private-member'
+import { publicOnNonExported } from './public-on-non-exported'
 
 /**
  * All available ESLint rules.
@@ -21,4 +23,6 @@ export const rules = {
   'forgotten-export': forgottenExport,
   'incompatible-release-tags': incompatibleReleaseTags,
   'extra-release-tag': extraReleaseTag,
+  'public-on-private-member': publicOnPrivateMember,
+  'public-on-non-exported': publicOnNonExported,
 } as const

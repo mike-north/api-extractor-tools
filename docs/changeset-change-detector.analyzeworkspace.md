@@ -5,7 +5,7 @@
 ## analyzeWorkspace() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Analyzes all packages in the workspace for API changes.
 
@@ -21,26 +21,32 @@ export declare function analyzeWorkspace(options?: AnalyzeOptions): WorkspaceAna
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
+
 </td><td>
 
 [AnalyzeOptions](./changeset-change-detector.analyzeoptions.md)
 
+
 </td><td>
 
 _(Optional)_ Analysis options
+
 
 </td></tr>
 </tbody></table>
@@ -53,9 +59,11 @@ Complete workspace analysis result
 
 ## Example
 
+
 ```ts
 import { analyzeWorkspace } from '@api-extractor-tools/changeset-change-detector';
 
 const result = await analyzeWorkspace({ baseRef: 'main' });
 console.log(result.packagesWithChanges);
 ```
+

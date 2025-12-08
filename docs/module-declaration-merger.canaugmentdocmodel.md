@@ -5,7 +5,7 @@
 ## canAugmentDocModel() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Checks if a doc model file exists and can be augmented
 
@@ -21,24 +21,30 @@ export declare function canAugmentDocModel(docModelConfig: DocModelConfig | unde
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 docModelConfig
 
+
 </td><td>
 
 [DocModelConfig](./module-declaration-merger.docmodelconfig.md) \| undefined
 
+
 </td><td>
+
 
 </td></tr>
 </tbody></table>
@@ -46,3 +52,4 @@ docModelConfig
 **Returns:**
 
 boolean
+

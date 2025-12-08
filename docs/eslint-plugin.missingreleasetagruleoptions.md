@@ -4,6 +4,9 @@
 
 ## MissingReleaseTagRuleOptions interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Options for the missing-release-tag rule.
 
 **Signature:**
@@ -12,38 +15,51 @@ Options for the missing-release-tag rule.
 export interface MissingReleaseTagRuleOptions 
 ```
 
+## Remarks
+
+All options are explicit - no automatic file discovery. Node.js users can use the `/node` entry point utilities to read config from disk.
+
 ## Properties
 
 <table><thead><tr><th>
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
 
+
 </th></tr></thead>
 <tbody><tr><td>
 
-[configPath?](./eslint-plugin.missingreleasetagruleoptions.configpath.md)
+[severity?](./eslint-plugin.missingreleasetagruleoptions.severity.md)
+
 
 </td><td>
 
-</td><td>
-
-string
 
 </td><td>
 
-_(Optional)_
+[ApiExtractorLogLevel](./eslint-plugin.apiextractorloglevel.md)
+
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_ Severity level for missing release tags. - 'error': Report as error - 'warning': Report as warning (default) - 'none': Disable the check
+
 
 </td></tr>
 </tbody></table>
+

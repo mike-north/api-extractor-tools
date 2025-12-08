@@ -5,7 +5,7 @@
 ## readPendingChangesets() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Reads all pending changesets from the .changeset directory.
 
@@ -21,26 +21,32 @@ export declare function readPendingChangesets(cwd: string): Promise<NewChangeset
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The workspace root directory
+
 
 </td></tr>
 </tbody></table>
@@ -50,3 +56,4 @@ The workspace root directory
 Promise&lt;NewChangeset\[\]&gt;
 
 Array of pending changesets
+

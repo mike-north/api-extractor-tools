@@ -5,7 +5,7 @@
 ## analyzePackage() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Analyzes a single package for API changes.
 
@@ -21,52 +21,64 @@ export declare function analyzePackage(pkg: PackageInfo, baseRef: string, cwd: s
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 pkg
 
+
 </td><td>
 
 [PackageInfo](./changeset-change-detector.packageinfo.md)
 
+
 </td><td>
 
 The package to analyze
+
 
 </td></tr>
 <tr><td>
 
 baseRef
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The git ref to compare against
+
 
 </td></tr>
 <tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The workspace root directory
+
 
 </td></tr>
 </tbody></table>
@@ -76,3 +88,4 @@ The workspace root directory
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)
 
 Analysis result for the package
+

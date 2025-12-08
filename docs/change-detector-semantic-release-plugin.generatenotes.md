@@ -5,7 +5,7 @@
 ## generateNotes() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Generates release notes with API change details.
 
@@ -23,39 +23,48 @@ export declare function generateNotes(pluginConfig: PluginConfig, context: Seman
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 pluginConfig
 
+
 </td><td>
 
 [PluginConfig](./change-detector-semantic-release-plugin.pluginconfig.md)
 
+
 </td><td>
 
 Plugin configuration
+
 
 </td></tr>
 <tr><td>
 
 context
 
+
 </td><td>
 
 [SemanticReleaseContext](./change-detector-semantic-release-plugin.semanticreleasecontext.md)
 
+
 </td><td>
 
 semantic-release context
+
 
 </td></tr>
 </tbody></table>
@@ -65,3 +74,4 @@ semantic-release context
 string
 
 Additional release notes content, or empty string
+

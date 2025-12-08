@@ -5,7 +5,7 @@
 ## createChangesetFromAnalysis() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Creates a changeset object from analysis results.
 
@@ -21,39 +21,48 @@ export declare function createChangesetFromAnalysis(analysis: WorkspaceAnalysisR
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 analysis
 
+
 </td><td>
 
 [WorkspaceAnalysisResult](./changeset-change-detector.workspaceanalysisresult.md)
 
+
 </td><td>
 
 The workspace analysis result
+
 
 </td></tr>
 <tr><td>
 
 customSummary
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 _(Optional)_ Optional custom summary to use instead of auto-generated
+
 
 </td></tr>
 </tbody></table>
@@ -63,3 +72,4 @@ _(Optional)_ Optional custom summary to use instead of auto-generated
 [PendingChangeset](./changeset-change-detector.pendingchangeset.md) \| null
 
 A pending changeset, or null if no changes detected
+

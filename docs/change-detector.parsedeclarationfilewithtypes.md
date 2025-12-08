@@ -5,7 +5,7 @@
 ## parseDeclarationFileWithTypes() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Parses a declaration file and returns TypeScript type information for deep comparison.
 
@@ -21,26 +21,32 @@ export declare function parseDeclarationFileWithTypes(filePath: string): ParseRe
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 filePath
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 Path to the declaration file to parse
+
 
 </td></tr>
 </tbody></table>
@@ -50,3 +56,4 @@ Path to the declaration file to parse
 ParseResultWithTypes
 
 Parse result with TypeScript program and type checker for deep analysis
+

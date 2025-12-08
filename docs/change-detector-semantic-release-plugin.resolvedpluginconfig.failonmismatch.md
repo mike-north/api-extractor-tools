@@ -5,7 +5,7 @@
 ## ResolvedPluginConfig.failOnMismatch property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Whether to fail the release when there's a version bump mismatch
 

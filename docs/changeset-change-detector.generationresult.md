@@ -5,7 +5,7 @@
 ## GenerationResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Result of generating changesets.
 
@@ -21,107 +21,136 @@ export interface GenerationResult
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changeset?](./changeset-change-detector.generationresult.changeset.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [PendingChangeset](./changeset-change-detector.pendingchangeset.md)
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ The changeset that was generated
+
 
 </td></tr>
 <tr><td>
 
 [changesetPath?](./changeset-change-detector.generationresult.changesetpath.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Path to the generated changeset file
+
 
 </td></tr>
 <tr><td>
 
 [error?](./changeset-change-detector.generationresult.error.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Error message if generation failed
+
 
 </td></tr>
 <tr><td>
 
 [skipped](./changeset-change-detector.generationresult.skipped.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** Whether generation was skipped (e.g., no changes detected)
+
 
 </td></tr>
 <tr><td>
 
 [skipReason?](./changeset-change-detector.generationresult.skipreason.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Reason for skipping, if applicable
+
 
 </td></tr>
 <tr><td>
 
 [success](./changeset-change-detector.generationresult.success.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** Whether generation was successful
 
+
 </td></tr>
 </tbody></table>
+

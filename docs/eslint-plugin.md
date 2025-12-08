@@ -6,10 +6,6 @@
 
 ESLint plugin providing authoring-time feedback for API Extractor.
 
-## Remarks
-
-This plugin provides ESLint rules that mirror API Extractor's validations, enabling developers to catch issues during development rather than at build time.
-
 ## Example 1
 
 Using with flat config (eslint.config.js):
@@ -19,15 +15,6 @@ import apiExtractorPlugin from '@api-extractor-tools/eslint-plugin';
 
 export default [
   apiExtractorPlugin.configs.recommended,
-  // Or configure rules individually:
-  {
-    plugins: {
-      '@api-extractor-tools': apiExtractorPlugin,
-    },
-    rules: {
-      '@api-extractor-tools/missing-release-tag': 'error',
-    },
-  },
 ];
 ```
 
@@ -42,87 +29,197 @@ module.exports = {
 };
 ```
 
+## Functions
+
+<table><thead><tr><th>
+
+Function
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[extractReleaseTag(docComment)](./eslint-plugin.extractreleasetag.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Extracts a release tag from a parsed TSDoc comment.
+
+
+</td></tr>
+<tr><td>
+
+[findAllTSDocComments(sourceCode)](./eslint-plugin.findalltsdoccomments.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Finds all TSDoc comments in a source file.
+
+
+</td></tr>
+<tr><td>
+
+[getLeadingTSDocComment(sourceCode, node)](./eslint-plugin.getleadingtsdoccomment.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Gets the leading comment for a node, if it's a TSDoc comment.
+
+
+</td></tr>
+<tr><td>
+
+[hasOverrideTag(docComment)](./eslint-plugin.hasoverridetag.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Checks if a TSDoc comment has the tag.
+
+
+</td></tr>
+<tr><td>
+
+[hasPackageDocumentation(docComment)](./eslint-plugin.haspackagedocumentation.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Checks if a TSDoc comment has the tag.
+
+
+</td></tr>
+<tr><td>
+
+[parseTSDocComment(commentText)](./eslint-plugin.parsetsdoccomment.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Parses a TSDoc comment string.
+
+
+</td></tr>
+</tbody></table>
+
 ## Interfaces
 
 <table><thead><tr><th>
 
 Interface
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [ApiExtractorConfig](./eslint-plugin.apiextractorconfig.md)
 
+
 </td><td>
 
-Partial representation of api-extractor.json relevant for this plugin.
+**_(ALPHA)_** Partial representation of api-extractor.json relevant for this plugin.
+
 
 </td></tr>
 <tr><td>
 
 [ApiExtractorEslintPlugin](./eslint-plugin.apiextractoreslintplugin.md)
 
+
 </td><td>
 
-The ESLint plugin type.
+**_(ALPHA)_** The ESLint plugin type.
+
 
 </td></tr>
 <tr><td>
 
 [ApiExtractorMessagesConfig](./eslint-plugin.apiextractormessagesconfig.md)
 
+
 </td><td>
 
-The messages configuration section from api-extractor.json.
+**_(ALPHA)_** The messages configuration section from api-extractor.json.
+
+
+</td></tr>
+<tr><td>
+
+[ExtraReleaseTagRuleOptions](./eslint-plugin.extrareleasetagruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the extra-release-tag rule.
+
+
+</td></tr>
+<tr><td>
+
+[ForgottenExportRuleOptions](./eslint-plugin.forgottenexportruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the forgotten-export rule.
+
+
+</td></tr>
+<tr><td>
+
+[IncompatibleReleaseTagsRuleOptions](./eslint-plugin.incompatiblereleasetagsruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the incompatible-release-tags rule.
+
 
 </td></tr>
 <tr><td>
 
 [MessageConfig](./eslint-plugin.messageconfig.md)
 
+
 </td><td>
 
-Configuration for a single message type in API Extractor.
+**_(ALPHA)_** Configuration for a single message type in API Extractor.
+
 
 </td></tr>
 <tr><td>
 
 [MissingReleaseTagRuleOptions](./eslint-plugin.missingreleasetagruleoptions.md)
 
-</td><td>
-
-Options for the missing-release-tag rule.
-
-</td></tr>
-<tr><td>
-
-[OverrideKeywordRuleOptions](./eslint-plugin.overridekeywordruleoptions.md)
 
 </td><td>
 
-Options for the override-keyword rule.
+**_(ALPHA)_** Options for the missing-release-tag rule.
 
-</td></tr>
-<tr><td>
-
-[PackageDocumentationRuleOptions](./eslint-plugin.packagedocumentationruleoptions.md)
-
-</td><td>
-
-Options for the package-documentation rule.
 
 </td></tr>
 <tr><td>
 
 [ResolvedEntryPoints](./eslint-plugin.resolvedentrypoints.md)
 
+
 </td><td>
 
-Resolved entry points from package.json.
+**_(ALPHA)_** Resolved entry points from package.json.
+
 
 </td></tr>
 </tbody></table>
@@ -133,45 +230,55 @@ Resolved entry points from package.json.
 
 Variable
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [plugin](./eslint-plugin.plugin.md)
 
+
 </td><td>
 
-The ESLint plugin object.
+**_(ALPHA)_** The ESLint plugin object.
+
 
 </td></tr>
 <tr><td>
 
 [recommendedRules](./eslint-plugin.recommendedrules.md)
 
+
 </td><td>
 
-Recommended rule configuration. These are the rules enabled by default with appropriate severity.
+**_(ALPHA)_** Recommended rule configuration. These are the rules enabled by default with appropriate severity.
+
 
 </td></tr>
 <tr><td>
 
 [RELEASE\_TAGS](./eslint-plugin.release_tags.md)
 
+
 </td><td>
 
-All valid release tags.
+**_(ALPHA)_** All valid release tags.
+
 
 </td></tr>
 <tr><td>
 
 [rules](./eslint-plugin.rules.md)
 
+
 </td><td>
 
-All available ESLint rules.
+**_(ALPHA)_** All available ESLint rules.
+
 
 </td></tr>
 </tbody></table>
@@ -182,27 +289,56 @@ All available ESLint rules.
 
 Type Alias
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [ApiExtractorLogLevel](./eslint-plugin.apiextractorloglevel.md)
 
+
 </td><td>
 
-Log levels supported by API Extractor message configuration.
+**_(ALPHA)_** Log levels supported by API Extractor message configuration.
+
+
+</td></tr>
+<tr><td>
+
+[OverrideKeywordRuleOptions](./eslint-plugin.overridekeywordruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the override-keyword rule.
+
+
+</td></tr>
+<tr><td>
+
+[PackageDocumentationRuleOptions](./eslint-plugin.packagedocumentationruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the package-documentation rule.
+
 
 </td></tr>
 <tr><td>
 
 [ReleaseTag](./eslint-plugin.releasetag.md)
 
+
 </td><td>
 
-Release tags recognized by API Extractor.
+**_(ALPHA)_** Release tags recognized by API Extractor.
+
 
 </td></tr>
 </tbody></table>
+
