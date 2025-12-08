@@ -233,6 +233,76 @@ describe('App', () => {
     })
   })
 
+  describe('Policy URL persistence', () => {
+    it('initializes with default policy when no URL parameter', () => {
+      window.history.replaceState(null, '', '/')
+      render(<App />)
+
+      const policySelect = screen.getByLabelText('Versioning policy')
+      expect(policySelect).toHaveValue('default')
+    })
+
+    it('initializes with read-only policy from URL', () => {
+      window.history.replaceState(null, '', '/?policy=read-only')
+      render(<App />)
+
+      const policySelect = screen.getByLabelText('Versioning policy')
+      expect(policySelect).toHaveValue('read-only')
+    })
+
+    it('initializes with write-only policy from URL', () => {
+      window.history.replaceState(null, '', '/?policy=write-only')
+      render(<App />)
+
+      const policySelect = screen.getByLabelText('Versioning policy')
+      expect(policySelect).toHaveValue('write-only')
+    })
+
+    it('falls back to default for invalid policy parameter', () => {
+      window.history.replaceState(null, '', '/?policy=invalid')
+      render(<App />)
+
+      const policySelect = screen.getByLabelText('Versioning policy')
+      expect(policySelect).toHaveValue('default')
+    })
+
+    it('updates URL when policy selection changes', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const policySelect = screen.getByLabelText('Versioning policy')
+      await user.selectOptions(policySelect, 'read-only')
+
+      // Wait for URL update debounce (300ms)
+      await waitFor(
+        () => {
+          const params = new URLSearchParams(window.location.search)
+          expect(params.get('policy')).toBe('read-only')
+        },
+        { timeout: 500 },
+      )
+    })
+
+    it('preserves policy parameter along with content in URL', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const policySelect = screen.getByLabelText('Versioning policy')
+      await user.selectOptions(policySelect, 'write-only')
+
+      // Wait for URL update
+      await waitFor(
+        () => {
+          const params = new URLSearchParams(window.location.search)
+          expect(params.get('policy')).toBe('write-only')
+          expect(params.has('old')).toBe(true)
+          expect(params.has('new')).toBe(true)
+        },
+        { timeout: 500 },
+      )
+    })
+  })
+
   describe('Copy functionality', () => {
     afterEach(() => {
       // Clean up clipboard mock to prevent test pollution
@@ -628,6 +698,90 @@ describe('App', () => {
 
       const oldValue = (editors[0] as HTMLTextAreaElement).value
       expect(oldValue).toContain('export declare')
+    })
+  })
+
+  describe('Policy selection', () => {
+    it('renders the policy selector', () => {
+      render(<App />)
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      expect(policySelect).toBeInTheDocument()
+      expect(within(policySelect).getByRole('option', { name: /bidirectional.*default/i })).toBeInTheDocument()
+      expect(within(policySelect).getByRole('option', { name: /read-only.*consumer/i })).toBeInTheDocument()
+      expect(within(policySelect).getByRole('option', { name: /write-only.*producer/i })).toBeInTheDocument()
+    })
+
+    it('defaults to bidirectional policy', () => {
+      render(<App />)
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i }) as HTMLSelectElement
+      expect(policySelect.value).toBe('default')
+    })
+
+    it('switches to read-only policy', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'read-only')
+
+      expect((policySelect as HTMLSelectElement).value).toBe('read-only')
+    })
+
+    it('switches to write-only policy', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'write-only')
+
+      expect((policySelect as HTMLSelectElement).value).toBe('write-only')
+    })
+
+    it('re-analyzes when policy changes', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      // Wait for initial analysis with default policy
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+
+      // Change policy
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'read-only')
+
+      // Wait a bit for re-analysis to complete
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+    })
+
+    it('applies read-only policy correctly', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      // Set policy to read-only
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'read-only')
+
+      // Should show some release type
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+    })
+
+    it('applies write-only policy correctly', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      // Set policy to write-only
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'write-only')
+
+      // Should show some release type
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
     })
   })
 })
