@@ -48,7 +48,7 @@ export type {
 } from './types'
 
 // Policy exports
-export { defaultPolicy } from './policies'
+export { defaultPolicy, readOnlyPolicy, writeOnlyPolicy } from './policies'
 
 // Parser exports
 export {
