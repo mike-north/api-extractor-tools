@@ -1,6 +1,6 @@
 # @api-extractor-tools/change-detector-core
 
-## 0.1.0-alpha.0 
+## 0.1.0-alpha.0
 
 ### Minor Changes
 

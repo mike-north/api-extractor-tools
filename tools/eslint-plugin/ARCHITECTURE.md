@@ -6,7 +6,7 @@ This document describes the architecture of `@api-extractor-tools/eslint-plugin`
 
 ### Isomorphic Core
 
-The plugin is designed to work in both Node.js and browser environments. The core functionality (rules, configs, types, TSDoc parsing) has no Node.js dependencies and can run anywhere JavaScript runs.
+The plugin is designed to work in both Node.js and browser environments. While the core functionality aims to be environment-agnostic, the current implementation uses `@typescript-eslint/utils` which has transitive Node.js dependencies. Browser usage requires polyfills (see usage examples).
 
 ### Explicit Configuration
 
@@ -53,7 +53,7 @@ Exports:
 - Types - `ApiExtractorConfig`, `ReleaseTag`, rule option types, etc.
 - TSDoc utilities - `parseTSDocComment`, `extractReleaseTag`, etc.
 
-This entry point is fully isomorphic and has no Node.js dependencies.
+This entry point can be used in browser environments with appropriate polyfills for `@typescript-eslint/utils` dependencies.
 
 ### Node.js Entry Point (`./node`)
 
@@ -105,30 +105,43 @@ Note: This rule checks all files ESLint runs it on. To only check entry points, 
 
 ## Usage Examples
 
-### Browser Environment
+### Browser Environment (ESLint 9 Flat Config)
 
 ```js
 import { Linter } from 'eslint-linter-browserify'
-import plugin from '@api-extractor-tools/eslint-plugin'
+import * as tsParser from '@typescript-eslint/parser'
+import { rules } from '@api-extractor-tools/eslint-plugin'
 
 const linter = new Linter()
 
-// Register rules
-for (const [name, rule] of Object.entries(plugin.rules)) {
-  linter.defineRule(`@api-extractor-tools/${name}`, rule)
-}
-
-// Lint code
-const messages = linter.verify(code, {
-  rules: {
-    '@api-extractor-tools/missing-release-tag': [
-      'warn',
-      { severity: 'warning' },
-    ],
-    '@api-extractor-tools/override-keyword': 'error',
+// Lint code using ESLint 9 flat config style
+const messages = linter.verify(
+  code,
+  {
+    files: ['**/*.ts', '**/*.d.ts'],
+    plugins: {
+      '@api-extractor-tools': { rules },
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      '@api-extractor-tools/missing-release-tag': [
+        'warn',
+        { severity: 'warning' },
+      ],
+      '@api-extractor-tools/override-keyword': 'error',
+    },
   },
-})
+  { filename: 'file.d.ts' },
+)
 ```
+
+**Note:** When using in a browser, you'll need to polyfill or stub Node.js modules that `@typescript-eslint/parser` depends on (e.g., `fs`, `path`, `process`). See the demo-site for a working example using Vite aliases.
 
 ### Node.js with ESLint Flat Config
 
@@ -174,8 +187,13 @@ export default [
 
 ### Runtime Dependencies
 
-- `@microsoft/tsdoc` - TSDoc comment parsing (isomorphic)
+- `@microsoft/tsdoc` - TSDoc comment parsing (browser-compatible)
+
+### Dev Dependencies
+
 - `@typescript-eslint/utils` - ESLint rule utilities and TypeScript AST types
+- `@typescript-eslint/rule-tester` - Testing harness for ESLint rules
+- `@typescript-eslint/parser` - TypeScript parser for ESLint (used in tests)
 
 ### Peer Dependencies
 

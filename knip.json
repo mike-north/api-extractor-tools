@@ -18,19 +18,9 @@
       },
       "ignoreDependencies": ["semantic-release"]
     },
-    "tools/eslint-plugin": {
-      "entry": ["src/index.ts"],
-      "paths": {
-        "@": ["./src/index.ts"]
-      },
-      "ignoreDependencies": ["semantic-release"],
-      "ignore": ["src/utils/eslint-types.ts"]
-    },
     "tools/demo-site": {
       "entry": ["src/main.tsx", "src/App.tsx"],
-      "project": ["src/**/*.{ts,tsx}"],
-      "ignoreDependencies": ["path-browserify"],
-      "ignore": ["src/stubs/**"]
+      "project": ["src/**/*.{ts,tsx}"]
     }
   }
 }
