@@ -460,4 +460,24 @@ describe('interface changes', () => {
       expect(report.releaseType).toBe('none')
     })
   })
+
+  describe('regression tests', () => {
+    it('detects union type widening in interface property as major (issue from demo-site)', () => {
+      // Regression test for: https://github.com/mike-north/api-extractor-tools/issues/[issue-number]
+      // This was previously showing "NONE" in the demo-site due to interfaces not being exported
+      const report = compare(
+        `export interface Payment {
+  state: 'active' | 'inactive';
+}`,
+        `export interface Payment {
+  state: 'active' | 'inactive' | 'pending';
+}`,
+      )
+
+      expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking).toHaveLength(1)
+      expect(report.changes.breaking[0]?.symbolName).toBe('Payment')
+      expect(report.changes.breaking[0]?.category).toBe('type-narrowed')
+    })
+  })
 })
