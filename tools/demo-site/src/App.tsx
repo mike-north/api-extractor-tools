@@ -213,11 +213,11 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
 `
   }, [oldContent, newContent, report])
 
-  const demoCapabilities: DemoCapabilities = {
+  const demoCapabilities: DemoCapabilities = useMemo(() => ({
     getLLMContent,
     openBugReport: () => setIsBugReportOpen(true),
     canReportBug: report !== null,
-  }
+  }), [getLLMContent, report])
 
   return (
     <DemoProvider capabilities={demoCapabilities}>
