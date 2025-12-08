@@ -192,6 +192,10 @@ const strictPolicy: VersioningPolicy = {
       
       case 'signature-identical':
         return 'none'
+      
+      default:
+        // Unexpected category - treat conservatively as major
+        return 'major'
     }
   },
 }
@@ -360,6 +364,12 @@ const tsVersionAwarePolicy: VersioningPolicy = {
 Always document which policy you're using and why:
 
 ```typescript
+import { readFileSync } from 'fs'
+
+// Get current version from package.json
+const packageJson = JSON.parse(readFileSync('package.json', 'utf-8'))
+const version = packageJson.version
+
 /**
  * This project uses a permissive versioning policy during the 0.x phase.
  * Once we reach 1.0, we will switch to the default strict semver policy.
