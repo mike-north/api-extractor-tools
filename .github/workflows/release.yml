@@ -60,10 +60,24 @@ jobs:
           echo "Published packages:"
           echo "${PUBLISHED_PACKAGES}" | jq -r '.[] | "- \(.name)@\(.version)"'
           
-          # Use timestamp-based release tag for monorepo releases
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          RELEASE_TAG="release-${TIMESTAMP}"
-          RELEASE_NAME="Release ${TIMESTAMP}"
+          # Determine release name based on number of packages
+          PACKAGE_COUNT=$(echo "${PUBLISHED_PACKAGES}" | jq '. | length')
+          
+          if [ "$PACKAGE_COUNT" -eq 1 ]; then
+            # Single package: use version as tag
+            VERSION=$(echo "${PUBLISHED_PACKAGES}" | jq -r '.[0].version')
+            PACKAGE_NAME=$(echo "${PUBLISHED_PACKAGES}" | jq -r '.[0].name' | sed 's/@.*\///')
+            RELEASE_TAG="v${VERSION}"
+            RELEASE_NAME="${PACKAGE_NAME} v${VERSION}"
+          else
+            # Multiple packages: use readable date format
+            RELEASE_DATE=$(date +%Y-%m-%d)
+            RELEASE_TAG="release-${RELEASE_DATE}"
+            RELEASE_NAME="Release ${RELEASE_DATE}"
+          fi
+          
+          echo "Release tag: ${RELEASE_TAG}"
+          echo "Release name: ${RELEASE_NAME}"
           
           # Build release notes
           cat << 'EOF' > release_notes.md
@@ -86,6 +100,7 @@ jobs:
           
           cat << 'EOF' >> release_notes.md
           ```
+          
           EOF
           
           # Create the GitHub release
