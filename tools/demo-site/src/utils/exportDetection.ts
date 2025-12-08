@@ -58,7 +58,7 @@ export function findMatchingExports(
   newContent: string,
 ): string[] {
   const oldExports = extractExportNames(oldContent)
-  const newExports = extractExportNames(newContent)
+  const newExportsSet = new Set(extractExportNames(newContent))
 
-  return oldExports.filter((name) => newExports.includes(name)).sort()
+  return oldExports.filter((name) => newExportsSet.has(name)).sort()
 }
