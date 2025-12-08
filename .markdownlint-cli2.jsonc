@@ -16,6 +16,10 @@
     // Ignore generated documentation
     "docs/**",
     "api-reports/**",
+    // Ignore changesets (special format with frontmatter)
+    ".changeset/**",
+    // Ignore API Extractor generated temp files
+    "**/temp/**",
     // Ignore node_modules and other common directories
     "node_modules/**",
     "**/node_modules/**",

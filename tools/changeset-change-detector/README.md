@@ -8,7 +8,7 @@ Automate semantic version bump decisions in your [Changesets](https://github.com
 
 When using Changesets, developers must manually determine whether a change is major, minor, or patch:
 
-```
+```text
 🦋  Which packages should have a major bump?
 🦋  Which packages should have a minor bump?
 ◉ @my-org/my-package  <-- How do I know which to pick?
@@ -77,7 +77,7 @@ changeset-change-detector generate --summary "Refactored authentication module"
 
 **Example output:**
 
-```
+```text
 🔍 Analyzing API changes...
 
 📦 Changeset Preview
@@ -117,7 +117,7 @@ changeset-change-detector validate --strict
 
 **Example output:**
 
-```
+```text
 🔍 Validating changesets...
 
 ❌ Changeset validation failed!
@@ -137,7 +137,7 @@ Summary:
 
 ### CLI Reference
 
-```
+```text
 changeset-change-detector <command> [options]
 
 Commands:
@@ -254,41 +254,24 @@ For most workflows, the automatic detection works well. Use `--base` when you ne
 
 ## How It Works
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Your Workspace                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
-│  │  Package A  │    │  Package B  │    │  Package C  │     │
-│  │  dist/*.d.ts│    │  dist/*.d.ts│    │  dist/*.d.ts│     │
-│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘     │
-│         │                  │                  │             │
-│         └──────────────────┼──────────────────┘             │
-│                            │                                │
-│                            ▼                                │
-│              ┌─────────────────────────┐                   │
-│              │   change-detector       │                   │
-│              │   Compare .d.ts files   │                   │
-│              │   against baseline      │                   │
-│              └───────────┬─────────────┘                   │
-│                          │                                  │
-│                          ▼                                  │
-│              ┌─────────────────────────┐                   │
-│              │   Classify Changes      │                   │
-│              │   major/minor/patch     │                   │
-│              └───────────┬─────────────┘                   │
-│                          │                                  │
-│              ┌───────────┴───────────┐                     │
-│              │                       │                      │
-│              ▼                       ▼                      │
-│     ┌────────────────┐    ┌────────────────┐               │
-│     │   generate     │    │   validate     │               │
-│     │ Create .md in  │    │ Check existing │               │
-│     │ .changeset/    │    │ changesets     │               │
-│     └────────────────┘    └────────────────┘               │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph workspace["Your Workspace"]
+        pkgA["Package A<br/>dist/*.d.ts"]
+        pkgB["Package B<br/>dist/*.d.ts"]
+        pkgC["Package C<br/>dist/*.d.ts"]
+
+        pkgA --> detector
+        pkgB --> detector
+        pkgC --> detector
+
+        detector["change-detector<br/>Compare .d.ts files<br/>against baseline"]
+
+        detector --> classify["Classify Changes<br/>major/minor/patch"]
+
+        classify --> generate["generate<br/>Create .md in<br/>.changeset/"]
+        classify --> validate["validate<br/>Check existing<br/>changesets"]
+    end
 ```
 
 ## Troubleshooting

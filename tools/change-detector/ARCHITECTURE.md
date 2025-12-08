@@ -8,7 +8,7 @@ This package compares two TypeScript declaration file (`.d.ts`) rollups and clas
 
 ## Module Structure
 
-```
+```text
 src/
 ├── types.ts       # Core type definitions
 ├── parser.ts      # Declaration file parsing

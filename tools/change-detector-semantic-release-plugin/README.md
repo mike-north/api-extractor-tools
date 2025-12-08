@@ -93,7 +93,7 @@ Warns about version bump mismatches but doesn't fail the release. Useful for gra
 
 ### Validation Failure
 
-```
+```text
 ╔══════════════════════════════════════════════════════════════════╗
 ║              API CHANGE VALIDATION FAILED                        ║
 ╚══════════════════════════════════════════════════════════════════╝
