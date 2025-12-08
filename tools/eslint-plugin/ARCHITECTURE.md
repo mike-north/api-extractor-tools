@@ -32,7 +32,6 @@ src/
 │   ├── index.ts          # Config exports
 │   └── recommended.ts    # Recommended ruleset
 └── utils/
-    ├── eslint-types.ts   # Local ESLint/AST types (browser-compatible)
     ├── tsdoc-parser.ts   # TSDoc parsing (isomorphic)
     ├── config-loader.ts  # Config file loading (Node.js only)
     └── entry-point.ts    # Entry point detection (Node.js only)
@@ -106,43 +105,30 @@ Note: This rule checks all files ESLint runs it on. To only check entry points, 
 
 ## Usage Examples
 
-### Browser Environment (ESLint 9 Flat Config)
+### Browser Environment
 
 ```js
 import { Linter } from 'eslint-linter-browserify'
-import * as tsParser from '@typescript-eslint/parser'
-import { rules } from '@api-extractor-tools/eslint-plugin'
+import plugin from '@api-extractor-tools/eslint-plugin'
 
 const linter = new Linter()
 
-// Lint code using ESLint 9 flat config style
-const messages = linter.verify(
-  code,
-  {
-    files: ['**/*.ts', '**/*.d.ts'],
-    plugins: {
-      '@api-extractor-tools': { rules },
-    },
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      '@api-extractor-tools/missing-release-tag': [
-        'warn',
-        { severity: 'warning' },
-      ],
-      '@api-extractor-tools/override-keyword': 'error',
-    },
-  },
-  { filename: 'file.d.ts' },
-)
-```
+// Register rules
+for (const [name, rule] of Object.entries(plugin.rules)) {
+  linter.defineRule(`@api-extractor-tools/${name}`, rule)
+}
 
-**Note:** When using in a browser, you'll need to polyfill or stub Node.js modules that `@typescript-eslint/parser` depends on (e.g., `fs`, `path`, `process`). See the demo-site for a working example using Vite aliases.
+// Lint code
+const messages = linter.verify(code, {
+  rules: {
+    '@api-extractor-tools/missing-release-tag': [
+      'warn',
+      { severity: 'warning' },
+    ],
+    '@api-extractor-tools/override-keyword': 'error',
+  },
+})
+```
 
 ### Node.js with ESLint Flat Config
 
@@ -184,35 +170,12 @@ export default [
 ]
 ```
 
-## Browser Compatibility
-
-### Local ESLint Types
-
-To achieve true browser compatibility, the plugin defines its own ESLint and AST types in `src/utils/eslint-types.ts` rather than importing from `@typescript-eslint/utils`. This eliminates transitive Node.js dependencies that would otherwise be pulled in.
-
-The local types include:
-
-- **AST node types** (`Program`, `FunctionDeclaration`, `ClassDeclaration`, etc.)
-- **ESLint types** (`RuleModule`, `RuleContext`, `RuleListener`, etc.)
-- **`createRule` helper** - A replacement for `ESLintUtils.RuleCreator`
-
-Rules use string literals (e.g., `'FunctionDeclaration'`) instead of enum values (e.g., `AST_NODE_TYPES.FunctionDeclaration`) for node type checks.
-
-### Testing Compatibility
-
-For testing, `@typescript-eslint/utils` is included as a **devDependency** to provide type compatibility with `@typescript-eslint/rule-tester`. The test helper in `test/utils/rule-tester-compat.ts` validates that our local rule types match the structure expected by the tester at runtime.
-
 ## Dependencies
 
 ### Runtime Dependencies
 
-- `@microsoft/tsdoc` - TSDoc comment parsing (isomorphic, browser-compatible)
-
-### Dev Dependencies (Testing Only)
-
-- `@typescript-eslint/utils` - Type definitions for test compatibility with `@typescript-eslint/rule-tester`
-- `@typescript-eslint/rule-tester` - Testing harness for ESLint rules
-- `@typescript-eslint/parser` - TypeScript parser for ESLint (used in tests)
+- `@microsoft/tsdoc` - TSDoc comment parsing (isomorphic)
+- `@typescript-eslint/utils` - ESLint rule utilities and TypeScript AST types
 
 ### Peer Dependencies
 
