@@ -460,4 +460,29 @@ describe('interface changes', () => {
       expect(report.releaseType).toBe('none')
     })
   })
+
+  describe('regression tests', () => {
+    it('detects union type widening in interface property as major (issue from demo-site)', () => {
+      // Regression test for: https://github.com/mike-north/api-extractor-tools/issues/[issue-number]
+      // This was previously showing "NONE" in the demo-site due to interfaces not being exported
+      // Adding a union member to an interface property is a breaking change because:
+      // - For consumers (readers): they may not handle the new value
+      // - For producers (implementers): they now have more cases to consider
+      const report = compare(
+        `export interface Payment {
+  state: 'active' | 'inactive';
+}`,
+        `export interface Payment {
+  state: 'active' | 'inactive' | 'pending';
+}`,
+      )
+
+      expect(report.releaseType).toBe('major')
+      expect(report.changes.breaking).toHaveLength(1)
+      expect(report.changes.breaking[0]?.symbolName).toBe('Payment')
+      // Category is 'type-narrowed' because from the interface implementation perspective,
+      // the type became more restrictive (more cases to handle)
+      expect(report.changes.breaking[0]?.category).toBe('type-narrowed')
+    })
+  })
 })
