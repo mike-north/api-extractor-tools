@@ -1,3 +1,5 @@
+import type { ParameterOrderAnalysis } from './parameter-analysis'
+
 /**
  * The release type this delta represents according to semantic versioning.
  * - "major": Breaking changes that require a major version bump
@@ -55,25 +57,63 @@ export interface ExportedSymbol {
 }
 
 /**
- * A detected change between old and new API.
+ * Detailed analysis data that might be useful for policy decisions.
  *
  * @alpha
  */
-export interface Change {
+export interface ChangeDetails {
+  /**
+   * For 'param-order-changed', this contains the detailed analysis of the reordering.
+   */
+  parameterAnalysis?: ParameterOrderAnalysis
+}
+
+/**
+ * A raw detected change before policy application.
+ *
+ * @alpha
+ */
+export interface AnalyzedChange {
   /** The name of the symbol that changed */
   symbolName: string
   /** The kind of symbol */
   symbolKind: SymbolKind
   /** What kind of change occurred */
   category: ChangeCategory
-  /** Semver impact of this change */
-  releaseType: ReleaseType
   /** Human-readable explanation of the change */
   explanation: string
   /** Old signature (for modified/removed symbols) */
   before?: string
   /** New signature (for modified/added symbols) */
   after?: string
+  /** Additional details for policy decisions */
+  details?: ChangeDetails
+}
+
+/**
+ * A detected change between old and new API, classified with a release type.
+ *
+ * @alpha
+ */
+export interface Change extends AnalyzedChange {
+  /** Semver impact of this change */
+  releaseType: ReleaseType
+}
+
+/**
+ * A policy that maps analyzed changes to release types.
+ *
+ * @alpha
+ */
+export interface VersioningPolicy {
+  /** The name of the policy */
+  readonly name: string
+  /**
+   * Classifies a change to determine its release type.
+   * @param change - The raw analyzed change
+   * @returns The release type (major, minor, patch, or none)
+   */
+  classify(change: AnalyzedChange): ReleaseType
 }
 
 /**
@@ -142,4 +182,6 @@ export interface CompareStringOptions {
   oldFilename?: string
   /** Optional filename for the new content (defaults to 'new.d.ts') */
   newFilename?: string
+  /** Optional versioning policy to use (defaults to standard semantic versioning) */
+  policy?: VersioningPolicy
 }

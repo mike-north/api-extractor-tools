@@ -1,5 +1,5 @@
 import type * as ts from 'typescript'
-import type { Change, ChangeCategory, ReleaseType, SymbolKind } from './types'
+import type { AnalyzedChange, ChangeCategory, SymbolKind } from './types'
 import {
   parseDeclarationStringWithTypes,
   type ParseResultWithTypes,
@@ -69,7 +69,7 @@ function stripTopLevelParamOptionalMarkers(signature: string): string {
  */
 export interface CompareResult {
   /** All detected changes */
-  changes: Change[]
+  changes: AnalyzedChange[]
   /** Errors encountered during comparison */
   errors: string[]
 }
@@ -79,7 +79,6 @@ export interface CompareResult {
  */
 interface TypeChangeAnalysis {
   category: ChangeCategory
-  releaseType: ReleaseType
   parameterAnalysis?: ParameterOrderAnalysis
 }
 
@@ -123,7 +122,6 @@ function analyzeTypeChange(
       if (paramAnalysis.hasReordering) {
         return {
           category: 'param-order-changed',
-          releaseType: 'major',
           parameterAnalysis: paramAnalysis,
         }
       }
@@ -131,7 +129,6 @@ function analyzeTypeChange(
       // Even if no reordering detected, include the analysis for informational purposes
       return {
         category: 'signature-identical',
-        releaseType: 'none',
         parameterAnalysis: paramAnalysis,
       }
     }
@@ -156,19 +153,17 @@ function analyzeTypeChange(
       if (paramAnalysis.hasReordering) {
         return {
           category: 'param-order-changed',
-          releaseType: 'major',
           parameterAnalysis: paramAnalysis,
         }
       }
 
       return {
         category: 'signature-identical',
-        releaseType: 'none',
         parameterAnalysis: paramAnalysis,
       }
     }
 
-    return { category: 'signature-identical', releaseType: 'none' }
+    return { category: 'signature-identical' }
   }
 
   // Signatures are different - analyze the nature of the change
@@ -180,7 +175,7 @@ function analyzeTypeChange(
   ): TypeChangeAnalysis | null {
     // Check for removed parameters (breaking)
     if (newParams.length < oldParams.length) {
-      return { category: 'param-removed', releaseType: 'major' }
+      return { category: 'param-removed' }
     }
 
     // Check for added parameters
@@ -199,11 +194,11 @@ function analyzeTypeChange(
           // Also check for rest parameters - they're like optional
           const isRest = paramDecl.dotDotDotToken !== undefined
           if (!isOptional && !isRest) {
-            return { category: 'param-added-required', releaseType: 'major' }
+            return { category: 'param-added-required' }
           }
         }
       }
-      return { category: 'param-added-optional', releaseType: 'minor' }
+      return { category: 'param-added-optional' }
     }
 
     // Check parameter type changes
@@ -231,10 +226,10 @@ function analyzeTypeChange(
           newParamDecl.initializer !== undefined
 
         if (!oldIsOptional && newIsOptional) {
-          return { category: 'type-widened', releaseType: 'minor' }
+          return { category: 'type-widened' }
         }
         if (oldIsOptional && !newIsOptional) {
-          return { category: 'type-narrowed', releaseType: 'major' }
+          return { category: 'type-narrowed' }
         }
 
         const oldParamType = oldChecker.getTypeOfSymbolAtLocation(
@@ -250,7 +245,7 @@ function analyzeTypeChange(
         const newParamStr = newChecker.typeToString(newParamType)
 
         if (oldParamStr !== newParamStr) {
-          return { category: 'type-narrowed', releaseType: 'major' }
+          return { category: 'type-narrowed' }
         }
       }
     }
@@ -266,7 +261,7 @@ function analyzeTypeChange(
     const oldSig = oldCallSigs[0]
     const newSig = newCallSigs[0]
     if (!oldSig || !newSig) {
-      return { category: 'type-narrowed', releaseType: 'major' }
+      return { category: 'type-narrowed' }
     }
 
     const paramResult = analyzeSignatureParams(
@@ -282,7 +277,7 @@ function analyzeTypeChange(
     const newReturnType = newChecker.typeToString(newSig.getReturnType())
 
     if (oldReturnType !== newReturnType) {
-      return { category: 'return-type-changed', releaseType: 'major' }
+      return { category: 'return-type-changed' }
     }
   }
 
@@ -294,7 +289,7 @@ function analyzeTypeChange(
     const oldSig = oldConstructSigs[0]
     const newSig = newConstructSigs[0]
     if (!oldSig || !newSig) {
-      return { category: 'type-narrowed', releaseType: 'major' }
+      return { category: 'type-narrowed' }
     }
 
     const paramResult = analyzeSignatureParams(
@@ -309,7 +304,7 @@ function analyzeTypeChange(
   // Signatures are different but we couldn't determine specific reason
   // For interfaces/types/other: signature difference means type changed
   // Assume breaking unless we can prove otherwise
-  return { category: 'type-narrowed', releaseType: 'major' }
+  return { category: 'type-narrowed' }
 }
 
 /**
@@ -381,7 +376,7 @@ export function compareDeclarationResults(
   newParsed: ParseResultWithTypes,
   tsModule: typeof ts,
 ): CompareResult {
-  const changes: Change[] = []
+  const changes: AnalyzedChange[] = []
   const errors: string[] = [...oldParsed.errors, ...newParsed.errors]
 
   const oldSymbols = oldParsed.symbols
@@ -396,7 +391,6 @@ export function compareDeclarationResults(
         symbolName: name,
         symbolKind: oldSymbol.kind,
         category: 'symbol-removed',
-        releaseType: 'major',
         explanation: generateExplanation(
           name,
           oldSymbol.kind,
@@ -414,7 +408,6 @@ export function compareDeclarationResults(
         symbolName: name,
         symbolKind: newSymbol.kind,
         category: 'symbol-added',
-        releaseType: 'minor',
         explanation: generateExplanation(name, newSymbol.kind, 'symbol-added'),
         after: newSymbol.signature,
       })
@@ -440,13 +433,11 @@ export function compareDeclarationResults(
         const isOptionalized = newSigWithoutOptional === oldSymbol.signature
 
         const category = isOptionalized ? 'type-widened' : 'type-narrowed'
-        const releaseType = isOptionalized ? 'minor' : 'major'
 
         changes.push({
           symbolName: name,
           symbolKind: newSymbol.kind,
           category,
-          releaseType,
           explanation: generateExplanation(name, newSymbol.kind, category),
           before: oldSymbol.signature,
           after: newSymbol.signature,
@@ -456,7 +447,6 @@ export function compareDeclarationResults(
           symbolName: name,
           symbolKind: newSymbol.kind,
           category: 'signature-identical',
-          releaseType: 'none',
           explanation: generateExplanation(
             name,
             newSymbol.kind,
@@ -490,7 +480,7 @@ export function compareDeclarationResults(
       ? newParsed.checker.getDeclaredTypeOfSymbol(newTypeSym)
       : newParsed.checker.getTypeOfSymbolAtLocation(newTypeSym, newDecl)
 
-    const { category, releaseType, parameterAnalysis } = analyzeTypeChange(
+    const { category, parameterAnalysis } = analyzeTypeChange(
       oldType,
       newType,
       oldParsed.checker,
@@ -504,7 +494,6 @@ export function compareDeclarationResults(
       symbolName: name,
       symbolKind: newSymbol.kind,
       category,
-      releaseType,
       explanation: generateExplanation(
         name,
         newSymbol.kind,
@@ -515,6 +504,7 @@ export function compareDeclarationResults(
       ),
       before: oldSymbol.signature,
       after: newSymbol.signature,
+      details: parameterAnalysis ? { parameterAnalysis } : undefined,
     })
   }
 

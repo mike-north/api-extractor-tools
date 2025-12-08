@@ -1,9 +1,12 @@
 import type {
+  AnalyzedChange,
   Change,
   ChangesByImpact,
   ComparisonStats,
   ReleaseType,
+  VersioningPolicy,
 } from './types'
+import { defaultPolicy } from './policies'
 
 /**
  * Result of classifying a set of changes.
@@ -17,6 +20,25 @@ export interface ClassificationResult {
   changesByImpact: ChangesByImpact
   /** Statistics about the changes */
   stats: ComparisonStats
+}
+
+/**
+ * Applies a versioning policy to analyzed changes to determine their release type.
+ *
+ * @param changes - The raw analyzed changes
+ * @param policy - The versioning policy to apply
+ * @returns Changes with release type information
+ *
+ * @alpha
+ */
+export function applyPolicy(
+  changes: AnalyzedChange[],
+  policy: VersioningPolicy,
+): Change[] {
+  return changes.map((change) => ({
+    ...change,
+    releaseType: policy.classify(change),
+  }))
 }
 
 /**
@@ -125,13 +147,19 @@ function computeStats(
  * @alpha
  */
 export function classifyChanges(
-  changes: Change[],
+  changes: AnalyzedChange[],
   totalSymbolsOld: number,
   totalSymbolsNew: number,
+  policy: VersioningPolicy = defaultPolicy,
 ): ClassificationResult {
-  const releaseType = determineOverallReleaseType(changes)
-  const changesByImpact = groupChangesByImpact(changes)
-  const stats = computeStats(changes, totalSymbolsOld, totalSymbolsNew)
+  const classifiedChanges = applyPolicy(changes, policy)
+  const releaseType = determineOverallReleaseType(classifiedChanges)
+  const changesByImpact = groupChangesByImpact(classifiedChanges)
+  const stats = computeStats(
+    classifiedChanges,
+    totalSymbolsOld,
+    totalSymbolsNew,
+  )
 
   return {
     releaseType,

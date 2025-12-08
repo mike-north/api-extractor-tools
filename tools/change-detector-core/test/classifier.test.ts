@@ -1,21 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { classifyChanges, type Change } from '../src/index'
+import { classifyChanges, type AnalyzedChange } from '../src/index'
 
 describe('classifyChanges', () => {
   it('returns major when any breaking change exists', () => {
-    const changes: Change[] = [
+    const changes: AnalyzedChange[] = [
       {
         symbolName: 'foo',
         symbolKind: 'function',
         category: 'symbol-removed',
-        releaseType: 'major',
         explanation: 'Removed',
       },
       {
         symbolName: 'bar',
         symbolKind: 'function',
         category: 'symbol-added',
-        releaseType: 'minor',
         explanation: 'Added',
       },
     ]
@@ -27,12 +25,11 @@ describe('classifyChanges', () => {
   })
 
   it('returns minor when only additions exist', () => {
-    const changes: Change[] = [
+    const changes: AnalyzedChange[] = [
       {
         symbolName: 'bar',
         symbolKind: 'function',
         category: 'symbol-added',
-        releaseType: 'minor',
         explanation: 'Added',
       },
     ]
@@ -42,12 +39,11 @@ describe('classifyChanges', () => {
   })
 
   it('returns none when no changes', () => {
-    const changes: Change[] = [
+    const changes: AnalyzedChange[] = [
       {
         symbolName: 'foo',
         symbolKind: 'function',
         category: 'signature-identical',
-        releaseType: 'none',
         explanation: 'Unchanged',
       },
     ]
@@ -57,40 +53,35 @@ describe('classifyChanges', () => {
   })
 
   it('correctly groups changes by impact', () => {
-    const changes: Change[] = [
+    const changes: AnalyzedChange[] = [
       {
         symbolName: 'a',
         symbolKind: 'function',
         category: 'symbol-removed',
-        releaseType: 'major',
         explanation: 'Removed',
       },
       {
         symbolName: 'b',
         symbolKind: 'function',
         category: 'param-added-required',
-        releaseType: 'major',
         explanation: 'Breaking param change',
       },
       {
         symbolName: 'c',
         symbolKind: 'function',
         category: 'symbol-added',
-        releaseType: 'minor',
         explanation: 'Added',
       },
       {
         symbolName: 'd',
         symbolKind: 'function',
         category: 'param-added-optional',
-        releaseType: 'minor',
         explanation: 'Optional param added',
       },
       {
         symbolName: 'e',
         symbolKind: 'function',
         category: 'signature-identical',
-        releaseType: 'none',
         explanation: 'Unchanged',
       },
     ]
@@ -104,33 +95,29 @@ describe('classifyChanges', () => {
   })
 
   it('computes correct statistics', () => {
-    const changes: Change[] = [
+    const changes: AnalyzedChange[] = [
       {
         symbolName: 'removed',
         symbolKind: 'function',
         category: 'symbol-removed',
-        releaseType: 'major',
         explanation: 'Removed',
       },
       {
         symbolName: 'added',
         symbolKind: 'function',
         category: 'symbol-added',
-        releaseType: 'minor',
         explanation: 'Added',
       },
       {
         symbolName: 'modified',
         symbolKind: 'function',
         category: 'return-type-changed',
-        releaseType: 'major',
         explanation: 'Return type changed',
       },
       {
         symbolName: 'unchanged',
         symbolKind: 'function',
         category: 'signature-identical',
-        releaseType: 'none',
         explanation: 'Unchanged',
       },
     ]
