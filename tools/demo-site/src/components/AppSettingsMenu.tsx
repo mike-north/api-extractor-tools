@@ -31,12 +31,12 @@ export function AppSettingsMenu({ themePreference, onThemeChange }: AppSettingsM
 
   // Close menu on Escape key
   useEffect(() => {
+    if (!isOpen) return;
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      if (event.key === 'Escape') {
         setIsOpen(false)
       }
     }
-
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
   }, [isOpen])
