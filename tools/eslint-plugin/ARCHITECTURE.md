@@ -32,7 +32,6 @@ src/
 │   ├── index.ts          # Config exports
 │   └── recommended.ts    # Recommended ruleset
 └── utils/
-    ├── index.ts          # Isomorphic utility exports
     ├── tsdoc-parser.ts   # TSDoc parsing (isomorphic)
     ├── config-loader.ts  # Config file loading (Node.js only)
     └── entry-point.ts    # Entry point detection (Node.js only)
