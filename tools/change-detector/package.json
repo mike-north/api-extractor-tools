@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/change-detector",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "Detects changes between two API Extractor rollup files",
   "main": "dist/index.js",
   "types": "dist/change-detector-public.d.ts",

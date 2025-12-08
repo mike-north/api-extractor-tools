@@ -5,7 +5,21 @@
     "@api-extractor-tools/change-detector": "0.0.1",
     "@api-extractor-tools/module-declaration-merger": "0.0.1",
     "@api-extractor-tools/changeset-change-detector": "0.0.1",
-    "@api-extractor-tools/change-detector-semantic-release-plugin": "0.0.1"
+    "@api-extractor-tools/change-detector-semantic-release-plugin": "0.0.1",
+    "@api-extractor-tools/change-detector-core": "0.0.1",
+    "@api-extractor-tools/demo-site": "0.0.1",
+    "@api-extractor-tools/eslint-plugin": "0.0.1"
   },
-  "changesets": []
+  "changesets": [
+    "add-change-detector-core",
+    "add-changeset-plugin",
+    "add-eslint-plugin",
+    "add-semantic-release-plugin",
+    "add-test-coverage-and-validation",
+    "detect-parameter-order-changes",
+    "fix-angle-bracket-tracking",
+    "run-changed-tests-and-optional-param",
+    "theme-dropdown",
+    "vast-monkeys-agree"
+  ]
 }

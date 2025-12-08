@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/change-detector-semantic-release-plugin",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "semantic-release plugin that uses change-detector to validate and enhance version bumping",
   "main": "dist/index.js",
   "types": "dist/change-detector-semantic-release-plugin-public.d.ts",

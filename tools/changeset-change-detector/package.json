@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/changeset-change-detector",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "Changesets plugin that uses change-detector to automate version bump determination",
   "main": "dist/index.js",
   "types": "dist/changeset-change-detector-public.d.ts",
