@@ -61,6 +61,7 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
 2. **Make your changes** to the relevant package(s):
    - `tools/change-detector/` - API change detection tool (file-based, CLI)
    - `tools/change-detector-core/` - Isomorphic core for change detection (browser + Node.js)
+   - `tools/input-processor-typescript/` - TypeScript input processor plugin
    - `tools/module-declaration-merger/` - Module declaration merger tool
    - `tools/changeset-change-detector/` - Changesets plugin for automated version bumps
    - `tools/change-detector-semantic-release-plugin/` - semantic-release plugin
@@ -291,6 +292,90 @@ pnpm check
 cd tools/change-detector
 pnpm check:eslint
 ```
+
+## Developing Input Processor Plugins
+
+The change detector supports a plugin system for processing different input formats (TypeScript, GraphQL, OpenAPI, etc.). Plugins convert various formats into the normalized `ExportedSymbol[]` representation.
+
+### Plugin Architecture
+
+- **Plugin Interface**: Defined in `tools/change-detector-core/src/plugin-types.ts`
+- **Discovery Mechanism**: Plugins are discovered via the `"change-detector:input-processor-plugin"` keyword in `package.json`
+- **Isomorphic**: Plugins should work in both Node.js and browser environments when possible
+
+### Creating a New Plugin
+
+1. **Create package structure**:
+
+   ```bash
+   mkdir -p tools/input-processor-{your-format}/{src,test}
+   cd tools/input-processor-{your-format}
+   ```
+
+2. **Set up package.json**:
+
+   ```json
+   {
+     "name": "@api-extractor-tools/input-processor-{your-format}",
+     "keywords": ["{your-format}", "change-detector:input-processor-plugin"],
+     "dependencies": {
+       "@api-extractor-tools/change-detector-core": "workspace:*"
+     }
+   }
+   ```
+
+3. **Implement the plugin**:
+
+   ```typescript
+   import type {
+     InputProcessorPlugin,
+     InputProcessor,
+     ProcessResult,
+   } from '@api-extractor-tools/change-detector-core'
+
+   export class YourFormatProcessor implements InputProcessor {
+     process(content: string, filename?: string): ProcessResult {
+       // Parse your format and return symbols
+       return { symbols: new Map(), errors: [] }
+     }
+   }
+
+   const plugin: InputProcessorPlugin = {
+     id: 'your-format',
+     name: 'Your Format Input Processor',
+     version: '0.1.0-alpha.0',
+     extensions: ['.your-ext'],
+     createProcessor: () => new YourFormatProcessor(),
+   }
+
+   export default plugin
+   ```
+
+4. **Add tests**:
+
+   ```bash
+   # Create comprehensive tests
+   touch test/plugin.test.ts
+
+   # Run tests
+   pnpm test
+   ```
+
+### Documentation
+
+For detailed plugin development guidelines, see:
+
+- [Plugin Architecture](tools/change-detector-core/PLUGIN_ARCHITECTURE.md) - Architectural decisions and design
+- [Plugin Development Guide](tools/change-detector-core/PLUGIN_DEVELOPMENT.md) - Step-by-step development guide
+
+### Example Plugin
+
+The TypeScript input processor (`tools/input-processor-typescript/`) is a reference implementation demonstrating:
+
+- Plugin interface implementation
+- Symbol extraction from TypeScript declarations
+- Comprehensive test coverage
+- Documentation and README
 
 ## Demo Site
 
