@@ -3,21 +3,28 @@ import { render, screen } from '@testing-library/react'
 import { ChangeReport } from '../src/components/ChangeReport'
 import type { ComparisonReport } from '@api-extractor-tools/change-detector-core'
 
+function createReport(overrides: Partial<ComparisonReport> = {}): ComparisonReport {
+  return {
+    releaseType: 'major',
+    changes: {
+      breaking: [],
+      nonBreaking: [],
+    },
+    stats: {
+      added: 0,
+      removed: 0,
+      modified: 0,
+      unchanged: 0,
+    },
+    oldFile: 'old.d.ts',
+    newFile: 'new.d.ts',
+    ...overrides,
+  }
+}
+
 describe('ChangeReport', () => {
   it('displays the release type', () => {
-    const report: ComparisonReport = {
-      releaseType: 'major',
-      changes: {
-        breaking: [],
-        nonBreaking: [],
-      },
-      stats: {
-        added: 0,
-        removed: 0,
-        modified: 0,
-        unchanged: 0,
-      },
-    }
+    const report = createReport()
 
     render(<ChangeReport report={report} />)
     expect(screen.getByText(/Release Type: MAJOR/i)).toBeInTheDocument()

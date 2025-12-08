@@ -29,30 +29,22 @@ describe('App', () => {
       expect(screen.getByText('New API (.d.ts)')).toBeInTheDocument()
     })
 
-    it('renders the example selector', () => {
+    it('renders the demo settings menu', () => {
       render(<App />)
-      const selects = screen.getAllByRole('combobox')
-      const exampleSelect = selects.find(select => 
-        within(select).queryByText('Load example...') !== null
-      )
-      expect(exampleSelect).toBeInTheDocument()
-      expect(within(exampleSelect!).getByText('Load example...')).toBeInTheDocument()
+      const demoSettingsButton = screen.getByRole('button', { name: /demo settings/i })
+      expect(demoSettingsButton).toBeInTheDocument()
     })
 
-    it('renders the copy button', () => {
+    it('renders the app settings menu', () => {
       render(<App />)
-      expect(
-        screen.getByRole('button', { name: /copy for llm/i }),
-      ).toBeInTheDocument()
+      const appSettingsButton = screen.getByRole('button', { name: /app settings/i })
+      expect(appSettingsButton).toBeInTheDocument()
     })
 
-    it('renders the theme selector', () => {
+    it('has demo settings menu', () => {
       render(<App />)
-      const themeSelect = screen.getByRole('combobox', { name: /theme preference/i })
-      expect(themeSelect).toBeInTheDocument()
-      expect(within(themeSelect).getByRole('option', { name: 'Light' })).toBeInTheDocument()
-      expect(within(themeSelect).getByRole('option', { name: 'Dark' })).toBeInTheDocument()
-      expect(within(themeSelect).getByRole('option', { name: /auto/i })).toBeInTheDocument()
+      const demoSettingsButton = screen.getByRole('button', { name: /demo settings/i })
+      expect(demoSettingsButton).toBeInTheDocument()
     })
 
     it('loads the first example by default', () => {
@@ -74,11 +66,13 @@ describe('App', () => {
       const user = userEvent.setup()
       render(<App />)
 
-      const selects = screen.getAllByRole('combobox')
-      const exampleSelect = selects.find(select => 
-        within(select).queryByText('Load example...') !== null
-      )!
-      await user.selectOptions(exampleSelect, 'Export Removed (Major)')
+      // Open the demo settings menu
+      const demoSettingsButton = screen.getByRole('button', { name: /demo settings/i })
+      await user.click(demoSettingsButton)
+
+      // Click on a specific example
+      const exampleOption = await screen.findByRole('menuitem', { name: /Export Removed \(Major\)/i })
+      await user.click(exampleOption)
 
       await waitFor(() => {
         const editors = screen.getAllByTestId('monaco-editor')
@@ -90,13 +84,16 @@ describe('App', () => {
       })
     })
 
-    it('shows all available examples in the dropdown', () => {
+    it('shows all available examples in the menu', async () => {
+      const user = userEvent.setup()
       render(<App />)
-      const selects = screen.getAllByRole('combobox')
-      const exampleSelect = selects.find(select => 
-        within(select).queryByText('Load example...') !== null
-      )!
-      const options = within(exampleSelect).getAllByRole('option')
+      
+      // Open the demo settings menu
+      const demoSettingsButton = screen.getByRole('button', { name: /demo settings/i })
+      await user.click(demoSettingsButton)
+
+      // Should show multiple example options
+      const options = await screen.findAllByRole('menuitem')
 
       // Should have placeholder + all examples
       expect(options.length).toBeGreaterThan(5)

@@ -12,6 +12,10 @@ import {
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
 import { BugReportModal } from './components/BugReportModal'
+import { AppSettingsMenu } from './components/AppSettingsMenu'
+import { DemoSettingsMenu } from './components/DemoSettingsMenu'
+import { ExportLinkages } from './components/ExportLinkages'
+import { DemoProvider, type DemoCapabilities } from './contexts/DemoContext'
 import { examples, type Example } from './examples'
 import { encodeBase64, decodeBase64 } from './utils/encoding'
 import { isUrlTooLong } from './utils/urlLimits'
@@ -101,12 +105,12 @@ function App() {
     localStorage.setItem('theme', themePreference)
   }, [resolvedTheme, themePreference])
 
-  const handleThemeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setThemePreference(e.target.value as ThemePreference)
+  const handleThemeChange = useCallback((theme: ThemePreference) => {
+    setThemePreference(theme)
   }, [])
 
-  const handlePolicyChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPolicy(e.target.value as PolicyName)
+  const handlePolicyChange = useCallback((policy: PolicyName) => {
+    setSelectedPolicy(policy)
   }, [])
 
   // Auto-analyze with 100ms debounce
@@ -180,22 +184,18 @@ function App() {
     }
   }, [])
 
-  const handleExampleChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const example = examples.find((ex) => ex.name === e.target.value)
-      if (example) {
-        setOldContent(example.old)
-        setNewContent(example.new)
-      }
+  const handleExampleSelect = useCallback(
+    (example: Example) => {
+      setOldContent(example.old)
+      setNewContent(example.new)
     },
     [],
   )
 
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
 
-  const handleCopyForLLM = useCallback(() => {
-    const text = `## Old API (.d.ts)
+  const getLLMContent = useCallback(() => {
+    return `## Old API (.d.ts)
 
 \`\`\`typescript
 ${oldContent}
@@ -211,120 +211,81 @@ ${newContent}
 
 ${report ? formatReportAsText(report) : 'No analysis available'}
 `
-    navigator.clipboard.writeText(text).then(() => {
-      setCopyFeedback('Copied!')
-      setTimeout(() => setCopyFeedback(null), 2000)
-    }).catch(() => {
-      setCopyFeedback('Failed to copy')
-      setTimeout(() => setCopyFeedback(null), 2000)
-    })
   }, [oldContent, newContent, report])
 
+  const demoCapabilities: DemoCapabilities = {
+    getLLMContent,
+    openBugReport: () => setIsBugReportOpen(true),
+    canReportBug: report !== null,
+  }
+
   return (
-    <div className="app">
-      <header className="header">
-        <h1>
-          <span>API Extractor Tools</span> Demo
-        </h1>
-        <div className="controls">
-          <select
-            className="example-select"
-            value=""
-            onChange={handleExampleChange}
-          >
-            <option value="" disabled>
-              Load example...
-            </option>
-            {examples.map((example: Example) => (
-              <option key={example.name} value={example.name}>
-                {example.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="policy-select"
-            value={selectedPolicy}
-            onChange={handlePolicyChange}
-            aria-label="Versioning policy"
-            title="Select which perspective to analyze from"
-          >
-            <option value="default">Bidirectional (Default)</option>
-            <option value="read-only">Read-Only (Consumer)</option>
-            <option value="write-only">Write-Only (Producer)</option>
-          </select>
-          <select
-            className="theme-toggle"
-            value={themePreference}
-            onChange={handleThemeChange}
-            aria-label="Theme preference"
-          >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="auto">Auto (System)</option>
-          </select>
-          <button className="copy-button" onClick={handleCopyForLLM}>
-            {copyFeedback ?? 'Copy for LLM'}
-          </button>
-          <button
-            className="report-issue-button"
-            onClick={() => setIsBugReportOpen(true)}
-            disabled={!report}
-            title={
-              report
-                ? 'Report an issue with change detection'
-                : 'Run analysis first to report issues'
-            }
-          >
-            Something Looks Wrong?
-          </button>
-        </div>
-      </header>
+    <DemoProvider capabilities={demoCapabilities}>
+      <div className="app">
+        <header className="header">
+          <h1>
+            <span>API Extractor Tools</span> Demo
+          </h1>
+          <div className="controls">
+            <DemoSettingsMenu
+              selectedPolicy={selectedPolicy}
+              onPolicyChange={handlePolicyChange}
+              onExampleSelect={handleExampleSelect}
+            />
+            <AppSettingsMenu
+              themePreference={themePreference}
+              onThemeChange={handleThemeChange}
+            />
+          </div>
+        </header>
 
-      <main className="main-content">
-        <div className="editors-container" style={{ height: editorHeight }}>
-          <div className="editor-panel">
-            <div className="editor-header">Old API (.d.ts)</div>
-            <div className="editor-wrapper">
-              <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} />
+        <main className="main-content">
+          <div className="editors-container" style={{ height: editorHeight }}>
+            <div className="editor-panel">
+              <div className="editor-header">Old API (.d.ts)</div>
+              <div className="editor-wrapper">
+                <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} />
+              </div>
+            </div>
+            <div className="editor-panel">
+              <div className="editor-header">New API (.d.ts)</div>
+              <div className="editor-wrapper">
+                <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} />
+              </div>
             </div>
           </div>
-          <div className="editor-panel">
-            <div className="editor-header">New API (.d.ts)</div>
-            <div className="editor-wrapper">
-              <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} />
-            </div>
+
+          <div
+            className="resize-handle"
+            onMouseDown={handleMouseDown}
+            title="Drag to resize"
+          >
+            <div className="resize-handle-grip" />
           </div>
-        </div>
 
-        <div
-          className="resize-handle"
-          onMouseDown={handleMouseDown}
-          title="Drag to resize"
-        >
-          <div className="resize-handle-grip" />
-        </div>
+          <div className="report-container">
+            <ExportLinkages oldContent={oldContent} newContent={newContent} />
+            {report ? (
+              <ChangeReport report={report} oldContent={oldContent} newContent={newContent} />
+            ) : (
+              <div className="empty-state">
+                Edit the declarations above to see the comparison report
+              </div>
+            )}
+          </div>
+        </main>
 
-        <div className="report-container">
-          {report ? (
-            <ChangeReport report={report} />
-          ) : (
-            <div className="empty-state">
-              Edit the declarations above to see the comparison report
-            </div>
-          )}
-        </div>
-      </main>
-
-      {isBugReportOpen && (
-        <BugReportModal
-          report={report}
-          oldContent={oldContent}
-          newContent={newContent}
-          policyName={selectedPolicy}
-          onClose={() => setIsBugReportOpen(false)}
-        />
-      )}
-    </div>
+        {isBugReportOpen && (
+          <BugReportModal
+            report={report}
+            oldContent={oldContent}
+            newContent={newContent}
+            policyName={selectedPolicy}
+            onClose={() => setIsBugReportOpen(false)}
+          />
+        )}
+      </div>
+    </DemoProvider>
   )
 }
 
