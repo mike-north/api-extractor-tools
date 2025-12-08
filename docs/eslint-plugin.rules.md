@@ -19,5 +19,7 @@ rules: {
     readonly 'forgotten-export': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"forgottenExport", [import("./forgotten-export").ForgottenExportRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
     readonly 'incompatible-release-tags': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"incompatibleReleaseTags", [import("./incompatible-release-tags").IncompatibleReleaseTagsRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
     readonly 'extra-release-tag': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"extraReleaseTag", [import("./extra-release-tag").ExtraReleaseTagRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
+    readonly 'public-on-private-member': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"publicOnPrivateMember", [import("./public-on-private-member").PublicOnPrivateMemberRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
+    readonly 'public-on-non-exported': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"publicOnNonExported", [import("./public-on-non-exported").PublicOnNonExportedRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
 }
 ```
