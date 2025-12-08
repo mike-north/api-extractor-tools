@@ -94,6 +94,7 @@ body {
 }
 
 .example-select,
+.policy-select,
 .theme-toggle {
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -106,12 +107,14 @@ body {
 }
 
 .example-select:focus,
+.policy-select:focus,
 .theme-toggle:focus {
   outline: none;
   border-color: var(--color-primary);
 }
 
 .example-select:hover,
+.policy-select:hover,
 .theme-toggle:hover {
   background-color: var(--color-surface);
   border-color: var(--color-primary);

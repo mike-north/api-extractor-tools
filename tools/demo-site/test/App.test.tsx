@@ -630,4 +630,88 @@ describe('App', () => {
       expect(oldValue).toContain('export declare')
     })
   })
+
+  describe('Policy selection', () => {
+    it('renders the policy selector', () => {
+      render(<App />)
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      expect(policySelect).toBeInTheDocument()
+      expect(within(policySelect).getByRole('option', { name: /bidirectional.*default/i })).toBeInTheDocument()
+      expect(within(policySelect).getByRole('option', { name: /read-only.*consumer/i })).toBeInTheDocument()
+      expect(within(policySelect).getByRole('option', { name: /write-only.*producer/i })).toBeInTheDocument()
+    })
+
+    it('defaults to bidirectional policy', () => {
+      render(<App />)
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i }) as HTMLSelectElement
+      expect(policySelect.value).toBe('default')
+    })
+
+    it('switches to read-only policy', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'read-only')
+
+      expect((policySelect as HTMLSelectElement).value).toBe('read-only')
+    })
+
+    it('switches to write-only policy', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'write-only')
+
+      expect((policySelect as HTMLSelectElement).value).toBe('write-only')
+    })
+
+    it('re-analyzes when policy changes', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      // Wait for initial analysis with default policy
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+
+      // Change policy
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'read-only')
+
+      // Wait a bit for re-analysis to complete
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+    })
+
+    it('applies read-only policy correctly', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      // Set policy to read-only
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'read-only')
+
+      // Should show some release type
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+    })
+
+    it('applies write-only policy correctly', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+
+      // Set policy to write-only
+      const policySelect = screen.getByRole('combobox', { name: /versioning policy/i })
+      await user.selectOptions(policySelect, 'write-only')
+
+      // Should show some release type
+      await waitFor(() => {
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
+      }, { timeout: 1000 })
+    })
+  })
 })

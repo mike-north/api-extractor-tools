@@ -3,7 +3,11 @@ import * as ts from 'typescript'
 import {
   compareDeclarations,
   formatReportAsText,
+  defaultPolicy,
+  readOnlyPolicy,
+  writeOnlyPolicy,
   type ComparisonReport,
+  type VersioningPolicy,
 } from '@api-extractor-tools/change-detector-core'
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
@@ -14,6 +18,13 @@ import { isUrlTooLong } from './utils/urlLimits'
 
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
+type PolicyName = 'default' | 'read-only' | 'write-only'
+
+const policies: Record<PolicyName, VersioningPolicy> = {
+  'default': defaultPolicy,
+  'read-only': readOnlyPolicy,
+  'write-only': writeOnlyPolicy,
+}
 
 function getSystemTheme(): ResolvedTheme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -51,6 +62,7 @@ function App() {
   const [editorHeight, setEditorHeight] = useState(250)
   const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>('default')
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -84,6 +96,10 @@ function App() {
     setThemePreference(e.target.value as ThemePreference)
   }, [])
 
+  const handlePolicyChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPolicy(e.target.value as PolicyName)
+  }, [])
+
   // Auto-analyze with 100ms debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -91,6 +107,7 @@ function App() {
         {
           oldContent,
           newContent,
+          policy: policies[selectedPolicy],
         },
         ts,
       )
@@ -98,7 +115,7 @@ function App() {
     }, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent])
+  }, [oldContent, newContent, selectedPolicy])
 
   // Update URL with debounce when content changes
   useEffect(() => {
@@ -215,6 +232,17 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
             ))}
           </select>
           <select
+            className="policy-select"
+            value={selectedPolicy}
+            onChange={handlePolicyChange}
+            aria-label="Versioning policy"
+            title="Select which perspective to analyze from"
+          >
+            <option value="default">Bidirectional (Default)</option>
+            <option value="read-only">Read-Only (Consumer)</option>
+            <option value="write-only">Write-Only (Producer)</option>
+          </select>
+          <select
             className="theme-toggle"
             value={themePreference}
             onChange={handleThemeChange}
@@ -282,6 +310,7 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
           report={report}
           oldContent={oldContent}
           newContent={newContent}
+          policyName={selectedPolicy}
           onClose={() => setIsBugReportOpen(false)}
         />
       )}

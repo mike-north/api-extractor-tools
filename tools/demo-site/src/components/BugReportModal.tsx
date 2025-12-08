@@ -8,6 +8,7 @@ interface BugReportModalProps {
   report: ComparisonReport | null
   oldContent: string
   newContent: string
+  policyName: string
   onClose: () => void
 }
 
@@ -15,6 +16,7 @@ export function BugReportModal({
   report,
   oldContent,
   newContent,
+  policyName,
   onClose,
 }: BugReportModalProps) {
   const [expectedBehavior, setExpectedBehavior] = useState('')
@@ -62,6 +64,9 @@ export function BugReportModal({
     const fixedBodyParts = `## Demo State
 
 [View the demo state that produced this issue](${demoUrl})
+
+### Configuration
+- **Versioning Policy**: ${policyName}
 
 ### Statistics
 - **Added**: ${report.stats.added}
@@ -135,6 +140,9 @@ _PLACEHOLDER_
     const body = `## Demo State
 
 [View the demo state that produced this issue](${demoUrl})
+
+### Configuration
+- **Versioning Policy**: ${policyName}
 
 ### Statistics
 - **Added**: ${report.stats.added}
