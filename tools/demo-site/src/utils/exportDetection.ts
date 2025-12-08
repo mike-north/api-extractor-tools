@@ -21,7 +21,7 @@ export function hasExports(content: string): boolean {
  * @returns Array of exported symbol names
  */
 export function extractExportNames(content: string): string[] {
-  const names: string[] = []
+  const namesSet = new Set<string>()
 
   // Remove comments to avoid false positives
   const withoutComments = content
@@ -38,13 +38,13 @@ export function extractExportNames(content: string): string[] {
     let match
     while ((match = pattern.exec(withoutComments)) !== null) {
       const name = match[2]
-      if (name && !names.includes(name)) {
-        names.push(name)
+      if (name) {
+        namesSet.add(name)
       }
     }
   }
 
-  return names.sort()
+  return Array.from(namesSet).sort()
 }
 
 /**

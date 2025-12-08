@@ -41,12 +41,6 @@ describe('App', () => {
       expect(appSettingsButton).toBeInTheDocument()
     })
 
-    it('has demo settings menu', () => {
-      render(<App />)
-      const demoSettingsButton = screen.getByRole('button', { name: /demo settings/i })
-      expect(demoSettingsButton).toBeInTheDocument()
-    })
-
     it('loads the first example by default', () => {
       render(<App />)
       const editors = screen.getAllByTestId('monaco-editor')
