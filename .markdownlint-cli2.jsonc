@@ -18,6 +18,8 @@
     "api-reports/**",
     // Ignore changesets (special format with frontmatter)
     ".changeset/**",
+    // Ignore generated changelogs
+    "**/CHANGELOG.md",
     // Ignore API Extractor generated temp files
     "**/temp/**",
     // Ignore node_modules and other common directories
