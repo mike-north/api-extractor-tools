@@ -53,6 +53,15 @@ function getInitialContent(): { old: string; new: string } {
   return { old: examples[0].old, new: examples[0].new }
 }
 
+function getInitialPolicy(): PolicyName {
+  const params = new URLSearchParams(window.location.search)
+  const policyParam = params.get('policy')
+  if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only') {
+    return policyParam
+  }
+  return 'default'
+}
+
 const initialContent = getInitialContent()
 
 function App() {
@@ -62,7 +71,7 @@ function App() {
   const [editorHeight, setEditorHeight] = useState(250)
   const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
-  const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>('default')
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>(getInitialPolicy())
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -117,12 +126,13 @@ function App() {
     return () => clearTimeout(timeoutId)
   }, [oldContent, newContent, selectedPolicy])
 
-  // Update URL with debounce when content changes
+  // Update URL with debounce when content or policy changes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const params = new URLSearchParams()
       params.set('old', encodeBase64(oldContent))
       params.set('new', encodeBase64(newContent))
+      params.set('policy', selectedPolicy)
       const newUrl = `${window.location.pathname}?${params.toString()}`
       
       // Only update URL if it's within safe length limits
@@ -135,7 +145,7 @@ function App() {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent])
+  }, [oldContent, newContent, selectedPolicy])
 
   // Handle resize drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
