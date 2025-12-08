@@ -1,0 +1,43 @@
+{
+  "name": "@api-extractor-tools/input-processor-typescript",
+  "version": "0.1.0-alpha.0",
+  "description": "TypeScript input processor plugin for change-detector",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests",
+    "check:eslint": "eslint src",
+    "check:typecheck-tests": "tsc -p test/tsconfig.json"
+  },
+  "keywords": [
+    "typescript",
+    "api",
+    "change-detection",
+    "plugin",
+    "change-detector:input-processor-plugin"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.24.0",
+  "dependencies": {
+    "@api-extractor-tools/change-detector-core": "workspace:*",
+    "typescript": "5.8.3"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.15",
+    "vitest": "^4.0.15"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ]
+}
