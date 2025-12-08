@@ -9,9 +9,10 @@ This document explains the **policy abstraction** in `change-detector-core` and 
 - [Separation of Concerns](#separation-of-concerns)
 - [How to Use Policies](#how-to-use-policies)
 - [Creating Custom Policies](#creating-custom-policies)
-  - [Example: Permissive Policy](#example-permissive-policy)
-  - [Example: Strict Policy](#example-strict-policy)
-  - [Example: Context-Aware Policy](#example-context-aware-policy)
+  - [Example: Read-Only Policy (Consumer Perspective)](#example-read-only-policy-consumer-perspective)
+  - [Example: Write-Only Policy (Producer Perspective)](#example-write-only-policy-producer-perspective)
+  - [Example: Bidirectional Policy (Default)](#example-bidirectional-policy-default)
+  - [Combining Policies for Complex Scenarios](#combining-policies-for-complex-scenarios)
 - [Use Cases](#use-cases)
 - [Best Practices](#best-practices)
 
@@ -94,14 +95,20 @@ This produces `Change` objects (which extend `AnalyzedChange`) with an added `re
 The library provides a `defaultPolicy` that implements strict Semantic Versioning:
 
 ```typescript
-import { compareDeclarations, defaultPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  compareDeclarations,
+  defaultPolicy,
+} from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
 
-const report = compareDeclarations({
-  oldContent,
-  newContent,
-  // No policy specified - uses defaultPolicy
-}, ts)
+const report = compareDeclarations(
+  {
+    oldContent,
+    newContent,
+    // No policy specified - uses defaultPolicy
+  },
+  ts,
+)
 ```
 
 ### Using a Custom Policy
@@ -123,235 +130,267 @@ const myPolicy: VersioningPolicy = {
   },
 }
 
-const report = compareDeclarations({
-  oldContent,
-  newContent,
-  policy: myPolicy,
-}, ts)
+const report = compareDeclarations(
+  {
+    oldContent,
+    newContent,
+    policy: myPolicy,
+  },
+  ts,
+)
 ```
 
 ## Creating Custom Policies
 
-Custom policies allow you to implement versioning strategies that match your project's needs.
+Custom policies allow you to implement versioning strategies that match your project's needs. The most common need is to analyze from a specific perspective: read-only (consumer), write-only (producer), or bidirectional (both).
 
-### Example: Permissive Policy
+### Example: Read-Only Policy (Consumer Perspective)
 
-A policy that only considers symbol removal as breaking:
+When your code only **reads** data from APIs (consuming responses, reading configuration):
 
 ```typescript
-import type { AnalyzedChange, ReleaseType, VersioningPolicy } from '@api-extractor-tools/change-detector-core'
+import { readOnlyPolicy } from '@api-extractor-tools/change-detector-core'
 
-const permissivePolicy: VersioningPolicy = {
-  name: 'permissive',
-  classify(change: AnalyzedChange): ReleaseType {
-    // Only removals are breaking
-    if (change.category === 'symbol-removed') {
-      return 'major'
-    }
-    
-    // No change
-    if (change.category === 'signature-identical') {
-      return 'none'
-    }
-    
-    // Everything else is a minor change
-    return 'minor'
+// Use the built-in read-only policy
+const report = compareDeclarations(
+  {
+    oldContent,
+    newContent,
+    policy: readOnlyPolicy,
   },
+  ts,
+)
+```
+
+The read-only policy is appropriate when you:
+
+- Consume API responses
+- Read configuration objects
+- Receive data from callbacks
+- Use types for data you don't produce
+
+**Key versioning rules:**
+
+- ✅ Adding required fields is **non-breaking** (you'll receive them)
+- ❌ Removing fields is **breaking** (you expect them)
+- ❌ Making required → optional is **breaking** (might receive undefined)
+- ✅ Making optional → required is **non-breaking** (safe to receive more)
+- ❌ Type narrowing is **breaking** (old values may not be returned)
+- ✅ Type widening is **non-breaking** (you can still handle old values)
+
+**Example scenario:**
+
+```typescript
+// Your code reads User objects from an API
+interface User {
+  id: string
+  name: string
+  email?: string // API might not return this
+}
+
+function displayUser(user: User) {
+  console.log(`${user.name} (${user.id})`)
+  if (user.email) {
+    console.log(`Email: ${user.email}`)
+  }
 }
 ```
 
-**Use case**: Pre-1.0 projects or internal libraries where you want to move fast and accept that consumers need to adapt to frequent changes.
+If the API makes `email` required, this is **non-breaking** for readers – your code handles both cases.
 
-### Example: Strict Policy
+### Example: Write-Only Policy (Producer Perspective)
 
-A policy that treats more changes as breaking:
+When your code only **writes** data to APIs (creating objects, sending requests):
 
 ```typescript
-const strictPolicy: VersioningPolicy = {
-  name: 'strict',
-  classify(change: AnalyzedChange): ReleaseType {
-    switch (change.category) {
-      case 'symbol-removed':
-      case 'type-narrowed':
-      case 'param-added-required':
-      case 'param-removed':
-      case 'param-order-changed':
-      case 'return-type-changed':
-        return 'major'
-      
-      case 'symbol-added':
-        return 'minor'
-      
-      // Treat even type widening as breaking (consumers might not handle new values)
-      case 'type-widened':
-        return 'major'
-      
-      // Treat optional parameters as breaking (changes function signature)
-      case 'param-added-optional':
-        return 'major'
-      
-      case 'signature-identical':
-        return 'none'
-      
-      default:
-        // Unexpected category - treat conservatively as major
-        return 'major'
-    }
+import { writeOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+
+// Use the built-in write-only policy
+const report = compareDeclarations(
+  {
+    oldContent,
+    newContent,
+    policy: writeOnlyPolicy,
   },
+  ts,
+)
+```
+
+The write-only policy is appropriate when you:
+
+- Create objects to send to APIs
+- Provide data through callbacks
+- Implement interfaces
+- Produce data that others consume
+
+**Key versioning rules:**
+
+- ❌ Adding required fields is **breaking** (you must provide them)
+- ✅ Removing fields is **non-breaking** (you don't need to provide them)
+- ✅ Making required → optional is **non-breaking** (you can still provide the value)
+- ❌ Making optional → required is **breaking** (must now provide the value)
+- ✅ Type narrowing is **non-breaking** (can still provide valid values)
+- ❌ Type widening is **breaking** (must handle new possible values)
+
+**Example scenario:**
+
+```typescript
+// Your code creates User objects to send to an API
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+function createUser(id: string, name: string, email: string): User {
+  return { id, name, email }
 }
 ```
 
-**Use case**: Critical infrastructure libraries or stable public APIs where even subtle changes should be carefully versioned.
+If the API makes `email` optional, this is **non-breaking** for writers – you can still send it.
 
-### Example: Context-Aware Policy
+### Example: Bidirectional Policy (Default)
 
-A policy that makes decisions based on additional context:
+When your code both reads and writes, or you're not sure:
 
 ```typescript
-const contextAwarePolicy: VersioningPolicy = {
-  name: 'context-aware',
+import { defaultPolicy } from '@api-extractor-tools/change-detector-core'
+
+// The default policy assumes bidirectional usage
+const report = compareDeclarations(
+  {
+    oldContent,
+    newContent,
+    // policy: defaultPolicy is the default, can be omitted
+  },
+  ts,
+)
+```
+
+The default bidirectional policy is **conservative** – it treats a change as breaking if it would be breaking from **either** perspective.
+
+**When to use:**
+
+- Interfaces used for both input and output
+- Unclear usage patterns
+- Public APIs where you don't control usage
+- When safety is more important than precision
+
+### Combining Policies for Complex Scenarios
+
+For projects with mixed usage patterns, you can create a custom policy that applies different strategies based on context:
+
+```typescript
+const mixedUsagePolicy: VersioningPolicy = {
+  name: 'mixed-usage',
   classify(change: AnalyzedChange): ReleaseType {
-    // Beta symbols can change freely
-    if (change.symbolName.startsWith('_beta_')) {
-      return change.category === 'signature-identical' ? 'none' : 'minor'
+    // API response types (marked with @readonly JSDoc) use read-only rules
+    if (change.symbolName.endsWith('Response')) {
+      return readOnlyPolicy.classify(change)
     }
-    
-    // Internal symbols (by convention) can be removed without major bump
-    if (change.symbolName.startsWith('_internal_')) {
-      if (change.category === 'symbol-removed') {
-        return 'minor'
-      }
+
+    // API request types (marked with @writeonly JSDoc) use write-only rules
+    if (change.symbolName.endsWith('Request')) {
+      return writeOnlyPolicy.classify(change)
     }
-    
-    // Experimental interfaces can have breaking changes in minor versions
-    if (change.symbolKind === 'interface' && change.symbolName.endsWith('Experimental')) {
-      return change.category === 'signature-identical' ? 'none' : 'minor'
-    }
-    
-    // Use default strict semantics for everything else
+
+    // Everything else is bidirectional (conservative)
     return defaultPolicy.classify(change)
   },
 }
 ```
 
-**Use case**: Projects with explicit stability tiers or experimental features that need different versioning rules.
-
-### Example: Parameter Analysis Policy
-
-A policy that uses detailed analysis data for more nuanced decisions:
-
-```typescript
-const parameterAwarePolicy: VersioningPolicy = {
-  name: 'parameter-aware',
-  classify(change: AnalyzedChange): ReleaseType {
-    // Use detailed parameter analysis for reordering
-    if (change.category === 'param-order-changed' && change.details?.parameterAnalysis) {
-      const analysis = change.details.parameterAnalysis
-      
-      // If confidence is low, might be a false positive - treat as minor
-      if (analysis.confidence < 0.7) {
-        return 'minor'
-      }
-      
-      // High confidence reordering is definitely breaking
-      return 'major'
-    }
-    
-    // Use default policy for other changes
-    return defaultPolicy.classify(change)
-  },
-}
-```
-
-**Use case**: Projects that want to tune the sensitivity of semantic change detection.
+**Use case**: REST APIs with clearly separated request/response types.
 
 ## Use Cases
 
-Different versioning strategies are appropriate for different scenarios:
+Different versioning perspectives are appropriate for different scenarios:
 
-### 1. **Pre-1.0 Development**
+### 1. **Frontend Applications Consuming REST APIs**
 
-Use a permissive policy that allows rapid iteration:
+Use the read-only policy when your app only consumes API responses:
 
 ```typescript
-const developmentPolicy: VersioningPolicy = {
-  name: 'pre-1.0-development',
-  classify(change: AnalyzedChange): ReleaseType {
-    // In 0.x, breaking changes are allowed in minor versions
-    if (change.category === 'signature-identical') return 'none'
-    if (change.category === 'symbol-removed') return 'minor'
-    return 'minor'
+import { readOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+
+// Analyze changes to API response types
+const report = compareDeclarations(
+  {
+    oldContent: oldApiResponseTypes,
+    newContent: newApiResponseTypes,
+    policy: readOnlyPolicy,
   },
-}
+  ts,
+)
 ```
 
-### 2. **Monorepo with Internal Packages**
+**Why**: Your frontend reads data but doesn't create it. Adding required fields to responses is safe.
 
-Different policies for public vs internal packages:
+### 2. **Backend Services Implementing APIs**
+
+Use the write-only policy when your service produces data:
 
 ```typescript
-const internalPolicy: VersioningPolicy = {
-  name: 'internal-monorepo',
-  classify(change: AnalyzedChange): ReleaseType {
-    // Internal packages can break more freely
-    // Only track removals as major
-    return change.category === 'symbol-removed' ? 'major' : 'minor'
-  },
-}
+import { writeOnlyPolicy } from '@api-extractor-tools/change-detector-core'
 
-const publicPolicy: VersioningPolicy = {
-  name: 'public-api',
-  classify(change: AnalyzedChange): ReleaseType {
-    // Use strict semver for public packages
-    return defaultPolicy.classify(change)
+// Analyze changes to types your service must produce
+const report = compareDeclarations(
+  {
+    oldContent: oldServiceInterface,
+    newContent: newServiceInterface,
+    policy: writeOnlyPolicy,
   },
-}
+  ts,
+)
 ```
 
-### 3. **API Stability Tiers**
+**Why**: Your backend creates/produces data. Adding required fields means you must provide them (breaking).
 
-Implement the Angular-style stability model:
+### 3. **Library Authors with Public APIs**
+
+Use the default bidirectional policy for maximum safety:
 
 ```typescript
-const stabilityTierPolicy: VersioningPolicy = {
-  name: 'stability-tiers',
-  classify(change: AnalyzedChange): ReleaseType {
-    const name = change.symbolName
-    
-    // Experimental APIs (no guarantees)
-    if (name.includes('experimental')) {
-      return change.category === 'signature-identical' ? 'none' : 'patch'
-    }
-    
-    // Developer Preview (may change in minor versions)
-    if (name.includes('preview')) {
-      return change.category === 'signature-identical' ? 'none' : 'minor'
-    }
-    
-    // Stable APIs (strict semver)
-    return defaultPolicy.classify(change)
+import { defaultPolicy } from '@api-extractor-tools/change-detector-core'
+
+// Default policy is conservative - treats both read and write breaking changes as major
+const report = compareDeclarations(
+  {
+    oldContent: oldPublicAPI,
+    newContent: newPublicAPI,
+    // No policy specified - uses defaultPolicy
   },
-}
+  ts,
+)
 ```
 
-### 4. **TypeScript Version-Aware Policy**
+**Why**: You don't control how consumers use your types – they might read, write, or both.
 
-Handle changes differently based on TypeScript version compatibility:
+### 4. **GraphQL Schema Evolution**
+
+Apply different policies to Query (read) vs Mutation (write) types:
 
 ```typescript
-const tsVersionAwarePolicy: VersioningPolicy = {
-  name: 'typescript-aware',
+const graphQLPolicy: VersioningPolicy = {
+  name: 'graphql-schema',
   classify(change: AnalyzedChange): ReleaseType {
-    // If return type changed from Promise<T> to Promise<T | undefined>
-    // This is technically type-widening but might break await sites
+    // Query response types follow read-only rules
     if (
-      change.category === 'return-type-changed' &&
-      change.before?.includes('Promise<') &&
-      change.after?.includes('undefined')
+      change.symbolName.endsWith('Query') ||
+      change.symbolName.endsWith('QueryResult')
     ) {
-      return 'major'
+      return readOnlyPolicy.classify(change)
     }
-    
+
+    // Mutation input types follow write-only rules
+    if (
+      change.symbolName.endsWith('Input') ||
+      change.symbolName.endsWith('MutationArgs')
+    ) {
+      return writeOnlyPolicy.classify(change)
+    }
+
+    // Schema types are bidirectional
     return defaultPolicy.classify(change)
   },
 }
