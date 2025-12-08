@@ -5,7 +5,7 @@
 ## ExtractedModuleAugmentation interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 A module augmentation block extracted from a source file
 
@@ -21,98 +21,77 @@ export interface ExtractedModuleAugmentation
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [declarations](./module-declaration-merger.extractedmoduleaugmentation.declarations.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ExtractedDeclaration](./module-declaration-merger.extracteddeclaration.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Individual declarations within this module block
-
 
 </td></tr>
 <tr><td>
 
 [moduleSpecifier](./module-declaration-merger.extractedmoduleaugmentation.modulespecifier.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** The module specifier from `declare module "..."`
-
 
 </td></tr>
 <tr><td>
 
 [originalText](./module-declaration-merger.extractedmoduleaugmentation.originaltext.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** The original full text of the declare module block (for reference)
-
 
 </td></tr>
 <tr><td>
 
 [sourceFilePath](./module-declaration-merger.extractedmoduleaugmentation.sourcefilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** The source file path this augmentation came from
 
-
 </td></tr>
 </tbody></table>
-

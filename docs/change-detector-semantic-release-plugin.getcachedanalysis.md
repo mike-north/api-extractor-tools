@@ -5,7 +5,7 @@
 ## getCachedAnalysis() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Gets the cached analysis result. Useful for other hooks or for testing.
 
@@ -14,9 +14,9 @@ Gets the cached analysis result. Useful for other hooks or for testing.
 ```typescript
 export declare function getCachedAnalysis(): AnalysisResult | null;
 ```
+
 **Returns:**
 
 [AnalysisResult](./change-detector-semantic-release-plugin.analysisresult.md) \| null
 
 The cached analysis result, or null if not available
-

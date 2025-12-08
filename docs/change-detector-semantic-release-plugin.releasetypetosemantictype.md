@@ -5,7 +5,7 @@
 ## releaseTypeToSemanticType() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Maps change-detector ReleaseType to semantic-release type. Returns null for 'none' since no release is needed.
 
@@ -21,32 +21,26 @@ export declare function releaseTypeToSemanticType(releaseType: ReleaseType): Sem
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 releaseType
 
-
 </td><td>
 
 ReleaseType
 
-
 </td><td>
 
 The release type from change-detector
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The release type from change-detector
 [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 The corresponding semantic-release type, or null if no release needed
-

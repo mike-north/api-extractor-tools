@@ -147,7 +147,7 @@ You'll be prompted with:
 
 **Example output:**
 
-```
+```text
 🦋  Which packages would you like to include?
 ◯ @api-extractor-tools/change-detector
 ◯ @api-extractor-tools/module-declaration-merger
@@ -410,7 +410,7 @@ git push
 
 ## Package Structure
 
-```
+```text
 api-extractor-tools/
 ├── tools/
 │   ├── change-detector/                        # File-based API change detection with CLI

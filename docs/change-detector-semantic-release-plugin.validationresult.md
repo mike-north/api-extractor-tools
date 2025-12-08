@@ -5,7 +5,7 @@
 ## ValidationResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Result of validating the proposed version bump.
 
@@ -21,117 +21,92 @@ export interface ValidationResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [changes?](./change-detector-semantic-release-plugin.validationresult.changes.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ComparisonReport\['changes'\]
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Detailed changes, if available
-
 
 </td></tr>
 <tr><td>
 
 [detectedBump](./change-detector-semantic-release-plugin.validationresult.detectedbump.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ReleaseType
 
-
 </td><td>
 
 **_(ALPHA)_** The bump type detected by API analysis
-
 
 </td></tr>
 <tr><td>
 
 [message](./change-detector-semantic-release-plugin.validationresult.message.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Human-readable explanation of the validation result
-
 
 </td></tr>
 <tr><td>
 
 [proposedBump](./change-detector-semantic-release-plugin.validationresult.proposedbump.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
-
 </td><td>
 
 **_(ALPHA)_** The bump type proposed by commit analysis
-
 
 </td></tr>
 <tr><td>
 
 [valid](./change-detector-semantic-release-plugin.validationresult.valid.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** Whether the validation passed
 
-
 </td></tr>
 </tbody></table>
-

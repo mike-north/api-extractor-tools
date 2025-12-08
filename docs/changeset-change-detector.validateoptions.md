@@ -5,7 +5,7 @@
 ## ValidateOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Options for the validate command.
 
@@ -14,6 +14,7 @@ Options for the validate command.
 ```typescript
 export interface ValidateOptions extends AnalyzeOptions 
 ```
+
 **Extends:** [AnalyzeOptions](./changeset-change-detector.analyzeoptions.md)
 
 ## Properties
@@ -22,41 +23,32 @@ export interface ValidateOptions extends AnalyzeOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [strict?](./changeset-change-detector.validateoptions.strict.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Fail on warnings in addition to errors
 
-
 </td></tr>
 </tbody></table>
-

@@ -38,7 +38,7 @@ Using with legacy config (.eslintrc.js):
 ```js
 module.exports = {
   plugins: ['@api-extractor-tools'],
-  extends: ['plugin:@api-extractor-tools/recommended'],
+  extends: ['plugin:@api-extractor-tools/recommended-legacy'],
 };
 ```
 
@@ -48,99 +48,81 @@ module.exports = {
 
 Interface
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [ApiExtractorConfig](./eslint-plugin.apiextractorconfig.md)
 
-
 </td><td>
 
 Partial representation of api-extractor.json relevant for this plugin.
-
 
 </td></tr>
 <tr><td>
 
 [ApiExtractorEslintPlugin](./eslint-plugin.apiextractoreslintplugin.md)
 
-
 </td><td>
 
 The ESLint plugin type.
-
 
 </td></tr>
 <tr><td>
 
 [ApiExtractorMessagesConfig](./eslint-plugin.apiextractormessagesconfig.md)
 
-
 </td><td>
 
 The messages configuration section from api-extractor.json.
-
 
 </td></tr>
 <tr><td>
 
 [MessageConfig](./eslint-plugin.messageconfig.md)
 
-
 </td><td>
 
 Configuration for a single message type in API Extractor.
-
 
 </td></tr>
 <tr><td>
 
 [MissingReleaseTagRuleOptions](./eslint-plugin.missingreleasetagruleoptions.md)
 
-
 </td><td>
 
 Options for the missing-release-tag rule.
-
 
 </td></tr>
 <tr><td>
 
 [OverrideKeywordRuleOptions](./eslint-plugin.overridekeywordruleoptions.md)
 
-
 </td><td>
 
 Options for the override-keyword rule.
-
 
 </td></tr>
 <tr><td>
 
 [PackageDocumentationRuleOptions](./eslint-plugin.packagedocumentationruleoptions.md)
 
-
 </td><td>
 
 Options for the package-documentation rule.
-
 
 </td></tr>
 <tr><td>
 
 [ResolvedEntryPoints](./eslint-plugin.resolvedentrypoints.md)
 
-
 </td><td>
 
 Resolved entry points from package.json.
-
 
 </td></tr>
 </tbody></table>
@@ -151,55 +133,45 @@ Resolved entry points from package.json.
 
 Variable
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [plugin](./eslint-plugin.plugin.md)
 
-
 </td><td>
 
 The ESLint plugin object.
-
 
 </td></tr>
 <tr><td>
 
 [recommendedRules](./eslint-plugin.recommendedrules.md)
 
-
 </td><td>
 
 Recommended rule configuration. These are the rules enabled by default with appropriate severity.
-
 
 </td></tr>
 <tr><td>
 
 [RELEASE\_TAGS](./eslint-plugin.release_tags.md)
 
-
 </td><td>
 
 All valid release tags.
-
 
 </td></tr>
 <tr><td>
 
 [rules](./eslint-plugin.rules.md)
 
-
 </td><td>
 
 All available ESLint rules.
-
 
 </td></tr>
 </tbody></table>
@@ -210,34 +182,27 @@ All available ESLint rules.
 
 Type Alias
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [ApiExtractorLogLevel](./eslint-plugin.apiextractorloglevel.md)
 
-
 </td><td>
 
 Log levels supported by API Extractor message configuration.
-
 
 </td></tr>
 <tr><td>
 
 [ReleaseTag](./eslint-plugin.releasetag.md)
 
-
 </td><td>
 
 Release tags recognized by API Extractor.
 
-
 </td></tr>
 </tbody></table>
-

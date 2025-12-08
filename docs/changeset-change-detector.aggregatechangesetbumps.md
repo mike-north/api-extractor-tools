@@ -5,7 +5,7 @@
 ## aggregateChangesetBumps() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Aggregates bump types from changesets per package. If multiple changesets affect the same package, the most severe bump wins.
 
@@ -21,32 +21,26 @@ export declare function aggregateChangesetBumps(changesets: NewChangeset[]): Map
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 changesets
 
-
 </td><td>
 
 NewChangeset\[\]
 
-
 </td><td>
 
 Array of changesets to aggregate
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ Array of changesets to aggregate
 Map&lt;string, [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md)<!-- -->&gt;
 
 Map of package name to aggregate bump type
-

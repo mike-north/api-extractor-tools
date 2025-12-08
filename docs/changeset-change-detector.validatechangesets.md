@@ -5,7 +5,7 @@
 ## validateChangesets() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Validates changesets against detected API changes.
 
@@ -21,32 +21,26 @@ export declare function validateChangesets(options?: ValidateOptions): Promise<V
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
-
 </td><td>
 
 [ValidateOptions](./changeset-change-detector.validateoptions.md)
 
-
 </td><td>
 
 _(Optional)_ Validation options
-
 
 </td></tr>
 </tbody></table>
@@ -58,7 +52,6 @@ Promise&lt;[ValidationResult](./changeset-change-detector.validationresult.md)<!
 Validation result with issues found
 
 ## Example
-
 
 ```ts
 import { validateChangesets } from '@api-extractor-tools/changeset-change-detector';
@@ -72,4 +65,3 @@ if (!result.valid) {
   process.exit(1);
 }
 ```
-

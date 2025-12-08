@@ -5,7 +5,7 @@
 ## getFileAtRef() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Gets the declaration file content at a specific git ref.
 
@@ -21,64 +21,52 @@ export declare function getFileAtRef(filePath: string, ref: string, cwd: string)
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 filePath
 
-
 </td><td>
 
 string
 
-
 </td><td>
 
 Absolute path to the file
-
 
 </td></tr>
 <tr><td>
 
 ref
 
-
 </td><td>
 
 string
 
-
 </td><td>
 
 Git ref to get the file from
-
 
 </td></tr>
 <tr><td>
 
 cwd
 
-
 </td><td>
 
 string
 
-
 </td><td>
 
 The workspace root directory
-
 
 </td></tr>
 </tbody></table>
@@ -88,4 +76,3 @@ The workspace root directory
 string \| null
 
 The file content, or null if file doesn't exist at that ref
-

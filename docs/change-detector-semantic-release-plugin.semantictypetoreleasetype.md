@@ -5,7 +5,7 @@
 ## semanticTypeToReleaseType() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Maps semantic-release type to change-detector ReleaseType.
 
@@ -21,32 +21,26 @@ export declare function semanticTypeToReleaseType(semanticType: SemanticReleaseT
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 semanticType
 
-
 </td><td>
 
 [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
-
 </td><td>
 
 The semantic-release type
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The semantic-release type
 ReleaseType
 
 The corresponding change-detector ReleaseType
-

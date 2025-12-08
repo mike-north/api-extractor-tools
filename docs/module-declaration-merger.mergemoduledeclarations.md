@@ -5,7 +5,7 @@
 ## mergeModuleDeclarations() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Main API for merging module declarations into api-extractor rollup files.
 
@@ -23,32 +23,26 @@ export declare function mergeModuleDeclarations(options: MergeOptions): Promise<
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
-
 </td><td>
 
 [MergeOptions](./module-declaration-merger.mergeoptions.md)
 
-
 </td><td>
 
 Merge options
-
 
 </td></tr>
 </tbody></table>
@@ -60,7 +54,6 @@ Promise&lt;[MergeResult](./module-declaration-merger.mergeresult.md)<!-- -->&gt;
 Result of the merge operation
 
 ## Example
-
 
 ```ts
 import { mergeModuleDeclarations } from '@api-extractor-tools/module-declaration-merger';
@@ -74,4 +67,3 @@ if (!result.success) {
   console.error('Errors:', result.errors);
 }
 ```
-

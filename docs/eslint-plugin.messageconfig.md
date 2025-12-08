@@ -18,58 +18,45 @@ export interface MessageConfig
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [addToApiReportFile?](./eslint-plugin.messageconfig.addtoapireportfile.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 _(Optional)_
-
 
 </td></tr>
 <tr><td>
 
 [logLevel](./eslint-plugin.messageconfig.loglevel.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ApiExtractorLogLevel](./eslint-plugin.apiextractorloglevel.md)
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
-

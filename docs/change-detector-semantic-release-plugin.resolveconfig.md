@@ -5,7 +5,7 @@
 ## resolveConfig() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Resolves plugin configuration by applying defaults.
 
@@ -21,32 +21,26 @@ export declare function resolveConfig(config?: PluginConfig): ResolvedPluginConf
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 config
 
-
 </td><td>
 
 [PluginConfig](./change-detector-semantic-release-plugin.pluginconfig.md)
 
-
 </td><td>
 
 _(Optional)_ User-provided configuration
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ _(Optional)_ User-provided configuration
 [ResolvedPluginConfig](./change-detector-semantic-release-plugin.resolvedpluginconfig.md)
 
 Resolved configuration with defaults applied
-
