@@ -1,10 +1,6 @@
 /**
  * ESLint plugin providing authoring-time feedback for API Extractor.
  *
- * @remarks
- * This plugin provides ESLint rules that mirror API Extractor's validations,
- * enabling developers to catch issues during development rather than at build time.
- *
  * @example
  * Using with flat config (eslint.config.js):
  * ```js
@@ -12,15 +8,6 @@
  *
  * export default [
  *   apiExtractorPlugin.configs.recommended,
- *   // Or configure rules individually:
- *   {
- *     plugins: {
- *       '@api-extractor-tools': apiExtractorPlugin,
- *     },
- *     rules: {
- *       '@api-extractor-tools/missing-release-tag': 'error',
- *     },
- *   },
  * ];
  * ```
  *
@@ -55,6 +42,16 @@ export type {
 
 export { RELEASE_TAGS } from './types'
 
+// Re-export TSDoc utilities (browser-safe)
+export {
+  parseTSDocComment,
+  extractReleaseTag,
+  hasOverrideTag,
+  hasPackageDocumentation,
+  getLeadingTSDocComment,
+  findAllTSDocComments,
+} from './utils/tsdoc-parser'
+
 /**
  * Plugin configuration type.
  * @internal
@@ -69,7 +66,7 @@ interface PluginConfigs {
 
 /**
  * The ESLint plugin type.
- * @public
+ * @alpha
  */
 export interface ApiExtractorEslintPlugin {
   meta: {
@@ -82,7 +79,7 @@ export interface ApiExtractorEslintPlugin {
 
 /**
  * The ESLint plugin object.
- * @public
+ * @alpha
  */
 const plugin: ApiExtractorEslintPlugin = {
   meta: {

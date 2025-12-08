@@ -4,11 +4,14 @@
 
 ```ts
 
+import { DocComment } from '@microsoft/tsdoc';
+import { ParserContext } from '@microsoft/tsdoc';
 import { RuleListener } from '@typescript-eslint/utils/dist/ts-eslint';
 import { RuleModule } from '@typescript-eslint/utils/dist/ts-eslint';
 import type { TSESLint } from '@typescript-eslint/utils';
+import type { TSESTree } from '@typescript-eslint/utils';
 
-// @public
+// @alpha
 export interface ApiExtractorConfig {
     // (undocumented)
     extends?: string;
@@ -18,7 +21,7 @@ export interface ApiExtractorConfig {
     messages?: ApiExtractorMessagesConfig;
 }
 
-// @public
+// @alpha
 export interface ApiExtractorEslintPlugin {
     // Warning: (ae-forgotten-export) The symbol "PluginConfigs" needs to be exported by the entry point index.d.ts
     //
@@ -33,10 +36,10 @@ export interface ApiExtractorEslintPlugin {
     rules: typeof rules;
 }
 
-// @public
+// @alpha
 export type ApiExtractorLogLevel = 'error' | 'warning' | 'none';
 
-// @public
+// @alpha
 export interface ApiExtractorMessagesConfig {
     // (undocumented)
     compilerMessageReporting?: {
@@ -59,7 +62,29 @@ export interface ApiExtractorMessagesConfig {
     };
 }
 
-// @public
+// @alpha
+export function extractReleaseTag(docComment: DocComment): ReleaseTag | undefined;
+
+// @alpha
+export function findAllTSDocComments(sourceCode: {
+    getAllComments: () => TSESTree.Comment[];
+}): Array<{
+    comment: TSESTree.Comment;
+    parsed: ParserContext;
+}>;
+
+// @alpha
+export function getLeadingTSDocComment(sourceCode: {
+    getCommentsBefore: (node: TSESTree.Node) => TSESTree.Comment[];
+}, node: TSESTree.Node): string | undefined;
+
+// @alpha @override
+export function hasOverrideTag(docComment: DocComment): boolean;
+
+// @alpha
+export function hasPackageDocumentation(docComment: DocComment): boolean;
+
+// @alpha
 export interface MessageConfig {
     // (undocumented)
     addToApiReportFile?: boolean;
@@ -67,38 +92,34 @@ export interface MessageConfig {
     logLevel: ApiExtractorLogLevel;
 }
 
-// @public
+// @alpha
 export interface MissingReleaseTagRuleOptions {
-    // (undocumented)
-    configPath?: string;
+    severity?: ApiExtractorLogLevel;
 }
 
-// @public
-export interface OverrideKeywordRuleOptions {
-    // (undocumented)
-    configPath?: string;
-}
+// @alpha
+export type OverrideKeywordRuleOptions = Record<string, never>;
 
-// @public
-export interface PackageDocumentationRuleOptions {
-    // (undocumented)
-    configPath?: string;
-}
+// @alpha
+export type PackageDocumentationRuleOptions = Record<string, never>;
 
-// @public
+// @alpha
+export function parseTSDocComment(commentText: string): ParserContext;
+
+// @alpha
 const plugin: ApiExtractorEslintPlugin;
 export default plugin;
 
-// @public
+// @alpha
 export const recommendedRules: TSESLint.Linter.RulesRecord;
 
-// @public
+// @alpha
 export const RELEASE_TAGS: readonly ReleaseTag[];
 
-// @public
+// @alpha
 export type ReleaseTag = 'public' | 'beta' | 'alpha' | 'internal';
 
-// @public
+// @alpha
 export interface ResolvedEntryPoints {
     // (undocumented)
     exports: string[];
@@ -108,7 +129,7 @@ export interface ResolvedEntryPoints {
     types?: string;
 }
 
-// @public
+// @alpha
 export const rules: {
     readonly 'missing-release-tag': RuleModule<"missingReleaseTag", [MissingReleaseTagRuleOptions], unknown, RuleListener>;
     readonly 'override-keyword': RuleModule<"missingOverrideKeyword", [OverrideKeywordRuleOptions], unknown, RuleListener>;

@@ -2,13 +2,15 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
-import { clearPackageJsonCache } from '../../src/utils/entry-point.js'
 import {
   findPackageJson,
   isEntryPoint,
+  clearPackageJsonCache,
+} from '../../src/utils/entry-point.js'
+import {
   hasPackageDocumentation,
   parseTSDocComment,
-} from '../../src/utils'
+} from '../../src/utils/tsdoc-parser.js'
 
 describe('package-documentation', () => {
   let tempDir: string

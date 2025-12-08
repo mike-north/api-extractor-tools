@@ -37,6 +37,7 @@ function getParser(): TSDocParser {
  *
  * @param commentText - The full comment text including delimiters
  * @returns Parser context with the parsed doc comment
+ * @alpha
  */
 export function parseTSDocComment(commentText: string): ParserContext {
   const parser = getParser()
@@ -49,6 +50,7 @@ export function parseTSDocComment(commentText: string): ParserContext {
  *
  * @param docComment - The parsed doc comment
  * @returns The release tag if found, undefined otherwise
+ * @alpha
  */
 export function extractReleaseTag(
   docComment: DocComment,
@@ -74,6 +76,7 @@ export function extractReleaseTag(
  *
  * @param docComment - The parsed doc comment
  * @returns True if @override tag is present
+ * @alpha
  */
 export function hasOverrideTag(docComment: DocComment): boolean {
   return docComment.modifierTagSet.isOverride()
@@ -84,6 +87,7 @@ export function hasOverrideTag(docComment: DocComment): boolean {
  *
  * @param docComment - The parsed doc comment
  * @returns True if @packageDocumentation tag is present
+ * @alpha
  */
 export function hasPackageDocumentation(docComment: DocComment): boolean {
   return docComment.modifierTagSet.isPackageDocumentation()
@@ -104,6 +108,7 @@ function isBlockComment(comment: TSESTree.Comment): boolean {
  * @param sourceCode - ESLint source code object
  * @param node - The AST node to check
  * @returns The comment text if a TSDoc comment exists, undefined otherwise
+ * @alpha
  */
 export function getLeadingTSDocComment(
   sourceCode: {
@@ -142,6 +147,7 @@ export function getLeadingTSDocComment(
  *
  * @param sourceCode - ESLint source code object
  * @returns Array of comment objects with their parsed content
+ * @alpha
  */
 export function findAllTSDocComments(sourceCode: {
   getAllComments: () => TSESTree.Comment[]

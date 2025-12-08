@@ -4,6 +4,16 @@
   "description": "ESLint plugin providing authoring-time feedback for API Extractor",
   "main": "dist/index.js",
   "types": "dist/eslint-plugin-public.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/eslint-plugin-public.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "generate:api-report": "api-extractor run --local --verbose",

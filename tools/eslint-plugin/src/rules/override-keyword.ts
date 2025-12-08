@@ -1,5 +1,9 @@
 /**
  * ESLint rule requiring the TypeScript `override` keyword when `@override` TSDoc tag is used.
+ *
+ * @remarks
+ * It is purely syntactic and requires no configuration.
+ *
  * @internal
  */
 
@@ -8,7 +12,7 @@ import {
   getLeadingTSDocComment,
   parseTSDocComment,
   hasOverrideTag,
-} from '../utils'
+} from '../utils/tsdoc-parser'
 import type { OverrideKeywordRuleOptions } from '../types'
 
 const createRule = ESLintUtils.RuleCreator(
@@ -37,12 +41,7 @@ export const overrideKeyword = createRule<
     schema: [
       {
         type: 'object',
-        properties: {
-          configPath: {
-            type: 'string',
-            description: 'Path to api-extractor.json configuration file',
-          },
-        },
+        properties: {},
         additionalProperties: false,
       },
     ],
@@ -121,7 +120,6 @@ export const overrideKeyword = createRule<
         messageId: 'missingOverrideKeyword',
         data: { name },
         fix(fixer) {
-          // Insert override keyword at the start of the member declaration
           return fixer.insertTextBefore(node, 'override ')
         },
       })
