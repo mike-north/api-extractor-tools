@@ -213,6 +213,28 @@ Description
 </td></tr>
 <tr><td>
 
+[PublicOnNonExportedRuleOptions](./eslint-plugin.publiconnonexportedruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the public-on-non-exported rule.
+
+
+</td></tr>
+<tr><td>
+
+[PublicOnPrivateMemberRuleOptions](./eslint-plugin.publiconprivatememberruleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the public-on-private-member rule.
+
+
+</td></tr>
+<tr><td>
+
 [ResolvedEntryPoints](./eslint-plugin.resolvedentrypoints.md)
 
 
