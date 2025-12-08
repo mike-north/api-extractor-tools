@@ -34,6 +34,9 @@ export default [
       '@api-extractor-tools/missing-release-tag': 'error',
       '@api-extractor-tools/override-keyword': 'error',
       '@api-extractor-tools/package-documentation': 'warn',
+      '@api-extractor-tools/forgotten-export': 'warn',
+      '@api-extractor-tools/incompatible-release-tags': 'warn',
+      '@api-extractor-tools/extra-release-tag': 'error',
     },
   },
 ]
@@ -57,6 +60,9 @@ module.exports = {
     '@api-extractor-tools/missing-release-tag': 'error',
     '@api-extractor-tools/override-keyword': 'error',
     '@api-extractor-tools/package-documentation': 'warn',
+    '@api-extractor-tools/forgotten-export': 'warn',
+    '@api-extractor-tools/incompatible-release-tags': 'warn',
+    '@api-extractor-tools/extra-release-tag': 'error',
   },
 }
 ```
@@ -144,6 +150,126 @@ export function foo() {}
 export function foo() {}
 ```
 
+### `@api-extractor-tools/forgotten-export`
+
+Requires that types and symbols referenced by exported APIs are also exported from the entry point.
+
+This rule mirrors API Extractor's `ae-forgotten-export` message.
+
+```ts
+// ❌ Bad - MyInterface is used but not exported
+interface MyInterface {
+  name: string
+}
+
+export function myFunction(param: MyInterface): void {}
+
+// ✅ Good - MyInterface is exported
+export interface MyInterface {
+  name: string
+}
+
+export function myFunction(param: MyInterface): void {}
+```
+
+**Options:**
+
+- `severity` (optional): Severity level for forgotten exports. Default: `'warning'`
+
+```json
+{
+  "@api-extractor-tools/forgotten-export": ["warn", { "severity": "warning" }]
+}
+```
+
+### `@api-extractor-tools/incompatible-release-tags`
+
+Requires that exported APIs do not reference symbols with less visible release tags.
+
+This rule mirrors API Extractor's `ae-incompatible-release-tags` message. For example, a `@public` API should not reference an `@internal` type.
+
+Release tag visibility hierarchy (from least to most visible):
+
+- `@internal` < `@alpha` < `@beta` < `@public`
+
+```ts
+// ❌ Bad - public API using internal type
+/**
+ * An internal interface.
+ * @internal
+ */
+interface MyInterface {
+  name: string
+}
+
+/**
+ * A public function.
+ * @public
+ */
+export function myFunction(param: MyInterface): void {}
+
+// ✅ Good - public API using public type
+/**
+ * A public interface.
+ * @public
+ */
+export interface MyInterface {
+  name: string
+}
+
+/**
+ * A public function.
+ * @public
+ */
+export function myFunction(param: MyInterface): void {}
+```
+
+**Options:**
+
+- `severity` (optional): Severity level for incompatible release tags. Default: `'warning'`
+
+```json
+{
+  "@api-extractor-tools/incompatible-release-tags": [
+    "error",
+    { "severity": "warning" }
+  ]
+}
+```
+
+### `@api-extractor-tools/extra-release-tag`
+
+Requires that symbols have at most one release tag.
+
+This rule mirrors API Extractor's `ae-extra-release-tag` message. Each symbol should have exactly one release tag (`@public`, `@beta`, `@alpha`, or `@internal`).
+
+```ts
+// ❌ Bad - multiple release tags
+/**
+ * A function with multiple tags.
+ * @public
+ * @beta
+ */
+export function myFunction(): void {}
+
+// ✅ Good - single release tag
+/**
+ * A public function.
+ * @public
+ */
+export function myFunction(): void {}
+```
+
+**Options:**
+
+- `severity` (optional): Severity level for extra release tags. Default: `'error'`
+
+```json
+{
+  "@api-extractor-tools/extra-release-tag": ["error", { "severity": "error" }]
+}
+```
+
 ## Configuration Discovery
 
 Rules that read from `api-extractor.json` use the following strategy:
@@ -156,11 +282,14 @@ Rules that read from `api-extractor.json` use the following strategy:
 
 The `recommended` configuration enables all rules with these defaults:
 
-| Rule                    | Severity |
-| ----------------------- | -------- |
-| `missing-release-tag`   | warn     |
-| `override-keyword`      | error    |
-| `package-documentation` | warn     |
+| Rule                        | Severity |
+| --------------------------- | -------- |
+| `missing-release-tag`       | warn     |
+| `override-keyword`          | error    |
+| `package-documentation`     | warn     |
+| `forgotten-export`          | warn     |
+| `incompatible-release-tags` | warn     |
+| `extra-release-tag`         | error    |
 
 ## Requirements
 

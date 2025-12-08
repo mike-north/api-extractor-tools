@@ -39,6 +39,9 @@ export type {
   PackageDocumentationRuleOptions,
   ResolvedEntryPoints,
 } from './types'
+export type { ForgottenExportRuleOptions } from './rules/forgotten-export'
+export type { IncompatibleReleaseTagsRuleOptions } from './rules/incompatible-release-tags'
+export type { ExtraReleaseTagRuleOptions } from './rules/extra-release-tag'
 
 export { RELEASE_TAGS } from './types'
 
