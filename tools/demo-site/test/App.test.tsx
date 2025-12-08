@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../src/App'
+import { encodeBase64, decodeBase64 } from '../src/utils/encoding'
 
 describe('App', () => {
   beforeEach(() => {
@@ -171,8 +172,8 @@ describe('App', () => {
     it('initializes content from URL parameters', () => {
       const oldContent = 'export declare const OLD: string;'
       const newContent = 'export declare const NEW: string;'
-      const oldEncoded = btoa(unescape(encodeURIComponent(oldContent)))
-      const newEncoded = btoa(unescape(encodeURIComponent(newContent)))
+      const oldEncoded = encodeBase64(oldContent)
+      const newEncoded = encodeBase64(newContent)
 
       // Set URL before rendering
       const originalUrl = window.location.href
@@ -191,8 +192,8 @@ describe('App', () => {
       // The app will load with default content since App.tsx caches initialContent
       // But we can verify that if we manually decode the URL params, they work correctly
       const params = new URLSearchParams(window.location.search)
-      const decodedOld = decodeURIComponent(escape(atob(params.get('old') || '')))
-      const decodedNew = decodeURIComponent(escape(atob(params.get('new') || '')))
+      const decodedOld = decodeBase64(params.get('old') || '')
+      const decodedNew = decodeBase64(params.get('new') || '')
       
       expect(decodedOld).toBe(oldContent)
       expect(decodedNew).toBe(newContent)
@@ -364,6 +365,34 @@ describe('App', () => {
       await waitFor(
         () => {
           expect(screen.queryByText('Copied!')).not.toBeInTheDocument()
+        },
+        { timeout: 2500 },
+      )
+    })
+
+    it('handles clipboard API failure gracefully', async () => {
+      const user = userEvent.setup()
+      
+      const mockWriteText = vi.fn().mockRejectedValue(new Error('Permission denied'))
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: mockWriteText },
+        writable: true,
+        configurable: true,
+      })
+      
+      render(<App />)
+      
+      const copyButton = screen.getByRole('button', { name: /copy for llm/i })
+      await user.click(copyButton)
+      
+      await waitFor(() => {
+        expect(screen.getByText('Failed to copy')).toBeInTheDocument()
+      })
+
+      // Feedback should disappear after 2 seconds
+      await waitFor(
+        () => {
+          expect(screen.queryByText('Failed to copy')).not.toBeInTheDocument()
         },
         { timeout: 2500 },
       )
