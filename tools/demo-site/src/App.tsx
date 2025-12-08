@@ -244,13 +244,13 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
             <div className="editor-panel">
               <div className="editor-header">Old API (.d.ts)</div>
               <div className="editor-wrapper">
-                <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} />
+                <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} path="file:///old.d.ts" />
               </div>
             </div>
             <div className="editor-panel">
               <div className="editor-header">New API (.d.ts)</div>
               <div className="editor-wrapper">
-                <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} />
+                <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} path="file:///new.d.ts" />
               </div>
             </div>
           </div>
