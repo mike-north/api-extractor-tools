@@ -6,9 +6,10 @@ interface DtsEditorProps {
   value: string
   onChange: (value: string) => void
   theme: 'light' | 'dark'
+  path: string
 }
 
-export function DtsEditor({ value, onChange, theme }: DtsEditorProps) {
+export function DtsEditor({ value, onChange, theme, path }: DtsEditorProps) {
   const handleEditorWillMount = useCallback((monaco: Monaco) => {
     monaco.editor.defineTheme('gruvbox-light', gruvboxLight)
     monaco.editor.defineTheme('gruvbox-dark', gruvboxDark)
@@ -18,6 +19,7 @@ export function DtsEditor({ value, onChange, theme }: DtsEditorProps) {
     <Editor
       height="100%"
       defaultLanguage="typescript"
+      path={path}
       theme={theme === 'light' ? 'gruvbox-light' : 'gruvbox-dark'}
       value={value}
       onChange={(val) => onChange(val ?? '')}
