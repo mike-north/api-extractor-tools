@@ -3,7 +3,11 @@ import * as ts from 'typescript'
 import {
   compareDeclarations,
   formatReportAsText,
+  defaultPolicy,
+  readOnlyPolicy,
+  writeOnlyPolicy,
   type ComparisonReport,
+  type VersioningPolicy,
 } from '@api-extractor-tools/change-detector-core'
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
@@ -14,6 +18,13 @@ import { isUrlTooLong } from './utils/urlLimits'
 
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
+type PolicyName = 'default' | 'read-only' | 'write-only'
+
+const policies: Record<PolicyName, VersioningPolicy> = {
+  'default': defaultPolicy,
+  'read-only': readOnlyPolicy,
+  'write-only': writeOnlyPolicy,
+}
 
 function getSystemTheme(): ResolvedTheme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -42,6 +53,15 @@ function getInitialContent(): { old: string; new: string } {
   return { old: examples[0].old, new: examples[0].new }
 }
 
+function getInitialPolicy(): PolicyName {
+  const params = new URLSearchParams(window.location.search)
+  const policyParam = params.get('policy')
+  if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only') {
+    return policyParam
+  }
+  return 'default'
+}
+
 const initialContent = getInitialContent()
 
 function App() {
@@ -51,6 +71,7 @@ function App() {
   const [editorHeight, setEditorHeight] = useState(250)
   const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>(getInitialPolicy())
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -84,6 +105,10 @@ function App() {
     setThemePreference(e.target.value as ThemePreference)
   }, [])
 
+  const handlePolicyChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPolicy(e.target.value as PolicyName)
+  }, [])
+
   // Auto-analyze with 100ms debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -91,6 +116,7 @@ function App() {
         {
           oldContent,
           newContent,
+          policy: policies[selectedPolicy],
         },
         ts,
       )
@@ -98,14 +124,15 @@ function App() {
     }, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent])
+  }, [oldContent, newContent, selectedPolicy])
 
-  // Update URL with debounce when content changes
+  // Update URL with debounce when content or policy changes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const params = new URLSearchParams()
       params.set('old', encodeBase64(oldContent))
       params.set('new', encodeBase64(newContent))
+      params.set('policy', selectedPolicy)
       const newUrl = `${window.location.pathname}?${params.toString()}`
       
       // Only update URL if it's within safe length limits
@@ -118,7 +145,7 @@ function App() {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent])
+  }, [oldContent, newContent, selectedPolicy])
 
   // Handle resize drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -215,6 +242,17 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
             ))}
           </select>
           <select
+            className="policy-select"
+            value={selectedPolicy}
+            onChange={handlePolicyChange}
+            aria-label="Versioning policy"
+            title="Select which perspective to analyze from"
+          >
+            <option value="default">Bidirectional (Default)</option>
+            <option value="read-only">Read-Only (Consumer)</option>
+            <option value="write-only">Write-Only (Producer)</option>
+          </select>
+          <select
             className="theme-toggle"
             value={themePreference}
             onChange={handleThemeChange}
@@ -282,6 +320,7 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
           report={report}
           oldContent={oldContent}
           newContent={newContent}
+          policyName={selectedPolicy}
           onClose={() => setIsBugReportOpen(false)}
         />
       )}
