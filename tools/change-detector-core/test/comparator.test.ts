@@ -5,12 +5,18 @@ import {
   compareDeclarationResults,
 } from '../src/comparator'
 import { parseDeclarationStringWithTypes } from '../src/parser-core'
+import { applyPolicy } from '../src/classifier'
+import { defaultPolicy } from '../src/policies'
 
 /**
  * Helper to compare two declaration strings directly using the comparator module.
  */
 function compareStrings(oldContent: string, newContent: string) {
-  return compareDeclarationStrings(oldContent, newContent, ts)
+  const result = compareDeclarationStrings(oldContent, newContent, ts)
+  return {
+    ...result,
+    changes: applyPolicy(result.changes, defaultPolicy),
+  }
 }
 
 describe('compareDeclarationStrings', () => {
@@ -375,7 +381,11 @@ describe('compareDeclarationResults', () => {
     // Clear type symbols to simulate missing type info
     oldParsed.typeSymbols.clear()
 
-    const result = compareDeclarationResults(oldParsed, newParsed, ts)
+    const rawResult = compareDeclarationResults(oldParsed, newParsed, ts)
+    const result = {
+      ...rawResult,
+      changes: applyPolicy(rawResult.changes, defaultPolicy),
+    }
 
     // Should still detect the change via signature comparison
     const x = result.changes.find((c) => c.symbolName === 'x')

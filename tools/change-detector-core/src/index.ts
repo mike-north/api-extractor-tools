@@ -38,11 +38,17 @@ export type {
   SymbolKind,
   ExportedSymbol,
   Change,
+  AnalyzedChange,
+  VersioningPolicy,
+  ChangeDetails,
   ChangesByImpact,
   ComparisonStats,
   ComparisonReport,
   CompareStringOptions,
 } from './types'
+
+// Policy exports
+export { defaultPolicy } from './policies'
 
 // Parser exports
 export {
@@ -61,7 +67,11 @@ export {
 } from './comparator'
 
 // Classifier exports
-export { classifyChanges, type ClassificationResult } from './classifier'
+export {
+  classifyChanges,
+  applyPolicy,
+  type ClassificationResult,
+} from './classifier'
 
 // Reporter exports
 export {
@@ -118,6 +128,7 @@ export function compareDeclarations(
     newContent,
     oldFilename = 'old.d.ts',
     newFilename = 'new.d.ts',
+    policy,
   } = options
 
   // Parse both contents with type information
@@ -151,6 +162,7 @@ export function compareDeclarations(
     changes,
     oldParsed.symbols.size,
     newParsed.symbols.size,
+    policy,
   )
 
   return {
