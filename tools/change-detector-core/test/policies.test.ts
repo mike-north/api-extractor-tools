@@ -10,7 +10,7 @@ import {
 
 describe('Versioning Policies', () => {
   describe('defaultPolicy', () => {
-    it('classifies symbol removal as major', () => {
+    it('classifies symbol-removed as major', () => {
       const change: AnalyzedChange = {
         symbolName: 'foo',
         symbolKind: 'function',
@@ -20,7 +20,7 @@ describe('Versioning Policies', () => {
       expect(defaultPolicy.classify(change)).toBe('major')
     })
 
-    it('classifies symbol addition as minor', () => {
+    it('classifies symbol-added as minor', () => {
       const change: AnalyzedChange = {
         symbolName: 'foo',
         symbolKind: 'function',
@@ -28,6 +28,86 @@ describe('Versioning Policies', () => {
         explanation: 'added',
       }
       expect(defaultPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies type-narrowed as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-narrowed',
+        explanation: 'narrowed',
+      }
+      expect(defaultPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies type-widened as minor', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'type-widened',
+        explanation: 'widened',
+      }
+      expect(defaultPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies param-added-required as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-added-required',
+        explanation: 'required param added',
+      }
+      expect(defaultPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies param-added-optional as minor', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-added-optional',
+        explanation: 'optional param added',
+      }
+      expect(defaultPolicy.classify(change)).toBe('minor')
+    })
+
+    it('classifies param-removed as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-removed',
+        explanation: 'param removed',
+      }
+      expect(defaultPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies param-order-changed as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'param-order-changed',
+        explanation: 'param order changed',
+      }
+      expect(defaultPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies return-type-changed as major', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'return-type-changed',
+        explanation: 'return type changed',
+      }
+      expect(defaultPolicy.classify(change)).toBe('major')
+    })
+
+    it('classifies signature-identical as none', () => {
+      const change: AnalyzedChange = {
+        symbolName: 'foo',
+        symbolKind: 'function',
+        category: 'signature-identical',
+        explanation: 'no change',
+      }
+      expect(defaultPolicy.classify(change)).toBe('none')
     })
   })
 
