@@ -5,7 +5,7 @@
 ## writeChangeset() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Writes a changeset file to the .changeset directory.
 
@@ -21,39 +21,48 @@ export declare function writeChangeset(changeset: PendingChangeset, cwd: string)
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 changeset
 
+
 </td><td>
 
 [PendingChangeset](./changeset-change-detector.pendingchangeset.md)
 
+
 </td><td>
 
 The changeset to write
+
 
 </td></tr>
 <tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The workspace root directory
+
 
 </td></tr>
 </tbody></table>
@@ -63,3 +72,4 @@ The workspace root directory
 Promise&lt;string&gt;
 
 The path to the written changeset file
+

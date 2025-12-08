@@ -5,7 +5,7 @@
 ## compareReleaseSeverity() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Compares two release types and returns which is more severe. Severity order: major &gt; minor &gt; patch &gt; none (most to least severe).
 
@@ -21,39 +21,48 @@ export declare function compareReleaseSeverity(a: ReleaseType | SemanticReleaseT
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 a
 
+
 </td><td>
 
 ReleaseType \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
+
 </td><td>
 
 First release type
+
 
 </td></tr>
 <tr><td>
 
 b
 
+
 </td><td>
 
 ReleaseType \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
+
 </td><td>
 
 Second release type
+
 
 </td></tr>
 </tbody></table>
@@ -63,3 +72,4 @@ Second release type
 number
 
 Positive if a is more severe, negative if b is more severe, 0 if equal
+

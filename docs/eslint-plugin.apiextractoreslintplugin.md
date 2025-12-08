@@ -4,6 +4,9 @@
 
 ## ApiExtractorEslintPlugin interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The ESLint plugin type.
 
 **Signature:**
@@ -18,56 +21,79 @@ export interface ApiExtractorEslintPlugin
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [configs](./eslint-plugin.apiextractoreslintplugin.configs.md)
 
+
 </td><td>
+
 
 </td><td>
 
 PluginConfigs
 
+
 </td><td>
+
+**_(ALPHA)_**
+
 
 </td></tr>
 <tr><td>
 
 [meta](./eslint-plugin.apiextractoreslintplugin.meta.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { name: string; version: string; }
 
+
 </td><td>
+
+**_(ALPHA)_**
+
 
 </td></tr>
 <tr><td>
 
 [rules](./eslint-plugin.apiextractoreslintplugin.rules.md)
 
+
 </td><td>
+
 
 </td><td>
 
 typeof [rules](./eslint-plugin.rules.md)
 
+
 </td><td>
+
+**_(ALPHA)_**
+
 
 </td></tr>
 </tbody></table>
+

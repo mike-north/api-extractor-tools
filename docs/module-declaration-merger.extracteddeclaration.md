@@ -5,7 +5,7 @@
 ## ExtractedDeclaration interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 A single declaration extracted from within a `declare module` block
 
@@ -21,92 +21,117 @@ export interface ExtractedDeclaration
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [isUntagged](./module-declaration-merger.extracteddeclaration.isuntagged.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** True if no release tag was found (defaulted to public)
+
 
 </td></tr>
 <tr><td>
 
 [kind](./module-declaration-merger.extracteddeclaration.kind.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [DeclarationKind](./module-declaration-merger.declarationkind.md)
 
+
 </td><td>
 
 **_(ALPHA)_** The kind of declaration
+
 
 </td></tr>
 <tr><td>
 
 [maturityLevel](./module-declaration-merger.extracteddeclaration.maturitylevel.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [MaturityLevel](./module-declaration-merger.maturitylevel.md)
 
+
 </td><td>
 
 **_(ALPHA)_** The maturity level determined from TSDoc tags (`\@public`<!-- -->, `\@beta`<!-- -->, `\@alpha`<!-- -->, `\@internal`<!-- -->)
+
 
 </td></tr>
 <tr><td>
 
 [name](./module-declaration-merger.extracteddeclaration.name.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** The name of the declaration (e.g., interface name, type name)
+
 
 </td></tr>
 <tr><td>
 
 [text](./module-declaration-merger.extracteddeclaration.text.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** The full text of the declaration including its TSDoc comment
 
+
 </td></tr>
 </tbody></table>
+

@@ -5,7 +5,7 @@
 ## compareDeclarations() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Compares two declaration files and generates a comprehensive report.
 
@@ -23,26 +23,32 @@ export declare function compareDeclarations(options: CompareOptions): Comparison
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
+
 </td><td>
 
 [CompareOptions](./change-detector.compareoptions.md)
 
+
 </td><td>
 
 Comparison options including paths to old and new files
+
 
 </td></tr>
 </tbody></table>
@@ -55,6 +61,7 @@ A comparison report with release type classification and detailed changes
 
 ## Example
 
+
 ```ts
 import { compareDeclarations, formatReportAsText } from '@api-extractor-tools/change-detector';
 
@@ -66,3 +73,4 @@ const report = compareDeclarations({
 console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
 console.log(formatReportAsText(report));
 ```
+

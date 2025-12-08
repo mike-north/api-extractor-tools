@@ -19,6 +19,11 @@ export const recommendedRules: TSESLint.Linter.RulesRecord = {
   '@api-extractor-tools/missing-release-tag': 'warn',
   '@api-extractor-tools/override-keyword': 'error',
   '@api-extractor-tools/package-documentation': 'warn',
+  '@api-extractor-tools/forgotten-export': 'warn',
+  '@api-extractor-tools/incompatible-release-tags': 'warn',
+  '@api-extractor-tools/extra-release-tag': 'error',
+  '@api-extractor-tools/public-on-private-member': 'error',
+  '@api-extractor-tools/public-on-non-exported': 'error',
 }
 
 /**

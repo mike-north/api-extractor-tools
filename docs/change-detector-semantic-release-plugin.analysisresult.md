@@ -5,7 +5,7 @@
 ## AnalysisResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Result of analyzing API changes for a package.
 
@@ -21,77 +21,98 @@ export interface AnalysisResult
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [error?](./change-detector-semantic-release-plugin.analysisresult.error.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Error message if analysis failed
+
 
 </td></tr>
 <tr><td>
 
 [isNewPackage](./change-detector-semantic-release-plugin.analysisresult.isnewpackage.md)
 
+
 </td><td>
+
 
 </td><td>
 
 boolean
 
+
 </td><td>
 
 **_(ALPHA)_** Whether this is a new package (no previous release)
+
 
 </td></tr>
 <tr><td>
 
 [recommendedBump](./change-detector-semantic-release-plugin.analysisresult.recommendedbump.md)
 
+
 </td><td>
+
 
 </td><td>
 
 ReleaseType
 
+
 </td><td>
 
 **_(ALPHA)_** The recommended version bump based on the analysis
+
 
 </td></tr>
 <tr><td>
 
 [report](./change-detector-semantic-release-plugin.analysisresult.report.md)
 
+
 </td><td>
+
 
 </td><td>
 
 ComparisonReport \| null
 
+
 </td><td>
 
 **_(ALPHA)_** The comparison report from change-detector, null if no baseline exists
 
+
 </td></tr>
 </tbody></table>
+

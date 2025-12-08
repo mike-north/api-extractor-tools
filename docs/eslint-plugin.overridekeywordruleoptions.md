@@ -2,48 +2,20 @@
 
 [Home](./index.md) &gt; [@api-extractor-tools/eslint-plugin](./eslint-plugin.md) &gt; [OverrideKeywordRuleOptions](./eslint-plugin.overridekeywordruleoptions.md)
 
-## OverrideKeywordRuleOptions interface
+## OverrideKeywordRuleOptions type
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Options for the override-keyword rule.
 
 **Signature:**
 
 ```typescript
-export interface OverrideKeywordRuleOptions 
+export type OverrideKeywordRuleOptions = Record<string, never>;
 ```
 
-## Properties
+## Remarks
 
-<table><thead><tr><th>
+This rule is purely syntactic and requires no configuration.
 
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[configPath?](./eslint-plugin.overridekeywordruleoptions.configpath.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>

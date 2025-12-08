@@ -4,6 +4,9 @@
 
 ## ApiExtractorMessagesConfig interface
 
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The messages configuration section from api-extractor.json.
 
 **Signature:**
@@ -18,62 +21,79 @@ export interface ApiExtractorMessagesConfig
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [compilerMessageReporting?](./eslint-plugin.apiextractormessagesconfig.compilermessagereporting.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
 
+
 </td><td>
 
-_(Optional)_
+**_(ALPHA)_** _(Optional)_
+
 
 </td></tr>
 <tr><td>
 
 [extractorMessageReporting?](./eslint-plugin.apiextractormessagesconfig.extractormessagereporting.md)
 
-</td><td>
 
 </td><td>
 
-{ default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-missing-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-forgotten-export'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-internal-missing-underscore'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-incompatible-release-tags'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
 
 </td><td>
 
-_(Optional)_
+{ default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-missing-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-forgotten-export'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-internal-missing-underscore'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-incompatible-release-tags'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-extra-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
+
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_
+
 
 </td></tr>
 <tr><td>
 
 [tsdocMessageReporting?](./eslint-plugin.apiextractormessagesconfig.tsdocmessagereporting.md)
 
+
 </td><td>
+
 
 </td><td>
 
 { default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
 
+
 </td><td>
 
-_(Optional)_
+**_(ALPHA)_** _(Optional)_
+
 
 </td></tr>
 </tbody></table>
+

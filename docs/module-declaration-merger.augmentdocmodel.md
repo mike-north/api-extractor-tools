@@ -5,7 +5,7 @@
 ## augmentDocModel() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Augments a doc model (.api.json) file with extracted module declarations.
 
@@ -23,26 +23,32 @@ export declare function augmentDocModel(options: DocModelAugmentOptions): DocMod
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
+
 </td><td>
 
 [DocModelAugmentOptions](./module-declaration-merger.docmodelaugmentoptions.md)
 
+
 </td><td>
 
 Augmentation options
+
 
 </td></tr>
 </tbody></table>
@@ -52,3 +58,4 @@ Augmentation options
 [DocModelAugmentResult](./module-declaration-merger.docmodelaugmentresult.md)
 
 Result of the augmentation
+

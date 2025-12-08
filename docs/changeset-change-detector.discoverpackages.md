@@ -5,7 +5,7 @@
 ## discoverPackages() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Discovers all packages in the workspace.
 
@@ -21,26 +21,32 @@ export declare function discoverPackages(cwd: string): PackageInfo[];
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The workspace root directory
+
 
 </td></tr>
 </tbody></table>
@@ -50,3 +56,4 @@ The workspace root directory
 [PackageInfo](./changeset-change-detector.packageinfo.md)<!-- -->\[\]
 
 Array of package information
+

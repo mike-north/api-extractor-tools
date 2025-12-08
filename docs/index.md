@@ -10,54 +10,67 @@
 
 Package
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [@api-extractor-tools/change-detector](./change-detector.md)
 
+
 </td><td>
 
 A library for detecting and classifying changes between TypeScript declaration files.
+
 
 </td></tr>
 <tr><td>
 
 [@api-extractor-tools/change-detector-semantic-release-plugin](./change-detector-semantic-release-plugin.md)
 
+
 </td><td>
 
 A semantic-release plugin that uses change-detector to validate and enhance version bumping.
+
 
 </td></tr>
 <tr><td>
 
 [@api-extractor-tools/changeset-change-detector](./changeset-change-detector.md)
 
+
 </td><td>
 
 A Changesets plugin that uses change-detector to automate version bump determination.
+
 
 </td></tr>
 <tr><td>
 
 [@api-extractor-tools/eslint-plugin](./eslint-plugin.md)
 
+
 </td><td>
 
 ESLint plugin providing authoring-time feedback for API Extractor.
+
 
 </td></tr>
 <tr><td>
 
 [@api-extractor-tools/module-declaration-merger](./module-declaration-merger.md)
 
+
 </td><td>
 
 A library for merging ambient module declarations into API Extractor rollup files.
 
+
 </td></tr>
 </tbody></table>
+

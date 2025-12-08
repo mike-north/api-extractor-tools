@@ -37,6 +37,7 @@ export interface ApiExtractorMessagesConfig {
     'ae-forgotten-export'?: MessageConfig
     'ae-internal-missing-underscore'?: MessageConfig
     'ae-incompatible-release-tags'?: MessageConfig
+    'ae-extra-release-tag'?: MessageConfig
     [messageId: string]: MessageConfig | undefined
   }
   tsdocMessageReporting?: {

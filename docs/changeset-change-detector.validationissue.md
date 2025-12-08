@@ -5,7 +5,7 @@
 ## ValidationIssue interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 A single validation issue found during changeset validation.
 
@@ -21,92 +21,117 @@ export interface ValidationIssue
 
 Property
 
+
 </th><th>
 
 Modifiers
+
 
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [declaredBump?](./changeset-change-detector.validationissue.declaredbump.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md)
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ The bump type declared in the changeset
+
 
 </td></tr>
 <tr><td>
 
 [message](./changeset-change-detector.validationissue.message.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Human-readable description of the issue
+
 
 </td></tr>
 <tr><td>
 
 [packageName](./changeset-change-detector.validationissue.packagename.md)
 
+
 </td><td>
+
 
 </td><td>
 
 string
 
+
 </td><td>
 
 **_(ALPHA)_** Package this issue relates to
+
 
 </td></tr>
 <tr><td>
 
 [recommendedBump?](./changeset-change-detector.validationissue.recommendedbump.md)
 
+
 </td><td>
+
 
 </td><td>
 
 ReleaseType
 
+
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ The bump type recommended by change-detector
+
 
 </td></tr>
 <tr><td>
 
 [severity](./changeset-change-detector.validationissue.severity.md)
 
+
 </td><td>
+
 
 </td><td>
 
 [ValidationSeverity](./changeset-change-detector.validationseverity.md)
 
+
 </td><td>
 
 **_(ALPHA)_** Severity of the issue
 
+
 </td></tr>
 </tbody></table>
+

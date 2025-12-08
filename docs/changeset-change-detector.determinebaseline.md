@@ -5,7 +5,7 @@
 ## determineBaseline() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Determines the baseline git ref to compare against.
 
@@ -21,52 +21,64 @@ export declare function determineBaseline(pkg: PackageInfo, cwd: string, explici
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 pkg
 
+
 </td><td>
 
 [PackageInfo](./changeset-change-detector.packageinfo.md)
 
+
 </td><td>
 
 The package to find a baseline for
+
 
 </td></tr>
 <tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The workspace root directory
+
 
 </td></tr>
 <tr><td>
 
 explicitRef
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 _(Optional)_ Explicitly specified ref (takes priority)
+
 
 </td></tr>
 </tbody></table>
@@ -76,3 +88,4 @@ _(Optional)_ Explicitly specified ref (takes priority)
 string
 
 The git ref to use as baseline
+

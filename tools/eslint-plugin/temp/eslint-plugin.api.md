@@ -53,6 +53,7 @@ export interface ApiExtractorMessagesConfig {
         'ae-forgotten-export'?: MessageConfig;
         'ae-internal-missing-underscore'?: MessageConfig;
         'ae-incompatible-release-tags'?: MessageConfig;
+        'ae-extra-release-tag'?: MessageConfig;
         [messageId: string]: MessageConfig | undefined;
     };
     // (undocumented)
@@ -66,12 +67,22 @@ export interface ApiExtractorMessagesConfig {
 export function extractReleaseTag(docComment: DocComment): ReleaseTag | undefined;
 
 // @alpha
+export interface ExtraReleaseTagRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
+
+// @alpha
 export function findAllTSDocComments(sourceCode: {
     getAllComments: () => TSESTree.Comment[];
 }): Array<{
     comment: TSESTree.Comment;
     parsed: ParserContext;
 }>;
+
+// @alpha
+export interface ForgottenExportRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
 
 // @alpha
 export function getLeadingTSDocComment(sourceCode: {
@@ -83,6 +94,11 @@ export function hasOverrideTag(docComment: DocComment): boolean;
 
 // @alpha
 export function hasPackageDocumentation(docComment: DocComment): boolean;
+
+// @alpha
+export interface IncompatibleReleaseTagsRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
 
 // @alpha
 export interface MessageConfig {
@@ -111,6 +127,16 @@ const plugin: ApiExtractorEslintPlugin;
 export default plugin;
 
 // @alpha
+export interface PublicOnNonExportedRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
+
+// @alpha
+export interface PublicOnPrivateMemberRuleOptions {
+    severity?: ApiExtractorLogLevel;
+}
+
+// @alpha
 export const recommendedRules: TSESLint.Linter.RulesRecord;
 
 // @alpha
@@ -134,6 +160,11 @@ export const rules: {
     readonly 'missing-release-tag': RuleModule<"missingReleaseTag", [MissingReleaseTagRuleOptions], unknown, RuleListener>;
     readonly 'override-keyword': RuleModule<"missingOverrideKeyword", [OverrideKeywordRuleOptions], unknown, RuleListener>;
     readonly 'package-documentation': RuleModule<"missingPackageDocumentation", [PackageDocumentationRuleOptions], unknown, RuleListener>;
+    readonly 'forgotten-export': RuleModule<"forgottenExport", [ForgottenExportRuleOptions], unknown, RuleListener>;
+    readonly 'incompatible-release-tags': RuleModule<"incompatibleReleaseTags", [IncompatibleReleaseTagsRuleOptions], unknown, RuleListener>;
+    readonly 'extra-release-tag': RuleModule<"extraReleaseTag", [ExtraReleaseTagRuleOptions], unknown, RuleListener>;
+    readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>;
+    readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>;
 };
 
 ```

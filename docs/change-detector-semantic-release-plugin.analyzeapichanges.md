@@ -5,7 +5,7 @@
 ## analyzeAPIChanges() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Analyzes API changes between the baseline and current state.
 
@@ -24,52 +24,64 @@ export declare function analyzeAPIChanges(cwd: string, config: ResolvedPluginCon
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The package root directory
+
 
 </td></tr>
 <tr><td>
 
 config
 
+
 </td><td>
 
 [ResolvedPluginConfig](./change-detector-semantic-release-plugin.resolvedpluginconfig.md)
 
+
 </td><td>
 
 Plugin configuration
+
 
 </td></tr>
 <tr><td>
 
 lastRelease
 
+
 </td><td>
 
 { gitTag: string; version: string; }
 
+
 </td><td>
 
 _(Optional)_ Information about the last release
+
 
 </td></tr>
 </tbody></table>
@@ -82,7 +94,9 @@ Analysis result with comparison report and recommended bump
 
 ## Example
 
+
 ```ts
 const result = analyzeAPIChanges('/path/to/package', config, lastRelease);
 console.log(result.recommendedBump); // 'major' | 'minor' | 'patch' | 'none'
 ```
+

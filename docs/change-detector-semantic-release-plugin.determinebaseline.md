@@ -5,7 +5,7 @@
 ## determineBaseline() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Determines the baseline git ref to compare against.
 
@@ -24,52 +24,64 @@ export declare function determineBaseline(cwd: string, lastRelease?: {
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 cwd
 
+
 </td><td>
 
 string
 
+
 </td><td>
 
 The package root directory
+
 
 </td></tr>
 <tr><td>
 
 lastRelease
 
+
 </td><td>
 
 { gitTag: string; version: string; }
 
+
 </td><td>
 
 _(Optional)_ Information about the last release from semantic-release
+
 
 </td></tr>
 <tr><td>
 
 explicitRef
 
+
 </td><td>
 
 string \| null
 
+
 </td><td>
 
 _(Optional)_ Explicitly specified ref from config
+
 
 </td></tr>
 </tbody></table>
@@ -79,3 +91,4 @@ _(Optional)_ Explicitly specified ref from config
 string
 
 The git ref to use as baseline
+

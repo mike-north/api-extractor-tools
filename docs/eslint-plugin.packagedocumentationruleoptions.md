@@ -2,48 +2,20 @@
 
 [Home](./index.md) &gt; [@api-extractor-tools/eslint-plugin](./eslint-plugin.md) &gt; [PackageDocumentationRuleOptions](./eslint-plugin.packagedocumentationruleoptions.md)
 
-## PackageDocumentationRuleOptions interface
+## PackageDocumentationRuleOptions type
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Options for the package-documentation rule.
 
 **Signature:**
 
 ```typescript
-export interface PackageDocumentationRuleOptions 
+export type PackageDocumentationRuleOptions = Record<string, never>;
 ```
 
-## Properties
+## Remarks
 
-<table><thead><tr><th>
+By default, checks all files. Node.js users can use the `/node` entry point utilities to determine if a file is a package entry point and conditionally enable this rule.
 
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[configPath?](./eslint-plugin.packagedocumentationruleoptions.configpath.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>

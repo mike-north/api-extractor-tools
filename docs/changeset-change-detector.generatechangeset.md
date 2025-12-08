@@ -5,7 +5,7 @@
 ## generateChangeset() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Generates a changeset based on detected API changes.
 
@@ -21,26 +21,32 @@ export declare function generateChangeset(options?: GenerateOptions): Promise<Ge
 
 Parameter
 
+
 </th><th>
 
 Type
 
+
 </th><th>
 
 Description
+
 
 </th></tr></thead>
 <tbody><tr><td>
 
 options
 
+
 </td><td>
 
 [GenerateOptions](./changeset-change-detector.generateoptions.md)
 
+
 </td><td>
 
 _(Optional)_ Generation options
+
 
 </td></tr>
 </tbody></table>
@@ -53,6 +59,7 @@ Generation result
 
 ## Example
 
+
 ```ts
 import { generateChangeset } from '@api-extractor-tools/changeset-change-detector';
 
@@ -61,3 +68,4 @@ if (result.success) {
   console.log(`Created: ${result.changesetPath}`);
 }
 ```
+

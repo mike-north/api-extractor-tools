@@ -5,7 +5,7 @@
 ## clearCache() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
->
+> 
 
 Clears the cached analysis result. Primarily used for testing.
 
@@ -14,7 +14,7 @@ Clears the cached analysis result. Primarily used for testing.
 ```typescript
 export declare function clearCache(): void;
 ```
-
 **Returns:**
 
 void
+
