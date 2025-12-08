@@ -5,7 +5,7 @@
 ## validateVersionBump() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Validates the proposed version bump against detected API changes.
 
@@ -21,64 +21,52 @@ export declare function validateVersionBump(proposedBump: SemanticReleaseType | 
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 proposedBump
 
-
 </td><td>
 
 [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
-
 </td><td>
 
 The bump type from commit analysis
-
 
 </td></tr>
 <tr><td>
 
 analysis
 
-
 </td><td>
 
 [AnalysisResult](./change-detector-semantic-release-plugin.analysisresult.md)
 
-
 </td><td>
 
 The API analysis result
-
 
 </td></tr>
 <tr><td>
 
 mode
 
-
 </td><td>
 
 'validate' \| 'override' \| 'advisory'
 
-
 </td><td>
 
 The plugin mode
-
 
 </td></tr>
 </tbody></table>
@@ -88,4 +76,3 @@ The plugin mode
 [ValidationResult](./change-detector-semantic-release-plugin.validationresult.md)
 
 Validation result
-

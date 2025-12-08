@@ -18,73 +18,56 @@ export interface ApiExtractorEslintPlugin
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [configs](./eslint-plugin.apiextractoreslintplugin.configs.md)
 
-
 </td><td>
-
 
 </td><td>
 
 PluginConfigs
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 [meta](./eslint-plugin.apiextractoreslintplugin.meta.md)
 
-
 </td><td>
-
 
 </td><td>
 
 { name: string; version: string; }
 
-
 </td><td>
-
 
 </td></tr>
 <tr><td>
 
 [rules](./eslint-plugin.apiextractoreslintplugin.rules.md)
 
-
 </td><td>
-
 
 </td><td>
 
 typeof [rules](./eslint-plugin.rules.md)
 
-
 </td><td>
-
 
 </td></tr>
 </tbody></table>
-

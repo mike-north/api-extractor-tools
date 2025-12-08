@@ -5,7 +5,7 @@
 ## ExtractionResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Result of extracting all module augmentations from a project
 
@@ -21,79 +21,62 @@ export interface ExtractionResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [augmentations](./module-declaration-merger.extractionresult.augmentations.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ExtractedModuleAugmentation](./module-declaration-merger.extractedmoduleaugmentation.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** All extracted module augmentations grouped by source file
-
 
 </td></tr>
 <tr><td>
 
 [errors](./module-declaration-merger.extractionresult.errors.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Any errors encountered during extraction
-
 
 </td></tr>
 <tr><td>
 
 [untaggedDeclarations](./module-declaration-merger.extractionresult.untaggeddeclarations.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [UntaggedDeclarationInfo](./module-declaration-merger.untaggeddeclarationinfo.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Declarations that had no release tag (defaulted to `\@public`<!-- -->)
 
-
 </td></tr>
 </tbody></table>
-

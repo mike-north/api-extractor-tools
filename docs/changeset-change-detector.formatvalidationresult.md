@@ -5,7 +5,7 @@
 ## formatValidationResult() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Formats validation results for console output.
 
@@ -21,32 +21,26 @@ export declare function formatValidationResult(result: ValidationResult): string
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 result
 
-
 </td><td>
 
 [ValidationResult](./changeset-change-detector.validationresult.md)
 
-
 </td><td>
 
 The validation result to format
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The validation result to format
 string
 
 Formatted string for display
-

@@ -5,7 +5,7 @@
 ## verifyRelease() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Verifies the release before publishing.
 
@@ -23,48 +23,39 @@ export declare function verifyRelease(pluginConfig: PluginConfig, context: Seman
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 pluginConfig
 
-
 </td><td>
 
 [PluginConfig](./change-detector-semantic-release-plugin.pluginconfig.md)
 
-
 </td><td>
 
 Plugin configuration
-
 
 </td></tr>
 <tr><td>
 
 context
 
-
 </td><td>
 
 [SemanticReleaseContext](./change-detector-semantic-release-plugin.semanticreleasecontext.md)
 
-
 </td><td>
 
 semantic-release context
-
 
 </td></tr>
 </tbody></table>
@@ -76,4 +67,3 @@ void
 ## Exceptions
 
 Error if validation fails in validate mode
-

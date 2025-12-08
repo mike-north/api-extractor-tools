@@ -5,7 +5,7 @@
 ## formatChangeSummary() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Gets a human-readable summary of changes for a package.
 
@@ -21,32 +21,26 @@ export declare function formatChangeSummary(result: PackageAnalysisResult): stri
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 result
 
-
 </td><td>
 
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)
 
-
 </td><td>
 
 The analysis result for a package
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The analysis result for a package
 string
 
 A formatted summary string
-

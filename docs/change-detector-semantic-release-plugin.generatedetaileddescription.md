@@ -5,7 +5,7 @@
 ## generateDetailedDescription() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Generates a detailed description of API changes. Useful for changeset summaries or detailed release notes.
 
@@ -21,32 +21,26 @@ export declare function generateDetailedDescription(analysis: AnalysisResult): s
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 analysis
 
-
 </td><td>
 
 [AnalysisResult](./change-detector-semantic-release-plugin.analysisresult.md)
 
-
 </td><td>
 
 The analysis result
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The analysis result
 string
 
 A detailed description string
-

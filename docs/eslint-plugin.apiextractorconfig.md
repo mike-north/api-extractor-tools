@@ -18,79 +18,62 @@ export interface ApiExtractorConfig
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [extends?](./eslint-plugin.apiextractorconfig.extends.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 _(Optional)_
-
 
 </td></tr>
 <tr><td>
 
 [mainEntryPointFilePath?](./eslint-plugin.apiextractorconfig.mainentrypointfilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 _(Optional)_
-
 
 </td></tr>
 <tr><td>
 
 [messages?](./eslint-plugin.apiextractorconfig.messages.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ApiExtractorMessagesConfig](./eslint-plugin.apiextractormessagesconfig.md)
 
-
 </td><td>
 
 _(Optional)_
 
-
 </td></tr>
 </tbody></table>
-

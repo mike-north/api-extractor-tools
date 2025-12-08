@@ -5,7 +5,7 @@
 ## GenerateOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Options for the generate command.
 
@@ -14,6 +14,7 @@ Options for the generate command.
 ```typescript
 export interface GenerateOptions extends AnalyzeOptions 
 ```
+
 **Extends:** [AnalyzeOptions](./changeset-change-detector.analyzeoptions.md)
 
 ## Properties
@@ -22,60 +23,47 @@ export interface GenerateOptions extends AnalyzeOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [summary?](./changeset-change-detector.generateoptions.summary.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Custom summary for the changeset (overrides auto-generated)
-
 
 </td></tr>
 <tr><td>
 
 [yes?](./changeset-change-detector.generateoptions.yes.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Skip interactive confirmation
 
-
 </td></tr>
 </tbody></table>
-

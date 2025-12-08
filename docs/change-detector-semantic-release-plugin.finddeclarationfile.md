@@ -5,7 +5,7 @@
 ## findDeclarationFile() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Finds the declaration file path for a package.
 
@@ -21,48 +21,39 @@ export declare function findDeclarationFile(cwd: string, config: ResolvedPluginC
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 cwd
 
-
 </td><td>
 
 string
 
-
 </td><td>
 
 The package root directory
-
 
 </td></tr>
 <tr><td>
 
 config
 
-
 </td><td>
 
 [ResolvedPluginConfig](./change-detector-semantic-release-plugin.resolvedpluginconfig.md)
 
-
 </td><td>
 
 Plugin configuration
-
 
 </td></tr>
 </tbody></table>
@@ -72,4 +63,3 @@ Plugin configuration
 string \| null
 
 The absolute path to the declaration file, or null if not found
-

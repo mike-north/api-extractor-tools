@@ -5,7 +5,7 @@
 ## ExtractionResult.untaggedDeclarations property
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Declarations that had no release tag (defaulted to `\@public`<!-- -->)
 

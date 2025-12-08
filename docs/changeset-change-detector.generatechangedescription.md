@@ -5,7 +5,7 @@
 ## generateChangeDescription() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Generates a detailed change description suitable for a changeset summary.
 
@@ -21,32 +21,26 @@ export declare function generateChangeDescription(result: PackageAnalysisResult)
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 result
 
-
 </td><td>
 
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)
 
-
 </td><td>
 
 The analysis result for a package
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The analysis result for a package
 string
 
 A detailed description of changes
-

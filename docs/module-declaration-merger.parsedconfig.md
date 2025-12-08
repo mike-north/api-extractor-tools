@@ -5,7 +5,7 @@
 ## ParsedConfig interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Parsed configuration from api-extractor.json
 
@@ -21,136 +21,107 @@ export interface ParsedConfig
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [configPath](./module-declaration-merger.parsedconfig.configpath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Absolute path to the api-extractor.json file
-
 
 </td></tr>
 <tr><td>
 
 [docModel?](./module-declaration-merger.parsedconfig.docmodel.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [DocModelConfig](./module-declaration-merger.docmodelconfig.md)
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Configuration for the doc model (.api.json) output
-
 
 </td></tr>
 <tr><td>
 
 [mainEntryPointFilePath](./module-declaration-merger.parsedconfig.mainentrypointfilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Absolute path to the main entry point file
-
 
 </td></tr>
 <tr><td>
 
 [missingReleaseTagConfig](./module-declaration-merger.parsedconfig.missingreleasetagconfig.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [MissingReleaseTagConfig](./module-declaration-merger.missingreleasetagconfig.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Configuration for handling missing release tags
-
 
 </td></tr>
 <tr><td>
 
 [projectFolder](./module-declaration-merger.parsedconfig.projectfolder.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Absolute path to the project folder
-
 
 </td></tr>
 <tr><td>
 
 [rollupPaths](./module-declaration-merger.parsedconfig.rolluppaths.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [RollupPaths](./module-declaration-merger.rolluppaths.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Absolute paths to rollup files by maturity level
 
-
 </td></tr>
 </tbody></table>
-

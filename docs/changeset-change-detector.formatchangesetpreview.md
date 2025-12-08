@@ -5,7 +5,7 @@
 ## formatChangesetPreview() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Formats a preview of the changeset for display.
 
@@ -21,32 +21,26 @@ export declare function formatChangesetPreview(changeset: PendingChangeset): str
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 changeset
 
-
 </td><td>
 
 [PendingChangeset](./changeset-change-detector.pendingchangeset.md)
 
-
 </td><td>
 
 The changeset to preview
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The changeset to preview
 string
 
 Formatted preview string
-

@@ -12,7 +12,6 @@ This package integrates with `@api-extractor-tools/change-detector` to analyze T
 
 ## Example
 
-
 ```ts
 import {
   analyzeWorkspace,
@@ -36,198 +35,162 @@ const validation = await validateChangesets();
 
 Function
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [aggregateChangesetBumps(changesets)](./changeset-change-detector.aggregatechangesetbumps.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Aggregates bump types from changesets per package. If multiple changesets affect the same package, the most severe bump wins.
-
 
 </td></tr>
 <tr><td>
 
 [analyzePackage(pkg, baseRef, cwd)](./changeset-change-detector.analyzepackage.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Analyzes a single package for API changes.
-
 
 </td></tr>
 <tr><td>
 
 [analyzeWorkspace(options)](./changeset-change-detector.analyzeworkspace.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Analyzes all packages in the workspace for API changes.
-
 
 </td></tr>
 <tr><td>
 
 [compareBumpSeverity(a, b)](./changeset-change-detector.comparebumpseverity.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Compares two bump types and returns which is more severe. Severity order: major, minor, patch (most to least severe).
-
 
 </td></tr>
 <tr><td>
 
 [createChangesetFromAnalysis(analysis, customSummary)](./changeset-change-detector.createchangesetfromanalysis.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Creates a changeset object from analysis results.
-
 
 </td></tr>
 <tr><td>
 
 [determineBaseline(pkg, cwd, explicitRef)](./changeset-change-detector.determinebaseline.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Determines the baseline git ref to compare against.
-
 
 </td></tr>
 <tr><td>
 
 [discoverPackages(cwd)](./changeset-change-detector.discoverpackages.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Discovers all packages in the workspace.
-
 
 </td></tr>
 <tr><td>
 
 [formatChangesetPreview(changeset)](./changeset-change-detector.formatchangesetpreview.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Formats a preview of the changeset for display.
-
 
 </td></tr>
 <tr><td>
 
 [formatChangeSummary(result)](./changeset-change-detector.formatchangesummary.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Gets a human-readable summary of changes for a package.
-
 
 </td></tr>
 <tr><td>
 
 [formatValidationResult(result)](./changeset-change-detector.formatvalidationresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Formats validation results for console output.
-
 
 </td></tr>
 <tr><td>
 
 [generateChangeDescription(result)](./changeset-change-detector.generatechangedescription.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Generates a detailed change description suitable for a changeset summary.
-
 
 </td></tr>
 <tr><td>
 
 [generateChangeset(options)](./changeset-change-detector.generatechangeset.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Generates a changeset based on detected API changes.
-
 
 </td></tr>
 <tr><td>
 
 [getFileAtRef(filePath, ref, cwd)](./changeset-change-detector.getfileatref.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Gets the declaration file content at a specific git ref.
-
 
 </td></tr>
 <tr><td>
 
 [readPendingChangesets(cwd)](./changeset-change-detector.readpendingchangesets.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Reads all pending changesets from the .changeset directory.
-
 
 </td></tr>
 <tr><td>
 
 [releaseTypeToBumpType(releaseType)](./changeset-change-detector.releasetypetobumptype.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Maps change-detector ReleaseType to changeset bump type. Returns null for 'none' since no changeset is needed.
-
 
 </td></tr>
 <tr><td>
 
 [validateChangesets(options)](./changeset-change-detector.validatechangesets.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Validates changesets against detected API changes.
-
 
 </td></tr>
 <tr><td>
 
 [writeChangeset(changeset, cwd)](./changeset-change-detector.writechangeset.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Writes a changeset file to the .changeset directory.
-
 
 </td></tr>
 </tbody></table>
@@ -238,121 +201,99 @@ Description
 
 Interface
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [AnalyzeOptions](./changeset-change-detector.analyzeoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for the analyze command.
-
 
 </td></tr>
 <tr><td>
 
 [GenerateOptions](./changeset-change-detector.generateoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for the generate command.
-
 
 </td></tr>
 <tr><td>
 
 [GenerationResult](./changeset-change-detector.generationresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of generating changesets.
-
 
 </td></tr>
 <tr><td>
 
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of analyzing a single package's API changes.
-
 
 </td></tr>
 <tr><td>
 
 [PackageInfo](./changeset-change-detector.packageinfo.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Information about a package in the workspace.
-
 
 </td></tr>
 <tr><td>
 
 [PendingChangeset](./changeset-change-detector.pendingchangeset.md)
 
-
 </td><td>
 
 **_(ALPHA)_** A pending changeset to be written.
-
 
 </td></tr>
 <tr><td>
 
 [ValidateOptions](./changeset-change-detector.validateoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for the validate command.
-
 
 </td></tr>
 <tr><td>
 
 [ValidationIssue](./changeset-change-detector.validationissue.md)
 
-
 </td><td>
 
 **_(ALPHA)_** A single validation issue found during changeset validation.
-
 
 </td></tr>
 <tr><td>
 
 [ValidationResult](./changeset-change-detector.validationresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of validating changesets against detected changes.
-
 
 </td></tr>
 <tr><td>
 
 [WorkspaceAnalysisResult](./changeset-change-detector.workspaceanalysisresult.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Result of analyzing all packages in the workspace.
-
 
 </td></tr>
 </tbody></table>
@@ -363,34 +304,27 @@ Description
 
 Type Alias
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Changeset version bump type. Maps to the bump types used by the changesets library.
-
 
 </td></tr>
 <tr><td>
 
 [ValidationSeverity](./changeset-change-detector.validationseverity.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Severity level for validation issues.
 
-
 </td></tr>
 </tbody></table>
-

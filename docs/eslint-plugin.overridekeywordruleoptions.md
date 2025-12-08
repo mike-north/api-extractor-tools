@@ -18,41 +18,32 @@ export interface OverrideKeywordRuleOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [configPath?](./eslint-plugin.overridekeywordruleoptions.configpath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 _(Optional)_
 
-
 </td></tr>
 </tbody></table>
-

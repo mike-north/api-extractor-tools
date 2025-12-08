@@ -5,7 +5,7 @@
 ## PackageAnalysisResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Result of analyzing a single package's API changes.
 
@@ -21,98 +21,77 @@ export interface PackageAnalysisResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [error?](./changeset-change-detector.packageanalysisresult.error.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Error message if analysis failed
-
 
 </td></tr>
 <tr><td>
 
 [package](./changeset-change-detector.packageanalysisresult.package.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [PackageInfo](./changeset-change-detector.packageinfo.md)
 
-
 </td><td>
 
 **_(ALPHA)_** The package that was analyzed
-
 
 </td></tr>
 <tr><td>
 
 [recommendedBump](./changeset-change-detector.packageanalysisresult.recommendedbump.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ReleaseType
 
-
 </td><td>
 
 **_(ALPHA)_** The recommended version bump based on the analysis
-
 
 </td></tr>
 <tr><td>
 
 [report](./changeset-change-detector.packageanalysisresult.report.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ComparisonReport \| null
 
-
 </td><td>
 
 **_(ALPHA)_** The comparison report from change-detector, null if no baseline exists
 
-
 </td></tr>
 </tbody></table>
-

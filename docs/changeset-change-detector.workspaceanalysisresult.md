@@ -5,7 +5,7 @@
 ## WorkspaceAnalysisResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Result of analyzing all packages in the workspace.
 
@@ -21,98 +21,77 @@ export interface WorkspaceAnalysisResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [baselineRef](./changeset-change-detector.workspaceanalysisresult.baselineref.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** The baseline reference used for comparison
-
 
 </td></tr>
 <tr><td>
 
 [packages](./changeset-change-detector.workspaceanalysisresult.packages.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Analysis results for each package
-
 
 </td></tr>
 <tr><td>
 
 [packagesWithChanges](./changeset-change-detector.workspaceanalysisresult.packageswithchanges.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Packages that have changes requiring a version bump
-
 
 </td></tr>
 <tr><td>
 
 [packagesWithErrors](./changeset-change-detector.workspaceanalysisresult.packageswitherrors.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [PackageAnalysisResult](./changeset-change-detector.packageanalysisresult.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Packages that failed analysis
 
-
 </td></tr>
 </tbody></table>
-

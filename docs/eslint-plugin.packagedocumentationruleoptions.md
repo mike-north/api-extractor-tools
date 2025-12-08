@@ -18,41 +18,32 @@ export interface PackageDocumentationRuleOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [configPath?](./eslint-plugin.packagedocumentationruleoptions.configpath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 _(Optional)_
 
-
 </td></tr>
 </tbody></table>
-

@@ -5,7 +5,7 @@
 ## AnalyzeOptions interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Options for the analyze command.
 
@@ -21,60 +21,47 @@ export interface AnalyzeOptions
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [baseRef?](./changeset-change-detector.analyzeoptions.baseref.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Git ref to compare against (e.g., "main", "v1.0.0")
-
 
 </td></tr>
 <tr><td>
 
 [cwd?](./changeset-change-detector.analyzeoptions.cwd.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Root directory of the workspace
 
-
 </td></tr>
 </tbody></table>
-

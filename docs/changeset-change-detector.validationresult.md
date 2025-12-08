@@ -5,7 +5,7 @@
 ## ValidationResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Result of validating changesets against detected changes.
 
@@ -21,136 +21,107 @@ export interface ValidationResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [errorCount](./changeset-change-detector.validationresult.errorcount.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 **_(ALPHA)_** Number of errors (validation failures)
-
 
 </td></tr>
 <tr><td>
 
 [issues](./changeset-change-detector.validationresult.issues.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [ValidationIssue](./changeset-change-detector.validationissue.md)<!-- -->\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** All validation issues found
-
 
 </td></tr>
 <tr><td>
 
 [packagesMissingChangesets](./changeset-change-detector.validationresult.packagesmissingchangesets.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Packages with API changes but no changesets
-
 
 </td></tr>
 <tr><td>
 
 [packagesWithChangesets](./changeset-change-detector.validationresult.packageswithchangesets.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Packages that have changesets
-
 
 </td></tr>
 <tr><td>
 
 [valid](./changeset-change-detector.validationresult.valid.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** Whether validation passed (no errors)
-
 
 </td></tr>
 <tr><td>
 
 [warningCount](./changeset-change-detector.validationresult.warningcount.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 **_(ALPHA)_** Number of warnings
 
-
 </td></tr>
 </tbody></table>
-

@@ -5,7 +5,7 @@
 ## PendingChangeset interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 A pending changeset to be written.
 
@@ -21,60 +21,47 @@ export interface PendingChangeset
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [releases](./changeset-change-detector.pendingchangeset.releases.md)
 
-
 </td><td>
-
 
 </td><td>
 
 Array&lt;{ name: string; type: [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md)<!-- -->; }&gt;
 
-
 </td><td>
 
 **_(ALPHA)_** Packages affected by this changeset and their bump types
-
 
 </td></tr>
 <tr><td>
 
 [summary](./changeset-change-detector.pendingchangeset.summary.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Summary description of the changes
 
-
 </td></tr>
 </tbody></table>
-

@@ -5,7 +5,7 @@
 ## RollupPaths type
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Rollup file paths extracted from api-extractor.json, keyed by maturity level. - public: publicTrimmedFilePath - beta: betaTrimmedFilePath - alpha: alphaTrimmedFilePath - internal: untrimmedFilePath
 
@@ -14,5 +14,5 @@ Rollup file paths extracted from api-extractor.json, keyed by maturity level. - 
 ```typescript
 export type RollupPaths = Partial<Record<MaturityLevel, string>>;
 ```
-**References:** [MaturityLevel](./module-declaration-merger.maturitylevel.md)
 
+**References:** [MaturityLevel](./module-declaration-merger.maturitylevel.md)

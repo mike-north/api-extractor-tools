@@ -14,7 +14,6 @@ For browser/isomorphic usage, see the `@api-extractor-tools/change-detector-core
 
 ## Example
 
-
 ```ts
 import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector';
 
@@ -33,28 +32,23 @@ console.log(formatReportAsMarkdown(report));
 
 Function
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [compareDeclarationFiles(oldParsed, newParsed)](./change-detector.comparedeclarationfiles.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Compares two parsed declaration files and detects all changes.
-
 
 </td></tr>
 <tr><td>
 
 [compareDeclarations(options)](./change-detector.comparedeclarations.md)
-
 
 </td><td>
 
@@ -62,39 +56,32 @@ Description
 
 This is the main entry point for programmatic usage of the change detector.
 
-
 </td></tr>
 <tr><td>
 
 [compareFiles(oldFilePath, newFilePath)](./change-detector.comparefiles.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Compares two declaration files by path.
-
 
 </td></tr>
 <tr><td>
 
 [parseDeclarationFile(filePath)](./change-detector.parsedeclarationfile.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Parses a declaration file from a file path and extracts all exported symbols.
-
 
 </td></tr>
 <tr><td>
 
 [parseDeclarationFileWithTypes(filePath)](./change-detector.parsedeclarationfilewithtypes.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Parses a declaration file and returns TypeScript type information for deep comparison.
-
 
 </td></tr>
 </tbody></table>
@@ -105,23 +92,18 @@ This is the main entry point for programmatic usage of the change detector.
 
 Interface
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [CompareOptions](./change-detector.compareoptions.md)
 
-
 </td><td>
 
 **_(ALPHA)_** Options for comparing declarations from file paths.
 
-
 </td></tr>
 </tbody></table>
-

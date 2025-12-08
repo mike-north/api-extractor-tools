@@ -5,7 +5,7 @@
 ## PluginConfig interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Configuration options for the plugin.
 
@@ -16,7 +16,6 @@ export interface PluginConfig
 ```
 
 ## Example
-
 
 ```json
 {
@@ -36,136 +35,107 @@ export interface PluginConfig
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiExtractorConfig?](./change-detector-semantic-release-plugin.pluginconfig.apiextractorconfig.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Path to api-extractor.json config file. If provided, the plugin can use it to locate declaration files.
-
 
 </td></tr>
 <tr><td>
 
 [baseRef?](./change-detector-semantic-release-plugin.pluginconfig.baseref.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Git ref to use as the baseline for comparison. If not provided, will use the latest release tag or 'main'.
-
 
 </td></tr>
 <tr><td>
 
 [declarationPath?](./change-detector-semantic-release-plugin.pluginconfig.declarationpath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Path to the declaration file to analyze. Can be relative to the package root or absolute. If not provided, the plugin will try to find it from package.json "types" field.
-
 
 </td></tr>
 <tr><td>
 
 [failOnMismatch?](./change-detector-semantic-release-plugin.pluginconfig.failonmismatch.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Whether to fail the release when there's a version bump mismatch. Only applies when mode is 'validate'.
-
 
 </td></tr>
 <tr><td>
 
 [includeAPIChangesInNotes?](./change-detector-semantic-release-plugin.pluginconfig.includeapichangesinnotes.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Whether to include API change details in the release notes.
-
 
 </td></tr>
 <tr><td>
 
 [mode?](./change-detector-semantic-release-plugin.pluginconfig.mode.md)
 
-
 </td><td>
-
 
 </td><td>
 
 [PluginMode](./change-detector-semantic-release-plugin.pluginmode.md)
 
-
 </td><td>
 
 **_(ALPHA)_** _(Optional)_ Operating mode for the plugin.
 
-
 </td></tr>
 </tbody></table>
-

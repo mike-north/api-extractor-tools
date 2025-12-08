@@ -5,7 +5,7 @@
 ## MissingReleaseTagConfig interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Configuration for how to handle missing release tags (ae-missing-release-tag)
 
@@ -21,60 +21,47 @@ export interface MissingReleaseTagConfig
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [addToApiReportFile](./module-declaration-merger.missingreleasetagconfig.addtoapireportfile.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** If true, add the message as a comment in the rollup file. If false, print to console (and stop processing if logLevel is "error").
-
 
 </td></tr>
 <tr><td>
 
 [logLevel](./module-declaration-merger.missingreleasetagconfig.loglevel.md)
 
-
 </td><td>
-
 
 </td><td>
 
 ExtractorLogLevel
 
-
 </td><td>
 
 **_(ALPHA)_** The log level for missing release tag messages. - "error": Treat as an error - "warning": Treat as a warning - "none": Silently ignore (treat as `\@public`<!-- -->)
 
-
 </td></tr>
 </tbody></table>
-

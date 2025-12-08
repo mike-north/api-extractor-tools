@@ -5,7 +5,7 @@
 ## formatAPIChangesAsMarkdown() function
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Formats API changes as markdown for release notes.
 
@@ -21,32 +21,26 @@ export declare function formatAPIChangesAsMarkdown(report: ComparisonReport): st
 
 Parameter
 
-
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 report
 
-
 </td><td>
 
 ComparisonReport
 
-
 </td><td>
 
 The comparison report
-
 
 </td></tr>
 </tbody></table>
@@ -56,4 +50,3 @@ The comparison report
 string
 
 Formatted markdown string
-

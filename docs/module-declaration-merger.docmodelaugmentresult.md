@@ -5,7 +5,7 @@
 ## DocModelAugmentResult interface
 
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Result of augmenting the doc model
 
@@ -21,117 +21,92 @@ export interface DocModelAugmentResult
 
 Property
 
-
 </th><th>
 
 Modifiers
-
 
 </th><th>
 
 Type
 
-
 </th><th>
 
 Description
-
 
 </th></tr></thead>
 <tbody><tr><td>
 
 [apiJsonFilePath](./module-declaration-merger.docmodelaugmentresult.apijsonfilepath.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string
 
-
 </td><td>
 
 **_(ALPHA)_** Path to the augmented .api.json file
-
 
 </td></tr>
 <tr><td>
 
 [declarationsAdded](./module-declaration-merger.docmodelaugmentresult.declarationsadded.md)
 
-
 </td><td>
-
 
 </td><td>
 
 number
 
-
 </td><td>
 
 **_(ALPHA)_** Number of declarations added to the doc model
-
 
 </td></tr>
 <tr><td>
 
 [errors](./module-declaration-merger.docmodelaugmentresult.errors.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Errors encountered during augmentation
-
 
 </td></tr>
 <tr><td>
 
 [success](./module-declaration-merger.docmodelaugmentresult.success.md)
 
-
 </td><td>
-
 
 </td><td>
 
 boolean
 
-
 </td><td>
 
 **_(ALPHA)_** Whether the doc model was successfully augmented
-
 
 </td></tr>
 <tr><td>
 
 [warnings](./module-declaration-merger.docmodelaugmentresult.warnings.md)
 
-
 </td><td>
-
 
 </td><td>
 
 string\[\]
 
-
 </td><td>
 
 **_(ALPHA)_** Warnings encountered during augmentation
 
-
 </td></tr>
 </tbody></table>
-
