@@ -70,10 +70,23 @@ jobs:
             RELEASE_TAG="v${VERSION}"
             RELEASE_NAME="${PACKAGE_NAME} v${VERSION}"
           else
-            # Multiple packages: use readable date format
+            # Multiple packages: use readable date format with sequence number if needed
             RELEASE_DATE=$(date +%Y-%m-%d)
-            RELEASE_TAG="release-${RELEASE_DATE}"
-            RELEASE_NAME="Release ${RELEASE_DATE}"
+            BASE_TAG="release-${RELEASE_DATE}"
+            
+            # Check if tag exists and find the next available sequence number
+            SEQUENCE=0
+            RELEASE_TAG="${BASE_TAG}"
+            while git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1; do
+              SEQUENCE=$((SEQUENCE + 1))
+              RELEASE_TAG="${BASE_TAG}-${SEQUENCE}"
+            done
+            
+            if [ "$SEQUENCE" -eq 0 ]; then
+              RELEASE_NAME="Release ${RELEASE_DATE}"
+            else
+              RELEASE_NAME="Release ${RELEASE_DATE} #${SEQUENCE}"
+            fi
           fi
           
           echo "Release tag: ${RELEASE_TAG}"
