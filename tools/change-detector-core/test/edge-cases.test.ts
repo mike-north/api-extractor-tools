@@ -349,8 +349,7 @@ declare module "*.css" {
   })
 
   describe('module and namespace', () => {
-    // Known limitation: nested namespace member tracking not yet implemented
-    it.fails('handles internal namespaces', () => {
+    it('handles internal namespaces', () => {
       const report = compare(
         `export declare namespace Outer {
   namespace Inner {
