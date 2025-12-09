@@ -387,9 +387,17 @@ describe('App', () => {
       
       render(<App />)
       
-      const copyButton = screen.getByRole('button', { name: /copy for llm/i })
-      await user.click(copyButton)
+      // Open the app settings menu
+      const appSettingsButton = screen.getByRole('button', { name: /app settings/i })
+      await user.click(appSettingsButton)
+
+      // Click Copy for LLM menu item
+      const copyMenuItem = await screen.findByRole('menuitem', { name: /copy for llm/i })
+      await user.click(copyMenuItem)
       
+      // Open menu again to see the feedback (since clicking the menu item closes the menu)
+      await user.click(appSettingsButton)
+
       await waitFor(() => {
         expect(screen.getByText('Failed to copy')).toBeInTheDocument()
       })
