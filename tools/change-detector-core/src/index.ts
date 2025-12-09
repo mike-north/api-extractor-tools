@@ -147,6 +147,28 @@ export {
   adaptLegacyInputProcessorPlugin,
 } from './plugin-types'
 
+// Plugin validation exports
+export {
+  type PluginValidationError,
+  type PluginValidationResult,
+  type PluginValidationOptions,
+  validatePlugin,
+  isValidPlugin,
+  formatValidationErrors,
+} from './plugin-validation'
+
+// Plugin discovery exports (Node.js only)
+export {
+  type PluginDiscoveryOptions,
+  type PluginDiscoveryLogger,
+  type PluginPackageInfo,
+  type LoadedPlugin,
+  type PluginDiscoveryError,
+  type PluginDiscoveryResult,
+  discoverPlugins,
+  scanForPlugins,
+} from './plugin-discovery'
+
 /**
  * Compares two declaration strings and generates a comprehensive report.
  *
