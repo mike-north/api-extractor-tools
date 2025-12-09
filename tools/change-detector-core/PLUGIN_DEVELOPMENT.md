@@ -1,228 +1,632 @@
 # Plugin Development Guide
 
-This guide explains how to create input processor plugins for the change detector system.
+This guide explains how to create plugins for the change-detector system.
 
 ## Overview
 
-Input processor plugins allow the change detector to support different input formats beyond TypeScript. Plugins convert various formats (GraphQL, OpenAPI, Protocol Buffers, etc.) into the normalized `Map<string, ExportedSymbol>` representation used by the change detector.
+Plugins extend the change-detector with custom capabilities:
 
-## Getting Started
+- **Input Processors**: Convert different formats to symbols (GraphQL, OpenAPI, etc.)
+- **Policies**: Custom versioning rules for change classification
+- **Reporters**: Custom output formats (PR comments, CI integration, etc.)
+- **Validators**: Pre-comparison validation rules
 
-### 1. Create a New Package
+A single plugin can provide any combination of these capabilities.
 
-Create a new package for your plugin under `tools/`:
+## Quick Start
+
+### 1. Create Package Structure
 
 ```bash
-mkdir -p tools/input-processor-{your-format}/{src,test}
+mkdir -p tools/my-plugin/{src,test}
+cd tools/my-plugin
 ```
 
-### 2. Set Up package.json
-
-Your `package.json` must include:
-
-1. The keyword `"change-detector:input-processor-plugin"` for plugin discovery
-2. A dependency on `@api-extractor-tools/change-detector-core`
+### 2. Configure package.json
 
 ```json
 {
-  "name": "@api-extractor-tools/input-processor-{your-format}",
+  "name": "@api-extractor-tools/my-plugin",
   "version": "0.1.0-alpha.0",
-  "description": "{Your Format} input processor plugin for change-detector",
+  "description": "Custom plugin for change-detector",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "keywords": [
-    "{your-format}",
-    "api",
-    "change-detection",
-    "plugin",
-    "change-detector:input-processor-plugin"
-  ],
+  "keywords": ["change-detector:plugin"],
   "dependencies": {
     "@api-extractor-tools/change-detector-core": "workspace:*"
   }
 }
 ```
 
-### 3. Implement the Plugin Interface
+### 3. Implement the Plugin
 
-Create `src/index.ts` with your plugin implementation:
+```typescript
+// src/index.ts
+import type { ChangeDetectorPlugin } from '@api-extractor-tools/change-detector-core'
+
+const plugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'my-plugin',
+    name: 'My Plugin',
+    version: '0.1.0',
+  },
+  // Add capabilities as needed
+  inputProcessors: [...],
+  policies: [...],
+  reporters: [...],
+  validators: [...],
+}
+
+export default plugin
+```
+
+## Input Processor Example
+
+Input processors convert files into normalized symbols for comparison.
 
 ```typescript
 import type {
-  InputProcessorPlugin,
+  ChangeDetectorPlugin,
   InputProcessor,
   ProcessResult,
   ExportedSymbol,
-  SymbolKind,
 } from '@api-extractor-tools/change-detector-core'
 
-export class YourFormatProcessor implements InputProcessor {
+// Processor implementation
+class GraphQLProcessor implements InputProcessor {
   process(content: string, filename?: string): ProcessResult {
     const symbols = new Map<string, ExportedSymbol>()
     const errors: string[] = []
 
     try {
-      // Parse your format
-      const parsed = parseYourFormat(content)
+      // Parse GraphQL schema (using graphql-js or similar)
+      const schema = parseSchema(content)
 
-      // Convert to ExportedSymbol format
-      for (const item of parsed.items) {
-        symbols.set(item.name, {
-          name: item.name,
-          kind: mapToSymbolKind(item.type),
-          signature: generateSignature(item),
+      // Convert types to symbols
+      for (const type of schema.types) {
+        symbols.set(type.name, {
+          name: type.name,
+          kind: 'interface',
+          signature: formatTypeSignature(type),
+        })
+      }
+
+      // Convert queries to symbols
+      for (const query of schema.queries) {
+        symbols.set(`Query.${query.name}`, {
+          name: `Query.${query.name}`,
+          kind: 'function',
+          signature: formatQuerySignature(query),
         })
       }
     } catch (error) {
-      errors.push(`Error parsing ${filename}: ${error.message}`)
+      errors.push(`Failed to parse ${filename}: ${error.message}`)
     }
 
     return { symbols, errors }
   }
 }
 
-const plugin: InputProcessorPlugin = {
-  id: 'your-format',
-  name: 'Your Format Input Processor',
-  version: '0.1.0-alpha.0',
-  extensions: ['.your-ext'],
-  createProcessor(options?: unknown): InputProcessor {
-    return new YourFormatProcessor(options)
+// Plugin definition
+const graphqlPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'graphql',
+    name: 'GraphQL Plugin',
+    version: '1.0.0',
+    description: 'Process GraphQL schema files',
   },
+  inputProcessors: [
+    {
+      id: 'schema',
+      name: 'GraphQL Schema Processor',
+      extensions: ['.graphql', '.gql'],
+      mimeTypes: ['application/graphql'],
+      createProcessor: () => new GraphQLProcessor(),
+    },
+  ],
 }
 
-export default plugin
+export default graphqlPlugin
 ```
 
-## Mapping Guidelines
+### Symbol Mapping Guidelines
 
-### Symbol Kinds
+Map your format's constructs to appropriate `SymbolKind` values:
 
-Map your format's constructs to the appropriate `SymbolKind`:
+| SymbolKind  | GraphQL         | OpenAPI   | Protocol Buffers |
+| ----------- | --------------- | --------- | ---------------- |
+| `function`  | Query, Mutation | Operation | RPC method       |
+| `interface` | Type, Input     | Schema    | Message          |
+| `type`      | Scalar, Union   | -         | -                |
+| `enum`      | Enum            | Enum      | Enum             |
+| `namespace` | -               | Tag       | Package          |
 
-| SymbolKind  | Use For                                       |
-| ----------- | --------------------------------------------- |
-| `function`  | Functions, methods, operations, API endpoints |
-| `class`     | Classes, objects with constructors            |
-| `interface` | Interfaces, schemas, message types, DTOs      |
-| `type`      | Type aliases, unions, custom types            |
-| `variable`  | Constants, variables, configuration values    |
-| `enum`      | Enumerations, option sets                     |
-| `namespace` | Modules, namespaces, packages                 |
+### Signature Format Examples
 
-### Signature Format
-
-The `signature` field should be:
-
-1. **Human-readable**: Easy for developers to understand
-2. **Deterministic**: Same input always produces same signature
-3. **Complete**: Include all relevant type/structure information
-4. **Normalized**: Consistent formatting for comparison
-
-#### Example Signatures
-
-**GraphQL Schema:**
+**GraphQL:**
 
 ```typescript
-// Query field
-signature: '(id: ID!): User'
+// Query
+'(id: ID!): User'
+'(filter: UserFilter, limit: Int): [User!]!'
 
-// Type definition
-signature: '{ id: ID!; name: String!; email: String }'
+// Type
+'{ id: ID!; name: String!; email: String }'
 
 // Enum
-signature: 'enum Status { ACTIVE, INACTIVE, PENDING }'
+'enum Status { ACTIVE, INACTIVE, PENDING }'
 ```
 
-**OpenAPI/Swagger:**
+**OpenAPI:**
 
 ```typescript
 // Endpoint
-signature: 'GET /users/{id}: User'
+'GET /users/{id} -> User (200)'
+'POST /users (body: CreateUserRequest) -> User (201)'
 
 // Schema
-signature: '{ id: string; name: string; age?: number }'
-
-// Response
-signature: '{ data: User[]; total: number }'
+'{ id: string; name: string; age?: number }'
 ```
 
-**Protocol Buffers:**
+## Policy Example
+
+Policies classify changes into semantic versioning impact levels.
 
 ```typescript
-// Message
-signature: '{ id: int32; name: string; tags: string[] }'
+import type {
+  ChangeDetectorPlugin,
+  VersioningPolicy,
+  ExtendedVersioningPolicy,
+  PolicyContext,
+  AnalyzedChange,
+  ReleaseType,
+} from '@api-extractor-tools/change-detector-core'
 
-// Service method
-signature: 'GetUser(GetUserRequest): GetUserResponse'
+// Simple policy
+const lenientPolicy: VersioningPolicy = {
+  name: 'lenient',
+  classify(change: AnalyzedChange): ReleaseType {
+    // Treat all additions as patch, removals as minor
+    switch (change.category) {
+      case 'removed':
+        return 'minor'
+      case 'added':
+        return 'patch'
+      case 'changed':
+        return change.details?.isBreaking ? 'minor' : 'patch'
+      default:
+        return 'none'
+    }
+  },
+}
 
-// Enum
-signature: 'enum Status { UNKNOWN = 0; ACTIVE = 1; INACTIVE = 2 }'
+// Context-aware policy
+const contextAwarePolicy: ExtendedVersioningPolicy = {
+  name: 'context-aware',
+  classify(change: AnalyzedChange): ReleaseType {
+    // Default classification
+    return change.details?.isBreaking ? 'major' : 'minor'
+  },
+  classifyWithContext(
+    change: AnalyzedChange,
+    context: PolicyContext,
+  ): ReleaseType {
+    // Allow one breaking change per release without major bump
+    const breakingChanges = context.allChanges.filter(
+      (c) => c.details?.isBreaking,
+    )
+    if (breakingChanges.length === 1 && change.details?.isBreaking) {
+      return 'minor' // Downgrade single breaking change
+    }
+    return change.details?.isBreaking ? 'major' : 'minor'
+  },
+}
+
+const policyPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'custom-policies',
+    name: 'Custom Policies Plugin',
+    version: '1.0.0',
+  },
+  policies: [
+    {
+      id: 'lenient',
+      name: 'Lenient Policy',
+      description: 'Downgrades breaking changes to minor bumps',
+      createPolicy: () => lenientPolicy,
+    },
+    {
+      id: 'context-aware',
+      name: 'Context-Aware Policy',
+      description: 'Considers all changes when classifying',
+      createPolicy: () => contextAwarePolicy,
+    },
+  ],
+}
+
+export default policyPlugin
+```
+
+## Reporter Example
+
+Reporters format comparison reports for various outputs.
+
+```typescript
+import type {
+  ChangeDetectorPlugin,
+  Reporter,
+  ReportOutput,
+  ComparisonReport,
+} from '@api-extractor-tools/change-detector-core'
+
+// Markdown reporter for GitHub PR comments
+class GitHubPRReporter implements Reporter {
+  format(report: ComparisonReport): ReportOutput {
+    const lines: string[] = []
+
+    lines.push('## API Change Report')
+    lines.push('')
+    lines.push(`**Release Type:** ${report.releaseType}`)
+    lines.push('')
+
+    // Breaking changes
+    if (report.changes.major.length > 0) {
+      lines.push('### Breaking Changes')
+      for (const change of report.changes.major) {
+        lines.push(`- ${change.symbol}: ${change.message}`)
+      }
+      lines.push('')
+    }
+
+    // New features
+    if (report.changes.minor.length > 0) {
+      lines.push('### New Features')
+      for (const change of report.changes.minor) {
+        lines.push(`- ${change.symbol}: ${change.message}`)
+      }
+      lines.push('')
+    }
+
+    // Patches
+    if (report.changes.patch.length > 0) {
+      lines.push('### Fixes & Improvements')
+      for (const change of report.changes.patch) {
+        lines.push(`- ${change.symbol}: ${change.message}`)
+      }
+    }
+
+    return {
+      format: 'markdown',
+      content: lines.join('\n'),
+    }
+  }
+}
+
+// JSON reporter for CI integration
+class CIJSONReporter implements Reporter {
+  format(report: ComparisonReport): ReportOutput {
+    return {
+      format: 'json',
+      content: {
+        releaseType: report.releaseType,
+        breakingChanges: report.changes.major.length,
+        newFeatures: report.changes.minor.length,
+        fixes: report.changes.patch.length,
+        changes: [
+          ...report.changes.major,
+          ...report.changes.minor,
+          ...report.changes.patch,
+        ],
+      },
+    }
+  }
+}
+
+const reporterPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'github',
+    name: 'GitHub Integration Plugin',
+    version: '1.0.0',
+  },
+  reporters: [
+    {
+      id: 'pr-comment',
+      name: 'GitHub PR Comment Reporter',
+      format: 'markdown',
+      fileExtension: 'md',
+      createReporter: () => new GitHubPRReporter(),
+    },
+    {
+      id: 'ci-json',
+      name: 'CI JSON Reporter',
+      format: 'json',
+      fileExtension: 'json',
+      createReporter: () => new CIJSONReporter(),
+    },
+  ],
+}
+
+export default reporterPlugin
+```
+
+### Async Reporters
+
+For reporters that need I/O operations:
+
+```typescript
+import type { AsyncReporter, ReportOutput } from '@api-extractor-tools/change-detector-core'
+
+class FileWriterReporter implements AsyncReporter {
+  async format(report: ComparisonReport): Promise<ReportOutput> {
+    // Perform async operations
+    await writeToFile(report)
+
+    return {
+      format: 'text',
+      content: 'Report written to file',
+    }
+  }
+}
+
+// In plugin definition
+{
+  id: 'file-writer',
+  name: 'File Writer Reporter',
+  format: 'text',
+  isAsync: true,  // Indicate async behavior
+  createReporter: () => new FileWriterReporter(),
+}
+```
+
+## Validator Example
+
+Validators check symbols before comparison.
+
+```typescript
+import type {
+  ChangeDetectorPlugin,
+  Validator,
+  ValidationResult,
+  ExportedSymbol,
+} from '@api-extractor-tools/change-detector-core'
+
+// Validator that ensures required exports exist
+class RequiredExportsValidator implements Validator {
+  constructor(private required: string[]) {}
+
+  validate(
+    symbols: ReadonlyMap<string, ExportedSymbol>,
+    source: string,
+  ): ValidationResult {
+    const errors: string[] = []
+    const warnings: string[] = []
+
+    for (const name of this.required) {
+      if (!symbols.has(name)) {
+        errors.push(`Missing required export: ${name}`)
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      warnings,
+      errors,
+    }
+  }
+}
+
+// Validator for naming conventions
+class NamingConventionValidator implements Validator {
+  validate(
+    symbols: ReadonlyMap<string, ExportedSymbol>,
+    source: string,
+  ): ValidationResult {
+    const warnings: string[] = []
+
+    for (const [name, symbol] of symbols) {
+      // Check PascalCase for types/interfaces/classes
+      if (['interface', 'type', 'class'].includes(symbol.kind)) {
+        if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) {
+          warnings.push(`${name} should use PascalCase`)
+        }
+      }
+      // Check camelCase for functions
+      if (symbol.kind === 'function') {
+        if (!/^[a-z][a-zA-Z0-9]*$/.test(name)) {
+          warnings.push(`${name} should use camelCase`)
+        }
+      }
+    }
+
+    return {
+      valid: true, // Warnings don't fail validation
+      warnings,
+      errors: [],
+    }
+  }
+}
+
+const validatorPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'validators',
+    name: 'Validation Rules Plugin',
+    version: '1.0.0',
+  },
+  validators: [
+    {
+      id: 'required-exports',
+      name: 'Required Exports Validator',
+      description: 'Ensures certain symbols are always exported',
+      createValidator: (options?: { required?: string[] }) =>
+        new RequiredExportsValidator(options?.required ?? []),
+    },
+    {
+      id: 'naming-conventions',
+      name: 'Naming Convention Validator',
+      description: 'Checks symbol naming conventions',
+      createValidator: () => new NamingConventionValidator(),
+    },
+  ],
+}
+
+export default validatorPlugin
+```
+
+## Multi-Capability Plugin Example
+
+Plugins can provide multiple capability types:
+
+```typescript
+import type { ChangeDetectorPlugin } from '@api-extractor-tools/change-detector-core'
+
+const fullFeaturedPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'graphql-full',
+    name: 'GraphQL Full Suite',
+    version: '1.0.0',
+    description: 'Complete GraphQL support with custom policies and reporting',
+  },
+
+  // Input processor for GraphQL files
+  inputProcessors: [
+    {
+      id: 'schema',
+      name: 'GraphQL Schema Processor',
+      extensions: ['.graphql', '.gql'],
+      createProcessor: () => new GraphQLSchemaProcessor(),
+    },
+  ],
+
+  // GraphQL-aware policies
+  policies: [
+    {
+      id: 'graphql-strict',
+      name: 'GraphQL Strict Policy',
+      description: 'Strict versioning for GraphQL schemas',
+      createPolicy: () => ({
+        name: 'graphql-strict',
+        classify: (change) => {
+          // Field removal is always breaking
+          if (change.category === 'removed') return 'major'
+          // New nullable fields are minor
+          if (change.category === 'added') return 'minor'
+          return 'patch'
+        },
+      }),
+    },
+  ],
+
+  // GraphQL-specific reporters
+  reporters: [
+    {
+      id: 'schema-diff',
+      name: 'Schema Diff Reporter',
+      format: 'markdown',
+      createReporter: () => new GraphQLDiffReporter(),
+    },
+  ],
+
+  // GraphQL validators
+  validators: [
+    {
+      id: 'no-breaking-changes',
+      name: 'No Breaking Changes Validator',
+      createValidator: () => new GraphQLBreakingChangeValidator(),
+    },
+  ],
+}
+
+export default fullFeaturedPlugin
 ```
 
 ## Testing Your Plugin
 
 ### Unit Tests
 
-Create comprehensive tests in `test/plugin.test.ts`:
-
 ```typescript
 import { describe, it, expect } from 'vitest'
-import yourPlugin from '../src/index'
+import plugin from '../src/index'
 
-describe('Your Format Input Processor Plugin', () => {
-  describe('plugin metadata', () => {
-    it('should have correct plugin metadata', () => {
-      expect(yourPlugin.id).toBe('your-format')
-      expect(yourPlugin.name).toBe('Your Format Input Processor')
-      expect(yourPlugin.extensions).toContain('.your-ext')
+describe('My Plugin', () => {
+  describe('metadata', () => {
+    it('should have valid metadata', () => {
+      expect(plugin.metadata.id).toBe('my-plugin')
+      expect(plugin.metadata.version).toMatch(/^\d+\.\d+\.\d+/)
     })
   })
 
-  describe('processing', () => {
-    it('should process valid input', () => {
-      const processor = yourPlugin.createProcessor()
-      const result = processor.process('... your format content ...')
+  describe('input processor', () => {
+    it('should process valid content', () => {
+      const processor = plugin.inputProcessors![0].createProcessor()
+      const result = processor.process('... content ...')
 
-      expect(result.errors).toEqual([])
+      expect(result.errors).toHaveLength(0)
       expect(result.symbols.size).toBeGreaterThan(0)
     })
 
     it('should handle errors gracefully', () => {
-      const processor = yourPlugin.createProcessor()
+      const processor = plugin.inputProcessors![0].createProcessor()
       const result = processor.process('invalid content')
 
       expect(result.errors.length).toBeGreaterThan(0)
     })
   })
+
+  describe('policy', () => {
+    it('should classify changes correctly', () => {
+      const policy = plugin.policies![0].createPolicy()
+
+      expect(policy.classify({ category: 'removed', ... })).toBe('major')
+      expect(policy.classify({ category: 'added', ... })).toBe('minor')
+    })
+  })
 })
 ```
 
-### Integration Tests
+### Validation Tests
 
-Test that your plugin works with the change detector:
+Use the built-in validation utilities:
 
 ```typescript
-import { compareDeclarations } from '@api-extractor-tools/change-detector-core'
-import yourPlugin from '../src/index'
+import {
+  validatePlugin,
+  isValidPlugin,
+} from '@api-extractor-tools/change-detector-core'
 
-it('should detect changes between versions', () => {
-  const processor = yourPlugin.createProcessor()
-
-  const oldResult = processor.process(oldContent)
-  const newResult = processor.process(newContent)
-
-  // Verify symbols were extracted correctly
-  expect(oldResult.symbols.size).toBe(expectedOldCount)
-  expect(newResult.symbols.size).toBe(expectedNewCount)
+describe('plugin validation', () => {
+  it('should pass validation', () => {
+    const result = validatePlugin(plugin)
+    expect(result.valid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
 })
+```
+
+## Using the Plugin Registry
+
+Register and use your plugin:
+
+```typescript
+import { createPluginRegistry } from '@api-extractor-tools/change-detector-core'
+import myPlugin from './my-plugin'
+
+const registry = createPluginRegistry()
+registry.register(myPlugin)
+
+// Get capabilities by ID
+const processor = registry.getInputProcessor('my-plugin:schema')
+const policy = registry.getPolicy('my-plugin:strict')
+
+// Find by extension/format
+const graphqlProcessors = registry.findInputProcessorsForExtension('.graphql')
+const mdReporters = registry.findReportersForFormat('markdown')
 ```
 
 ## Best Practices
 
-### 1. Error Handling
+### Error Handling
 
-Always return errors in the `errors` array rather than throwing exceptions:
+Return errors in the result rather than throwing:
 
 ```typescript
 process(content: string): ProcessResult {
@@ -230,31 +634,31 @@ process(content: string): ProcessResult {
   const errors: string[] = []
 
   try {
-    // ... processing logic
+    // Processing logic
   } catch (error) {
-    errors.push(`Parsing error: ${error.message}`)
+    errors.push(`Parse error: ${error.message}`)
   }
 
   return { symbols, errors }
 }
 ```
 
-### 2. Signature Consistency
+### Deterministic Signatures
 
-Ensure signatures are consistent across runs:
+Ensure signatures are consistent:
 
 ```typescript
 // Sort properties alphabetically
-signature: '{ age: number; id: string; name: string }'
+'{ age: number; id: string; name: string }'
 
 // Normalize whitespace
-signature: '{ id: string }' // Not "{ id:string }" or "{id: string}"
+'{ id: string }' // Not "{ id:string }"
 
 // Use consistent type names
-signature: 'string' // Not "String" or "str"
+'string' // Not "String" or "str"
 ```
 
-### 3. Handle Edge Cases
+### Handle Edge Cases
 
 ```typescript
 // Empty input
@@ -263,91 +667,75 @@ if (!content.trim()) {
 }
 
 // Optional fields
-signature: '{ id: string; name?: string }' // Use ? for optional
+;('{ id: string; name?: string }') // Use ? for optional
 
 // Complex types
-signature: '{ users: User[]; metadata: Record<string, any> }'
+;('{ users: User[]; metadata: Record<string, any> }')
 ```
 
-### 4. Performance
+### Isomorphic Design
 
-For large inputs, consider:
+Avoid Node.js-specific APIs in core logic:
 
-- Streaming parsing if your format supports it
-- Limiting signature length for complex nested structures
-- Caching parsed results if processing multiple times
+```typescript
+// Use dependency injection for Node.js features
+class MyProcessor {
+  constructor(private fs?: FileSystem) {}
 
-## Publishing Your Plugin
-
-### 1. Add Documentation
-
-Create a comprehensive README.md:
-
-```markdown
-# @api-extractor-tools/input-processor-{your-format}
-
-{Your Format} input processor plugin for `@api-extractor-tools/change-detector`.
-
-## Installation
-
-\`\`\`bash
-pnpm add @api-extractor-tools/input-processor-{your-format}
-\`\`\`
-
-## Usage
-
-\`\`\`typescript
-import yourPlugin from '@api-extractor-tools/input-processor-{your-format}'
-
-const processor = yourPlugin.createProcessor()
-const result = processor.process(content)
-\`\`\`
-
-## Supported Formats
-
-- List supported format versions
-- Document any limitations
-- Provide examples
-
-## Configuration
-
-Document any options passed to `createProcessor()`:
-
-\`\`\`typescript
-const processor = yourPlugin.createProcessor({
-option1: value1,
-option2: value2,
-})
-\`\`\`
+  process(content: string): ProcessResult {
+    // Works in browser and Node.js
+  }
+}
 ```
 
-### 2. Add Changeset
+## Migrating from Legacy Plugins
 
-```bash
-pnpm changeset
+If you have a legacy `InputProcessorPlugin`, adapt it:
+
+```typescript
+import { adaptLegacyInputProcessorPlugin } from '@api-extractor-tools/change-detector-core'
+import legacyPlugin from './legacy-plugin'
+
+// Adapt to unified format
+const unifiedPlugin = adaptLegacyInputProcessorPlugin(legacyPlugin)
+
+// Or manually migrate
+const newPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: legacyPlugin.id,
+    name: legacyPlugin.name,
+    version: legacyPlugin.version,
+  },
+  inputProcessors: [
+    {
+      id: 'default',
+      name: legacyPlugin.name,
+      extensions: legacyPlugin.extensions,
+      createProcessor: legacyPlugin.createProcessor,
+    },
+  ],
+}
 ```
 
-Select your plugin package and describe the changes.
+## Publishing
 
-### 3. Build and Test
+1. **Build and test:**
 
-```bash
-pnpm build
-pnpm test
-```
+   ```bash
+   pnpm build
+   pnpm test
+   ```
 
-### 4. Submit PR
+2. **Create changeset:**
 
-Follow the [DEVELOPMENT.md](../../DEVELOPMENT.md) guidelines for submitting your plugin.
+   ```bash
+   pnpm changeset
+   ```
 
-## Example Plugins
+3. **Submit PR** following [DEVELOPMENT.md](../../DEVELOPMENT.md)
 
-### TypeScript Plugin
+## Resources
 
-See [`tools/input-processor-typescript`](../input-processor-typescript) for a complete example of a plugin implementation.
-
-## Getting Help
-
-- Review the [Plugin Architecture](./PLUGIN_ARCHITECTURE.md) document
-- Check existing plugin implementations for examples
-- Ask questions in GitHub Issues or Discussions
+- [Plugin Architecture](./PLUGIN_ARCHITECTURE.md) - Architecture overview
+- [API Reference](./src/plugin-types.ts) - Type definitions
+- [TypeScript Plugin](../input-processor-typescript) - Reference implementation
