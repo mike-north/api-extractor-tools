@@ -139,9 +139,6 @@ export {
   type DiscoveredPlugin,
   type ResolvedPlugin,
 
-  // Registry types
-  type PluginRegistry,
-
   // Legacy support (deprecated)
   type InputProcessorPlugin,
   adaptLegacyInputProcessorPlugin,
@@ -168,6 +165,16 @@ export {
   discoverPlugins,
   scanForPlugins,
 } from './plugin-discovery'
+
+// Plugin registry exports
+export {
+  type ResolvedCapability,
+  type RegisterOptions,
+  type RegistryLogger,
+  type PluginRegistryOptions,
+  type PluginRegistry,
+  createPluginRegistry,
+} from './plugin-registry'
 
 /**
  * Compares two declaration strings and generates a comprehensive report.
