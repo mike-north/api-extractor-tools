@@ -4,7 +4,7 @@ This guide explains how to create input processor plugins for the change detecto
 
 ## Overview
 
-Input processor plugins allow the change detector to support different input formats beyond TypeScript. Plugins convert various formats (GraphQL, OpenAPI, Protocol Buffers, etc.) into the normalized `ExportedSymbol[]` representation used by the change detector.
+Input processor plugins allow the change detector to support different input formats beyond TypeScript. Plugins convert various formats (GraphQL, OpenAPI, Protocol Buffers, etc.) into the normalized `Map<string, ExportedSymbol>` representation used by the change detector.
 
 ## Getting Started
 

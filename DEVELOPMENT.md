@@ -295,7 +295,7 @@ pnpm check:eslint
 
 ## Developing Input Processor Plugins
 
-The change detector supports a plugin system for processing different input formats (TypeScript, GraphQL, OpenAPI, etc.). Plugins convert various formats into the normalized `ExportedSymbol[]` representation.
+The change detector supports a plugin system for processing different input formats (TypeScript, GraphQL, OpenAPI, etc.). Plugins convert various formats into the normalized `Map<string, ExportedSymbol>` representation.
 
 ### Plugin Architecture
 

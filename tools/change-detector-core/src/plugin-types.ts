@@ -17,7 +17,7 @@ export interface ProcessResult {
  *
  * @remarks
  * Input processors convert various input formats (TypeScript, GraphQL, OpenAPI, etc.)
- * into the normalized `ExportedSymbol[]` representation used by the change detector.
+ * into the normalized `Map<string, ExportedSymbol>` representation used by the change detector.
  *
  * @alpha
  */

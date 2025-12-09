@@ -9,12 +9,12 @@ Add input processor plugin system and refactor TypeScript processing
 
 - Define plugin architecture with `InputProcessor` and `InputProcessorPlugin` interfaces in change-detector-core
 - Create `@api-extractor-tools/input-processor-typescript` package implementing the plugin interface
-- Document architectural decision to use `ExportedSymbol[]` as intermediate representation
+- Document architectural decision to use `Map<string, ExportedSymbol>` as intermediate representation
 - Add comprehensive plugin development documentation
 
 **Architecture:**
 
-- Plugins convert various input formats (TypeScript, GraphQL, OpenAPI, etc.) into normalized `ExportedSymbol[]` representation
+- Plugins convert various input formats (TypeScript, GraphQL, OpenAPI, etc.) into normalized `Map<string, ExportedSymbol>` representation
 - Plugin discovery via `package.json` keyword `"change-detector:input-processor-plugin"`
 - Isomorphic design enforced via TypeScript types (works in browser and Node.js)
 - TypeScript plugin extracts parsing logic into reusable plugin package

@@ -2,22 +2,22 @@
 
 ## Architectural Decision: Intermediate Representation
 
-After evaluating multiple options for the intermediate representation used by input processor plugins, we have chosen **Option 4: Symbol map directly** - Processors produce `ExportedSymbol[]` per `tools/change-detector-core/src/types.ts`.
+After evaluating multiple options for the intermediate representation used by input processor plugins, we have chosen **Option 4: Symbol map directly** - Processors produce `Map<string, ExportedSymbol>` per `tools/change-detector-core/src/types.ts`.
 
 ### Options Evaluated
 
 1. **TypeScript declaration strings** - Processors convert input → `.d.ts` strings → existing parser
 2. **TypeScript AST nodes** - Processors produce AST directly → bypass string parsing
 3. **Custom IR** - Define schema-agnostic intermediate representation
-4. **Symbol map directly** - Processors produce `ExportedSymbol[]` ✅ **SELECTED**
+4. **Symbol map directly** - Processors produce `Map<string, ExportedSymbol>` ✅ **SELECTED**
 
 ### Rationale
 
-The decision to use `ExportedSymbol[]` as the intermediate representation was based on the following criteria:
+The decision to use `Map<string, ExportedSymbol>` as the intermediate representation was based on the following criteria:
 
 #### Ease of Implementation for Plugin Authors
 
-- Plugin authors work with a simple, well-defined interface: `ExportedSymbol` contains just `name`, `kind`, and `signature`
+- Plugin authors work with a simple, well-defined interface: `Map<string, ExportedSymbol>` where each `ExportedSymbol` contains just `name`, `kind`, and `signature`
 - No need to understand TypeScript AST internals or construct complex AST nodes
 - No need to generate valid TypeScript declaration syntax
 - Direct mapping from any format to symbols
