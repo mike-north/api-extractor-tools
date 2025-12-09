@@ -689,6 +689,7 @@ function getSymbolSignature(
 
 /**
  * Gets the signature for a namespace, including exported members.
+ * Recursively processes nested namespaces to capture all member changes.
  */
 function getNamespaceSignature(
   symbol: ts.Symbol,
@@ -707,15 +708,43 @@ function getNamespaceSignature(
     const expDecls = exp.getDeclarations()
     if (expDecls && expDecls.length > 0) {
       const expDecl = expDecls[0]!
-      const type = checker.getTypeOfSymbolAtLocation(exp, expDecl)
-      const typeStr = checker.typeToString(
-        type,
-        undefined,
-        tsModule.TypeFormatFlags.NoTruncation,
-      )
-      memberSigs.push(`${name}: ${typeStr}`)
+
+      // Check if this export is a nested namespace
+      if (tsModule.isModuleDeclaration(expDecl)) {
+        // Recursively get the nested namespace signature
+        const nestedSig = getNamespaceSignature(exp, expDecl, checker, tsModule)
+        memberSigs.push(nestedSig)
+      } else {
+        // For non-namespace members, get their type signature
+        const type = checker.getTypeOfSymbolAtLocation(exp, expDecl)
+
+        // Check if this is a function to get proper signature
+        const callSigs = type.getCallSignatures()
+        if (callSigs.length > 0) {
+          // It's a function - use normalized signature
+          if (callSigs.length > 1) {
+            const sigs = callSigs
+              .map((sig) => getNormalizedSignature(sig, checker, tsModule))
+              .join('; ')
+            memberSigs.push(`${name}: ${sigs}`)
+          } else {
+            const sig = getNormalizedSignature(callSigs[0]!, checker, tsModule)
+            memberSigs.push(`${name}: ${sig}`)
+          }
+        } else {
+          const typeStr = checker.typeToString(
+            type,
+            undefined,
+            tsModule.TypeFormatFlags.NoTruncation,
+          )
+          memberSigs.push(`${name}: ${typeStr}`)
+        }
+      }
     }
   }
+
+  // Sort members alphabetically for consistent ordering
+  memberSigs.sort()
 
   return `namespace ${symbol.getName()} { ${memberSigs.join('; ')} }`
 }
