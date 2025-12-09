@@ -160,6 +160,35 @@ function App() {
     document.body.style.userSelect = 'none'
   }, [editorHeight])
 
+  // Handle keyboard resize
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const step = 10
+    let newHeight = editorHeight
+
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault()
+        newHeight = Math.max(150, editorHeight - step)
+        break
+      case 'ArrowDown':
+        e.preventDefault()
+        newHeight = Math.min(800, editorHeight + step)
+        break
+      case 'Home':
+        e.preventDefault()
+        newHeight = 150
+        break
+      case 'End':
+        e.preventDefault()
+        newHeight = 800
+        break
+      default:
+        return
+    }
+
+    setEditorHeight(newHeight)
+  }, [editorHeight])
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging.current) return
@@ -257,8 +286,15 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
 
           <div
             className="resize-handle"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-valuenow={editorHeight}
+            aria-valuemin={150}
+            aria-valuemax={800}
+            aria-label="Editor height resize handle"
+            tabIndex={0}
             onMouseDown={handleMouseDown}
-            title="Drag to resize"
+            onKeyDown={handleKeyDown}
           >
             <div className="resize-handle-grip" />
           </div>

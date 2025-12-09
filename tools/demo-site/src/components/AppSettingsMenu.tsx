@@ -111,7 +111,12 @@ export function AppSettingsMenu({ themePreference, onThemeChange }: AppSettingsM
             onClick={handleCopyForLLM}
             role="menuitem"
           >
-            <span>📋</span> {copyFeedback ?? 'Copy for LLM'}
+            <span>📋</span> Copy for LLM
+            {copyFeedback && (
+              <span className="sr-only" role="status" aria-live="polite">
+                {copyFeedback}
+              </span>
+            )}
           </button>
 
           <button
