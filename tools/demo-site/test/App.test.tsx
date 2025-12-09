@@ -477,23 +477,19 @@ describe('App', () => {
 
     it('has proper ARIA attributes for accessibility', () => {
       render(<App />)
-      const resizeHandle = document.querySelector('.resize-handle') as HTMLElement
-      expect(resizeHandle).toBeInTheDocument()
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
       
-      expect(resizeHandle).toHaveAttribute('role', 'separator')
       expect(resizeHandle).toHaveAttribute('aria-orientation', 'horizontal')
       expect(resizeHandle).toHaveAttribute('aria-valuenow')
       expect(resizeHandle).toHaveAttribute('aria-valuemin', '150')
       expect(resizeHandle).toHaveAttribute('aria-valuemax', '800')
-      expect(resizeHandle).toHaveAttribute('aria-label')
       expect(resizeHandle).toHaveAttribute('tabindex', '0')
     })
 
     it('can be focused with keyboard', () => {
       render(<App />)
       
-      const resizeHandle = document.querySelector('.resize-handle') as HTMLElement
-      expect(resizeHandle).toBeInTheDocument()
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
       
       // The resize handle should have tabIndex 0 making it focusable
       expect(resizeHandle.tabIndex).toBe(0)
@@ -509,7 +505,7 @@ describe('App', () => {
       const user = userEvent.setup()
       render(<App />)
       
-      const resizeHandle = document.querySelector('.resize-handle') as HTMLElement
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
       const initialHeight = resizeHandle.getAttribute('aria-valuenow')
       
       // Focus the resize handle
@@ -528,7 +524,7 @@ describe('App', () => {
       const user = userEvent.setup()
       render(<App />)
       
-      const resizeHandle = document.querySelector('.resize-handle') as HTMLElement
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
       
       // Focus the resize handle
       resizeHandle.focus()

@@ -292,6 +292,7 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
             aria-valuemin={150}
             aria-valuemax={800}
             aria-label="Editor height resize handle"
+            title="Drag to resize or use arrow keys"
             tabIndex={0}
             onMouseDown={handleMouseDown}
             onKeyDown={handleKeyDown}
