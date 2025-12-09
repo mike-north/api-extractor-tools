@@ -147,6 +147,16 @@ export {
   adaptLegacyInputProcessorPlugin,
 } from './plugin-types'
 
+// Plugin validation exports
+export {
+  type PluginValidationError,
+  type PluginValidationResult,
+  type PluginValidationOptions,
+  validatePlugin,
+  isValidPlugin,
+  formatValidationErrors,
+} from './plugin-validation'
+
 /**
  * Compares two declaration strings and generates a comprehensive report.
  *
