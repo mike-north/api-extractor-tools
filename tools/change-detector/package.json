@@ -23,6 +23,7 @@
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
     "@api-extractor-tools/change-detector-core": "workspace:*",
+    "@api-extractor-tools/input-processor-typescript": "workspace:*",
     "typescript": "5.8.3"
   },
   "devDependencies": {

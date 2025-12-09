@@ -3,18 +3,40 @@
  *
  * @remarks
  * This plugin processes TypeScript declaration files (`.d.ts`) and extracts
- * exported symbols for API change detection.
+ * exported symbols for API change detection. It implements the unified
+ * `ChangeDetectorPlugin` interface.
  *
  * @packageDocumentation
  */
 
 import type {
-  InputProcessorPlugin,
+  ChangeDetectorPlugin,
   InputProcessor,
+  InputProcessorPlugin,
   ProcessResult,
 } from '@api-extractor-tools/change-detector-core'
 import { parseDeclarationString } from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
+import { pkgUpSync } from 'pkg-up'
+import * as fs from 'node:fs'
+
+// Dynamically find and read package.json to get the version
+// This works regardless of whether we're running from src or dist
+// Uses __dirname which is available in both CJS and our ESM build target
+function getPackageVersion(): string {
+  // __dirname is available in CommonJS and also works in our ESM build
+  // since we're targeting a module system that supports it
+  const pkgPath = pkgUpSync({ cwd: __dirname })
+  if (pkgPath) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
+      version: string
+    }
+    return pkg.version
+  }
+  return '0.0.0-unknown'
+}
+
+const VERSION = getPackageVersion()
 
 /**
  * Options for configuring the TypeScript input processor.
@@ -55,35 +77,79 @@ export class TypeScriptProcessor implements InputProcessor {
 }
 
 /**
- * TypeScript input processor plugin.
+ * TypeScript input processor plugin (unified format).
  *
  * @remarks
- * This is the default export that implements the `InputProcessorPlugin` interface.
+ * This is the default export that implements the unified `ChangeDetectorPlugin` interface.
  * The change-detector package discovers this plugin via the package.json keyword
- * `"change-detector:input-processor-plugin"`.
+ * `"change-detector:plugin"`.
  *
  * @example
  * ```ts
  * import typescriptPlugin from '@api-extractor-tools/input-processor-typescript';
+ * import { createPluginRegistry } from '@api-extractor-tools/change-detector-core';
  *
- * const processor = typescriptPlugin.createProcessor();
- * const result = processor.process('export declare function greet(name: string): string;');
+ * const registry = createPluginRegistry();
+ * registry.register(typescriptPlugin);
+ *
+ * const processor = registry.getInputProcessor('typescript:default');
+ * const instance = processor.definition.createProcessor();
+ * const result = instance.process('export declare function greet(name: string): string;');
  * console.log(result.symbols); // Map of exported symbols
  * ```
  *
  * @alpha
  */
-const plugin: InputProcessorPlugin = {
-  id: 'typescript',
-  name: 'TypeScript Input Processor',
-  version: '0.1.0-alpha.0',
-  extensions: ['.d.ts', '.ts'],
-  createProcessor(options?: TypeScriptProcessorOptions): InputProcessor {
-    return new TypeScriptProcessor(options)
+const plugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'typescript',
+    name: 'TypeScript Input Processor Plugin',
+    version: VERSION,
+    description:
+      'Process TypeScript declaration files for API change detection',
   },
+  inputProcessors: [
+    {
+      id: 'default',
+      name: 'TypeScript Processor',
+      extensions: ['.d.ts', '.ts'],
+      description:
+        'Extracts exported symbols from TypeScript declaration files',
+      createProcessor(options?: TypeScriptProcessorOptions): InputProcessor {
+        return new TypeScriptProcessor(options)
+      },
+    },
+  ],
 }
 
 export default plugin
 
 // Named exports for direct usage
 export { plugin as typescriptPlugin }
+
+/**
+ * Legacy plugin export for backward compatibility.
+ *
+ * @deprecated Use the default export (ChangeDetectorPlugin) instead.
+ * This export will be removed in a future major version.
+ *
+ * @example
+ * ```ts
+ * // Old usage (deprecated)
+ * import { legacyPlugin } from '@api-extractor-tools/input-processor-typescript';
+ * const processor = legacyPlugin.createProcessor();
+ *
+ * // New usage (recommended)
+ * import typescriptPlugin from '@api-extractor-tools/input-processor-typescript';
+ * // Register with plugin registry
+ * ```
+ */
+export const legacyPlugin: InputProcessorPlugin = {
+  id: 'typescript',
+  name: 'TypeScript Input Processor',
+  version: VERSION,
+  extensions: ['.d.ts', '.ts'],
+  createProcessor(options?: TypeScriptProcessorOptions): InputProcessor {
+    return new TypeScriptProcessor(options)
+  },
+}
