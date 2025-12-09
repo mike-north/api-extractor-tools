@@ -1,7 +1,10 @@
 import type { ComparisonReport, Change } from '@api-extractor-tools/change-detector-core'
+import { hasExports } from '../utils/exportDetection'
 
 interface ChangeReportProps {
   report: ComparisonReport
+  oldContent?: string
+  newContent?: string
 }
 
 function ChangeItem({ change }: { change: Change }) {
@@ -32,11 +35,24 @@ function ChangeItem({ change }: { change: Change }) {
   )
 }
 
-export function ChangeReport({ report }: ChangeReportProps) {
+export function ChangeReport({ report, oldContent = '', newContent = '' }: ChangeReportProps) {
   const releaseTypeLabel = report.releaseType.toUpperCase()
+  const oldHasExports = hasExports(oldContent)
+  const newHasExports = hasExports(newContent)
+  const showNoExportsWarning = oldContent && newContent && !oldHasExports && !newHasExports
 
   return (
     <div>
+      {showNoExportsWarning && (
+        <div className="warning-banner">
+          <span className="warning-icon">⚠️</span>
+          <div className="warning-content">
+            <strong>No exports detected</strong>
+            <p>Neither the old nor new code contains any export declarations. The change detector analyzes exported APIs only.</p>
+          </div>
+        </div>
+      )}
+
       <div className="report-header">
         <span className={`release-type ${report.releaseType}`}>
           Release Type: {releaseTypeLabel}

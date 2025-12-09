@@ -1,0 +1,93 @@
+.app-settings-menu {
+  position: relative;
+}
+
+.settings-menu-button {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-menu-button:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.settings-menu-button:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.settings-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  padding: 0.5rem 0;
+}
+
+.settings-menu-section {
+  padding: 0.25rem 0;
+}
+
+.settings-menu-label {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-menu-item {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-menu-item:hover:not(:disabled) {
+  background-color: var(--color-surface-2);
+}
+
+.settings-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-menu-item.active {
+  background-color: var(--color-surface-2);
+  font-weight: 500;
+}
+
+.settings-menu-item.active::after {
+  content: '✓';
+  margin-left: auto;
+  color: var(--color-primary);
+}
+
+.settings-menu-divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 0.5rem 0;
+}
