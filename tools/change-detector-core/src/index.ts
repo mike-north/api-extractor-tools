@@ -96,9 +96,55 @@ export {
 
 // Plugin types exports
 export {
+  // Core result types
   type ProcessResult,
+
+  // Input processor types
   type InputProcessor,
+  type InputProcessorOptions,
+  type InputProcessorDefinition,
+
+  // Policy types
+  type PolicyContext,
+  type ExtendedVersioningPolicy,
+  type PolicyOptions,
+  type PolicyDefinition,
+
+  // Reporter types
+  type ReportOutputFormat,
+  type ReportOutput,
+  type Reporter,
+  type AsyncReporter,
+  type ReporterOptions,
+  type ReporterDefinition,
+
+  // Validator types
+  type ValidationResult,
+  type Validator,
+  type ValidatorDefinition,
+
+  // Plugin container types
+  type PluginMetadata,
+  type ChangeDetectorPlugin,
+  type PluginLifecycle,
+  type ChangeDetectorPluginWithLifecycle,
+
+  // Error types
+  type PluginErrorCode,
+  PluginError,
+  type PluginResult,
+
+  // Discovery types (Node.js)
+  PLUGIN_KEYWORDS,
+  type DiscoveredPlugin,
+  type ResolvedPlugin,
+
+  // Registry types
+  type PluginRegistry,
+
+  // Legacy support (deprecated)
   type InputProcessorPlugin,
+  adaptLegacyInputProcessorPlugin,
 } from './plugin-types'
 
 /**
