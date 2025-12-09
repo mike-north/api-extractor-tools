@@ -130,6 +130,69 @@ import { compareDeclarations } from '@api-extractor-tools/change-detector-core'
 const report = compareDeclarations({ oldContent, newContent }, ts)
 ```
 
+## Plugin System
+
+The change-detector supports a unified plugin architecture for extending its capabilities:
+
+### Plugin Capabilities
+
+| Capability           | Description                                                   |
+| -------------------- | ------------------------------------------------------------- |
+| **Input Processors** | Convert different formats to symbols (GraphQL, OpenAPI, etc.) |
+| **Policies**         | Custom versioning rules for change classification             |
+| **Reporters**        | Custom output formats (PR comments, CI integration, etc.)     |
+| **Validators**       | Pre-comparison validation rules                               |
+
+### Using Plugins
+
+```typescript
+import { createPluginRegistry } from '@api-extractor-tools/change-detector-core'
+import graphqlPlugin from '@api-extractor-tools/input-processor-graphql'
+
+// Create registry and register plugins
+const registry = createPluginRegistry()
+registry.register(graphqlPlugin)
+
+// Look up capabilities
+const processor = registry.getInputProcessor('graphql:schema')
+const processors = registry.findInputProcessorsForExtension('.graphql')
+```
+
+### Creating Plugins
+
+Plugins implement the `ChangeDetectorPlugin` interface:
+
+```typescript
+import type { ChangeDetectorPlugin } from '@api-extractor-tools/change-detector-core'
+
+const myPlugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'my-plugin',
+    name: 'My Plugin',
+    version: '1.0.0',
+  },
+  inputProcessors: [
+    /* ... */
+  ],
+  policies: [
+    /* ... */
+  ],
+  reporters: [
+    /* ... */
+  ],
+  validators: [
+    /* ... */
+  ],
+}
+
+export default myPlugin
+```
+
+For detailed documentation, see:
+
+- [Plugin Architecture](./PLUGIN_ARCHITECTURE.md) - Architecture overview
+- [Plugin Development Guide](./PLUGIN_DEVELOPMENT.md) - How to create plugins
+
 ## Relationship to `@api-extractor-tools/change-detector`
 
 - **`change-detector-core`** - Isomorphic core (this package), works everywhere
