@@ -30,6 +30,12 @@
       "outputs": ["{projectRoot}/dist"]
     },
     "test": {
+      "dependsOn": [
+        "build",
+        "^build",
+        "generate:api-report",
+        "^generate:api-report"
+      ],
       "cache": true,
       "inputs": [
         "source",
@@ -40,6 +46,12 @@
       "outputs": []
     },
     "test:coverage": {
+      "dependsOn": [
+        "build",
+        "^build",
+        "generate:api-report",
+        "^generate:api-report"
+      ],
       "cache": true,
       "inputs": [
         "source",

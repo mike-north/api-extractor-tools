@@ -30,6 +30,11 @@ export default defineConfig(
   },
   {
     // Ignore test files, config files, and demo-site from type-aware linting
-    ignores: ['**/test/**', '**/vitest.config.*', 'tools/demo-site/**'],
+    ignores: [
+      '**/test/**',
+      '**/vitest.config.*',
+      'tools/demo-site/**',
+      'commitlint.config.cjs',
+    ],
   },
 )

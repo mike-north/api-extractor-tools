@@ -84,6 +84,27 @@ This is a **pnpm workspace monorepo** managed with [Nx](https://nx.dev/) for tas
 
 **Important**: Before you commit, you must create a changeset describing your changes.
 
+### Git Hooks
+
+This repository uses [Husky](https://typicode.github.io/husky/) to enforce quality checks:
+
+**Pre-commit Hook** (`.husky/pre-commit`):
+
+- Lints and formats staged files
+- Runs workspace-wide checks (knip)
+- Builds all packages
+- Runs tests for uncommitted changes
+- Generates API reports
+- Generates documentation
+
+**Commit-msg Hook** (`.husky/commit-msg`):
+
+- Validates commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format
+- Ensures header length is ≤100 characters
+- Verifies allowed commit types are used
+
+These hooks run automatically when you commit. If any check fails, the commit will be rejected.
+
 ## Working with Changesets
 
 We use [Changesets](https://github.com/changesets/changesets) to manage versioning and changelogs. Every PR that changes package functionality must include a changeset.
@@ -205,7 +226,7 @@ git commit -m "feat: your feature description"
 git push origin feature/your-feature-name
 ```
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
+We follow [Conventional Commits](https://www.conventionalcommits.org/), which are automatically validated by commitlint:
 
 - `feat:` - New feature
 - `fix:` - Bug fix
@@ -213,6 +234,39 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `test:` - Adding tests
 - `refactor:` - Code refactoring
 - `chore:` - Maintenance tasks
+- `build:` - Build system changes
+- `ci:` - CI configuration changes
+- `perf:` - Performance improvements
+- `style:` - Code style changes (formatting, etc.)
+- `revert:` - Revert a previous commit
+
+**Commit Message Format:**
+
+```text
+<type>(<optional scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Examples:**
+
+```bash
+# Simple commit
+git commit -m "feat: add support for generic type parameters"
+
+# With scope
+git commit -m "fix(parser): handle empty module declarations"
+
+# With body
+git commit -m "refactor: simplify symbol comparison logic
+
+This change extracts the comparison logic into separate
+functions for better testability and maintainability."
+```
+
+**Important**: Commit messages are validated automatically by commitlint. If your commit message doesn't follow the conventional commit format, the commit will be rejected. The header must be 100 characters or less.
 
 ### Validating Changesets
 
