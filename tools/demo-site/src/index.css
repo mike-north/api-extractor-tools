@@ -48,6 +48,19 @@
   padding: 0;
 }
 
+/* Screen reader only class for accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
     Ubuntu, Cantarell, sans-serif;
@@ -186,6 +199,12 @@ body {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.resize-handle:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .resize-handle-grip {
   width: 48px;
   height: 4px;
@@ -196,6 +215,11 @@ body {
 
 .resize-handle:hover .resize-handle-grip {
   background: var(--color-text-muted);
+  width: 64px;
+}
+
+.resize-handle:focus .resize-handle-grip {
+  background: var(--color-primary);
   width: 64px;
 }
 

@@ -375,6 +375,41 @@ describe('App', () => {
       )
     })
 
+    it('announces copy feedback to screen readers', async () => {
+      const user = userEvent.setup()
+      
+      // Mock clipboard API before rendering
+      const mockWriteText = vi.fn().mockResolvedValue(undefined)
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: mockWriteText,
+        },
+        writable: true,
+        configurable: true,
+      })
+      
+      render(<App />)
+
+      // Open the app settings menu
+      const appSettingsButton = screen.getByRole('button', { name: /app settings/i })
+      await user.click(appSettingsButton)
+
+      // Click Copy for LLM menu item
+      const copyMenuItem = await screen.findByRole('menuitem', { name: /copy for llm/i })
+      await user.click(copyMenuItem)
+
+      // Open menu again to see the aria-live region
+      await user.click(appSettingsButton)
+
+      // Check for aria-live region with the feedback
+      await waitFor(() => {
+        const status = screen.getByRole('status')
+        expect(status).toBeInTheDocument()
+        expect(status).toHaveAttribute('aria-live', 'polite')
+        expect(status).toHaveTextContent('Copied!')
+      })
+    })
+
     it('handles clipboard API failure gracefully', async () => {
       const user = userEvent.setup()
       
@@ -438,6 +473,75 @@ describe('App', () => {
 
       expect(document.body.style.cursor).toBe('')
       expect(document.body.style.userSelect).toBe('')
+    })
+
+    it('has proper ARIA attributes for accessibility', () => {
+      render(<App />)
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
+      
+      expect(resizeHandle).toHaveAttribute('aria-orientation', 'horizontal')
+      expect(resizeHandle).toHaveAttribute('aria-valuenow')
+      expect(resizeHandle).toHaveAttribute('aria-valuemin', '150')
+      expect(resizeHandle).toHaveAttribute('aria-valuemax', '800')
+      expect(resizeHandle).toHaveAttribute('tabindex', '0')
+    })
+
+    it('can be focused with keyboard', () => {
+      render(<App />)
+      
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
+      
+      // The resize handle should have tabIndex 0 making it focusable
+      expect(resizeHandle.tabIndex).toBe(0)
+      
+      // Directly focus the resize handle
+      resizeHandle.focus()
+      
+      // The resize handle should be focused
+      expect(document.activeElement).toBe(resizeHandle)
+    })
+
+    it('adjusts height with arrow keys', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+      
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
+      const initialHeight = resizeHandle.getAttribute('aria-valuenow')
+      
+      // Focus the resize handle
+      resizeHandle.focus()
+      
+      // Press ArrowDown to increase height
+      await user.keyboard('{ArrowDown}')
+      
+      await waitFor(() => {
+        const newHeight = resizeHandle.getAttribute('aria-valuenow')
+        expect(Number(newHeight)).toBeGreaterThan(Number(initialHeight))
+      })
+    })
+
+    it('adjusts height with Home and End keys', async () => {
+      const user = userEvent.setup()
+      render(<App />)
+      
+      const resizeHandle = screen.getByRole('separator', { name: /editor height resize handle/i })
+      
+      // Focus the resize handle
+      resizeHandle.focus()
+      
+      // Press Home to set to minimum height
+      await user.keyboard('{Home}')
+      
+      await waitFor(() => {
+        expect(resizeHandle.getAttribute('aria-valuenow')).toBe('150')
+      })
+      
+      // Press End to set to maximum height
+      await user.keyboard('{End}')
+      
+      await waitFor(() => {
+        expect(resizeHandle.getAttribute('aria-valuenow')).toBe('800')
+      })
     })
   })
 
