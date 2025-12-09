@@ -3,24 +3,40 @@
   "workspaces": {
     ".": {
       "ignoreBinaries": ["changeset-change-detector"],
-      "ignoreDependencies": ["@vitest/coverage-v8"]
+      "ignoreDependencies": ["@vitest/coverage-v8", "@commitlint/types"],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
     },
     "lib/*": {
       "entry": ["src/index.ts"],
       "paths": {
-        "@": ["./src/index.ts"]
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
+    "tools/change-detector-semantic-release-plugin": {
+      "ignoreDependencies": ["semantic-release"],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
+    "tools/demo-site": {
+      "entry": ["src/main.tsx", "src/App.tsx"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
       }
     },
     "tools/*": {
       "entry": ["src/index.ts"],
       "paths": {
-        "@": ["./src/index.ts"]
-      },
-      "ignoreDependencies": ["semantic-release"]
-    },
-    "tools/demo-site": {
-      "entry": ["src/main.tsx", "src/App.tsx"],
-      "project": ["src/**/*.{ts,tsx}"]
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
     }
   }
 }

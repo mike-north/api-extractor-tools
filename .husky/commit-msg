@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+# Validate commit message follows conventional commits standard
+npx --no -- commitlint --edit "$1"
