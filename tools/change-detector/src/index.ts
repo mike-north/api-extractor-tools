@@ -81,6 +81,9 @@ export {
 // Re-export core's string-based comparison function for convenience
 export { compareDeclarations as compareDeclarationStrings } from '@api-extractor-tools/change-detector-core'
 
+// Re-export the TypeScript input processor plugin for batteries-included usage
+export { default as typescriptPlugin } from '@api-extractor-tools/input-processor-typescript'
+
 // Main API
 import type { CompareOptions, ComparisonReport } from './types'
 import { parseDeclarationFileWithTypes } from './parser'

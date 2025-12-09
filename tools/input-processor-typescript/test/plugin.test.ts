@@ -1,17 +1,94 @@
 import { describe, it, expect } from 'vitest'
-import typescriptPlugin, { TypeScriptProcessor } from '../src/index'
+import typescriptPlugin, {
+  TypeScriptProcessor,
+  legacyPlugin,
+} from '../src/index'
+import {
+  createPluginRegistry,
+  isValidPlugin,
+} from '@api-extractor-tools/change-detector-core'
+import { pkgUpSync } from 'pkg-up'
+import * as fs from 'node:fs'
+
+// Read the expected version from package.json
+function getExpectedVersion(): string {
+  const pkgPath = pkgUpSync({ cwd: __dirname })
+  if (pkgPath) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
+      version: string
+    }
+    return pkg.version
+  }
+  throw new Error('Could not find package.json')
+}
+
+const EXPECTED_VERSION = getExpectedVersion()
 
 describe('TypeScript Input Processor Plugin', () => {
-  describe('plugin metadata', () => {
+  describe('unified plugin format', () => {
     it('should have correct plugin metadata', () => {
-      expect(typescriptPlugin.id).toBe('typescript')
-      expect(typescriptPlugin.name).toBe('TypeScript Input Processor')
-      expect(typescriptPlugin.version).toBe('0.1.0-alpha.0')
-      expect(typescriptPlugin.extensions).toEqual(['.d.ts', '.ts'])
+      expect(typescriptPlugin.metadata.id).toBe('typescript')
+      expect(typescriptPlugin.metadata.name).toBe(
+        'TypeScript Input Processor Plugin',
+      )
+      expect(typescriptPlugin.metadata.version).toBe(EXPECTED_VERSION)
+      expect(typescriptPlugin.metadata.description).toBeDefined()
     })
 
-    it('should create a processor instance', () => {
-      const processor = typescriptPlugin.createProcessor()
+    it('should pass plugin validation', () => {
+      expect(isValidPlugin(typescriptPlugin)).toBe(true)
+    })
+
+    it('should have input processor definition', () => {
+      expect(typescriptPlugin.inputProcessors).toHaveLength(1)
+
+      const processorDef = typescriptPlugin.inputProcessors![0]
+      if (!processorDef) throw new Error('Processor definition not found')
+      expect(processorDef.id).toBe('default')
+      expect(processorDef.name).toBe('TypeScript Processor')
+      expect(processorDef.extensions).toEqual(['.d.ts', '.ts'])
+    })
+
+    it('should create a processor instance from definition', () => {
+      const processorDef = typescriptPlugin.inputProcessors![0]
+      if (!processorDef) throw new Error('Processor definition not found')
+      const processor = processorDef.createProcessor()
+      expect(processor).toBeInstanceOf(TypeScriptProcessor)
+    })
+
+    it('should work with plugin registry', () => {
+      const registry = createPluginRegistry()
+      registry.register(typescriptPlugin)
+
+      // Get by qualified ID
+      const resolved = registry.getInputProcessor('typescript:default')
+      expect(resolved).toBeDefined()
+      expect(resolved?.pluginId).toBe('typescript')
+      expect(resolved?.definition.id).toBe('default')
+
+      // Get by shorthand (single processor)
+      const shorthand = registry.getInputProcessor('typescript')
+      expect(shorthand).toBeDefined()
+      expect(shorthand?.qualifiedId).toBe('typescript:default')
+
+      // Find by extension
+      const byExtension = registry.findInputProcessorsForExtension('.ts')
+      expect(byExtension).toHaveLength(1)
+      if (!byExtension[0]) throw new Error('Processor definition not found')
+      expect(byExtension[0].pluginId).toBe('typescript')
+    })
+  })
+
+  describe('legacy plugin format (deprecated)', () => {
+    it('should have correct legacy plugin metadata', () => {
+      expect(legacyPlugin.id).toBe('typescript')
+      expect(legacyPlugin.name).toBe('TypeScript Input Processor')
+      expect(legacyPlugin.version).toBe(EXPECTED_VERSION)
+      expect(legacyPlugin.extensions).toEqual(['.d.ts', '.ts'])
+    })
+
+    it('should create a processor instance from legacy plugin', () => {
+      const processor = legacyPlugin.createProcessor()
       expect(processor).toBeInstanceOf(TypeScriptProcessor)
     })
   })

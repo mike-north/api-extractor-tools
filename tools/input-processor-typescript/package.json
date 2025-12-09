@@ -20,6 +20,7 @@
     "api",
     "change-detection",
     "plugin",
+    "change-detector:plugin",
     "change-detector:input-processor-plugin"
   ],
   "author": "",
@@ -27,9 +28,11 @@
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
     "@api-extractor-tools/change-detector-core": "workspace:*",
+    "pkg-up": "^5.0.0",
     "typescript": "5.8.3"
   },
   "devDependencies": {
+    "@types/node": "^24.10.2",
     "@vitest/coverage-v8": "^4.0.15",
     "vitest": "^4.0.15"
   },

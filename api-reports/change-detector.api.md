@@ -32,6 +32,7 @@ import { ReleaseType } from '@api-extractor-tools/change-detector-core';
 import { ReorderingConfidence } from '@api-extractor-tools/change-detector-core';
 import { reportToJSON } from '@api-extractor-tools/change-detector-core';
 import { SymbolKind } from '@api-extractor-tools/change-detector-core';
+import { default as typescriptPlugin } from '@api-extractor-tools/input-processor-typescript';
 
 export { Change }
 
@@ -109,5 +110,7 @@ export { ReorderingConfidence }
 export { reportToJSON }
 
 export { SymbolKind }
+
+export { typescriptPlugin }
 
 ```
