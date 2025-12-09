@@ -1,6 +1,19 @@
 import { describe, it, expect } from 'vitest'
 import { compare } from './helpers'
 
+// Minimal lib definitions for utility types (Pick, Omit, etc.)
+// These are needed because the in-memory TypeScript compiler doesn't have access
+// to the standard lib files. In real-world usage with api-extractor output,
+// these types would be available from the TypeScript lib.
+const utilityTypesDefs = `
+type Pick<T, K extends keyof T> = { [P in K]: T[P] };
+type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
+type Exclude<T, U> = T extends U ? never : T;
+type Record<K extends keyof any, T> = { [P in K]: T };
+type Partial<T> = { [P in keyof T]?: T[P] };
+type Required<T> = { [P in keyof T]-?: T[P] };
+`
+
 describe('type alias changes', () => {
   describe('union type changes', () => {
     it('detects adding union member as major (conservative)', () => {
@@ -375,11 +388,13 @@ describe('type alias changes', () => {
       expect(report.releaseType).toBe('major')
     })
 
-    // Known limitation: utility type structural comparison not fully implemented
-    it.fails('detects Pick to Omit change', () => {
+    it('detects Pick to Omit change', () => {
+      // Test that Pick and Omit with structurally equivalent results are treated as equal
+      // Pick<{ a, b, c }, "a" | "b"> = { a: string; b: number }
+      // Omit<{ a, b, c }, "c"> = { a: string; b: number }
       const report = compare(
-        `export type Config = Pick<{ a: string; b: number; c: boolean }, "a" | "b">;`,
-        `export type Config = Omit<{ a: string; b: number; c: boolean }, "c">;`,
+        `${utilityTypesDefs}\nexport type Config = Pick<{ a: string; b: number; c: boolean }, "a" | "b">;`,
+        `${utilityTypesDefs}\nexport type Config = Omit<{ a: string; b: number; c: boolean }, "c">;`,
       )
 
       expect(report.releaseType).toBe('none')

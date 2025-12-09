@@ -630,16 +630,20 @@ function getSymbolSignature(
       return `${typeParamPrefix}${members.join(' & ')}`
     }
     // For object types with properties (but not literal types), expand to show structure
+    // This handles utility types like Pick, Omit, Partial, Required, etc.
+    // by resolving them to their structural form for accurate comparison
     if (
       type.getProperties().length > 0 &&
       !isLiteralType &&
       (type.flags & tsModule.TypeFlags.Object) !== 0
     ) {
-      // Only expand if it's a pure object type, not a primitive with methods
       const objectType = type as ts.ObjectType
+      // Expand anonymous types (inline object types) and mapped types (Pick, Omit, etc.)
+      // Mapped types have ObjectFlags.Mapped set
       if (
         objectType.objectFlags !== undefined &&
-        (objectType.objectFlags & tsModule.ObjectFlags.Anonymous) !== 0
+        ((objectType.objectFlags & tsModule.ObjectFlags.Anonymous) !== 0 ||
+          (objectType.objectFlags & tsModule.ObjectFlags.Mapped) !== 0)
       ) {
         return `${typeParamPrefix}${getStructuralSignature(type, checker, tsModule)}`
       }
