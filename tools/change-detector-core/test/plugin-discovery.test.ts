@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import * as os from 'os'
@@ -305,7 +305,7 @@ describe('plugin-discovery', () => {
     })
 
     it('captures errors for invalid plugins', async () => {
-      const packageDir = await createMockPackage(tempDir, 'invalid-plugin', {
+      await createMockPackage(tempDir, 'invalid-plugin', {
         keywords: [PLUGIN_KEYWORDS.UNIFIED],
         pluginContent: 'module.exports = "not a valid plugin";',
       })
