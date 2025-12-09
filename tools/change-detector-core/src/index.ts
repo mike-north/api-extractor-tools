@@ -94,6 +94,13 @@ export {
   interpretNameChange,
 } from './parameter-analysis'
 
+// Plugin types exports
+export {
+  type ProcessResult,
+  type InputProcessor,
+  type InputProcessorPlugin,
+} from './plugin-types'
+
 /**
  * Compares two declaration strings and generates a comprehensive report.
  *
