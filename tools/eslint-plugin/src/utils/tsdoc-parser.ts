@@ -94,6 +94,67 @@ export function hasPackageDocumentation(docComment: DocComment): boolean {
 }
 
 /**
+ * Enum type values for `@enumType` tag.
+ * @alpha
+ */
+export type EnumTypeValue = 'open' | 'closed'
+
+/**
+ * Result of extracting `@enumType` tag from a TSDoc comment.
+ * @alpha
+ */
+export interface EnumTypeExtraction {
+  /** Whether any `@enumType` tags were found */
+  found: boolean
+  /** Number of `@enumType` tags found */
+  count: number
+  /** The extracted value (lowercase), or undefined if missing/invalid */
+  value?: string
+  /** Whether the value is valid ('open' or 'closed') */
+  isValid: boolean
+  /** The original raw value from the comment */
+  rawValue?: string
+}
+
+/**
+ * Extracts `@enumType` tag information from a TSDoc comment.
+ *
+ * @param commentText - The full comment text including delimiters
+ * @returns Extraction result with tag information
+ * @alpha
+ */
+export function extractEnumType(commentText: string): EnumTypeExtraction {
+  const result: EnumTypeExtraction = {
+    found: false,
+    count: 0,
+    isValid: false,
+  }
+
+  // Match @enumType followed by optional whitespace and a word (letters/numbers only)
+  // The value must be a word-like identifier, not * or other punctuation
+  // We use [ \t]+ instead of \s+ to avoid capturing across newlines
+  const enumTypeRegex = /@enumType(?:[ \t]+([a-zA-Z][a-zA-Z0-9]*))?/gi
+  let match: RegExpExecArray | null
+
+  while ((match = enumTypeRegex.exec(commentText)) !== null) {
+    result.count++
+    result.found = true
+
+    // Only capture the first occurrence's value
+    if (result.count === 1) {
+      result.rawValue = match[1]
+      if (match[1]) {
+        const lowerValue = match[1].toLowerCase()
+        result.value = lowerValue
+        result.isValid = lowerValue === 'open' || lowerValue === 'closed'
+      }
+    }
+  }
+
+  return result
+}
+
+/**
  * Checks if a comment is a block comment (TSDoc style).
  */
 function isBlockComment(comment: TSESTree.Comment): boolean {

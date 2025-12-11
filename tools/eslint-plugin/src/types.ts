@@ -125,3 +125,23 @@ export interface ResolvedEntryPoints {
   types?: string
   exports: string[]
 }
+
+/**
+ * Options for the valid-enum-type rule.
+ *
+ * @remarks
+ * This rule validates `@enumType` TSDoc tag usage on enum declarations
+ * and string literal union type aliases.
+ *
+ * @alpha
+ */
+export interface ValidEnumTypeRuleOptions {
+  /**
+   * Whether to require `@enumType` on all exported enums and string literal unions.
+   * - When true, missing `@enumType` tags on exported enums/unions will be reported
+   * - When false (default), only invalid usage is reported
+   *
+   * @defaultValue false
+   */
+  requireOnExported?: boolean
+}

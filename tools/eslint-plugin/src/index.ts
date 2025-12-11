@@ -38,6 +38,7 @@ export type {
   OverrideKeywordRuleOptions,
   PackageDocumentationRuleOptions,
   ResolvedEntryPoints,
+  ValidEnumTypeRuleOptions,
 } from './types'
 export type { ForgottenExportRuleOptions } from './rules/forgotten-export'
 export type { IncompatibleReleaseTagsRuleOptions } from './rules/incompatible-release-tags'
@@ -55,6 +56,9 @@ export {
   hasPackageDocumentation,
   getLeadingTSDocComment,
   findAllTSDocComments,
+  extractEnumType,
+  type EnumTypeValue,
+  type EnumTypeExtraction,
 } from './utils/tsdoc-parser'
 
 /**
