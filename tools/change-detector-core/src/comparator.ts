@@ -545,9 +545,18 @@ function analyzeTypeChange(
             break
           }
         } else {
-          // If we can't determine, assume required (conservative)
-          allOptional = false
-          break
+          // valueDeclaration is missing. This can occur for:
+          // - Properties from ambient declarations (.d.ts) without source
+          // - Properties from code generation or incomplete type info
+          // - Symbols synthesized by TypeScript (e.g., mapped types)
+          // Try to use symbol flags to infer optionality if possible.
+          const isOptionalByFlag =
+            (prop.flags & tsModule.SymbolFlags.Optional) !== 0
+          if (!isOptionalByFlag) {
+            // If we still can't determine it's optional, assume required (conservative)
+            allOptional = false
+            break
+          }
         }
       }
 
@@ -558,7 +567,8 @@ function analyzeTypeChange(
       }
     }
 
-    // Check for property type changes in existing properties
+    // Detect type changes in properties that exist in both old and new versions.
+    // Such type changes are treated as breaking changes.
     for (const oldProp of oldProps) {
       const newProp = newProps.find((p) => p.getName() === oldProp.getName())
       if (newProp) {
