@@ -37,6 +37,7 @@ export type {
   ChangeCategory,
   SymbolKind,
   SymbolMetadata,
+  SourceLocation,
   ExportedSymbol,
   Change,
   AnalyzedChange,
@@ -102,6 +103,7 @@ export {
 // Plugin types exports
 export {
   // Core result types
+  type SourceMapping,
   type ProcessResult,
 
   // Input processor types
