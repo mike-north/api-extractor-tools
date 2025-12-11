@@ -1,0 +1,22 @@
+# @api-extractor-tools/plugin-json-schema
+
+## 0.1.0-alpha.1
+
+### Minor Changes
+
+- [#102](https://github.com/mike-north/api-extractor-tools/pull/102) [`f0d206a`](https://github.com/mike-north/api-extractor-tools/commit/f0d206a6a22bb0c6b7ad7bae42096026709262b5) Thanks [@mike-north](https://github.com/mike-north)! - Add JSON Schema input processor plugin for change-detector.
+
+  This plugin processes JSON Schema files (draft-07, 2019-09, 2020-12) and extracts schema definitions as symbols for API change detection. Features include:
+  - Support for `$defs` (modern) and `definitions` (legacy) extraction
+  - Type mapping from JSON Schema types to TypeScript-like signatures
+  - Composition handling (`allOf`, `anyOf`, `oneOf`)
+  - `$ref` resolution for local references
+  - Enum and const value support
+  - Nested definition extraction with proper namespacing
+
+  The plugin is isomorphic and works in both Node.js and browser environments.
+
+### Patch Changes
+
+- Updated dependencies [[`3631193`](https://github.com/mike-north/api-extractor-tools/commit/3631193c60fc8a3fc61495f984c7ac40f97ed5f4), [`4d9dcb4`](https://github.com/mike-north/api-extractor-tools/commit/4d9dcb498d68e101222373316f93d8af8b0e61cb), [`754226c`](https://github.com/mike-north/api-extractor-tools/commit/754226cfaab348c1cf958f36bca730c1ea0389d7), [`652b3f0`](https://github.com/mike-north/api-extractor-tools/commit/652b3f0aa6687f2ee0cd5a2e182ed05763835da6), [`adaff6e`](https://github.com/mike-north/api-extractor-tools/commit/adaff6ed078dbb6b699ff7147e8f4fd23dddebe5), [`ae6a0b9`](https://github.com/mike-north/api-extractor-tools/commit/ae6a0b9043f980e16d28f64dd23ef5e005160488), [`db22164`](https://github.com/mike-north/api-extractor-tools/commit/db221647a1fb88a3464a85fa7890a9b516eee819), [`49c7df9`](https://github.com/mike-north/api-extractor-tools/commit/49c7df990060b5c5a3a294c14f380d5f46fd25ba), [`adcb203`](https://github.com/mike-north/api-extractor-tools/commit/adcb2034837b7695b7dffa3966c2a7482ef4e1d9)]:
+  - @api-extractor-tools/change-detector-core@0.1.0-alpha.1

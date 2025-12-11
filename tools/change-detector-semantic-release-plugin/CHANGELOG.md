@@ -1,5 +1,12 @@
 # @api-extractor-tools/change-detector-semantic-release-plugin
 
+## 0.1.0-alpha.1
+
+### Patch Changes
+
+- Updated dependencies [[`5d2eb2e`](https://github.com/mike-north/api-extractor-tools/commit/5d2eb2ed5a70beeda6503733e5b6e84ffa4f42c8)]:
+  - @api-extractor-tools/change-detector@0.1.0-alpha.1
+
 ## 0.1.0-alpha.0
 
 ### Minor Changes

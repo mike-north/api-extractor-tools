@@ -8,18 +8,34 @@
     "@api-extractor-tools/change-detector-semantic-release-plugin": "0.0.1",
     "@api-extractor-tools/change-detector-core": "0.0.1",
     "@api-extractor-tools/demo-site": "0.0.1",
-    "@api-extractor-tools/eslint-plugin": "0.0.1"
+    "@api-extractor-tools/eslint-plugin": "0.0.1",
+    "@api-extractor-tools/input-processor-protobuf": "0.1.0-alpha.0",
+    "@api-extractor-tools/input-processor-typescript": "0.1.0-alpha.0",
+    "@api-extractor-tools/plugin-json-schema": "0.1.0-alpha.0",
+    "@api-extractor-tools/plugin-openapi": "0.1.0-alpha.0"
   },
   "changesets": [
     "add-change-detector-core",
     "add-changeset-plugin",
     "add-eslint-plugin",
+    "add-input-processor-plugin-system",
+    "add-json-schema-plugin",
+    "add-protobuf-plugin",
     "add-semantic-release-plugin",
     "add-test-coverage-and-validation",
     "detect-parameter-order-changes",
     "fix-angle-bracket-tracking",
+    "fix-nested-namespace-detection",
+    "fix-utility-type-structural-comparison",
+    "pluggable-versioning-policy",
+    "plugin-discovery",
+    "plugin-docs-update",
+    "plugin-registry",
+    "plugin-validation",
     "run-changed-tests-and-optional-param",
     "theme-dropdown",
+    "typescript-plugin-unified",
+    "unified-plugin-interfaces",
     "vast-monkeys-agree"
   ]
 }
