@@ -107,8 +107,12 @@ export declare function public_(): void;`,
       )
 
       // When file has exports, ALL declarations are tracked (module behavior)
-      expect(report.changes.unchanged.some((c) => c.symbolName === 'public_')).toBe(true)
-      expect(report.changes.breaking.some((c) => c.symbolName === 'internal')).toBe(true)
+      expect(
+        report.changes.unchanged.some((c) => c.symbolName === 'public_'),
+      ).toBe(true)
+      expect(
+        report.changes.breaking.some((c) => c.symbolName === 'internal'),
+      ).toBe(true)
     })
 
     it('ignores all declarations when file has no exports (script mode)', () => {
