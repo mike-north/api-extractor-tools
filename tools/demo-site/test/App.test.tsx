@@ -1180,16 +1180,20 @@ describe('App', () => {
       const doneButton = screen.getByRole('button', { name: /Done/i })
       await user.click(doneButton)
 
-      // Wait for analysis
+      // Wait for analysis to complete
       await waitFor(() => {
-        expect(screen.getByText(/File a Ticket/i)).toBeInTheDocument()
+        expect(screen.getByText(/Release Type:/)).toBeInTheDocument()
       }, { timeout: 1000 })
 
-      // Open bug report
-      const reportBugLink = screen.getByText(/File a Ticket/i)
-      await user.click(reportBugLink)
+      // Open the app settings menu to access "File a Ticket"
+      const appSettingsButton = screen.getByRole('button', { name: /app settings/i })
+      await user.click(appSettingsButton)
 
-      // File ticket
+      // Click "File a Ticket" menu item to open bug report modal
+      const fileTicketMenuItem = await screen.findByRole('menuitem', { name: /File a Ticket/i })
+      await user.click(fileTicketMenuItem)
+
+      // File ticket from the modal
       const fileTicketButton = await screen.findByRole('button', { name: /File Ticket on GitHub/i })
       await user.click(fileTicketButton)
 
