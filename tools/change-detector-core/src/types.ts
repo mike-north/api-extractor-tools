@@ -53,6 +53,24 @@ export type SymbolKind =
   | 'namespace'
 
 /**
+ * Represents a location in a source file.
+ * Line numbers are 1-based (matching most editors).
+ * Column numbers are 0-based (matching LSP specification).
+ *
+ * @alpha
+ */
+export interface SourceLocation {
+  /** 1-based line number */
+  line: number
+  /** 0-based column (character position) */
+  column: number
+  /** 1-based end line (optional, for ranges) */
+  endLine?: number
+  /** 0-based end column (optional, for ranges) */
+  endColumn?: number
+}
+
+/**
  * Metadata extracted from TSDoc comments for a symbol.
  *
  * @alpha
@@ -84,6 +102,8 @@ export interface ExportedSymbol {
   signature: string
   /** Metadata extracted from TSDoc comments */
   metadata?: SymbolMetadata
+  /** Source location of this symbol's declaration (optional) */
+  sourceLocation?: SourceLocation
 }
 
 /**
