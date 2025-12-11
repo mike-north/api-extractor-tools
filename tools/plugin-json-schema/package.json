@@ -1,0 +1,51 @@
+{
+  "name": "@api-extractor-tools/plugin-json-schema",
+  "version": "0.1.0-alpha.0",
+  "description": "JSON Schema input processor plugin for change-detector (isomorphic - works in Node.js and browsers)",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "scripts": {
+    "build": "pnpm inject-version && pnpm build:esm && pnpm build:cjs",
+    "inject-version": "node scripts/inject-version.mjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests",
+    "check:eslint": "eslint src",
+    "check:typecheck-tests": "tsc -p test/tsconfig.json"
+  },
+  "keywords": [
+    "json-schema",
+    "schema",
+    "api",
+    "change-detection",
+    "plugin",
+    "isomorphic",
+    "browser",
+    "change-detector:plugin",
+    "change-detector:input-processor-plugin"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.24.0",
+  "dependencies": {
+    "@api-extractor-tools/change-detector-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.15",
+    "vitest": "^4.0.15"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false
+}
