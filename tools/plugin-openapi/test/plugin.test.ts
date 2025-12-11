@@ -11,7 +11,7 @@ import {
 } from '@api-extractor-tools/change-detector-core'
 import * as yaml from 'js-yaml'
 
-const EXPECTED_VERSION = '0.1.0-alpha.0'
+const EXPECTED_VERSION = '0.1.0-alpha.1'
 
 describe('OpenAPI Input Processor Plugin', () => {
   describe('unified plugin format', () => {
@@ -110,7 +110,10 @@ describe('OpenAPI Input Processor Plugin', () => {
             responses: {
               '200': {
                 description: 'Success',
-                schema: { type: 'array', items: { $ref: '#/definitions/User' } },
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/definitions/User' },
+                },
               },
             },
           },
