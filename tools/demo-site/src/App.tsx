@@ -8,6 +8,7 @@ import {
   writeOnlyPolicy,
   type ComparisonReport,
   type VersioningPolicy,
+  type ReleaseType,
 } from '@api-extractor-tools/change-detector-core'
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
@@ -19,15 +20,55 @@ import { DemoProvider, type DemoCapabilities } from './contexts/DemoContext'
 import { examples, type Example } from './examples'
 import { encodeBase64, decodeBase64 } from './utils/encoding'
 import { isUrlTooLong } from './utils/urlLimits'
+import { type PolicyName, type CustomPolicyData, DEFAULT_CUSTOM_POLICY_DATA, CHANGE_CATEGORIES } from './types'
 
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
-type PolicyName = 'default' | 'read-only' | 'write-only'
 
-const policies: Record<PolicyName, VersioningPolicy> = {
+const turnkeyPolicies: Record<Exclude<PolicyName, 'custom'>, VersioningPolicy> = {
   'default': defaultPolicy,
   'read-only': readOnlyPolicy,
   'write-only': writeOnlyPolicy,
+}
+
+/**
+ * Creates a VersioningPolicy from custom policy data.
+ */
+function createCustomPolicy(data: CustomPolicyData): VersioningPolicy {
+  return {
+    name: 'custom',
+    classify(change) {
+      return data[change.category]
+    },
+  }
+}
+
+/**
+ * Validates and parses custom policy data from JSON.
+ * Returns null if invalid.
+ */
+function parseCustomPolicyData(json: string): CustomPolicyData | null {
+  try {
+    const parsed = JSON.parse(json) as unknown
+    if (typeof parsed !== 'object' || parsed === null) {
+      return null
+    }
+    
+    // Validate that all change categories are present with valid release types
+    const validReleaseTypes = new Set<ReleaseType>(['forbidden', 'major', 'minor', 'patch', 'none'])
+    const data = parsed as Record<string, unknown>
+    
+    for (const { category } of CHANGE_CATEGORIES) {
+      const value = data[category]
+      if (typeof value !== 'string' || !validReleaseTypes.has(value as ReleaseType)) {
+        return null
+      }
+    }
+    
+    return data as CustomPolicyData
+  } catch {
+    return null
+  }
 }
 
 function getSystemTheme(): ResolvedTheme {
@@ -60,10 +101,28 @@ function getInitialContent(): { old: string; new: string } {
 function getInitialPolicy(): PolicyName {
   const params = new URLSearchParams(window.location.search)
   const policyParam = params.get('policy')
-  if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only') {
+  if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only' || policyParam === 'custom') {
     return policyParam
   }
   return 'default'
+}
+
+function getInitialCustomPolicyData(): CustomPolicyData {
+  const params = new URLSearchParams(window.location.search)
+  const policyParam = params.get('policy')
+  const policyDataParam = params.get('policy_data')
+  
+  if (policyParam === 'custom' && policyDataParam) {
+    const decoded = decodeBase64(policyDataParam)
+    if (decoded) {
+      const parsed = parseCustomPolicyData(decoded)
+      if (parsed) {
+        return parsed
+      }
+    }
+  }
+  
+  return { ...DEFAULT_CUSTOM_POLICY_DATA }
 }
 
 const initialContent = getInitialContent()
@@ -76,9 +135,18 @@ function App() {
   const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
   const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>(getInitialPolicy())
+  const [customPolicyData, setCustomPolicyData] = useState<CustomPolicyData>(getInitialCustomPolicyData)
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
+
+  // Memoize the resolved policy to use for analysis
+  const resolvedPolicy = useMemo((): VersioningPolicy => {
+    if (selectedPolicy === 'custom') {
+      return createCustomPolicy(customPolicyData)
+    }
+    return turnkeyPolicies[selectedPolicy]
+  }, [selectedPolicy, customPolicyData])
 
   // Resolve the actual theme to apply
   const resolvedTheme: ResolvedTheme = themePreference === 'auto' ? systemTheme : themePreference
@@ -113,6 +181,10 @@ function App() {
     setSelectedPolicy(policy)
   }, [])
 
+  const handleCustomPolicyDataChange = useCallback((data: CustomPolicyData) => {
+    setCustomPolicyData(data)
+  }, [])
+
   // Auto-analyze with 100ms debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -120,7 +192,7 @@ function App() {
         {
           oldContent,
           newContent,
-          policy: policies[selectedPolicy],
+          policy: resolvedPolicy,
         },
         ts,
       )
@@ -128,7 +200,7 @@ function App() {
     }, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent, selectedPolicy])
+  }, [oldContent, newContent, resolvedPolicy])
 
   // Update URL with debounce when content or policy changes
   useEffect(() => {
@@ -137,6 +209,12 @@ function App() {
       params.set('old', encodeBase64(oldContent))
       params.set('new', encodeBase64(newContent))
       params.set('policy', selectedPolicy)
+      
+      // Add policy_data for custom policy, remove it for turnkey policies
+      if (selectedPolicy === 'custom') {
+        params.set('policy_data', encodeBase64(JSON.stringify(customPolicyData)))
+      }
+      
       const newUrl = `${window.location.pathname}?${params.toString()}`
       
       // Only update URL if it's within safe length limits
@@ -149,7 +227,7 @@ function App() {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent, selectedPolicy])
+  }, [oldContent, newContent, selectedPolicy, customPolicyData])
 
   // Handle resize drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -224,6 +302,24 @@ function App() {
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
 
   const getLLMContent = useCallback(() => {
+    // Format policy information
+    let policySection = `## Versioning Policy
+
+**Selected Policy**: ${selectedPolicy}
+`
+    
+    if (selectedPolicy === 'custom') {
+      policySection += `
+### Custom Policy Configuration
+
+The user has configured a custom versioning policy with the following change category → release type mappings:
+
+\`\`\`json
+${JSON.stringify(customPolicyData, null, 2)}
+\`\`\`
+`
+    }
+
     return `## Old API (.d.ts)
 
 \`\`\`typescript
@@ -236,11 +332,12 @@ ${oldContent}
 ${newContent}
 \`\`\`
 
+${policySection}
 ## Analysis Result
 
 ${report ? formatReportAsText(report) : 'No analysis available'}
 `
-  }, [oldContent, newContent, report])
+  }, [oldContent, newContent, selectedPolicy, customPolicyData, report])
 
   const demoCapabilities: DemoCapabilities = useMemo(() => ({
     getLLMContent,
@@ -260,6 +357,8 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
               selectedPolicy={selectedPolicy}
               onPolicyChange={handlePolicyChange}
               onExampleSelect={handleExampleSelect}
+              customPolicyData={customPolicyData}
+              onCustomPolicyDataChange={handleCustomPolicyDataChange}
             />
             <AppSettingsMenu
               themePreference={themePreference}
@@ -318,6 +417,7 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
             oldContent={oldContent}
             newContent={newContent}
             policyName={selectedPolicy}
+            customPolicyData={selectedPolicy === 'custom' ? customPolicyData : undefined}
             onClose={() => setIsBugReportOpen(false)}
           />
         )}

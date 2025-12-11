@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import type { ComparisonReport } from '@api-extractor-tools/change-detector-core'
 import { encodeBase64 } from '../utils/encoding'
 import { getMaxUrlLength } from '../utils/urlLimits'
+import type { CustomPolicyData } from '../types'
 import './BugReportModal.css'
 
 interface BugReportModalProps {
@@ -9,6 +10,7 @@ interface BugReportModalProps {
   oldContent: string
   newContent: string
   policyName: string
+  customPolicyData?: CustomPolicyData
   onClose: () => void
 }
 
@@ -17,6 +19,7 @@ export function BugReportModal({
   oldContent,
   newContent,
   policyName,
+  customPolicyData,
   onClose,
 }: BugReportModalProps) {
   const [expectedBehavior, setExpectedBehavior] = useState('')
@@ -56,6 +59,10 @@ export function BugReportModal({
     const demoParams = new URLSearchParams()
     demoParams.set('old', encodeBase64(oldContent))
     demoParams.set('new', encodeBase64(newContent))
+    demoParams.set('policy', policyName)
+    if (policyName === 'custom' && customPolicyData) {
+      demoParams.set('policy_data', encodeBase64(JSON.stringify(customPolicyData)))
+    }
     const demoUrl = `${window.location.origin}${window.location.pathname}?${demoParams.toString()}`
 
     const title = 'Change Detection Issue in Demo'
@@ -123,7 +130,7 @@ _PLACEHOLDER_
 
     // Set max length (with safety margin of 100 chars for URL encoding overhead)
     setMaxTextareaLength(Math.max(0, remainingSpace - 100))
-  }, [report, oldContent, newContent])
+  }, [report, oldContent, newContent, policyName, customPolicyData])
 
   const handleFileTicket = useCallback(() => {
     if (!report) return
@@ -133,16 +140,25 @@ _PLACEHOLDER_
     const demoParams = new URLSearchParams()
     demoParams.set('old', encodeBase64(oldContent))
     demoParams.set('new', encodeBase64(newContent))
+    demoParams.set('policy', policyName)
+    if (policyName === 'custom' && customPolicyData) {
+      demoParams.set('policy_data', encodeBase64(JSON.stringify(customPolicyData)))
+    }
     const demoUrl = `${window.location.origin}${window.location.pathname}?${demoParams.toString()}`
 
     const title = 'Change Detection Issue in Demo'
+
+    // Format custom policy data for issue body if applicable
+    const policyDetails = policyName === 'custom' && customPolicyData
+      ? `\n\n<details>\n<summary>Custom Policy Configuration</summary>\n\n\`\`\`json\n${JSON.stringify(customPolicyData, null, 2)}\n\`\`\`\n\n</details>`
+      : ''
 
     const body = `## Demo State
 
 [View the demo state that produced this issue](${demoUrl})
 
 ### Configuration
-- **Versioning Policy**: ${policyName}
+- **Versioning Policy**: ${policyName}${policyDetails}
 
 ### Statistics
 - **Added**: ${report.stats.added}
@@ -199,7 +215,7 @@ ${expectedBehavior || '_No description provided_'}
         'Please allow popups for this site to file a ticket, or manually navigate to the GitHub issues page.',
       )
     }
-  }, [report, oldContent, newContent, expectedBehavior])
+  }, [report, oldContent, newContent, policyName, customPolicyData, expectedBehavior])
 
   if (!report) {
     return null
