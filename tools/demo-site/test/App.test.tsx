@@ -1182,11 +1182,11 @@ describe('App', () => {
 
       // Wait for analysis
       await waitFor(() => {
-        expect(screen.getByText(/Report Bug/i)).toBeInTheDocument()
+        expect(screen.getByText(/File a Ticket/i)).toBeInTheDocument()
       }, { timeout: 1000 })
 
       // Open bug report
-      const reportBugLink = screen.getByText(/Report Bug/i)
+      const reportBugLink = screen.getByText(/File a Ticket/i)
       await user.click(reportBugLink)
 
       // File ticket
