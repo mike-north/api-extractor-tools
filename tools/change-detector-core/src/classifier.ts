@@ -44,18 +44,23 @@ export function applyPolicy(
 /**
  * Determines the overall release type from a set of changes.
  * The highest impact change determines the overall release type:
+ * - Any forbidden change results in forbidden
  * - Any major change results in major
  * - Any minor change (no major) results in minor
  * - Any patch change (no major or minor) results in patch
  * - No changes results in none
  */
 function determineOverallReleaseType(changes: Change[]): ReleaseType {
+  let hasForbidden = false
   let hasMajor = false
   let hasMinor = false
   let hasPatch = false
 
   for (const change of changes) {
     switch (change.releaseType) {
+      case 'forbidden':
+        hasForbidden = true
+        break
       case 'major':
         hasMajor = true
         break
@@ -68,6 +73,7 @@ function determineOverallReleaseType(changes: Change[]): ReleaseType {
     }
   }
 
+  if (hasForbidden) return 'forbidden'
   if (hasMajor) return 'major'
   if (hasMinor) return 'minor'
   if (hasPatch) return 'patch'
@@ -78,12 +84,16 @@ function determineOverallReleaseType(changes: Change[]): ReleaseType {
  * Groups changes by their semver impact.
  */
 function groupChangesByImpact(changes: Change[]): ChangesByImpact {
+  const forbidden: Change[] = []
   const breaking: Change[] = []
   const nonBreaking: Change[] = []
   const unchanged: Change[] = []
 
   for (const change of changes) {
     switch (change.releaseType) {
+      case 'forbidden':
+        forbidden.push(change)
+        break
       case 'major':
         breaking.push(change)
         break
@@ -97,7 +107,7 @@ function groupChangesByImpact(changes: Change[]): ChangesByImpact {
     }
   }
 
-  return { breaking, nonBreaking, unchanged }
+  return { forbidden, breaking, nonBreaking, unchanged }
 }
 
 /**

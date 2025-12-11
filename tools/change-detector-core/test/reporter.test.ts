@@ -4,6 +4,8 @@ import {
   formatReportAsText,
   formatReportAsMarkdown,
   reportToJSON,
+  type ComparisonReport,
+  type Change,
 } from '../src/index'
 
 describe('report formatters', () => {
@@ -227,6 +229,97 @@ export declare enum Enum { A = 0, B = 1, C = 2 }`,
 
       expect(parsed.releaseType).toBe(json.releaseType)
       expect(parsed.stats).toEqual(json.stats)
+    })
+  })
+
+  describe('forbidden changes formatting', () => {
+    // Helper to create a report with forbidden changes
+    function createForbiddenReport(): ComparisonReport {
+      const forbiddenChange: Change = {
+        symbolName: 'sensitiveField',
+        symbolKind: 'variable',
+        category: 'type-narrowed',
+        explanation: 'Type incompatible change forbidden by policy',
+        before: 'boolean',
+        after: 'Json',
+        releaseType: 'forbidden',
+      }
+
+      const breakingChange: Change = {
+        symbolName: 'otherField',
+        symbolKind: 'function',
+        category: 'symbol-removed',
+        explanation: 'Symbol removed',
+        before: 'function otherField(): void',
+        releaseType: 'major',
+      }
+
+      return {
+        releaseType: 'forbidden',
+        changes: {
+          forbidden: [forbiddenChange],
+          breaking: [breakingChange],
+          nonBreaking: [],
+          unchanged: [],
+        },
+        stats: {
+          totalSymbolsOld: 2,
+          totalSymbolsNew: 1,
+          added: 0,
+          removed: 1,
+          modified: 1,
+          unchanged: 0,
+        },
+        oldFile: 'old.d.ts',
+        newFile: 'new.d.ts',
+      }
+    }
+
+    it('formats forbidden changes in text output', () => {
+      const report = createForbiddenReport()
+      const text = formatReportAsText(report)
+
+      expect(text).toContain('Release Type: FORBIDDEN')
+      expect(text).toContain('Forbidden Changes (1)')
+      expect(text).toContain('sensitiveField')
+      // Should also include breaking changes section
+      expect(text).toContain('Breaking Changes (1)')
+    })
+
+    it('formats forbidden changes in markdown output', () => {
+      const report = createForbiddenReport()
+      const markdown = formatReportAsMarkdown(report)
+
+      expect(markdown).toContain('**Release Type:** FORBIDDEN')
+      expect(markdown).toContain(':no_entry: Forbidden Changes (1)')
+      expect(markdown).toContain('must be reverted or addressed')
+      expect(markdown).toContain('sensitiveField')
+      // Should also include breaking changes section
+      expect(markdown).toContain('### Breaking Changes (1)')
+    })
+
+    it('includes forbidden array in JSON output', () => {
+      const report = createForbiddenReport()
+      const json = reportToJSON(report)
+
+      expect(json.releaseType).toBe('forbidden')
+      expect(json.changes.forbidden).toHaveLength(1)
+      expect(json.changes.forbidden[0].symbolName).toBe('sensitiveField')
+      expect(json.changes.forbidden[0].releaseType).toBe('forbidden')
+    })
+
+    it('omits forbidden section when no forbidden changes', () => {
+      const report = compare(
+        `export declare function foo(): void;`,
+        `export declare function bar(): void;`,
+      )
+
+      const text = formatReportAsText(report)
+      const markdown = formatReportAsMarkdown(report)
+
+      // Should not contain forbidden section
+      expect(text).not.toContain('Forbidden Changes')
+      expect(markdown).not.toContain('Forbidden Changes')
     })
   })
 })

@@ -134,6 +134,7 @@ describe('validateVersionBump', () => {
       report: {
         releaseType: 'major',
         changes: {
+          forbidden: [],
           breaking: [
             {
               symbolName: 'foo',
