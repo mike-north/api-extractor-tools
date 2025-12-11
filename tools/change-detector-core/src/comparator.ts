@@ -505,6 +505,88 @@ function analyzeTypeChange(
     }
   }
 
+  // For interfaces/types: analyze property changes
+  // Check if the change is purely adding optional properties (non-breaking)
+  // or adding required properties (breaking)
+  const oldProps = oldType.getProperties()
+  const newProps = newType.getProperties()
+
+  if (oldProps.length > 0 || newProps.length > 0) {
+    const oldPropNames = new Set(oldProps.map((p) => p.getName()))
+    const newPropNames = new Set(newProps.map((p) => p.getName()))
+
+    // Check for removed properties (always breaking)
+    for (const oldProp of oldProps) {
+      if (!newPropNames.has(oldProp.getName())) {
+        return { category: 'type-narrowed' }
+      }
+    }
+
+    // Check for added properties
+    const addedProps = newProps.filter((p) => !oldPropNames.has(p.getName()))
+
+    if (addedProps.length > 0) {
+      // Check if all added properties are optional
+      let allOptional = true
+      for (const prop of addedProps) {
+        const propDecl = prop.valueDeclaration
+        if (propDecl) {
+          // Check for optional property (question token) or method signature
+          const isOptional =
+            (tsModule.isPropertySignature(propDecl) &&
+              propDecl.questionToken !== undefined) ||
+            (tsModule.isMethodSignature(propDecl) &&
+              propDecl.questionToken !== undefined) ||
+            (tsModule.isPropertyDeclaration(propDecl) &&
+              propDecl.questionToken !== undefined)
+
+          if (!isOptional) {
+            allOptional = false
+            break
+          }
+        } else {
+          // If we can't determine, assume required (conservative)
+          allOptional = false
+          break
+        }
+      }
+
+      if (allOptional) {
+        return { category: 'type-widened' }
+      } else {
+        return { category: 'type-narrowed' }
+      }
+    }
+
+    // Check for property type changes in existing properties
+    for (const oldProp of oldProps) {
+      const newProp = newProps.find((p) => p.getName() === oldProp.getName())
+      if (newProp) {
+        const oldPropDecl = oldProp.valueDeclaration
+        const newPropDecl = newProp.valueDeclaration
+
+        if (oldPropDecl && newPropDecl) {
+          const oldPropType = oldChecker.getTypeOfSymbolAtLocation(
+            oldProp,
+            oldPropDecl,
+          )
+          const newPropType = newChecker.getTypeOfSymbolAtLocation(
+            newProp,
+            newPropDecl,
+          )
+
+          const oldPropStr = oldChecker.typeToString(oldPropType)
+          const newPropStr = newChecker.typeToString(newPropType)
+
+          if (oldPropStr !== newPropStr) {
+            // Property type changed - this is a breaking change
+            return { category: 'type-narrowed' }
+          }
+        }
+      }
+    }
+  }
+
   // Signatures are different but we couldn't determine specific reason
   // For interfaces/types/other: signature difference means type changed
   // Assume breaking unless we can prove otherwise

@@ -19,7 +19,7 @@ describe('interface changes', () => {
       expect(report.changes.breaking[0]?.symbolName).toBe('Config')
     })
 
-    it('detects adding optional property as major (conservative)', () => {
+    it('detects adding optional property as minor (non-breaking)', () => {
       const report = compare(
         `export interface Config {
   name: string;
@@ -30,10 +30,12 @@ describe('interface changes', () => {
 }`,
       )
 
-      expect(report.releaseType).toBe('major')
+      expect(report.releaseType).toBe('minor')
+      expect(report.changes.nonBreaking).toHaveLength(1)
+      expect(report.changes.nonBreaking[0]?.category).toBe('type-widened')
     })
 
-    it('detects adding multiple properties', () => {
+    it('detects adding multiple properties with required as major', () => {
       const report = compare(
         `export interface User {
   id: number;
@@ -46,6 +48,23 @@ describe('interface changes', () => {
       )
 
       expect(report.releaseType).toBe('major')
+    })
+
+    it('detects adding multiple optional properties as minor', () => {
+      const report = compare(
+        `export interface User {
+  id: number;
+}`,
+        `export interface User {
+  id: number;
+  email?: string;
+  nickname?: string;
+}`,
+      )
+
+      expect(report.releaseType).toBe('minor')
+      expect(report.changes.nonBreaking).toHaveLength(1)
+      expect(report.changes.nonBreaking[0]?.category).toBe('type-widened')
     })
   })
 

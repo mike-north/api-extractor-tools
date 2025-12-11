@@ -155,9 +155,10 @@ describe('parseDeclarationString', () => {
       ts,
     )
 
-    // Adding an optional property is a breaking change for interface consumers
-    // who implement the interface (they may not provide the property)
-    expect(report.releaseType).toBe('major')
+    // Adding an optional property is non-breaking because:
+    // - Existing implementations remain valid (optional properties don't need to be provided)
+    // - The type accepts more values than before (type widening)
+    expect(report.releaseType).toBe('minor')
   })
 
   it('should parse type aliases', () => {
