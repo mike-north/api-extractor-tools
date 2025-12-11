@@ -37,9 +37,6 @@ export type ChangeCategory =
   | 'default-changed' // @default value changed
   | 'optionality-loosened' // required -> optional
   | 'optionality-tightened' // optional -> required
-  | 'enum-member-added' // Enum or string literal union gained new member(s)
-  | 'enum-type-opened' // @enumType changed from closed/unmarked to open
-  | 'enum-type-closed' // @enumType changed from open to closed/unmarked
 
 /**
  * Kinds of exported symbols we track.
@@ -60,30 +57,18 @@ export type SymbolKind =
  * Line numbers are 1-based (matching most editors).
  * Column numbers are 0-based (matching LSP specification).
  *
- * Can represent either a single position or a range. When representing a range,
- * both `endLine` and `endColumn` must be present together to ensure LSP compatibility.
- *
  * @alpha
  */
-export type SourceLocation =
-  // Single position
-  | {
-      /** 1-based line number */
-      line: number
-      /** 0-based column (character position) */
-      column: number
-    }
-  // Range (both endLine and endColumn required together)
-  | {
-      /** 1-based line number */
-      line: number
-      /** 0-based column (character position) */
-      column: number
-      /** 1-based end line (for ranges) */
-      endLine: number
-      /** 0-based end column (for ranges) */
-      endColumn: number
-    }
+export interface SourceLocation {
+  /** 1-based line number */
+  line: number
+  /** 0-based column (character position) */
+  column: number
+  /** 1-based end line (optional, for ranges) */
+  endLine?: number
+  /** 0-based end column (optional, for ranges) */
+  endColumn?: number
+}
 
 /**
  * Metadata extracted from TSDoc comments for a symbol.
@@ -101,13 +86,6 @@ export interface SymbolMetadata {
   isReference?: boolean
   /** The referenced type name if isReference is true */
   referencedType?: string
-  /**
-   * Whether this enum or string literal union type is open or closed for exhaustive consumption.
-   * - 'open': New members may be added at any time; consumers should handle unknown values
-   * - 'closed': Intended to be consumed exhaustively; adding a member is breaking
-   * - undefined: Unmarked, defaults to 'closed' behavior
-   */
-  enumType?: 'open' | 'closed'
 }
 
 /**
@@ -173,18 +151,6 @@ export interface Change extends AnalyzedChange {
 }
 
 /**
- * Additional context passed to policy classify() for informed decisions.
- *
- * @alpha
- */
-export interface ClassifyContext {
-  /** Metadata from the old (baseline) symbol */
-  oldMetadata?: SymbolMetadata
-  /** Metadata from the new symbol */
-  newMetadata?: SymbolMetadata
-}
-
-/**
  * A policy that maps analyzed changes to release types.
  *
  * @alpha
@@ -195,10 +161,9 @@ export interface VersioningPolicy {
   /**
    * Classifies a change to determine its release type.
    * @param change - The raw analyzed change
-   * @param context - Optional additional context including symbol metadata
    * @returns The release type (major, minor, patch, or none)
    */
-  classify(change: AnalyzedChange, context?: ClassifyContext): ReleaseType
+  classify(change: AnalyzedChange): ReleaseType
 }
 
 /**

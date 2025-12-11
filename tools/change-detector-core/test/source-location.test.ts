@@ -79,35 +79,27 @@ describe('SourceLocation interface', () => {
     })
   })
 
-  describe('type safety for ranges', () => {
-    it('enforces both endLine and endColumn for ranges', () => {
-      // Valid: both endLine and endColumn present
-      const rangeLocation: SourceLocation = {
+  describe('optional fields', () => {
+    it('allows endLine without endColumn', () => {
+      const location: SourceLocation = {
         line: 10,
         column: 5,
         endLine: 12,
+      }
+
+      expect(location.endLine).toBe(12)
+      expect(location.endColumn).toBeUndefined()
+    })
+
+    it('allows endColumn without endLine', () => {
+      const location: SourceLocation = {
+        line: 10,
+        column: 5,
         endColumn: 20,
       }
 
-      expect(rangeLocation.line).toBe(10)
-      expect(rangeLocation.column).toBe(5)
-      if ('endLine' in rangeLocation && 'endColumn' in rangeLocation) {
-        expect(rangeLocation.endLine).toBe(12)
-        expect(rangeLocation.endColumn).toBe(20)
-      }
-
-      // Valid: neither endLine nor endColumn (single position)
-      const positionLocation: SourceLocation = {
-        line: 10,
-        column: 5,
-      }
-
-      expect(positionLocation.line).toBe(10)
-      expect(positionLocation.column).toBe(5)
-
-      // TypeScript will prevent invalid states at compile time:
-      // - Can't have endLine without endColumn
-      // - Can't have endColumn without endLine
+      expect(location.endColumn).toBe(20)
+      expect(location.endLine).toBeUndefined()
     })
   })
 })
