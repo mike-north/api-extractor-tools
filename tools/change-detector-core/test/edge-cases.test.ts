@@ -199,7 +199,8 @@ export declare function greet(name: string): string;`,
         `export type Tree<T> = { value: T; children: Tree<T>[]; parent?: Tree<T> };`,
       )
 
-      expect(report.releaseType).toBe('major')
+      // Adding an optional property is non-breaking (type widening)
+      expect(report.releaseType).toBe('minor')
     })
 
     it('handles mutually recursive types', () => {
