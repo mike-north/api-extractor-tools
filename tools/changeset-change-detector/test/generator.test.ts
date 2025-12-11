@@ -26,6 +26,7 @@ describe('createChangesetFromAnalysis', () => {
           report: {
             releaseType: 'major',
             changes: {
+              forbidden: [],
               breaking: [
                 {
                   symbolName: 'foo',
@@ -61,6 +62,7 @@ describe('createChangesetFromAnalysis', () => {
           report: {
             releaseType: 'minor',
             changes: {
+              forbidden: [],
               breaking: [],
               nonBreaking: [
                 {

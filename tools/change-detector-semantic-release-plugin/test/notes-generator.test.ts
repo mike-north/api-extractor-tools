@@ -15,6 +15,7 @@ describe('formatAPIChangesAsMarkdown', () => {
     const report: ComparisonReport = {
       releaseType: 'major',
       changes: {
+        forbidden: [],
         breaking: [
           {
             symbolName: 'oldFunction',
@@ -51,6 +52,7 @@ describe('formatAPIChangesAsMarkdown', () => {
     const report: ComparisonReport = {
       releaseType: 'minor',
       changes: {
+        forbidden: [],
         breaking: [],
         nonBreaking: [
           {
@@ -88,6 +90,7 @@ describe('formatAPIChangesAsMarkdown', () => {
     const report: ComparisonReport = {
       releaseType: 'minor',
       changes: {
+        forbidden: [],
         breaking: [],
         nonBreaking: [
           {
@@ -126,6 +129,7 @@ describe('formatAPIChangesAsMarkdown', () => {
     const report: ComparisonReport = {
       releaseType: 'none',
       changes: {
+        forbidden: [],
         breaking: [],
         nonBreaking: [],
         unchanged: [],
@@ -166,6 +170,7 @@ describe('generateDetailedDescription', () => {
       report: {
         releaseType: 'major',
         changes: {
+          forbidden: [],
           breaking: [
             {
               symbolName: 'foo',
@@ -222,6 +227,7 @@ describe('generateDetailedDescription', () => {
       report: {
         releaseType: 'major',
         changes: {
+          forbidden: [],
           breaking: Array.from({ length: 10 }, (_, i) => ({
             symbolName: `func${i}`,
             symbolKind: 'function' as const,

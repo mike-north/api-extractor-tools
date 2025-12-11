@@ -116,6 +116,7 @@ describe('formatChangeSummary', () => {
       report: {
         releaseType: 'major',
         changes: {
+          forbidden: [],
           breaking: [
             {
               symbolName: 'foo',
@@ -174,6 +175,7 @@ describe('formatChangeSummary', () => {
       report: {
         releaseType: 'none',
         changes: {
+          forbidden: [],
           breaking: [],
           nonBreaking: [],
           unchanged: [],
@@ -209,6 +211,7 @@ describe('generateChangeDescription', () => {
       report: {
         releaseType: 'major',
         changes: {
+          forbidden: [],
           breaking: [
             {
               symbolName: 'foo',
@@ -285,6 +288,7 @@ describe('generateChangeDescription', () => {
       report: {
         releaseType: 'major',
         changes: {
+          forbidden: [],
           breaking: Array.from({ length: 10 }, (_, i) => ({
             symbolName: `func${i}`,
             symbolKind: 'function' as const,

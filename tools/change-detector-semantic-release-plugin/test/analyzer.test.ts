@@ -301,6 +301,7 @@ describe('formatChangeSummary', () => {
     const report: ComparisonReport = {
       releaseType: 'none',
       changes: {
+        forbidden: [],
         breaking: [],
         nonBreaking: [],
         unchanged: [],
@@ -326,6 +327,7 @@ describe('formatChangeSummary', () => {
     const report: ComparisonReport = {
       releaseType: 'major',
       changes: {
+        forbidden: [],
         breaking: [
           {
             symbolName: 'foo',
@@ -360,6 +362,7 @@ describe('formatChangeSummary', () => {
     const report: ComparisonReport = {
       releaseType: 'minor',
       changes: {
+        forbidden: [],
         breaking: [],
         nonBreaking: [
           {
@@ -401,6 +404,7 @@ describe('formatChangeSummary', () => {
     const report: ComparisonReport = {
       releaseType: 'major',
       changes: {
+        forbidden: [],
         breaking: [
           {
             symbolName: 'foo',
@@ -445,6 +449,7 @@ describe('formatChangeSummary', () => {
     const report: ComparisonReport = {
       releaseType: 'major',
       changes: {
+        forbidden: [],
         breaking: [
           {
             symbolName: 'foo',
