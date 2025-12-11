@@ -7,7 +7,7 @@
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Maps change-detector ReleaseType to semantic-release type. Returns null for 'none' since no release is needed. Throws an error for 'forbidden' since it should block the release.
+Maps change-detector ReleaseType to semantic-release type. Returns null for 'none' since no release is needed.
 
 **Signature:**
 
@@ -56,8 +56,4 @@ The release type from change-detector
 [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 The corresponding semantic-release type, or null if no release needed
-
-## Exceptions
-
-Error if releaseType is 'forbidden'
 

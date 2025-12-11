@@ -148,6 +148,6 @@ export const DEFAULT_CUSTOM_POLICY_DATA: CustomPolicyData = {
   'default-added': 'patch',
   'default-removed': 'minor',
   'default-changed': 'patch',
-  'optionality-loosened': 'minor',
+  'optionality-loosened': 'major',
   'optionality-tightened': 'major',
 }

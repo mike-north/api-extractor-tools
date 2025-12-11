@@ -7,7 +7,7 @@
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Maps change-detector ReleaseType to changeset bump type. Returns null for 'none' since no changeset is needed. Throws an error for 'forbidden' since it should block the release.
+Maps change-detector ReleaseType to changeset bump type. Returns null for 'none' since no changeset is needed.
 
 **Signature:**
 
@@ -56,8 +56,4 @@ The release type from change-detector
 [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| null
 
 The corresponding changeset bump type, or null if no bump needed
-
-## Exceptions
-
-Error if releaseType is 'forbidden'
 

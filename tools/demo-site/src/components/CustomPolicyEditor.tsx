@@ -55,6 +55,7 @@ export function CustomPolicyEditor({ data, onChange, onClose }: CustomPolicyEdit
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       role="dialog"
+      tabIndex={-1}
       aria-modal="true"
       aria-labelledby="custom-policy-editor-title"
     >
