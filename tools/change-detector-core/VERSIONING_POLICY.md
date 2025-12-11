@@ -28,10 +28,45 @@ This document defines the versioning semantics used by `change-detector-core` to
 
 | Release Type | Description                                        | When to Use                                          |
 | ------------ | -------------------------------------------------- | ---------------------------------------------------- |
+| `forbidden`  | Changes that are never allowed                     | Changes prohibited even in major releases            |
 | `major`      | Breaking changes that may break existing consumers | Incompatible API changes                             |
 | `minor`      | New features that are backwards compatible         | Functionality added in a backwards compatible manner |
 | `patch`      | Bug fixes with no API impact                       | Internal changes, documentation, bug fixes           |
 | `none`       | No detectable changes                              | Identical signatures                                 |
+
+### Forbidden Changes
+
+The `forbidden` release type represents changes that should **never be allowed**, even in a major version bump. This is useful for domain-specific constraints where certain API changes could cause irreversible problems:
+
+- **Database schemas**: Changing a field type from `boolean` to `Json` might break data integrity
+- **Wire protocols**: Changing message format could break backward compatibility with deployed clients
+- **Security-sensitive APIs**: Removing required authentication parameters could create vulnerabilities
+- **Compliance requirements**: Some changes may violate regulatory or contractual obligations
+
+Unlike `major` changes (which signal "proceed with caution during upgrade"), `forbidden` changes signal "this change must be reverted or addressed before release."
+
+The built-in policies (`defaultPolicy`, `readOnlyPolicy`, `writeOnlyPolicy`) never return `forbidden` – this release type is designed for **custom policies** that encode domain-specific constraints.
+
+```typescript
+// Example: Database schema policy that forbids incompatible type changes
+const databaseSchemaPolicy: VersioningPolicy = {
+  name: 'database-schema',
+  classify(change: AnalyzedChange): ReleaseType {
+    // Forbid certain type changes that would break data integrity
+    if (
+      change.category === 'type-narrowed' ||
+      change.category === 'type-widened'
+    ) {
+      // Check if this is an incompatible type change
+      if (isIncompatibleTypeChange(change.before, change.after)) {
+        return 'forbidden'
+      }
+    }
+    // Fall back to default policy for other changes
+    return defaultPolicy.classify(change)
+  },
+}
+```
 
 ---
 
@@ -537,5 +572,6 @@ This versioning policy ensures that:
 2. **Precision**: Semantic changes like parameter reordering are detected
 3. **Context-awareness**: The Read/Write distinction helps understand true impact
 4. **Practicality**: Conservative defaults can be refined with explicit annotations
+5. **Domain flexibility**: Custom policies can define `forbidden` changes for domain-specific constraints
 
-When in doubt, `change-detector-core` errs on the side of classifying changes as breaking (major) to protect consumers from unexpected runtime failures.
+When in doubt, `change-detector-core` errs on the side of classifying changes as breaking (major) to protect consumers from unexpected runtime failures. For changes that must never occur, custom policies can use the `forbidden` release type to enforce hard constraints.

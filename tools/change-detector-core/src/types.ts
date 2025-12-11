@@ -2,6 +2,7 @@ import type { ParameterOrderAnalysis } from './parameter-analysis'
 
 /**
  * The release type this delta represents according to semantic versioning.
+ * - "forbidden": Changes that are never allowed, even in major releases
  * - "major": Breaking changes that require a major version bump
  * - "minor": New features/additions that are backwards compatible
  * - "patch": Bug fixes or internal changes with no API impact
@@ -9,33 +10,33 @@ import type { ParameterOrderAnalysis } from './parameter-analysis'
  *
  * @alpha
  */
-export type ReleaseType = 'major' | 'minor' | 'patch' | 'none'
+export type ReleaseType = 'forbidden' | 'major' | 'minor' | 'patch' | 'none'
 
 /**
- * Categories of API changes and their typical semver impact.
+ * Categories of API changes detected by the comparator.
+ * The versioning impact of each category is determined by the policy.
  *
  * @alpha
  */
 export type ChangeCategory =
-  | 'symbol-removed' // Export removed (MAJOR)
-  | 'symbol-added' // New export (MINOR)
-  | 'type-narrowed' // More restrictive (MAJOR)
-  | 'type-widened' // More permissive (MINOR)
-  | 'param-added-required' // New required param (MAJOR)
-  | 'param-added-optional' // New optional param (MINOR)
-  | 'param-removed' // Param removed (MAJOR)
-  | 'param-order-changed' // Parameters reordered with same types (MAJOR)
-  | 'return-type-changed' // Return modified (varies)
-  | 'signature-identical' // No change (NONE)
-  // Extended categories for finer-grained change detection
-  | 'field-deprecated' // @deprecated tag added (PATCH)
-  | 'field-undeprecated' // @deprecated tag removed (MINOR)
-  | 'field-renamed' // Detected rename (MAJOR)
-  | 'default-added' // @default tag added (PATCH)
-  | 'default-removed' // @default tag removed (varies by perspective)
-  | 'default-changed' // @default value changed (PATCH)
-  | 'optionality-loosened' // required -> optional (varies by perspective)
-  | 'optionality-tightened' // optional -> required (varies by perspective)
+  | 'symbol-removed' // Export removed from public API
+  | 'symbol-added' // New export added to public API
+  | 'type-narrowed' // Type became more restrictive
+  | 'type-widened' // Type became more permissive
+  | 'param-added-required' // New required parameter added
+  | 'param-added-optional' // New optional parameter added
+  | 'param-removed' // Parameter removed
+  | 'param-order-changed' // Parameters reordered (same types)
+  | 'return-type-changed' // Return type modified
+  | 'signature-identical' // No change detected
+  | 'field-deprecated' // @deprecated tag added
+  | 'field-undeprecated' // @deprecated tag removed
+  | 'field-renamed' // Symbol renamed (detected via signature similarity)
+  | 'default-added' // @default tag added
+  | 'default-removed' // @default tag removed
+  | 'default-changed' // @default value changed
+  | 'optionality-loosened' // required -> optional
+  | 'optionality-tightened' // optional -> required
 
 /**
  * Kinds of exported symbols we track.
@@ -151,6 +152,8 @@ export interface VersioningPolicy {
  * @alpha
  */
 export interface ChangesByImpact {
+  /** Changes that are never allowed, even in major releases */
+  forbidden: Change[]
   /** Changes requiring a major version bump (breaking changes) */
   breaking: Change[]
   /** Changes requiring a minor version bump (additions/compatible changes) */
