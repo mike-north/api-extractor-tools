@@ -27,6 +27,15 @@ export type ChangeCategory =
   | 'param-order-changed' // Parameters reordered with same types (MAJOR)
   | 'return-type-changed' // Return modified (varies)
   | 'signature-identical' // No change (NONE)
+  // Extended categories for finer-grained change detection
+  | 'field-deprecated' // @deprecated tag added (PATCH)
+  | 'field-undeprecated' // @deprecated tag removed (MINOR)
+  | 'field-renamed' // Detected rename (MAJOR)
+  | 'default-added' // @default tag added (PATCH)
+  | 'default-removed' // @default tag removed (varies by perspective)
+  | 'default-changed' // @default value changed (PATCH)
+  | 'optionality-loosened' // required -> optional (varies by perspective)
+  | 'optionality-tightened' // optional -> required (varies by perspective)
 
 /**
  * Kinds of exported symbols we track.
@@ -43,6 +52,24 @@ export type SymbolKind =
   | 'namespace'
 
 /**
+ * Metadata extracted from TSDoc comments for a symbol.
+ *
+ * @alpha
+ */
+export interface SymbolMetadata {
+  /** Whether the symbol is marked with @deprecated */
+  isDeprecated?: boolean
+  /** Deprecation message if provided in @deprecated tag */
+  deprecationMessage?: string
+  /** Default value from @default or @defaultValue tag */
+  defaultValue?: string
+  /** Whether this symbol's type is a reference to another type */
+  isReference?: boolean
+  /** The referenced type name if isReference is true */
+  referencedType?: string
+}
+
+/**
  * Information about a single exported symbol extracted from a declaration file.
  *
  * @alpha
@@ -54,6 +81,8 @@ export interface ExportedSymbol {
   kind: SymbolKind
   /** Human-readable type signature */
   signature: string
+  /** Metadata extracted from TSDoc comments */
+  metadata?: SymbolMetadata
 }
 
 /**

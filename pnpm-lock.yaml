@@ -96,6 +96,9 @@ importers:
 
   tools/change-detector-core:
     dependencies:
+      '@microsoft/tsdoc':
+        specifier: ^0.16.0
+        version: 0.16.0
       typescript:
         specifier: 5.8.3
         version: 5.8.3

@@ -1,5 +1,11 @@
 import type * as ts from 'typescript'
-import type { AnalyzedChange, ChangeCategory, SymbolKind } from './types'
+import type {
+  AnalyzedChange,
+  ChangeCategory,
+  SymbolKind,
+  ExportedSymbol,
+  SymbolMetadata,
+} from './types'
 import {
   parseDeclarationStringWithTypes,
   type ParseResultWithTypes,
@@ -7,6 +13,7 @@ import {
 import {
   extractParameterInfo,
   detectParameterReordering,
+  nameSimilarity,
   type ParameterOrderAnalysis,
 } from './parameter-analysis'
 
@@ -80,6 +87,203 @@ export interface CompareResult {
 interface TypeChangeAnalysis {
   category: ChangeCategory
   parameterAnalysis?: ParameterOrderAnalysis
+}
+
+/**
+ * A detected rename between an old symbol name and a new symbol name.
+ */
+interface RenameCandidate {
+  oldName: string
+  newName: string
+  oldSymbol: ExportedSymbol
+  newSymbol: ExportedSymbol
+  /** Confidence score 0-1 based on signature similarity */
+  confidence: number
+}
+
+/**
+ * Detects potential renames by finding removed symbols that match added symbols
+ * with high signature similarity.
+ *
+ * @param removed - Map of removed symbol names to their ExportedSymbol
+ * @param added - Map of added symbol names to their ExportedSymbol
+ * @returns Array of rename candidates with confidence scores
+ */
+function detectRenames(
+  removed: Map<string, ExportedSymbol>,
+  added: Map<string, ExportedSymbol>,
+): RenameCandidate[] {
+  const candidates: RenameCandidate[] = []
+
+  for (const [oldName, oldSymbol] of removed) {
+    let bestMatch: RenameCandidate | null = null
+    let bestScore = 0
+
+    for (const [newName, newSymbol] of added) {
+      // Must be same kind
+      if (oldSymbol.kind !== newSymbol.kind) {
+        continue
+      }
+
+      // Check signature similarity (ignoring the name in the signature)
+      const oldSigNormalized = oldSymbol.signature.replace(
+        new RegExp(`\\b${oldName}\\b`, 'g'),
+        '__SYMBOL__',
+      )
+      const newSigNormalized = newSymbol.signature.replace(
+        new RegExp(`\\b${newName}\\b`, 'g'),
+        '__SYMBOL__',
+      )
+
+      // If signatures are identical after normalizing names, it's likely a rename
+      if (oldSigNormalized === newSigNormalized) {
+        // Also check name similarity for additional confidence
+        const nameScore = nameSimilarity(oldName, newName)
+        const score = nameScore > 0.3 ? 1.0 : 0.9 // High confidence if signatures match
+
+        if (score > bestScore) {
+          bestScore = score
+          bestMatch = {
+            oldName,
+            newName,
+            oldSymbol,
+            newSymbol,
+            confidence: score,
+          }
+        }
+      }
+    }
+
+    // Only consider it a rename if confidence is high enough
+    if (bestMatch && bestMatch.confidence >= 0.8) {
+      candidates.push(bestMatch)
+    }
+  }
+
+  // Filter out conflicts - each old/new name should only appear once
+  const usedOldNames = new Set<string>()
+  const usedNewNames = new Set<string>()
+  const finalCandidates: RenameCandidate[] = []
+
+  // Sort by confidence descending
+  candidates.sort((a, b) => b.confidence - a.confidence)
+
+  for (const candidate of candidates) {
+    if (
+      !usedOldNames.has(candidate.oldName) &&
+      !usedNewNames.has(candidate.newName)
+    ) {
+      finalCandidates.push(candidate)
+      usedOldNames.add(candidate.oldName)
+      usedNewNames.add(candidate.newName)
+    }
+  }
+
+  return finalCandidates
+}
+
+/**
+ * Detects deprecation changes between old and new symbol metadata.
+ *
+ * @returns The change category if deprecation status changed, null otherwise
+ */
+function detectDeprecationChange(
+  oldMetadata: SymbolMetadata | undefined,
+  newMetadata: SymbolMetadata | undefined,
+): 'field-deprecated' | 'field-undeprecated' | null {
+  const wasDeprecated = oldMetadata?.isDeprecated === true
+  const isDeprecated = newMetadata?.isDeprecated === true
+
+  if (!wasDeprecated && isDeprecated) {
+    return 'field-deprecated'
+  }
+  if (wasDeprecated && !isDeprecated) {
+    return 'field-undeprecated'
+  }
+  return null
+}
+
+/**
+ * Detects default value changes between old and new symbol metadata.
+ *
+ * @returns The change category if default value changed, null otherwise
+ */
+function detectDefaultChange(
+  oldMetadata: SymbolMetadata | undefined,
+  newMetadata: SymbolMetadata | undefined,
+): 'default-added' | 'default-removed' | 'default-changed' | null {
+  const oldDefault = oldMetadata?.defaultValue
+  const newDefault = newMetadata?.defaultValue
+
+  if (oldDefault === undefined && newDefault !== undefined) {
+    return 'default-added'
+  }
+  if (oldDefault !== undefined && newDefault === undefined) {
+    return 'default-removed'
+  }
+  if (
+    oldDefault !== undefined &&
+    newDefault !== undefined &&
+    oldDefault !== newDefault
+  ) {
+    return 'default-changed'
+  }
+  return null
+}
+
+/**
+ * Refines a type-widened or type-narrowed category to a more specific optionality category
+ * when the change is purely about optional vs required.
+ *
+ * @param category - The original category (type-widened or type-narrowed)
+ * @param oldSignature - The old signature
+ * @param newSignature - The new signature
+ * @returns Refined category or the original if not an optionality change
+ */
+function refineOptionalityChange(
+  category: 'type-widened' | 'type-narrowed',
+  oldSignature: string,
+  newSignature: string,
+): ChangeCategory {
+  // Only refine for function/parameter optionality, not mapped type modifiers
+  // Mapped types use syntax like [K in keyof T]?: which we should NOT match
+  // Parameter optionality uses syntax like paramName?: type or propName?: type
+
+  // Check if either signature contains mapped type syntax - if so, don't refine
+  if (oldSignature.includes('[') || newSignature.includes('[')) {
+    return category
+  }
+
+  // Pattern to match property/parameter optionality: identifier followed by ?: and type
+  // This matches "foo?: string" but not "[K in keyof T]?:"
+  const optionalPattern = /\w+\?\s*:/g
+
+  // Check if the only difference is the optional marker (?)
+  // by stripping optional markers and comparing
+  const stripOptional = (sig: string): string =>
+    sig
+      .replace(optionalPattern, (match) => match.replace('?', ''))
+      .replace(/\s+/g, ' ')
+
+  const oldStripped = stripOptional(oldSignature)
+  const newStripped = stripOptional(newSignature)
+
+  // If signatures are the same after stripping optional markers,
+  // this is purely an optionality change
+  if (oldStripped === newStripped) {
+    // Check direction: count '?' occurrences in property/parameter context
+    const oldOptionalCount = (oldSignature.match(optionalPattern) || []).length
+    const newOptionalCount = (newSignature.match(optionalPattern) || []).length
+
+    if (newOptionalCount > oldOptionalCount) {
+      return 'optionality-loosened'
+    }
+    if (newOptionalCount < oldOptionalCount) {
+      return 'optionality-tightened'
+    }
+  }
+
+  return category
 }
 
 /**
@@ -308,6 +512,22 @@ function analyzeTypeChange(
 }
 
 /**
+ * Context for generating explanations, including optional metadata for renames.
+ */
+interface ExplanationContext {
+  /** Parameter analysis for param-order-changed */
+  parameterAnalysis?: ParameterOrderAnalysis
+  /** Original name for field-renamed category */
+  originalName?: string
+  /** Deprecation message for field-deprecated */
+  deprecationMessage?: string
+  /** Old default value for default changes */
+  oldDefaultValue?: string
+  /** New default value for default changes */
+  newDefaultValue?: string
+}
+
+/**
  * Generates a human-readable explanation for a change.
  */
 function generateExplanation(
@@ -316,7 +536,7 @@ function generateExplanation(
   category: ChangeCategory,
   before?: string,
   after?: string,
-  parameterAnalysis?: ParameterOrderAnalysis,
+  context?: ExplanationContext,
 ): string {
   const signatureDetail =
     before && after && before !== after
@@ -353,8 +573,8 @@ function generateExplanation(
         `Removed parameter from ${symbolKind} '${symbolName}'` + signatureDetail
       )
     case 'param-order-changed':
-      if (parameterAnalysis) {
-        return `Parameter order changed in ${symbolKind} '${symbolName}': ${parameterAnalysis.summary}`
+      if (context?.parameterAnalysis) {
+        return `Parameter order changed in ${symbolKind} '${symbolName}': ${context.parameterAnalysis.summary}`
       }
       return `Parameter order changed in ${symbolKind} '${symbolName}'`
     case 'return-type-changed':
@@ -363,6 +583,44 @@ function generateExplanation(
       )
     case 'signature-identical':
       return `No changes to ${symbolKind} '${symbolName}'`
+    // Extended categories
+    case 'field-deprecated':
+      if (context?.deprecationMessage) {
+        return `Deprecated ${symbolKind} '${symbolName}': ${context.deprecationMessage}`
+      }
+      return `Deprecated ${symbolKind} '${symbolName}'`
+    case 'field-undeprecated':
+      return `Removed deprecation from ${symbolKind} '${symbolName}'`
+    case 'field-renamed':
+      if (context?.originalName) {
+        return `Renamed ${symbolKind} '${context.originalName}' to '${symbolName}'`
+      }
+      return `Renamed ${symbolKind} to '${symbolName}'`
+    case 'default-added':
+      if (context?.newDefaultValue) {
+        return `Added default value '${context.newDefaultValue}' to ${symbolKind} '${symbolName}'`
+      }
+      return `Added default value to ${symbolKind} '${symbolName}'`
+    case 'default-removed':
+      if (context?.oldDefaultValue) {
+        return `Removed default value '${context.oldDefaultValue}' from ${symbolKind} '${symbolName}'`
+      }
+      return `Removed default value from ${symbolKind} '${symbolName}'`
+    case 'default-changed':
+      if (context?.oldDefaultValue && context?.newDefaultValue) {
+        return `Changed default value of ${symbolKind} '${symbolName}' from '${context.oldDefaultValue}' to '${context.newDefaultValue}'`
+      }
+      return `Changed default value of ${symbolKind} '${symbolName}'`
+    case 'optionality-loosened':
+      return (
+        `${symbolKind} '${symbolName}' became optional (was required)` +
+        signatureDetail
+      )
+    case 'optionality-tightened':
+      return (
+        `${symbolKind} '${symbolName}' became required (was optional)` +
+        signatureDetail
+      )
   }
 }
 
@@ -384,40 +642,129 @@ export function compareDeclarationResults(
   const oldTypeSymbols = oldParsed.typeSymbols
   const newTypeSymbols = newParsed.typeSymbols
 
-  // Find removed symbols (in old but not in new)
+  // Collect removed and added symbols first
+  const removedSymbols = new Map<string, ExportedSymbol>()
+  const addedSymbols = new Map<string, ExportedSymbol>()
+
   for (const [name, oldSymbol] of oldSymbols) {
     if (!newSymbols.has(name)) {
-      changes.push({
-        symbolName: name,
-        symbolKind: oldSymbol.kind,
-        category: 'symbol-removed',
-        explanation: generateExplanation(
-          name,
-          oldSymbol.kind,
-          'symbol-removed',
-        ),
-        before: oldSymbol.signature,
-      })
+      removedSymbols.set(name, oldSymbol)
     }
   }
 
-  // Find added symbols (in new but not in old)
   for (const [name, newSymbol] of newSymbols) {
     if (!oldSymbols.has(name)) {
-      changes.push({
-        symbolName: name,
-        symbolKind: newSymbol.kind,
-        category: 'symbol-added',
-        explanation: generateExplanation(name, newSymbol.kind, 'symbol-added'),
-        after: newSymbol.signature,
-      })
+      addedSymbols.set(name, newSymbol)
     }
+  }
+
+  // Detect renames (removed + added with similar signatures)
+  const renames = detectRenames(removedSymbols, addedSymbols)
+  const renamedOldNames = new Set(renames.map((r) => r.oldName))
+  const renamedNewNames = new Set(renames.map((r) => r.newName))
+
+  // Add rename changes
+  for (const rename of renames) {
+    changes.push({
+      symbolName: rename.newName,
+      symbolKind: rename.newSymbol.kind,
+      category: 'field-renamed',
+      explanation: generateExplanation(
+        rename.newName,
+        rename.newSymbol.kind,
+        'field-renamed',
+        rename.oldSymbol.signature,
+        rename.newSymbol.signature,
+        { originalName: rename.oldName },
+      ),
+      before: rename.oldSymbol.signature,
+      after: rename.newSymbol.signature,
+    })
+  }
+
+  // Find removed symbols (in old but not in new, excluding renames)
+  for (const [name, oldSymbol] of removedSymbols) {
+    if (renamedOldNames.has(name)) {
+      continue // Skip renamed symbols
+    }
+    changes.push({
+      symbolName: name,
+      symbolKind: oldSymbol.kind,
+      category: 'symbol-removed',
+      explanation: generateExplanation(name, oldSymbol.kind, 'symbol-removed'),
+      before: oldSymbol.signature,
+    })
+  }
+
+  // Find added symbols (in new but not in old, excluding renames)
+  for (const [name, newSymbol] of addedSymbols) {
+    if (renamedNewNames.has(name)) {
+      continue // Skip renamed symbols
+    }
+    changes.push({
+      symbolName: name,
+      symbolKind: newSymbol.kind,
+      category: 'symbol-added',
+      explanation: generateExplanation(name, newSymbol.kind, 'symbol-added'),
+      after: newSymbol.signature,
+    })
   }
 
   // Find modified symbols (in both)
   for (const [name, oldSymbol] of oldSymbols) {
     const newSymbol = newSymbols.get(name)
     if (!newSymbol) continue
+
+    // Check for metadata changes first (deprecation, defaults)
+    const deprecationChange = detectDeprecationChange(
+      oldSymbol.metadata,
+      newSymbol.metadata,
+    )
+    const defaultChange = detectDefaultChange(
+      oldSymbol.metadata,
+      newSymbol.metadata,
+    )
+
+    // If there's a deprecation change, record it
+    if (deprecationChange) {
+      changes.push({
+        symbolName: name,
+        symbolKind: newSymbol.kind,
+        category: deprecationChange,
+        explanation: generateExplanation(
+          name,
+          newSymbol.kind,
+          deprecationChange,
+          oldSymbol.signature,
+          newSymbol.signature,
+          { deprecationMessage: newSymbol.metadata?.deprecationMessage },
+        ),
+        before: oldSymbol.signature,
+        after: newSymbol.signature,
+      })
+    }
+
+    // If there's a default value change, record it
+    if (defaultChange) {
+      changes.push({
+        symbolName: name,
+        symbolKind: newSymbol.kind,
+        category: defaultChange,
+        explanation: generateExplanation(
+          name,
+          newSymbol.kind,
+          defaultChange,
+          oldSymbol.signature,
+          newSymbol.signature,
+          {
+            oldDefaultValue: oldSymbol.metadata?.defaultValue,
+            newDefaultValue: newSymbol.metadata?.defaultValue,
+          },
+        ),
+        before: oldSymbol.signature,
+        after: newSymbol.signature,
+      })
+    }
 
     const oldTypeSym = oldTypeSymbols.get(name)
     const newTypeSym = newTypeSymbols.get(name)
@@ -432,13 +779,30 @@ export function compareDeclarationResults(
         )
         const isOptionalized = newSigWithoutOptional === oldSymbol.signature
 
-        const category = isOptionalized ? 'type-widened' : 'type-narrowed'
+        let category: ChangeCategory = isOptionalized
+          ? 'type-widened'
+          : 'type-narrowed'
+
+        // Refine to specific optionality categories if applicable
+        if (category === 'type-widened' || category === 'type-narrowed') {
+          category = refineOptionalityChange(
+            category,
+            oldSymbol.signature,
+            newSymbol.signature,
+          )
+        }
 
         changes.push({
           symbolName: name,
           symbolKind: newSymbol.kind,
           category,
-          explanation: generateExplanation(name, newSymbol.kind, category),
+          explanation: generateExplanation(
+            name,
+            newSymbol.kind,
+            category,
+            oldSymbol.signature,
+            newSymbol.signature,
+          ),
           before: oldSymbol.signature,
           after: newSymbol.signature,
         })
@@ -480,7 +844,7 @@ export function compareDeclarationResults(
       ? newParsed.checker.getDeclaredTypeOfSymbol(newTypeSym)
       : newParsed.checker.getTypeOfSymbolAtLocation(newTypeSym, newDecl)
 
-    const { category, parameterAnalysis } = analyzeTypeChange(
+    const typeAnalysis = analyzeTypeChange(
       oldType,
       newType,
       oldParsed.checker,
@@ -489,6 +853,18 @@ export function compareDeclarationResults(
       newSymbol.signature,
       tsModule,
     )
+
+    let category = typeAnalysis.category
+    const parameterAnalysis = typeAnalysis.parameterAnalysis
+
+    // Refine type-widened/type-narrowed to optionality-specific categories
+    if (category === 'type-widened' || category === 'type-narrowed') {
+      category = refineOptionalityChange(
+        category,
+        oldSymbol.signature,
+        newSymbol.signature,
+      )
+    }
 
     changes.push({
       symbolName: name,
@@ -500,7 +876,7 @@ export function compareDeclarationResults(
         category,
         oldSymbol.signature,
         newSymbol.signature,
-        parameterAnalysis,
+        { parameterAnalysis },
       ),
       before: oldSymbol.signature,
       after: newSymbol.signature,
