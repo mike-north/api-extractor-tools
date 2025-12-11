@@ -340,6 +340,25 @@ importers:
         specifier: ^4.0.15
         version: 4.0.15(@types/node@24.10.2)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2)
 
+  tools/plugin-openapi:
+    dependencies:
+      '@api-extractor-tools/change-detector-core':
+        specifier: workspace:*
+        version: link:../change-detector-core
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.1
+    devDependencies:
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@vitest/coverage-v8':
+        specifier: ^4.0.15
+        version: 4.0.15(vitest@4.0.15(@types/node@24.10.2)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2))
+      vitest:
+        specifier: ^4.0.15
+        version: 4.0.15(@types/node@24.10.2)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2)
+
 packages:
 
   '@adobe/css-tools@4.4.4':
@@ -1624,6 +1643,9 @@ packages:
   '@types/glob@9.0.0':
     resolution: {integrity: sha512-00UxlRaIUvYm4R4W9WYkN8/J+kV8fmOQ7okeH6YFtGWFMt3odD45tpG5yA5wnL7HE6lLgjaTW5n14ju2hl2NNA==}
     deprecated: This is a stub types definition. glob provides its own type definitions, so you do not need this installed.
+
+  '@types/js-yaml@4.0.9':
+    resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -6480,6 +6502,8 @@ snapshots:
   '@types/glob@9.0.0':
     dependencies:
       glob: 13.0.0
+
+  '@types/js-yaml@4.0.9': {}
 
   '@types/json-schema@7.0.15': {}
 

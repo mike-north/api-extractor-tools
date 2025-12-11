@@ -361,7 +361,9 @@ function generateOperationSignature(
   // Add parameters
   if (operation.parameters && operation.parameters.length > 0) {
     const params = operation.parameters
-      .filter((p): p is ParameterObjectV2 | ParameterObjectV3 => !isReference(p))
+      .filter(
+        (p): p is ParameterObjectV2 | ParameterObjectV3 => !isReference(p),
+      )
       .map((p) => {
         const required = p.required ? '' : '?'
         let type = 'unknown'
@@ -444,8 +446,11 @@ export class OpenAPIv2Processor implements InputProcessor {
 
       if (!isOpenAPIv2(doc)) {
         const unknownDoc = doc as Record<string, unknown>
+        const rawVersion = unknownDoc.openapi ?? unknownDoc.swagger
+        const version =
+          typeof rawVersion === 'string' ? rawVersion : 'unknown format'
         errors.push(
-          `${filename}: Expected OpenAPI v2 (swagger: "2.0"), got ${unknownDoc.openapi || unknownDoc.swagger || 'unknown format'}`,
+          `${filename}: Expected OpenAPI v2 (swagger: "2.0"), got ${version}`,
         )
         return { symbols, errors }
       }
@@ -477,7 +482,8 @@ export class OpenAPIv2Processor implements InputProcessor {
             const operation = pathItem[method]
             if (operation) {
               const operationName =
-                operation.operationId || `${method}_${path.replace(/[^a-zA-Z0-9]/g, '_')}`
+                operation.operationId ||
+                `${method}_${path.replace(/[^a-zA-Z0-9]/g, '_')}`
               symbols.set(operationName, {
                 name: operationName,
                 kind: 'function',
@@ -501,7 +507,7 @@ export class OpenAPIv2Processor implements InputProcessor {
     return { symbols, errors }
   }
 
-  private parseContent(content: string, filename: string): unknown {
+  private parseContent(content: string, _filename: string): unknown {
     // Try JSON first
     if (content.trim().startsWith('{')) {
       return JSON.parse(content)
@@ -542,9 +548,16 @@ export class OpenAPIv3Processor implements InputProcessor {
       const doc = this.parseContent(content, filename) as OpenAPIDocument
       const unknownDoc = doc as Record<string, unknown>
 
-      if (!unknownDoc.openapi || typeof unknownDoc.openapi !== 'string' || !unknownDoc.openapi.startsWith('3.')) {
+      if (
+        !unknownDoc.openapi ||
+        typeof unknownDoc.openapi !== 'string' ||
+        !unknownDoc.openapi.startsWith('3.')
+      ) {
+        const rawVersion = unknownDoc.openapi ?? unknownDoc.swagger
+        const version =
+          typeof rawVersion === 'string' ? rawVersion : 'unknown format'
         errors.push(
-          `${filename}: Expected OpenAPI v3 (openapi: "3.x.x"), got ${unknownDoc.openapi || unknownDoc.swagger || 'unknown format'}`,
+          `${filename}: Expected OpenAPI v3 (openapi: "3.x.x"), got ${version}`,
         )
         return { symbols, errors }
       }
@@ -579,7 +592,8 @@ export class OpenAPIv3Processor implements InputProcessor {
             const operation = pathItem[method]
             if (operation) {
               const operationName =
-                operation.operationId || `${method}_${path.replace(/[^a-zA-Z0-9]/g, '_')}`
+                operation.operationId ||
+                `${method}_${path.replace(/[^a-zA-Z0-9]/g, '_')}`
               symbols.set(operationName, {
                 name: operationName,
                 kind: 'function',
@@ -603,7 +617,7 @@ export class OpenAPIv3Processor implements InputProcessor {
     return { symbols, errors }
   }
 
-  private parseContent(content: string, filename: string): unknown {
+  private parseContent(content: string, _filename: string): unknown {
     // Try JSON first
     if (content.trim().startsWith('{')) {
       return JSON.parse(content)
