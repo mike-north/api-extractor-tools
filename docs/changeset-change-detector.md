@@ -204,7 +204,7 @@ Description
 
 </td><td>
 
-**_(ALPHA)_** Maps change-detector ReleaseType to changeset bump type. Returns null for 'none' since no changeset is needed. Throws an error for 'forbidden' since it should block the release.
+**_(ALPHA)_** Maps change-detector ReleaseType to changeset bump type. Returns null for 'none' since no changeset is needed.
 
 
 </td></tr>

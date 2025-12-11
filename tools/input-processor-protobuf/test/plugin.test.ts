@@ -10,7 +10,7 @@ import {
   isValidPlugin,
 } from '@api-extractor-tools/change-detector-core'
 
-const EXPECTED_VERSION = '0.1.0-alpha.0'
+const EXPECTED_VERSION = '0.1.0-alpha.1'
 
 describe('Protocol Buffer Input Processor Plugin', () => {
   describe('unified plugin format', () => {

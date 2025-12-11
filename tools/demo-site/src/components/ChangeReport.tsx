@@ -7,12 +7,23 @@ interface ChangeReportProps {
   newContent?: string
 }
 
+/** Format a change category for display (e.g., "type-narrowed" -> "Type Narrowed") */
+function formatCategory(category: string | undefined): string {
+  if (!category) return ''
+  return category
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 function ChangeItem({ change }: { change: Change }) {
+  const categoryLabel = formatCategory(change.category)
   return (
     <li className={`change-item ${change.releaseType}`}>
       <div className="symbol-info">
         <span className="symbol-name">{change.symbolName}</span>
         <span className="symbol-kind">{change.symbolKind}</span>
+        {categoryLabel && <span className="change-category">{categoryLabel}</span>}
       </div>
       <div className="explanation">{change.explanation}</div>
       {(change.before || change.after) && (
@@ -58,6 +69,20 @@ export function ChangeReport({ report, oldContent = '', newContent = '' }: Chang
           Release Type: {releaseTypeLabel}
         </span>
       </div>
+
+      {report.changes.forbidden && report.changes.forbidden.length > 0 && (
+        <div className="changes-section">
+          <h3>
+            Forbidden Changes{' '}
+            <span className="count forbidden">{report.changes.forbidden.length}</span>
+          </h3>
+          <ul className="change-list">
+            {report.changes.forbidden.map((change, idx) => (
+              <ChangeItem key={`forbidden-${idx}`} change={change} />
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="changes-section">
         <h3>

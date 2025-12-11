@@ -89,3 +89,25 @@
   background-color: var(--color-border);
   margin: 0.5rem 0;
 }
+
+.demo-settings-divider-inline {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: 0.5rem 1rem;
+}
+
+.demo-settings-item-action {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.demo-settings-item.active .demo-settings-item-action {
+  color: var(--color-primary);
+}
+
+/* Override the ::after checkmark for custom policy when showing action */
+.demo-settings-item.active:has(.demo-settings-item-action)::after {
+  content: none;
+}
