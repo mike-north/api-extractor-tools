@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/input-processor-typescript",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "TypeScript input processor plugin for change-detector",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
