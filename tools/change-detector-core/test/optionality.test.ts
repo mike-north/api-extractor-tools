@@ -15,18 +15,17 @@ describe('optionality changes', () => {
       expect(report.changes.breaking).toHaveLength(0)
     })
 
-    it('detects required to optional property in interface as type change', () => {
+    it('detects required to optional property in interface as optionality-loosened', () => {
       const report = compare(
         `export interface Foo { bar: string; }`,
         `export interface Foo { bar?: string; }`,
       )
 
-      // For interfaces in default policy, making a property optional is conservative
-      // (treated as type-narrowed because the property may now be undefined)
-      // The release type depends on whether this is considered breaking
-      expect(
-        report.changes.breaking.length + report.changes.nonBreaking.length,
-      ).toBeGreaterThan(0)
+      // For interface properties, making optional is breaking for readers (might receive undefined)
+      // Default policy is conservative, so this is major
+      const change = report.changes.breaking[0]
+      expect(change?.category).toBe('optionality-loosened')
+      expect(report.releaseType).toBe('major')
     })
 
     it('classifies optionality loosening as minor in default policy', () => {

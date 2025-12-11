@@ -56,8 +56,12 @@ export {
   parseDeclarationString,
   parseDeclarationStringWithTypes,
   createInMemoryCompilerHost,
+  createNodeLibResolver,
+  createBundledLibResolver,
   type ParseResult,
   type ParseResultWithTypes,
+  type LibFileResolver,
+  type CompilerHostOptions,
 } from './parser-core'
 
 // Comparator exports
@@ -212,18 +216,24 @@ export function compareDeclarations(
     oldFilename = 'old.d.ts',
     newFilename = 'new.d.ts',
     policy,
+    libFileResolver,
   } = options
+
+  // Build compiler host options
+  const compilerHostOptions = libFileResolver ? { libFileResolver } : undefined
 
   // Parse both contents with type information
   const oldParsed = parseDeclarationStringWithTypes(
     oldContent,
     tsModule,
     oldFilename,
+    compilerHostOptions,
   )
   const newParsed = parseDeclarationStringWithTypes(
     newContent,
     tsModule,
     newFilename,
+    compilerHostOptions,
   )
 
   // Compare the parsed results

@@ -54,8 +54,9 @@ export const defaultPolicy: VersioningPolicy = {
         // Changing default value is informational
         return 'patch'
       case 'optionality-loosened':
-        // Making required -> optional is non-breaking
-        return 'minor'
+        // Making required -> optional breaks readers (might receive undefined)
+        // Conservative default: treat as breaking
+        return 'major'
       case 'optionality-tightened':
         // Making optional -> required is breaking
         return 'major'

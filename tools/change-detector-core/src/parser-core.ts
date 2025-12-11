@@ -7,6 +7,129 @@ import {
 } from './tsdoc-utils'
 
 /**
+ * Function that resolves lib file content by filename.
+ * Return undefined if the lib file is not available.
+ *
+ * @alpha
+ */
+export type LibFileResolver = (fileName: string) => string | undefined
+
+/**
+ * Options for configuring the in-memory compiler host.
+ *
+ * @alpha
+ */
+export interface CompilerHostOptions {
+  /**
+   * Custom resolver for TypeScript lib files (lib.d.ts, lib.es2020.d.ts, etc.).
+   * If not provided, lib files will be empty (types like string, Array won't resolve).
+   *
+   * Common patterns:
+   * - Use `createNodeLibResolver(ts)` for Node.js environments with ts.sys
+   * - Use `createBundledLibResolver(libContents)` for bundled/browser environments
+   * - Pass `undefined` for lightweight parsing where lib types aren't needed
+   */
+  libFileResolver?: LibFileResolver
+}
+
+/**
+ * Creates a lib file resolver that uses TypeScript's sys module to read lib files.
+ * This works in Node.js environments where ts.sys is available.
+ *
+ * @param tsModule - The TypeScript module
+ * @param libDirectory - Optional custom lib directory path. If not provided,
+ *                       attempts to find it relative to the TypeScript module.
+ * @returns A lib file resolver function
+ *
+ * @alpha
+ */
+export function createNodeLibResolver(
+  tsModule: typeof ts,
+  libDirectory?: string,
+): LibFileResolver {
+  // Try to find the lib directory from TypeScript's installation
+  const sys = tsModule.sys
+  if (!sys || !sys.readFile) {
+    // ts.sys not available (e.g., in browser), return no-op resolver
+    return () => undefined
+  }
+
+  // Helper to get directory portion of a path
+  const getDirectoryPath = (path: string): string => {
+    const lastSlash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
+    return lastSlash >= 0 ? path.substring(0, lastSlash) : ''
+  }
+
+  // Helper to combine paths
+  const combinePaths = (dir: string, file: string): string => {
+    if (dir.endsWith('/') || dir.endsWith('\\')) {
+      return dir + file
+    }
+    return dir + '/' + file
+  }
+
+  // If no custom lib directory, try to find it
+  let resolvedLibDir = libDirectory
+  if (!resolvedLibDir) {
+    // TypeScript's lib files are in the same directory as the default lib file
+    const defaultLibPath = tsModule.getDefaultLibFilePath({})
+    if (defaultLibPath && sys.fileExists(defaultLibPath)) {
+      resolvedLibDir = getDirectoryPath(defaultLibPath)
+    }
+  }
+
+  if (!resolvedLibDir) {
+    return () => undefined
+  }
+
+  const libDir = resolvedLibDir
+  return (fileName: string) => {
+    // Extract just the lib filename (e.g., "lib.es2020.d.ts" from a full path)
+    const libFileName = fileName.includes('/')
+      ? fileName.substring(fileName.lastIndexOf('/') + 1)
+      : fileName
+
+    const fullPath = combinePaths(libDir, libFileName)
+    if (sys.fileExists(fullPath)) {
+      return sys.readFile(fullPath)
+    }
+    return undefined
+  }
+}
+
+/**
+ * Creates a lib file resolver from a pre-bundled map of lib file contents.
+ * Useful for browser environments or when you want to control exactly which libs are available.
+ *
+ * @param libContents - Map of lib filename to content
+ * @returns A lib file resolver function
+ *
+ * @example
+ * ```ts
+ * const resolver = createBundledLibResolver({
+ *   "lib.es5.d.ts": "// lib content..."
+ * });
+ * ```
+ *
+ * @alpha
+ */
+export function createBundledLibResolver(
+  libContents: Record<string, string>,
+): LibFileResolver {
+  return (fileName: string) => {
+    // Try exact match first
+    if (fileName in libContents) {
+      return libContents[fileName]
+    }
+    // Try just the filename without path
+    const libFileName = fileName.includes('/')
+      ? fileName.substring(fileName.lastIndexOf('/') + 1)
+      : fileName
+    return libContents[libFileName]
+  }
+}
+
+/**
  * Result of parsing a declaration file.
  *
  * @alpha
@@ -496,7 +619,9 @@ function getClassSignature(
  * This ensures that signatures with only parameter name differences are considered equal.
  * Type parameters are normalized to T0, T1, etc. to make structurally equivalent
  * signatures compare as equal (e.g., <T>(x: T) and <U>(y: U) are the same).
- * Constraints and defaults on type parameters are preserved.
+ * Constraints and defaults on type parameters are preserved using their syntactic form
+ * from the AST, preserving relationships like `T extends U` instead of resolving to
+ * the ultimate constraint type.
  */
 function getNormalizedSignature(
   sig: ts.Signature,
@@ -508,21 +633,40 @@ function getNormalizedSignature(
   let typeParamStr = ''
   const typeParamRenames = new Map<string, string>()
 
+  // Try to get the declaration for AST-based constraint access
+  // This preserves constraint relationships like "T extends U" instead of resolving
+  // to the ultimate constraint type
+  const decl = sig.getDeclaration()
+  const declTypeParams =
+    decl &&
+    (tsModule.isFunctionDeclaration(decl) ||
+      tsModule.isMethodDeclaration(decl) ||
+      tsModule.isArrowFunction(decl) ||
+      tsModule.isFunctionExpression(decl) ||
+      tsModule.isMethodSignature(decl) ||
+      tsModule.isCallSignatureDeclaration(decl) ||
+      tsModule.isConstructSignatureDeclaration(decl))
+      ? decl.typeParameters
+      : undefined
+
   if (typeParams && typeParams.length > 0) {
-    const typeParamStrs = typeParams.map((tp, idx) => {
+    // First pass: build the renaming map for all type parameters
+    typeParams.forEach((tp, idx) => {
       const originalName = tp.symbol.getName()
       const normalizedName = `T${idx}`
       typeParamRenames.set(originalName, normalizedName)
+    })
 
-      const constraint = tp.getConstraint()
-      const defaultType = tp.getDefault()
+    const typeParamStrs = typeParams.map((tp, idx) => {
+      const normalizedName = `T${idx}`
       let str = normalizedName
-      if (constraint) {
-        let constraintStr = checker.typeToString(
-          constraint,
-          undefined,
-          tsModule.TypeFormatFlags.NoTruncation,
-        )
+
+      // Try to get constraint from AST (syntactic) first, fall back to resolved type
+      const astTypeParam = declTypeParams?.[idx]
+      if (astTypeParam?.constraint) {
+        // Use the syntactic constraint text from the AST
+        // This preserves relationships like "T extends U" instead of resolving to "object"
+        let constraintStr = astTypeParam.constraint.getText()
         // Replace type parameter references with normalized names
         for (const [orig, norm] of typeParamRenames) {
           constraintStr = constraintStr.replace(
@@ -531,13 +675,28 @@ function getNormalizedSignature(
           )
         }
         str += ` extends ${constraintStr}`
+      } else {
+        // Fall back to resolved constraint from type system
+        const constraint = tp.getConstraint()
+        if (constraint) {
+          let constraintStr = checker.typeToString(
+            constraint,
+            undefined,
+            tsModule.TypeFormatFlags.NoTruncation,
+          )
+          for (const [orig, norm] of typeParamRenames) {
+            constraintStr = constraintStr.replace(
+              new RegExp(`\\b${orig}\\b`, 'g'),
+              norm,
+            )
+          }
+          str += ` extends ${constraintStr}`
+        }
       }
-      if (defaultType) {
-        let defaultStr = checker.typeToString(
-          defaultType,
-          undefined,
-          tsModule.TypeFormatFlags.NoTruncation,
-        )
+
+      // Handle defaults similarly - try AST first
+      if (astTypeParam?.default) {
+        let defaultStr = astTypeParam.default.getText()
         for (const [orig, norm] of typeParamRenames) {
           defaultStr = defaultStr.replace(
             new RegExp(`\\b${orig}\\b`, 'g'),
@@ -545,7 +704,24 @@ function getNormalizedSignature(
           )
         }
         str += ` = ${defaultStr}`
+      } else {
+        const defaultType = tp.getDefault()
+        if (defaultType) {
+          let defaultStr = checker.typeToString(
+            defaultType,
+            undefined,
+            tsModule.TypeFormatFlags.NoTruncation,
+          )
+          for (const [orig, norm] of typeParamRenames) {
+            defaultStr = defaultStr.replace(
+              new RegExp(`\\b${orig}\\b`, 'g'),
+              norm,
+            )
+          }
+          str += ` = ${defaultStr}`
+        }
       }
+
       return str
     })
     typeParamStr = `<${typeParamStrs.join(', ')}>`
@@ -833,13 +1009,19 @@ function getNamespaceSignature(
 /**
  * Creates an in-memory TypeScript compiler host for parsing declaration strings.
  *
+ * @param files - Map of filename to content for the files being parsed
+ * @param tsModule - The TypeScript module to use
+ * @param options - Optional configuration including lib file resolver
+ *
  * @alpha
  */
 export function createInMemoryCompilerHost(
   files: Map<string, string>,
   tsModule: typeof ts,
+  options?: CompilerHostOptions,
 ): ts.CompilerHost {
   const defaultLibFileName = tsModule.getDefaultLibFileName({})
+  const libResolver = options?.libFileResolver
 
   return {
     getSourceFile: (fileName, languageVersion) => {
@@ -847,8 +1029,21 @@ export function createInMemoryCompilerHost(
       if (content !== undefined) {
         return tsModule.createSourceFile(fileName, content, languageVersion)
       }
-      // Return empty source for lib files we don't have
+
+      // Handle lib files
       if (fileName.includes('lib.') && fileName.endsWith('.d.ts')) {
+        // Try to resolve using the provided resolver
+        if (libResolver) {
+          const libContent = libResolver(fileName)
+          if (libContent !== undefined) {
+            return tsModule.createSourceFile(
+              fileName,
+              libContent,
+              languageVersion,
+            )
+          }
+        }
+        // Fall back to empty source if no resolver or resolver returned undefined
         return tsModule.createSourceFile(fileName, '', languageVersion)
       }
       return undefined
@@ -882,6 +1077,7 @@ export function parseDeclarationString(
   content: string,
   tsModule: typeof ts,
   filename: string = 'input.d.ts',
+  options?: CompilerHostOptions,
 ): ParseResult {
   const symbols = new Map<string, ExportedSymbol>()
   const errors: string[] = []
@@ -893,7 +1089,7 @@ export function parseDeclarationString(
   const files = new Map<string, string>()
   files.set(filename, content)
 
-  const compilerHost = createInMemoryCompilerHost(files, tsModule)
+  const compilerHost = createInMemoryCompilerHost(files, tsModule, options)
 
   const program = tsModule.createProgram(
     [filename],
@@ -980,6 +1176,7 @@ export function parseDeclarationStringWithTypes(
   content: string,
   tsModule: typeof ts,
   filename: string = 'input.d.ts',
+  options?: CompilerHostOptions,
 ): ParseResultWithTypes {
   const symbols = new Map<string, ExportedSymbol>()
   const typeSymbols = new Map<string, ts.Symbol>()
@@ -1000,7 +1197,7 @@ export function parseDeclarationStringWithTypes(
   const files = new Map<string, string>()
   files.set(filename, content)
 
-  const compilerHost = createInMemoryCompilerHost(files, tsModule)
+  const compilerHost = createInMemoryCompilerHost(files, tsModule, options)
 
   const program = tsModule.createProgram(
     [filename],
