@@ -57,18 +57,30 @@ export type SymbolKind =
  * Line numbers are 1-based (matching most editors).
  * Column numbers are 0-based (matching LSP specification).
  *
+ * Can represent either a single position or a range. When representing a range,
+ * both `endLine` and `endColumn` must be present together to ensure LSP compatibility.
+ *
  * @alpha
  */
-export interface SourceLocation {
-  /** 1-based line number */
-  line: number
-  /** 0-based column (character position) */
-  column: number
-  /** 1-based end line (optional, for ranges) */
-  endLine?: number
-  /** 0-based end column (optional, for ranges) */
-  endColumn?: number
-}
+export type SourceLocation =
+  // Single position
+  | {
+      /** 1-based line number */
+      line: number
+      /** 0-based column (character position) */
+      column: number
+    }
+  // Range (both endLine and endColumn required together)
+  | {
+      /** 1-based line number */
+      line: number
+      /** 0-based column (character position) */
+      column: number
+      /** 1-based end line (for ranges) */
+      endLine: number
+      /** 0-based end column (for ranges) */
+      endColumn: number
+    }
 
 /**
  * Metadata extracted from TSDoc comments for a symbol.
