@@ -736,6 +736,13 @@ function generateExplanation(
         `${symbolKind} '${symbolName}' became required (was optional)` +
         signatureDetail
       )
+    // Enum-related categories
+    case 'enum-member-added':
+      return `Added member(s) to ${symbolKind} '${symbolName}'${signatureDetail}`
+    case 'enum-type-opened':
+      return `${symbolKind} '${symbolName}' changed from closed to open (new members non-breaking)`
+    case 'enum-type-closed':
+      return `${symbolKind} '${symbolName}' changed from open to closed (new members now breaking)`
   }
 }
 

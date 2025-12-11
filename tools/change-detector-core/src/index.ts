@@ -41,6 +41,7 @@ export type {
   ExportedSymbol,
   Change,
   AnalyzedChange,
+  ClassifyContext,
   VersioningPolicy,
   ChangeDetails,
   ChangesByImpact,
