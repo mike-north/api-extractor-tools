@@ -50,6 +50,7 @@ The policy receives an `AnalyzedChange` object that contains:
 
 The policy's job is to examine this change and return a `ReleaseType`:
 
+- `'forbidden'` - Changes that should never be allowed, even in major releases
 - `'major'` - Breaking changes requiring a major version bump
 - `'minor'` - New features that are backwards compatible
 - `'patch'` - Bug fixes with no API impact
@@ -396,6 +397,82 @@ const graphQLPolicy: VersioningPolicy = {
 }
 ```
 
+### 5. **Database Schema Validation**
+
+Forbid incompatible type changes that would corrupt data:
+
+```typescript
+const databaseSchemaPolicy: VersioningPolicy = {
+  name: 'database-schema',
+  classify(change: AnalyzedChange): ReleaseType {
+    // Symbol removals are forbidden - data loss risk
+    if (change.category === 'symbol-removed') {
+      return 'forbidden'
+    }
+
+    // Type changes that would break existing data are forbidden
+    if (change.category === 'type-narrowed') {
+      // Existing data might not satisfy the new constraint
+      return 'forbidden'
+    }
+
+    // Renames could break queries/foreign keys
+    if (change.category === 'field-renamed') {
+      return 'forbidden'
+    }
+
+    // Other changes use default policy
+    return defaultPolicy.classify(change)
+  },
+}
+```
+
+**Why**: Database schemas have stricter requirements than typical APIs. Removing a column loses data, changing a column type can corrupt data, and renaming breaks queries.
+
+## Forbidden Changes
+
+The `forbidden` release type is designed for **custom policies** that need to enforce hard constraints beyond normal semver rules. When a policy returns `forbidden`, it signals that the change must be reverted or addressed before release – unlike `major` changes which simply require a major version bump.
+
+### When to Use Forbidden
+
+Use the `forbidden` release type when:
+
+1. **Data integrity is at risk**: Database schema changes that could corrupt existing data
+2. **Wire protocol compatibility**: Changes that break deployed clients with no upgrade path
+3. **Security requirements**: Removing authentication or authorization checks
+4. **Compliance constraints**: Changes that violate regulatory or contractual requirements
+5. **Irreversible operations**: Changes that would cause data loss or system instability
+
+### Built-in Policies and Forbidden
+
+The three built-in policies (`defaultPolicy`, `readOnlyPolicy`, `writeOnlyPolicy`) **never return `forbidden`**. This is intentional:
+
+- Built-in policies implement standard semantic versioning
+- `forbidden` represents domain-specific constraints that vary by project
+- Custom policies can wrap built-in policies and add forbidden checks
+
+### Handling Forbidden in Reports
+
+When any change is classified as `forbidden`:
+
+- The overall `releaseType` for the comparison will be `forbidden`
+- Forbidden changes appear in a dedicated `forbidden` array in the report
+- Report formatters highlight forbidden changes prominently
+
+```typescript
+const report = compareDeclarations({ oldContent, newContent, policy }, ts)
+
+if (report.releaseType === 'forbidden') {
+  console.error('❌ Forbidden changes detected - cannot release')
+  for (const change of report.changes.forbidden) {
+    console.error(`  - ${change.symbolName}: ${change.explanation}`)
+  }
+  process.exit(1)
+}
+```
+
+---
+
 ## Best Practices
 
 ### 1. **Document Your Policy**
@@ -470,6 +547,12 @@ Automated policies are helpful but not infallible. Always review changes:
 const report = compareDeclarations({ oldContent, newContent, policy }, ts)
 
 // Review in CI
+if (report.releaseType === 'forbidden') {
+  console.error('❌ Forbidden changes detected - cannot release')
+  console.log(formatReportAsMarkdown(report))
+  process.exit(1)
+}
+
 if (report.releaseType === 'major') {
   console.warn('⚠️  Breaking changes detected - please review carefully')
   console.log(formatReportAsMarkdown(report))

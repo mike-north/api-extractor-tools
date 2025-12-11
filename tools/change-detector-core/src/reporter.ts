@@ -24,6 +24,8 @@ export interface ComparisonReportJSON {
  */
 function formatReleaseType(releaseType: ReleaseType): string {
   switch (releaseType) {
+    case 'forbidden':
+      return 'FORBIDDEN'
     case 'major':
       return 'MAJOR'
     case 'minor':
@@ -70,6 +72,15 @@ export function formatReportAsText(report: ComparisonReport): string {
   // Header
   lines.push(`Release Type: ${formatReleaseType(report.releaseType)}`)
   lines.push('')
+
+  // Forbidden changes
+  if (report.changes.forbidden.length > 0) {
+    lines.push(`Forbidden Changes (${report.changes.forbidden.length}):`)
+    for (const change of report.changes.forbidden) {
+      lines.push(formatChangeAsText(change))
+    }
+    lines.push('')
+  }
 
   // Breaking changes
   lines.push(`Breaking Changes (${report.changes.breaking.length}):`)
@@ -142,6 +153,22 @@ export function formatReportAsMarkdown(report: ComparisonReport): string {
   lines.push(`**Release Type:** ${formatReleaseType(report.releaseType)}`)
   lines.push('')
 
+  // Forbidden changes
+  if (report.changes.forbidden.length > 0) {
+    lines.push(
+      `### :no_entry: Forbidden Changes (${report.changes.forbidden.length})`,
+    )
+    lines.push('')
+    lines.push(
+      '> **These changes are not allowed and must be reverted or addressed before release.**',
+    )
+    lines.push('')
+    for (const change of report.changes.forbidden) {
+      lines.push(formatChangeAsMarkdown(change))
+    }
+    lines.push('')
+  }
+
   // Breaking changes
   lines.push(`### Breaking Changes (${report.changes.breaking.length})`)
   lines.push('')
@@ -190,6 +217,7 @@ export function reportToJSON(report: ComparisonReport): ComparisonReportJSON {
   return {
     releaseType: report.releaseType,
     changes: {
+      forbidden: report.changes.forbidden,
       breaking: report.changes.breaking,
       nonBreaking: report.changes.nonBreaking,
       unchanged: report.changes.unchanged,

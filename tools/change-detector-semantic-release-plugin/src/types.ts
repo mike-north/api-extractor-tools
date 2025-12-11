@@ -188,9 +188,11 @@ export interface SemanticReleaseContext {
 /**
  * Maps change-detector ReleaseType to semantic-release type.
  * Returns null for 'none' since no release is needed.
+ * Throws an error for 'forbidden' since it should block the release.
  *
  * @param releaseType - The release type from change-detector
  * @returns The corresponding semantic-release type, or null if no release needed
+ * @throws Error if releaseType is 'forbidden'
  *
  * @alpha
  */
@@ -198,6 +200,10 @@ export function releaseTypeToSemanticType(
   releaseType: ReleaseType,
 ): SemanticReleaseType | null {
   switch (releaseType) {
+    case 'forbidden':
+      throw new Error(
+        'Cannot release with forbidden changes. These changes must be reverted or addressed before release.',
+      )
     case 'major':
       return 'major'
     case 'minor':

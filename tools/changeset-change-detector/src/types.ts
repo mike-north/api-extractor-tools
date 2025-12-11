@@ -182,9 +182,11 @@ export interface ValidateOptions extends AnalyzeOptions {
 /**
  * Maps change-detector ReleaseType to changeset bump type.
  * Returns null for 'none' since no changeset is needed.
+ * Throws an error for 'forbidden' since it should block the release.
  *
  * @param releaseType - The release type from change-detector
  * @returns The corresponding changeset bump type, or null if no bump needed
+ * @throws Error if releaseType is 'forbidden'
  *
  * @alpha
  */
@@ -192,6 +194,10 @@ export function releaseTypeToBumpType(
   releaseType: ReleaseType,
 ): ChangesetBumpType | null {
   switch (releaseType) {
+    case 'forbidden':
+      throw new Error(
+        'Cannot create changeset for forbidden changes. These changes must be reverted or addressed before release.',
+      )
     case 'major':
       return 'major'
     case 'minor':
