@@ -266,6 +266,83 @@ describe('generic type changes', () => {
 
       expect(report.releaseType).toBe('major')
     })
+
+    it('handles mutual constraints where type params reference each other', () => {
+      // T extends U, U extends object - T is constrained by U, U is constrained by object
+      const report = compare(
+        `export declare function merge<T extends U, U extends object>(a: T, b: U): T & U;`,
+        `export declare function merge<T extends U, U extends object>(a: T, b: U): T & U;`,
+      )
+
+      expect(report.releaseType).toBe('none')
+    })
+
+    it('detects change in mutual constraint relationship', () => {
+      const report = compare(
+        `export declare function merge<T extends U, U extends object>(a: T, b: U): T & U;`,
+        `export declare function merge<T extends object, U extends T>(a: T, b: U): T & U;`,
+      )
+
+      // The constraint relationship changed: T extends U -> U extends T
+      expect(report.releaseType).toBe('major')
+    })
+
+    it('handles defaults that reference other type parameters', () => {
+      const report = compare(
+        `export declare function create<T, U = T>(value: T): U;`,
+        `export declare function create<T, U = T>(value: T): U;`,
+      )
+
+      expect(report.releaseType).toBe('none')
+    })
+
+    it('detects change in default that references another type param', () => {
+      const report = compare(
+        `export declare function create<T, U = T>(value: T): U;`,
+        `export declare function create<T, U = T[]>(value: T): U;`,
+      )
+
+      // Default changed from T to T[]
+      expect(report.releaseType).toBe('major')
+    })
+
+    it('handles constraint and default together', () => {
+      const report = compare(
+        `export declare function process<T extends object, U extends T = T>(a: T, b: U): U;`,
+        `export declare function process<T extends object, U extends T = T>(a: T, b: U): U;`,
+      )
+
+      expect(report.releaseType).toBe('none')
+    })
+
+    it('detects change when constraint referencing another param changes', () => {
+      const report = compare(
+        `export declare function process<T extends object, U extends T>(a: T, b: U): U;`,
+        `export declare function process<T extends object, U extends object>(a: T, b: U): U;`,
+      )
+
+      // U's constraint changed from T to object (looser)
+      expect(report.releaseType).toBe('major')
+    })
+
+    it('handles three interdependent type params', () => {
+      const report = compare(
+        `export declare function chain<A, B extends A, C extends B>(a: A, b: B, c: C): C;`,
+        `export declare function chain<A, B extends A, C extends B>(a: A, b: B, c: C): C;`,
+      )
+
+      expect(report.releaseType).toBe('none')
+    })
+
+    it('detects breaking change in interdependent type params', () => {
+      const report = compare(
+        `export declare function chain<A, B extends A, C extends B>(a: A, b: B, c: C): C;`,
+        `export declare function chain<A, B extends A, C extends A>(a: A, b: B, c: C): C;`,
+      )
+
+      // C's constraint changed from B to A (looser - could break if B narrows A)
+      expect(report.releaseType).toBe('major')
+    })
   })
 
   describe('variance changes', () => {

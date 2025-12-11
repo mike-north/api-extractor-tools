@@ -216,4 +216,10 @@ export interface CompareStringOptions {
   newFilename?: string
   /** Optional versioning policy to use (defaults to standard semantic versioning) */
   policy?: VersioningPolicy
+  /**
+   * Optional resolver for TypeScript lib files.
+   * Use `createNodeLibResolver(ts)` for Node.js environments.
+   * If not provided, built-in types like string, Array won't resolve.
+   */
+  libFileResolver?: (fileName: string) => string | undefined
 }

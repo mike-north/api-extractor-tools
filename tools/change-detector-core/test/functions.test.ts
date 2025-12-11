@@ -88,14 +88,18 @@ describe('function signature changes', () => {
       expect(report.changes.breaking[0]?.category).toBe('param-removed')
     })
 
-    // Known limitation: rest parameter type change detection not fully implemented
-    it.skip('detects rest parameter type change as major', () => {
+    it('detects rest parameter type change as major', () => {
+      // Note: This test requires lib files to be loaded so that string[] and number[]
+      // resolve correctly. Without lib files, they both resolve to {} and appear identical.
       const report = compare(
         `export declare function log(...args: string[]): void;`,
         `export declare function log(...args: number[]): void;`,
+        { withLibs: true },
       )
 
       expect(report.releaseType).toBe('major')
+      // The parameter type changed from string[] to number[]
+      expect(report.changes.breaking[0]?.category).toBe('type-narrowed')
     })
   })
 

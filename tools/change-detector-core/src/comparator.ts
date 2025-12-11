@@ -472,16 +472,22 @@ function analyzeTypeChange(
       oldSig.getParameters(),
       newSig.getParameters(),
     )
-    if (paramResult) {
-      return paramResult
-    }
 
-    // Check return type changes
+    // Check return type changes - do this BEFORE returning parameter results
+    // because return type changes are always breaking (major), while some
+    // parameter changes are non-breaking (e.g., param-added-optional is minor)
     const oldReturnType = oldChecker.typeToString(oldSig.getReturnType())
     const newReturnType = newChecker.typeToString(newSig.getReturnType())
 
     if (oldReturnType !== newReturnType) {
+      // Return type changed - this is always a breaking change (major)
+      // This takes priority over non-breaking parameter changes
       return { category: 'return-type-changed' }
+    }
+
+    // No return type change, so return parameter result if any
+    if (paramResult) {
+      return paramResult
     }
   }
 
@@ -522,7 +528,53 @@ function analyzeTypeChange(
       }
     }
 
-    // Check for added properties
+    // Check existing properties for type changes and optionality changes
+    for (const oldProp of oldProps) {
+      const newProp = newProps.find((p) => p.getName() === oldProp.getName())
+      if (newProp) {
+        const oldPropDecl = oldProp.valueDeclaration
+        const newPropDecl = newProp.valueDeclaration
+
+        if (oldPropDecl && newPropDecl) {
+          // Check for optionality changes FIRST
+          const oldIsOptional =
+            (oldProp.flags & tsModule.SymbolFlags.Optional) !== 0
+          const newIsOptional =
+            (newProp.flags & tsModule.SymbolFlags.Optional) !== 0
+
+          if (oldIsOptional !== newIsOptional) {
+            // Optionality changed - use specific category for policy differentiation
+            if (!oldIsOptional && newIsOptional) {
+              // Required → Optional (loosened)
+              return { category: 'optionality-loosened' }
+            } else {
+              // Optional → Required (tightened)
+              return { category: 'optionality-tightened' }
+            }
+          }
+
+          // Check for actual type changes (not just optionality)
+          const oldPropType = oldChecker.getTypeOfSymbolAtLocation(
+            oldProp,
+            oldPropDecl,
+          )
+          const newPropType = newChecker.getTypeOfSymbolAtLocation(
+            newProp,
+            newPropDecl,
+          )
+
+          const oldPropStr = oldChecker.typeToString(oldPropType)
+          const newPropStr = newChecker.typeToString(newPropType)
+
+          if (oldPropStr !== newPropStr) {
+            // Property type changed - this is a breaking change
+            return { category: 'type-narrowed' }
+          }
+        }
+      }
+    }
+
+    // Check for added properties (only after confirming existing properties are unchanged)
     const addedProps = newProps.filter((p) => !oldPropNames.has(p.getName()))
 
     if (addedProps.length > 0) {
@@ -564,35 +616,6 @@ function analyzeTypeChange(
         return { category: 'type-widened' }
       } else {
         return { category: 'type-narrowed' }
-      }
-    }
-
-    // Detect type changes in properties that exist in both old and new versions.
-    // Such type changes are treated as breaking changes.
-    for (const oldProp of oldProps) {
-      const newProp = newProps.find((p) => p.getName() === oldProp.getName())
-      if (newProp) {
-        const oldPropDecl = oldProp.valueDeclaration
-        const newPropDecl = newProp.valueDeclaration
-
-        if (oldPropDecl && newPropDecl) {
-          const oldPropType = oldChecker.getTypeOfSymbolAtLocation(
-            oldProp,
-            oldPropDecl,
-          )
-          const newPropType = newChecker.getTypeOfSymbolAtLocation(
-            newProp,
-            newPropDecl,
-          )
-
-          const oldPropStr = oldChecker.typeToString(oldPropType)
-          const newPropStr = newChecker.typeToString(newPropType)
-
-          if (oldPropStr !== newPropStr) {
-            // Property type changed - this is a breaking change
-            return { category: 'type-narrowed' }
-          }
-        }
       }
     }
   }
