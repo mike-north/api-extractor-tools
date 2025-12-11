@@ -36,6 +36,7 @@ export type {
   ReleaseType,
   ChangeCategory,
   SymbolKind,
+  SymbolMetadata,
   ExportedSymbol,
   Change,
   AnalyzedChange,

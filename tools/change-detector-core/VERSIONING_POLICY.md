@@ -47,7 +47,7 @@ Removing any exported symbol from the public API.
 
 ```typescript
 // BEFORE
-export function processData(data: string): void;
+export function processData(data: string): void
 
 // AFTER (symbol removed)
 // (function no longer exported)
@@ -59,10 +59,10 @@ Making a type more restrictive, reducing the set of valid values.
 
 ```typescript
 // BEFORE - accepts string or number
-export function process(value: string | number): void;
+export function process(value: string | number): void
 
 // AFTER - only accepts string (BREAKING)
-export function process(value: string): void;
+export function process(value: string): void
 ```
 
 #### Required Parameter Added (`param-added-required`)
@@ -71,10 +71,10 @@ Adding a new parameter that must be provided.
 
 ```typescript
 // BEFORE
-export function connect(host: string): void;
+export function connect(host: string): void
 
 // AFTER - new required parameter (BREAKING)
-export function connect(host: string, port: number): void;
+export function connect(host: string, port: number): void
 ```
 
 #### Parameter Removed (`param-removed`)
@@ -83,10 +83,10 @@ Removing a parameter from a function signature.
 
 ```typescript
 // BEFORE
-export function configure(name: string, options: Options): void;
+export function configure(name: string, options: Options): void
 
 // AFTER - parameter removed (BREAKING)
-export function configure(name: string): void;
+export function configure(name: string): void
 ```
 
 #### Parameter Order Changed (`param-order-changed`)
@@ -95,10 +95,10 @@ Reordering parameters of the same type. This is a **semantic change** that may n
 
 ```typescript
 // BEFORE
-export function transfer(from: string, to: string): void;
+export function transfer(from: string, to: string): void
 
 // AFTER - parameters swapped (BREAKING)
-export function transfer(to: string, from: string): void;
+export function transfer(to: string, from: string): void
 ```
 
 #### Return Type Changed (`return-type-changed`)
@@ -107,10 +107,34 @@ Any modification to a function's return type.
 
 ```typescript
 // BEFORE
-export function getData(): string;
+export function getData(): string
 
 // AFTER - return type changed (BREAKING)
-export function getData(): Promise<string>;
+export function getData(): Promise<string>
+```
+
+#### Symbol Renamed (`field-renamed`)
+
+Renaming a symbol while keeping its signature. This is detected by finding a removed symbol that matches an added symbol with an identical (modulo name) signature.
+
+```typescript
+// BEFORE
+export function processData(x: number): string
+
+// AFTER - renamed (BREAKING)
+export function handleData(x: number): string
+```
+
+#### Optionality Tightened (`optionality-tightened`)
+
+Making an optional parameter or property required.
+
+```typescript
+// BEFORE
+export function greet(name?: string): string
+
+// AFTER - now required (BREAKING)
+export function greet(name: string): string
 ```
 
 ### Minor (Non-Breaking) Changes
@@ -123,11 +147,11 @@ Adding a new export to the public API.
 
 ```typescript
 // BEFORE
-export function existingFunction(): void;
+export function existingFunction(): void
 
 // AFTER - new export (NON-BREAKING)
-export function existingFunction(): void;
-export function newFunction(): void;
+export function existingFunction(): void
+export function newFunction(): void
 ```
 
 #### Type Widening (`type-widened`)
@@ -136,10 +160,10 @@ Making a type more permissive, expanding the set of valid values.
 
 ```typescript
 // BEFORE
-export function greet(name: string): string;
+export function greet(name: string): string
 
 // AFTER - parameter now optional (NON-BREAKING)
-export function greet(name?: string): string;
+export function greet(name?: string): string
 ```
 
 #### Optional Parameter Added (`param-added-optional`)
@@ -148,10 +172,53 @@ Adding a new parameter that has a default value or is marked optional.
 
 ```typescript
 // BEFORE
-export function fetch(url: string): Promise<Response>;
+export function fetch(url: string): Promise<Response>
 
 // AFTER - new optional parameters (NON-BREAKING)
-export function fetch(url: string, options?: RequestInit, timeout?: number): Promise<Response>;
+export function fetch(
+  url: string,
+  options?: RequestInit,
+  timeout?: number,
+): Promise<Response>
+```
+
+#### Deprecation Removed (`field-undeprecated`)
+
+Removing `@deprecated` from a symbol.
+
+```typescript
+// BEFORE
+/** @deprecated Use newMethod() instead */
+export function oldMethod(): void
+
+// AFTER - undeprecated (MINOR)
+export function oldMethod(): void
+```
+
+#### Default Value Removed (`default-removed`)
+
+Removing a documented default value.
+
+```typescript
+// BEFORE
+/** @default 30000 */
+export const timeout: number
+
+// AFTER - default removed (MINOR)
+/** The timeout in ms */
+export const timeout: number
+```
+
+#### Optionality Loosened (`optionality-loosened`)
+
+Making a required parameter or property optional.
+
+```typescript
+// BEFORE
+export function greet(name: string): string
+
+// AFTER - now optional (MINOR)
+export function greet(name?: string): string
 ```
 
 ### Patch Changes
@@ -162,6 +229,47 @@ Patch-level changes have no impact on the public API contract:
 - Internal refactoring with no signature changes
 - Bug fixes that don't change behavior guarantees
 - Performance improvements
+
+#### Deprecation Added (`field-deprecated`)
+
+Adding `@deprecated` to a symbol. This is informational and doesn't break existing code.
+
+```typescript
+// BEFORE
+export function oldMethod(): void
+
+// AFTER - deprecation added (PATCH)
+/** @deprecated Use newMethod() instead */
+export function oldMethod(): void
+```
+
+#### Default Value Added (`default-added`)
+
+Adding `@default` or `@defaultValue` to a symbol.
+
+```typescript
+// BEFORE
+/** The timeout in ms */
+export const timeout: number
+
+// AFTER - default documented (PATCH)
+/** The timeout in ms @default 30000 */
+export const timeout: number
+```
+
+#### Default Value Changed (`default-changed`)
+
+Changing the documented default value.
+
+```typescript
+// BEFORE
+/** @default 30000 */
+export const timeout: number
+
+// AFTER - default changed (PATCH)
+/** @default 60000 */
+export const timeout: number
+```
 
 ---
 
@@ -175,10 +283,10 @@ When function parameters have the same types, swapping their order creates a sem
 
 ```typescript
 // BEFORE
-function setDimensions(width: number, height: number): void;
+function setDimensions(width: number, height: number): void
 
 // AFTER - compiles fine, but semantically broken
-function setDimensions(height: number, width: number): void;
+function setDimensions(height: number, width: number): void
 ```
 
 Callers using `setDimensions(100, 200)` will silently get wrong behavior.
@@ -208,15 +316,15 @@ A crucial insight in API versioning is that **the same change can have different
 
 The following matrix shows how changes impact consumers differently based on their usage pattern:
 
-| Change                   | Read Impact       | Write Impact      | Example                                    |
-| ------------------------ | ----------------- | ----------------- | ------------------------------------------ |
-| Add required property    | ✅ Non-breaking   | ❌ **Breaking**   | New field must be provided                 |
-| Add optional property    | ✅ Non-breaking   | ✅ Non-breaking   | New field can be ignored                   |
-| Remove property          | ❌ **Breaking**   | ✅ Non-breaking   | Readers expect the field                   |
-| Make required → optional | ❌ **Breaking**   | ✅ Non-breaking   | May receive `undefined`                    |
-| Make optional → required | ✅ Non-breaking   | ❌ **Breaking**   | Must now provide field                     |
-| Narrow property type     | ❌ **Breaking**   | ✅ Non-breaking   | Old values may not be returned             |
-| Widen property type      | ✅ Non-breaking   | ❌ **Breaking**   | New values must be handled when writing    |
+| Change                   | Read Impact     | Write Impact    | Example                                 |
+| ------------------------ | --------------- | --------------- | --------------------------------------- |
+| Add required property    | ✅ Non-breaking | ❌ **Breaking** | New field must be provided              |
+| Add optional property    | ✅ Non-breaking | ✅ Non-breaking | New field can be ignored                |
+| Remove property          | ❌ **Breaking** | ✅ Non-breaking | Readers expect the field                |
+| Make required → optional | ❌ **Breaking** | ✅ Non-breaking | May receive `undefined`                 |
+| Make optional → required | ✅ Non-breaking | ❌ **Breaking** | Must now provide field                  |
+| Narrow property type     | ❌ **Breaking** | ✅ Non-breaking | Old values may not be returned          |
+| Widen property type      | ✅ Non-breaking | ❌ **Breaking** | New values must be handled when writing |
 
 ### Examples
 
@@ -225,15 +333,15 @@ The following matrix shows how changes impact consumers differently based on the
 ```typescript
 // BEFORE
 interface User {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 // AFTER
 interface User {
-  id: string;
-  name: string;
-  email: string;  // New required field
+  id: string
+  name: string
+  email: string // New required field
 }
 ```
 
@@ -242,7 +350,7 @@ interface User {
 ```typescript
 // Old code that reads Users still works fine
 function displayUser(user: User) {
-  console.log(`${user.name} (${user.id})`);  // ✅ Works
+  console.log(`${user.name} (${user.id})`) // ✅ Works
   // Doesn't need email
 }
 ```
@@ -252,7 +360,7 @@ function displayUser(user: User) {
 ```typescript
 // Old code that creates Users is BROKEN
 function createUser(): User {
-  return { id: "1", name: "Alice" };  // ❌ Missing 'email'
+  return { id: '1', name: 'Alice' } // ❌ Missing 'email'
 }
 ```
 
@@ -261,14 +369,14 @@ function createUser(): User {
 ```typescript
 // BEFORE
 interface Config {
-  apiKey: string;
-  timeout: number;
+  apiKey: string
+  timeout: number
 }
 
 // AFTER
 interface Config {
-  apiKey: string;
-  timeout?: number;  // Now optional
+  apiKey: string
+  timeout?: number // Now optional
 }
 ```
 
@@ -277,7 +385,7 @@ interface Config {
 ```typescript
 // Old code expecting timeout is BROKEN
 function makeRequest(config: Config) {
-  const ms = config.timeout * 1000;  // ❌ timeout may be undefined!
+  const ms = config.timeout * 1000 // ❌ timeout may be undefined!
 }
 ```
 
@@ -285,7 +393,7 @@ function makeRequest(config: Config) {
 
 ```typescript
 // Old code providing timeout still works
-const config: Config = { apiKey: "key", timeout: 30 };  // ✅ Works
+const config: Config = { apiKey: 'key', timeout: 30 } // ✅ Works
 ```
 
 #### Example 3: Narrowing a Property Type
@@ -293,12 +401,12 @@ const config: Config = { apiKey: "key", timeout: 30 };  // ✅ Works
 ```typescript
 // BEFORE - API returns string or null
 interface Response {
-  data: string | null;
+  data: string | null
 }
 
 // AFTER - API now always returns string
 interface Response {
-  data: string;
+  data: string
 }
 ```
 
@@ -307,8 +415,9 @@ interface Response {
 ```typescript
 // Old defensive code works, but new guarantees available
 function process(response: Response) {
-  if (response.data !== null) {  // No longer needed, but not broken
-    console.log(response.data);  // ✅ Works
+  if (response.data !== null) {
+    // No longer needed, but not broken
+    console.log(response.data) // ✅ Works
   }
 }
 ```
@@ -318,7 +427,7 @@ function process(response: Response) {
 ```typescript
 // Code that was returning null is now BROKEN
 function mockResponse(): Response {
-  return { data: null };  // ❌ null no longer allowed
+  return { data: null } // ❌ null no longer allowed
 }
 ```
 
@@ -345,16 +454,16 @@ Example of potential future syntax:
  * @output - This interface is only used for API responses
  */
 export interface ApiResponse {
-  data: string;
-  timestamp: number;
+  data: string
+  timestamp: number
 }
 
 /**
  * @input - This interface is only used for API requests
  */
 export interface ApiRequest {
-  query: string;
-  limit?: number;
+  query: string
+  limit?: number
 }
 ```
 
@@ -364,59 +473,59 @@ export interface ApiRequest {
 
 ### Functions
 
-| Change                   | Impact | Notes                                    |
-| ------------------------ | ------ | ---------------------------------------- |
-| Add required parameter   | Major  | Existing calls break                     |
-| Add optional parameter   | Minor  | Existing calls continue to work          |
-| Remove parameter         | Major  | Existing calls have orphaned arguments   |
-| Change parameter type    | Major  | Type safety violated                     |
-| Change return type       | Major  | Callers may mishandle result             |
-| Reorder same-typed params| Major  | Semantic change, silent bugs             |
-| Rename parameter         | None   | No runtime impact (names are erased)     |
+| Change                    | Impact | Notes                                  |
+| ------------------------- | ------ | -------------------------------------- |
+| Add required parameter    | Major  | Existing calls break                   |
+| Add optional parameter    | Minor  | Existing calls continue to work        |
+| Remove parameter          | Major  | Existing calls have orphaned arguments |
+| Change parameter type     | Major  | Type safety violated                   |
+| Change return type        | Major  | Callers may mishandle result           |
+| Reorder same-typed params | Major  | Semantic change, silent bugs           |
+| Rename parameter          | None   | No runtime impact (names are erased)   |
 
 ### Interfaces
 
-| Change                 | Impact | Notes                                    |
-| ---------------------- | ------ | ---------------------------------------- |
-| Add required property  | Major  | Implementers must add property           |
-| Add optional property  | Major* | Conservative; see Read/Write section     |
-| Remove property        | Major  | Consumers may expect property            |
-| Change property type   | Major  | Type contract violated                   |
-| Add method             | Major  | Implementers must implement              |
-| Remove method          | Major  | Callers may use method                   |
-| Add index signature    | Major  | Changes structural compatibility         |
-| Add call signature     | Major  | Changes callable behavior                |
+| Change                | Impact  | Notes                                |
+| --------------------- | ------- | ------------------------------------ |
+| Add required property | Major   | Implementers must add property       |
+| Add optional property | Major\* | Conservative; see Read/Write section |
+| Remove property       | Major   | Consumers may expect property        |
+| Change property type  | Major   | Type contract violated               |
+| Add method            | Major   | Implementers must implement          |
+| Remove method         | Major   | Callers may use method               |
+| Add index signature   | Major   | Changes structural compatibility     |
+| Add call signature    | Major   | Changes callable behavior            |
 
-*Interface property additions are treated conservatively because interfaces can be implemented, extended, or used as type constraints in ways that make additions breaking.
+\*Interface property additions are treated conservatively because interfaces can be implemented, extended, or used as type constraints in ways that make additions breaking.
 
 ### Classes
 
-| Change                         | Impact | Notes                                  |
-| ------------------------------ | ------ | -------------------------------------- |
-| Add required constructor param | Major  | Instantiation breaks                   |
-| Add optional constructor param | Minor  | Existing `new` calls work              |
-| Remove public method           | Major  | Callers break                          |
-| Remove public property         | Major  | Consumers break                        |
-| Add public method              | Minor* | May break subclasses in some languages |
-| Change method signature        | Major  | Type contract violated                 |
-| Change inheritance             | Major  | `instanceof` checks may fail           |
+| Change                         | Impact  | Notes                                  |
+| ------------------------------ | ------- | -------------------------------------- |
+| Add required constructor param | Major   | Instantiation breaks                   |
+| Add optional constructor param | Minor   | Existing `new` calls work              |
+| Remove public method           | Major   | Callers break                          |
+| Remove public property         | Major   | Consumers break                        |
+| Add public method              | Minor\* | May break subclasses in some languages |
+| Change method signature        | Major   | Type contract violated                 |
+| Change inheritance             | Major   | `instanceof` checks may fail           |
 
 ### Type Aliases
 
-| Change                        | Impact | Notes                                       |
-| ----------------------------- | ------ | ------------------------------------------- |
-| Narrow union type             | Major  | Some values no longer valid                 |
-| Widen union type              | Major* | Conservative; consuming code may not handle |
-| Change to different structure | Major  | Type shape changed                          |
+| Change                        | Impact  | Notes                                       |
+| ----------------------------- | ------- | ------------------------------------------- |
+| Narrow union type             | Major   | Some values no longer valid                 |
+| Widen union type              | Major\* | Conservative; consuming code may not handle |
+| Change to different structure | Major   | Type shape changed                          |
 
 ### Enums
 
-| Change              | Impact | Notes                                    |
-| ------------------- | ------ | ---------------------------------------- |
-| Remove enum member  | Major  | Existing references break                |
-| Add enum member     | Minor  | Existing code unaffected                 |
-| Change member value | Major  | Runtime behavior changes                 |
-| Reorder members     | Patch* | Unless using numeric auto-values         |
+| Change              | Impact  | Notes                            |
+| ------------------- | ------- | -------------------------------- |
+| Remove enum member  | Major   | Existing references break        |
+| Add enum member     | Minor   | Existing code unaffected         |
+| Change member value | Major   | Runtime behavior changes         |
+| Reorder members     | Patch\* | Unless using numeric auto-values |
 
 ---
 

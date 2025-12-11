@@ -34,6 +34,31 @@ export const defaultPolicy: VersioningPolicy = {
         return 'major'
       case 'signature-identical':
         return 'none'
+      // Extended categories
+      case 'field-deprecated':
+        // Adding deprecation is non-breaking, informational
+        return 'patch'
+      case 'field-undeprecated':
+        // Removing deprecation is non-breaking but notable
+        return 'minor'
+      case 'field-renamed':
+        // Renaming is breaking - consumers reference by name
+        return 'major'
+      case 'default-added':
+        // Adding a default value is informational
+        return 'patch'
+      case 'default-removed':
+        // Removing default value could affect consumers
+        return 'minor'
+      case 'default-changed':
+        // Changing default value is informational
+        return 'patch'
+      case 'optionality-loosened':
+        // Making required -> optional is non-breaking
+        return 'minor'
+      case 'optionality-tightened':
+        // Making optional -> required is breaking
+        return 'major'
     }
   },
 }
@@ -87,6 +112,31 @@ export const readOnlyPolicy: VersioningPolicy = {
         return 'major'
       case 'signature-identical':
         return 'none'
+      // Extended categories
+      case 'field-deprecated':
+        // Deprecation is informational, non-breaking
+        return 'patch'
+      case 'field-undeprecated':
+        // Un-deprecation is notable but non-breaking
+        return 'minor'
+      case 'field-renamed':
+        // Renaming is always breaking
+        return 'major'
+      case 'default-added':
+        // Adding a default value is informational
+        return 'patch'
+      case 'default-removed':
+        // For readers, losing a default is non-breaking (they still receive a value)
+        return 'minor'
+      case 'default-changed':
+        // Changing default value is informational
+        return 'patch'
+      case 'optionality-loosened':
+        // For readers, required -> optional means might receive undefined = breaking
+        return 'major'
+      case 'optionality-tightened':
+        // For readers, optional -> required means always receive value = non-breaking
+        return 'minor'
     }
   },
 }
@@ -140,6 +190,31 @@ export const writeOnlyPolicy: VersioningPolicy = {
         return 'major'
       case 'signature-identical':
         return 'none'
+      // Extended categories
+      case 'field-deprecated':
+        // Deprecation is informational, non-breaking
+        return 'patch'
+      case 'field-undeprecated':
+        // Un-deprecation is notable but non-breaking
+        return 'minor'
+      case 'field-renamed':
+        // Renaming is always breaking
+        return 'major'
+      case 'default-added':
+        // Adding a default value is informational
+        return 'patch'
+      case 'default-removed':
+        // For writers, losing a default is breaking (must now explicitly provide)
+        return 'major'
+      case 'default-changed':
+        // Changing default value is informational
+        return 'patch'
+      case 'optionality-loosened':
+        // For writers, required -> optional means can skip providing = non-breaking
+        return 'minor'
+      case 'optionality-tightened':
+        // For writers, optional -> required means must now provide = breaking
+        return 'major'
     }
   },
 }

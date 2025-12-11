@@ -478,6 +478,41 @@ if (report.releaseType === 'major') {
 
 ---
 
+## Change Category Classification by Policy
+
+The following table shows how each change category is classified by the three built-in policies:
+
+| Category                | Default | Read-Only | Write-Only | Notes                             |
+| ----------------------- | ------- | --------- | ---------- | --------------------------------- |
+| `symbol-removed`        | major   | major     | major      | Always breaking                   |
+| `symbol-added`          | minor   | minor     | minor      | Always non-breaking               |
+| `type-narrowed`         | major   | major     | minor      | Breaking for readers              |
+| `type-widened`          | minor   | minor     | major      | Breaking for writers              |
+| `param-added-required`  | major   | minor     | major      | Breaking for writers              |
+| `param-added-optional`  | minor   | minor     | minor      | Always non-breaking               |
+| `param-removed`         | major   | major     | minor      | Breaking for readers              |
+| `param-order-changed`   | major   | major     | major      | Semantic change - always breaking |
+| `return-type-changed`   | major   | major     | major      | Conservative                      |
+| `signature-identical`   | none    | none      | none       | No change                         |
+| `field-deprecated`      | patch   | patch     | patch      | Informational                     |
+| `field-undeprecated`    | minor   | minor     | minor      | Notable but non-breaking          |
+| `field-renamed`         | major   | major     | major      | Always breaking                   |
+| `default-added`         | patch   | patch     | patch      | Informational                     |
+| `default-removed`       | minor   | minor     | major      | Breaking for writers              |
+| `default-changed`       | patch   | patch     | patch      | Informational                     |
+| `optionality-loosened`  | minor   | major     | minor      | Breaking for readers              |
+| `optionality-tightened` | major   | minor     | major      | Breaking for writers              |
+
+### Key Insights
+
+- **`optionality-loosened`** (required → optional): For readers, this is breaking because they might receive `undefined`. For writers, this is non-breaking because they can still provide the value.
+
+- **`optionality-tightened`** (optional → required): For readers, this is non-breaking because they'll always receive a value. For writers, this is breaking because they must now provide the value.
+
+- **`default-removed`**: For writers, this is breaking because they must now explicitly provide a value that previously had a documented default.
+
+---
+
 ## Relationship to VERSIONING_POLICY.md
 
 - **VERSIONING_POLICY.md** documents the **default** versioning semantics and the rationale behind them

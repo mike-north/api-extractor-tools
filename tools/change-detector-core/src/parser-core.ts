@@ -1,5 +1,10 @@
 import type * as ts from 'typescript'
-import type { ExportedSymbol, SymbolKind } from './types'
+import type { ExportedSymbol, SymbolKind, SymbolMetadata } from './types'
+import {
+  extractTSDocMetadata,
+  toSymbolMetadata,
+  isTSDocComment,
+} from './tsdoc-utils'
 
 /**
  * Result of parsing a declaration file.
@@ -26,6 +31,78 @@ export interface ParseResultWithTypes extends ParseResult {
   checker: ts.TypeChecker
   /** Map of symbol name to TypeScript Symbol */
   typeSymbols: Map<string, ts.Symbol>
+}
+
+/**
+ * Extracts the leading TSDoc comment for a symbol's declaration.
+ *
+ * @param symbol - The TypeScript symbol
+ * @param sourceFile - The source file containing the symbol
+ * @param tsModule - The TypeScript module
+ * @returns The TSDoc comment text if found, undefined otherwise
+ */
+function getLeadingTSDocComment(
+  symbol: ts.Symbol,
+  sourceFile: ts.SourceFile,
+  tsModule: typeof ts,
+): string | undefined {
+  const declarations = symbol.getDeclarations()
+  if (!declarations || declarations.length === 0) {
+    return undefined
+  }
+
+  const decl = declarations[0]!
+  const fullText = sourceFile.getFullText()
+  const commentRanges = tsModule.getLeadingCommentRanges(
+    fullText,
+    decl.getFullStart(),
+  )
+
+  if (!commentRanges || commentRanges.length === 0) {
+    return undefined
+  }
+
+  // Get the last comment (closest to the declaration)
+  const lastComment = commentRanges[commentRanges.length - 1]
+  if (!lastComment) {
+    return undefined
+  }
+
+  const commentText = fullText.slice(lastComment.pos, lastComment.end)
+
+  // Only return if it's a TSDoc-style comment
+  if (isTSDocComment(commentText)) {
+    return commentText
+  }
+
+  return undefined
+}
+
+/**
+ * Extracts symbol metadata from TSDoc comments.
+ *
+ * @param symbol - The TypeScript symbol
+ * @param sourceFile - The source file containing the symbol
+ * @param tsModule - The TypeScript module
+ * @returns The extracted metadata, or undefined if none
+ */
+function extractSymbolMetadata(
+  symbol: ts.Symbol,
+  sourceFile: ts.SourceFile,
+  tsModule: typeof ts,
+): SymbolMetadata | undefined {
+  const commentText = getLeadingTSDocComment(symbol, sourceFile, tsModule)
+  if (!commentText) {
+    return undefined
+  }
+
+  try {
+    const tsdocMetadata = extractTSDocMetadata(commentText)
+    return toSymbolMetadata(tsdocMetadata)
+  } catch {
+    // If TSDoc parsing fails, just return undefined
+    return undefined
+  }
 }
 
 /**
@@ -861,12 +938,21 @@ export function parseDeclarationString(
       const name = exportSymbol.getName()
       const kind = getSymbolKind(resolvedSymbol, checker, tsModule)
       const signature = getSymbolSignature(resolvedSymbol, checker, tsModule)
+      const metadata = extractSymbolMetadata(
+        resolvedSymbol,
+        sourceFile,
+        tsModule,
+      )
 
-      symbols.set(name, {
+      const symbol: ExportedSymbol = {
         name,
         kind,
         signature,
-      })
+      }
+      if (metadata) {
+        symbol.metadata = metadata
+      }
+      symbols.set(name, symbol)
     } catch (error) {
       errors.push(
         `Error processing symbol ${exportSymbol.getName()}: ${
@@ -959,12 +1045,21 @@ export function parseDeclarationStringWithTypes(
       const name = exportSymbol.getName()
       const kind = getSymbolKind(resolvedSymbol, checker, tsModule)
       const signature = getSymbolSignature(resolvedSymbol, checker, tsModule)
+      const metadata = extractSymbolMetadata(
+        resolvedSymbol,
+        sourceFile,
+        tsModule,
+      )
 
-      symbols.set(name, {
+      const symbol: ExportedSymbol = {
         name,
         kind,
         signature,
-      })
+      }
+      if (metadata) {
+        symbol.metadata = metadata
+      }
+      symbols.set(name, symbol)
 
       typeSymbols.set(name, resolvedSymbol)
     } catch (error) {

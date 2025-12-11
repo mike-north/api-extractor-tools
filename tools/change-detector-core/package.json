@@ -26,6 +26,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
+    "@microsoft/tsdoc": "^0.16.0",
     "typescript": "5.8.3"
   },
   "devDependencies": {

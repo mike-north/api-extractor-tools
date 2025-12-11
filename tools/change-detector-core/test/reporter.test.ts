@@ -176,11 +176,11 @@ export declare function c(): void;`,
     it('includes complete statistics', () => {
       const report = compare(
         `export declare function a(): void;
-export declare function b(): void;
+export declare function b(x: number): void;
 export declare function c(): void;`,
         `export declare function a(): void;
 export declare function c(): string;
-export declare function d(): void;`,
+export declare function d(y: string): void;`,
       )
 
       const json = reportToJSON(report)
