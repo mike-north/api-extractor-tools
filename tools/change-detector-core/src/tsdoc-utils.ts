@@ -42,6 +42,14 @@ function getParser(): TSDocParser {
     })
     config.addTagDefinition(defaultTagDefinition)
 
+    // Add @enumType as a recognized block tag for open/closed enum semantics
+    const enumTypeTagDefinition = new TSDocTagDefinition({
+      tagName: '@enumType',
+      syntaxKind: TSDocTagSyntaxKind.BlockTag,
+      allowMultiple: false,
+    })
+    config.addTagDefinition(enumTypeTagDefinition)
+
     parserInstance = new TSDocParser(config)
   }
   return parserInstance
@@ -121,6 +129,30 @@ function extractDefaultValue(docComment: DocComment): string | undefined {
 }
 
 /**
+ * Extracts the value from an `@enumType` block tag.
+ * @returns 'open' | 'closed' | undefined if tag not present or invalid
+ */
+function extractEnumType(
+  docComment: DocComment,
+): 'open' | 'closed' | undefined {
+  for (const block of docComment.customBlocks) {
+    const tagName = block.blockTag.tagName.toLowerCase()
+    if (tagName === '@enumtype') {
+      const content = block.content
+      if (content && content.nodes && content.nodes.length > 0) {
+        const value = extractTextFromDocNodes(content.nodes)
+          .toLowerCase()
+          .trim()
+        if (value === 'open' || value === 'closed') {
+          return value
+        }
+      }
+    }
+  }
+  return undefined
+}
+
+/**
  * Metadata extracted from a TSDoc comment.
  *
  * @alpha
@@ -132,6 +164,8 @@ interface TSDocMetadata {
   deprecationMessage?: string
   /** The default value from @default or @defaultValue tag */
   defaultValue?: string
+  /** The enum type from `@enumType` tag ('open' or 'closed') */
+  enumType?: 'open' | 'closed'
 }
 
 /**
@@ -169,6 +203,12 @@ export function extractTSDocMetadata(commentText: string): TSDocMetadata {
     result.defaultValue = defaultValue
   }
 
+  // Check for @enumType
+  const enumType = extractEnumType(docComment)
+  if (enumType) {
+    result.enumType = enumType
+  }
+
   return result
 }
 
@@ -184,7 +224,9 @@ export function toSymbolMetadata(
   tsdocMetadata: TSDocMetadata,
 ): SymbolMetadata | undefined {
   const hasContent =
-    tsdocMetadata.isDeprecated || tsdocMetadata.defaultValue !== undefined
+    tsdocMetadata.isDeprecated ||
+    tsdocMetadata.defaultValue !== undefined ||
+    tsdocMetadata.enumType !== undefined
 
   if (!hasContent) {
     return undefined
@@ -201,6 +243,10 @@ export function toSymbolMetadata(
 
   if (tsdocMetadata.defaultValue !== undefined) {
     metadata.defaultValue = tsdocMetadata.defaultValue
+  }
+
+  if (tsdocMetadata.enumType !== undefined) {
+    metadata.enumType = tsdocMetadata.enumType
   }
 
   return metadata

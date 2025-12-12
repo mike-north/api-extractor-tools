@@ -259,6 +259,8 @@ export function compareDeclarations(
     oldParsed.symbols.size,
     newParsed.symbols.size,
     policy,
+    oldParsed.symbols,
+    newParsed.symbols,
   )
 
   return {

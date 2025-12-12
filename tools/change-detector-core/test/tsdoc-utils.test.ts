@@ -107,5 +107,64 @@ describe('tsdoc-utils', () => {
         expect(result.isDeprecated).toBe(false)
       })
     })
+
+    describe('@enumType tag', () => {
+      it('extracts @enumType open', () => {
+        const result = extractTSDocMetadata('/** @enumType open */')
+        expect(result.enumType).toBe('open')
+      })
+
+      it('extracts @enumType closed', () => {
+        const result = extractTSDocMetadata('/** @enumType closed */')
+        expect(result.enumType).toBe('closed')
+      })
+
+      it('handles case-insensitive values', () => {
+        expect(extractTSDocMetadata('/** @enumType OPEN */').enumType).toBe(
+          'open',
+        )
+        expect(extractTSDocMetadata('/** @enumType Closed */').enumType).toBe(
+          'closed',
+        )
+        expect(extractTSDocMetadata('/** @enumType CLOSED */').enumType).toBe(
+          'closed',
+        )
+      })
+
+      it('returns undefined for invalid values', () => {
+        const result = extractTSDocMetadata('/** @enumType invalid */')
+        expect(result.enumType).toBeUndefined()
+      })
+
+      it('returns undefined for missing value', () => {
+        const result = extractTSDocMetadata('/** @enumType */')
+        expect(result.enumType).toBeUndefined()
+      })
+
+      it('returns undefined when no @enumType tag', () => {
+        const result = extractTSDocMetadata('/** Just a description */')
+        expect(result.enumType).toBeUndefined()
+      })
+
+      it('extracts @enumType from multi-line comment', () => {
+        const result = extractTSDocMetadata(`/**
+ * An enum with open semantics.
+ * @enumType open
+ * @public
+ */`)
+        expect(result.enumType).toBe('open')
+      })
+
+      it('combines @enumType with other metadata', () => {
+        const result = extractTSDocMetadata(`/**
+ * A deprecated enum.
+ * @deprecated Use NewStatus instead
+ * @enumType closed
+ */`)
+        expect(result.isDeprecated).toBe(true)
+        expect(result.deprecationMessage).toBe('Use NewStatus instead')
+        expect(result.enumType).toBe('closed')
+      })
+    })
   })
 })

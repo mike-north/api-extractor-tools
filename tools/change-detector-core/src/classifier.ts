@@ -2,7 +2,9 @@ import type {
   AnalyzedChange,
   Change,
   ChangesByImpact,
+  ClassifyContext,
   ComparisonStats,
+  ExportedSymbol,
   ReleaseType,
   VersioningPolicy,
 } from './types'
@@ -27,6 +29,8 @@ export interface ClassificationResult {
  *
  * @param changes - The raw analyzed changes
  * @param policy - The versioning policy to apply
+ * @param oldSymbols - Map of old symbol names to their ExportedSymbol (for context)
+ * @param newSymbols - Map of new symbol names to their ExportedSymbol (for context)
  * @returns Changes with release type information
  *
  * @alpha
@@ -34,11 +38,23 @@ export interface ClassificationResult {
 export function applyPolicy(
   changes: AnalyzedChange[],
   policy: VersioningPolicy,
+  oldSymbols: Map<string, ExportedSymbol> = new Map(),
+  newSymbols: Map<string, ExportedSymbol> = new Map(),
 ): Change[] {
-  return changes.map((change) => ({
-    ...change,
-    releaseType: policy.classify(change),
-  }))
+  return changes.map((change) => {
+    const oldSymbol = oldSymbols.get(change.symbolName)
+    const newSymbol = newSymbols.get(change.symbolName)
+
+    const context: ClassifyContext = {
+      oldMetadata: oldSymbol?.metadata,
+      newMetadata: newSymbol?.metadata,
+    }
+
+    return {
+      ...change,
+      releaseType: policy.classify(change, context),
+    }
+  })
 }
 
 /**
@@ -154,6 +170,13 @@ function computeStats(
 /**
  * Classifies a set of changes and computes the overall release type.
  *
+ * @param changes - The analyzed changes to classify
+ * @param totalSymbolsOld - Total symbol count in old version
+ * @param totalSymbolsNew - Total symbol count in new version
+ * @param policy - The versioning policy to apply (defaults to defaultPolicy)
+ * @param oldSymbols - Map of old symbol names to their ExportedSymbol (for context)
+ * @param newSymbols - Map of new symbol names to their ExportedSymbol (for context)
+ *
  * @alpha
  */
 export function classifyChanges(
@@ -161,8 +184,15 @@ export function classifyChanges(
   totalSymbolsOld: number,
   totalSymbolsNew: number,
   policy: VersioningPolicy = defaultPolicy,
+  oldSymbols?: Map<string, ExportedSymbol>,
+  newSymbols?: Map<string, ExportedSymbol>,
 ): ClassificationResult {
-  const classifiedChanges = applyPolicy(changes, policy)
+  const classifiedChanges = applyPolicy(
+    changes,
+    policy,
+    oldSymbols ?? new Map<string, ExportedSymbol>(),
+    newSymbols ?? new Map<string, ExportedSymbol>(),
+  )
   const releaseType = determineOverallReleaseType(classifiedChanges)
   const changesByImpact = groupChangesByImpact(classifiedChanges)
   const stats = computeStats(

@@ -367,4 +367,118 @@ export declare function setStatus(s: Status): void;`,
       expect(report.releaseType).toBe('none')
     })
   })
+
+  describe('enum-member-added category detection', () => {
+    it('detects adding enum member with enum-member-added category', () => {
+      const report = compare(
+        `export declare enum Status {
+  Active = 0,
+  Inactive = 1
+}`,
+        `export declare enum Status {
+  Active = 0,
+  Inactive = 1,
+  Pending = 2
+}`,
+      )
+
+      // Check that enum-member-added is used
+      const enumChange = report.changes.breaking.find(
+        (c) => c.symbolName === 'Status',
+      )
+      expect(enumChange).toBeDefined()
+      expect(enumChange?.category).toBe('enum-member-added')
+      expect(enumChange?.explanation).toContain("'Pending'")
+    })
+
+    it('detects adding multiple enum members', () => {
+      const report = compare(
+        `export declare enum Status {
+  Active = 0
+}`,
+        `export declare enum Status {
+  Active = 0,
+  Inactive = 1,
+  Pending = 2
+}`,
+      )
+
+      const enumChange = report.changes.breaking.find(
+        (c) => c.symbolName === 'Status',
+      )
+      expect(enumChange).toBeDefined()
+      expect(enumChange?.category).toBe('enum-member-added')
+      expect(enumChange?.explanation).toContain("'Inactive'")
+      expect(enumChange?.explanation).toContain("'Pending'")
+    })
+
+    it('uses type-narrowed when removing member (not enum-member-added)', () => {
+      const report = compare(
+        `export declare enum Status {
+  Active = 0,
+  Inactive = 1,
+  Pending = 2
+}`,
+        `export declare enum Status {
+  Active = 0,
+  Inactive = 1
+}`,
+      )
+
+      const enumChange = report.changes.breaking.find(
+        (c) => c.symbolName === 'Status',
+      )
+      expect(enumChange).toBeDefined()
+      expect(enumChange?.category).toBe('type-narrowed')
+    })
+
+    it('uses type-narrowed when both adding AND removing members', () => {
+      const report = compare(
+        `export declare enum Status {
+  Active = 0,
+  Inactive = 1
+}`,
+        `export declare enum Status {
+  Active = 0,
+  Pending = 2
+}`,
+      )
+
+      const enumChange = report.changes.breaking.find(
+        (c) => c.symbolName === 'Status',
+      )
+      expect(enumChange).toBeDefined()
+      // Should not be enum-member-added since members were removed
+      expect(enumChange?.category).toBe('type-narrowed')
+    })
+  })
+
+  describe('string literal union expansion detection', () => {
+    it('detects adding literal to union with enum-member-added category', () => {
+      const report = compare(
+        `export type Status = 'active' | 'inactive';`,
+        `export type Status = 'active' | 'inactive' | 'pending';`,
+      )
+
+      const typeChange = report.changes.breaking.find(
+        (c) => c.symbolName === 'Status',
+      )
+      expect(typeChange).toBeDefined()
+      expect(typeChange?.category).toBe('enum-member-added')
+      expect(typeChange?.explanation).toContain("'pending'")
+    })
+
+    it('uses type-narrowed when removing literal from union', () => {
+      const report = compare(
+        `export type Status = 'active' | 'inactive' | 'pending';`,
+        `export type Status = 'active' | 'inactive';`,
+      )
+
+      const typeChange = report.changes.breaking.find(
+        (c) => c.symbolName === 'Status',
+      )
+      expect(typeChange).toBeDefined()
+      expect(typeChange?.category).toBe('type-narrowed')
+    })
+  })
 })
