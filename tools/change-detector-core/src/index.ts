@@ -60,6 +60,7 @@ export {
   createInMemoryCompilerHost,
   createNodeLibResolver,
   createBundledLibResolver,
+  getSourceLocation,
   type ParseResult,
   type ParseResultWithTypes,
   type LibFileResolver,

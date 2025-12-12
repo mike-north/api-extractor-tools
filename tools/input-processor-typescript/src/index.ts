@@ -14,6 +14,7 @@ import type {
   InputProcessor,
   InputProcessorPlugin,
   ProcessResult,
+  SourceLocation,
 } from '@api-extractor-tools/change-detector-core'
 import { parseDeclarationString } from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
@@ -65,13 +66,30 @@ export class TypeScriptProcessor implements InputProcessor {
    *
    * @param content - TypeScript declaration file content
    * @param filename - Optional filename for context (defaults to 'input.d.ts')
-   * @returns Process result with symbols and any errors
+   * @returns Process result with symbols, errors, and source mapping
    */
   process(content: string, filename: string = 'input.d.ts'): ProcessResult {
     const result = parseDeclarationString(content, this.tsModule, filename)
+
+    // Build source mapping from symbols that have source locations
+    const symbolLocations = new Map<string, SourceLocation>()
+
+    for (const [name, symbol] of result.symbols.entries()) {
+      if (symbol.sourceLocation) {
+        symbolLocations.set(name, symbol.sourceLocation)
+      }
+    }
+
     return {
       symbols: result.symbols,
       errors: result.errors,
+      sourceMapping:
+        symbolLocations.size > 0
+          ? {
+              symbolLocations,
+              sourceFile: filename,
+            }
+          : undefined,
     }
   }
 }

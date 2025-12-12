@@ -1,5 +1,10 @@
 import type * as ts from 'typescript'
-import type { ExportedSymbol, SymbolKind, SymbolMetadata } from './types'
+import type {
+  ExportedSymbol,
+  SourceLocation,
+  SymbolKind,
+  SymbolMetadata,
+} from './types'
 import {
   extractTSDocMetadata,
   toSymbolMetadata,
@@ -139,6 +144,8 @@ export interface ParseResult {
   symbols: Map<string, ExportedSymbol>
   /** Any errors encountered during parsing */
   errors: string[]
+  /** The source file (useful for extracting source locations) */
+  sourceFile?: ts.SourceFile
 }
 
 /**
@@ -225,6 +232,36 @@ function extractSymbolMetadata(
   } catch {
     // If TSDoc parsing fails, just return undefined
     return undefined
+  }
+}
+
+/**
+ * Extracts source location from a TypeScript symbol's declaration.
+ *
+ * @param symbol - The TypeScript symbol
+ * @param sourceFile - The source file containing the symbol
+ * @returns The source location, or undefined if unavailable
+ *
+ * @alpha
+ */
+export function getSourceLocation(
+  symbol: ts.Symbol,
+  sourceFile: ts.SourceFile,
+): SourceLocation | undefined {
+  const declarations = symbol.getDeclarations()
+  if (!declarations || declarations.length === 0) {
+    return undefined
+  }
+
+  const decl = declarations[0]!
+  const start = sourceFile.getLineAndCharacterOfPosition(decl.getStart())
+  const end = sourceFile.getLineAndCharacterOfPosition(decl.getEnd())
+
+  return {
+    line: start.line + 1, // Convert 0-based to 1-based
+    column: start.character, // Keep 0-based for LSP
+    endLine: end.line + 1,
+    endColumn: end.character,
   }
 }
 
@@ -1139,6 +1176,7 @@ export function parseDeclarationString(
         sourceFile,
         tsModule,
       )
+      const sourceLocation = getSourceLocation(resolvedSymbol, sourceFile)
 
       const symbol: ExportedSymbol = {
         name,
@@ -1147,6 +1185,9 @@ export function parseDeclarationString(
       }
       if (metadata) {
         symbol.metadata = metadata
+      }
+      if (sourceLocation) {
+        symbol.sourceLocation = sourceLocation
       }
       symbols.set(name, symbol)
     } catch (error) {
@@ -1158,7 +1199,7 @@ export function parseDeclarationString(
     }
   }
 
-  return { symbols, errors }
+  return { symbols, errors, sourceFile }
 }
 
 /**
@@ -1247,6 +1288,7 @@ export function parseDeclarationStringWithTypes(
         sourceFile,
         tsModule,
       )
+      const sourceLocation = getSourceLocation(resolvedSymbol, sourceFile)
 
       const symbol: ExportedSymbol = {
         name,
@@ -1255,6 +1297,9 @@ export function parseDeclarationStringWithTypes(
       }
       if (metadata) {
         symbol.metadata = metadata
+      }
+      if (sourceLocation) {
+        symbol.sourceLocation = sourceLocation
       }
       symbols.set(name, symbol)
 
