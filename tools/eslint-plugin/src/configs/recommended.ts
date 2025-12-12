@@ -24,6 +24,7 @@ export const recommendedRules: TSESLint.Linter.RulesRecord = {
   '@api-extractor-tools/extra-release-tag': 'error',
   '@api-extractor-tools/public-on-private-member': 'error',
   '@api-extractor-tools/public-on-non-exported': 'error',
+  '@api-extractor-tools/valid-enum-type': 'warn',
 }
 
 /**

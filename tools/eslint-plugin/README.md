@@ -39,6 +39,7 @@ export default [
       '@api-extractor-tools/extra-release-tag': 'error',
       '@api-extractor-tools/public-on-private-member': 'error',
       '@api-extractor-tools/public-on-non-exported': 'error',
+      '@api-extractor-tools/valid-enum-type': 'warn',
     },
   },
 ]
@@ -67,6 +68,7 @@ module.exports = {
     '@api-extractor-tools/extra-release-tag': 'error',
     '@api-extractor-tools/public-on-private-member': 'error',
     '@api-extractor-tools/public-on-non-exported': 'error',
+    '@api-extractor-tools/valid-enum-type': 'warn',
   },
 }
 ```
@@ -373,6 +375,70 @@ export { myFunction }
 }
 ```
 
+### `@api-extractor-tools/valid-enum-type`
+
+Validates the usage of the `@enumType` TSDoc tag on enum declarations and string literal union type aliases.
+
+The `@enumType` tag specifies whether an enum is "open" (new members may be added) or "closed" (the set of members is fixed). This is used by the change detector to properly classify API changes.
+
+```ts
+// ❌ Bad - missing value
+/**
+ * @enumType
+ */
+export enum Status {
+  Active,
+  Inactive,
+}
+
+// ❌ Bad - invalid value
+/**
+ * @enumType invalid
+ */
+export enum Status {
+  Active,
+  Inactive,
+}
+
+// ❌ Bad - @enumType on invalid construct
+/**
+ * @enumType open
+ */
+export function myFunction(): void {}
+
+// ✅ Good - open enum
+/**
+ * Status values for a resource.
+ * @enumType open
+ * @public
+ */
+export enum Status {
+  Active = 'active',
+  Inactive = 'inactive',
+}
+
+// ✅ Good - closed string literal union
+/**
+ * Supported formats.
+ * @enumType closed
+ * @public
+ */
+export type Format = 'json' | 'xml'
+```
+
+**Options:**
+
+- `requireOnExported` (optional): When `true`, requires all exported enums and string literal unions to have an `@enumType` tag. Default: `false`
+
+```json
+{
+  "@api-extractor-tools/valid-enum-type": [
+    "warn",
+    { "requireOnExported": true }
+  ]
+}
+```
+
 ## Configuration Discovery
 
 Rules that read from `api-extractor.json` use the following strategy:
@@ -395,6 +461,7 @@ The `recommended` configuration enables all rules with these defaults:
 | `extra-release-tag`         | error    |
 | `public-on-private-member`  | error    |
 | `public-on-non-exported`    | error    |
+| `valid-enum-type`           | warn     |
 
 ## Requirements
 
