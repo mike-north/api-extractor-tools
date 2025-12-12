@@ -1040,7 +1040,10 @@ export function compareDeclarationResults(
     }
 
     // Check for @enumType tag changes (only on enums and string literal union types)
-    if (oldSymbol.kind === 'enum' || oldSymbol.kind === 'type') {
+    if (
+      (oldSymbol.kind === 'enum' || oldSymbol.kind === 'type') &&
+      (newSymbol.kind === 'enum' || newSymbol.kind === 'type')
+    ) {
       const enumTypeChange = detectEnumTypeChange(
         oldSymbol.metadata,
         newSymbol.metadata,
