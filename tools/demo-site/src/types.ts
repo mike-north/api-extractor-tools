@@ -150,4 +150,7 @@ export const DEFAULT_CUSTOM_POLICY_DATA: CustomPolicyData = {
   'default-changed': 'patch',
   'optionality-loosened': 'major',
   'optionality-tightened': 'major',
+  'enum-member-added': 'major',
+  'enum-type-opened': 'minor',
+  'enum-type-closed': 'major',
 }

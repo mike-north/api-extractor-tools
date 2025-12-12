@@ -4,6 +4,7 @@ import {
   extractReleaseTag,
   hasOverrideTag,
   hasPackageDocumentation,
+  extractEnumType,
 } from '../../src/utils/tsdoc-parser'
 
 describe('tsdoc-parser', () => {
@@ -108,6 +109,113 @@ describe('tsdoc-parser', () => {
  */`
       const result = parseTSDocComment(comment)
       expect(hasPackageDocumentation(result.docComment!)).toBe(false)
+    })
+  })
+
+  describe('extractEnumType', () => {
+    it('should extract @enumType open', () => {
+      const comment = `/**
+ * @enumType open
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.count).toBe(1)
+      expect(result.value).toBe('open')
+      expect(result.isValid).toBe(true)
+      expect(result.rawValue).toBe('open')
+    })
+
+    it('should extract @enumType closed', () => {
+      const comment = `/**
+ * @enumType closed
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.count).toBe(1)
+      expect(result.value).toBe('closed')
+      expect(result.isValid).toBe(true)
+    })
+
+    it('should handle case-insensitive values (Open)', () => {
+      const comment = `/**
+ * @enumType Open
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.value).toBe('open')
+      expect(result.isValid).toBe(true)
+      expect(result.rawValue).toBe('Open')
+    })
+
+    it('should handle case-insensitive values (CLOSED)', () => {
+      const comment = `/**
+ * @enumType CLOSED
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.value).toBe('closed')
+      expect(result.isValid).toBe(true)
+      expect(result.rawValue).toBe('CLOSED')
+    })
+
+    it('should detect invalid value', () => {
+      const comment = `/**
+ * @enumType foo
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.count).toBe(1)
+      expect(result.value).toBe('foo')
+      expect(result.isValid).toBe(false)
+      expect(result.rawValue).toBe('foo')
+    })
+
+    it('should detect missing value', () => {
+      const comment = `/**
+ * @enumType
+ * @public
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.count).toBe(1)
+      expect(result.rawValue).toBeUndefined()
+      expect(result.isValid).toBe(false)
+    })
+
+    it('should detect multiple @enumType tags', () => {
+      const comment = `/**
+ * @enumType open
+ * @enumType closed
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.count).toBe(2)
+      // First value is captured
+      expect(result.value).toBe('open')
+    })
+
+    it('should return not found when no @enumType tag', () => {
+      const comment = `/**
+ * Just a comment.
+ * @public
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(false)
+      expect(result.count).toBe(0)
+      expect(result.value).toBeUndefined()
+      expect(result.isValid).toBe(false)
+    })
+
+    it('should handle @enumType with other tags', () => {
+      const comment = `/**
+ * Description of the enum.
+ * @enumType open
+ * @public
+ */`
+      const result = extractEnumType(comment)
+      expect(result.found).toBe(true)
+      expect(result.value).toBe('open')
+      expect(result.isValid).toBe(true)
     })
   })
 })

@@ -60,6 +60,18 @@ export const defaultPolicy: VersioningPolicy = {
       case 'optionality-tightened':
         // Making optional -> required is breaking
         return 'major'
+      // Enum-related categories
+      case 'enum-member-added':
+        // Adding enum members: depends on open/closed status
+        // Default behavior treats as major (closed enum semantics)
+        // Policies with context can override based on enumType metadata
+        return 'major'
+      case 'enum-type-opened':
+        // Changing from closed to open is non-breaking (more permissive)
+        return 'minor'
+      case 'enum-type-closed':
+        // Changing from open to closed is breaking (consumers may have unknown values)
+        return 'major'
     }
   },
 }
@@ -138,6 +150,17 @@ export const readOnlyPolicy: VersioningPolicy = {
       case 'optionality-tightened':
         // For readers, optional -> required means always receive value = non-breaking
         return 'minor'
+      // Enum-related categories
+      case 'enum-member-added':
+        // For readers, new enum members means new values to handle
+        // Default: major (closed enum semantics)
+        return 'major'
+      case 'enum-type-opened':
+        // Changing from closed to open is non-breaking (more permissive)
+        return 'minor'
+      case 'enum-type-closed':
+        // Changing from open to closed is breaking (consumers may have unknown values)
+        return 'major'
     }
   },
 }
@@ -215,6 +238,16 @@ export const writeOnlyPolicy: VersioningPolicy = {
         return 'minor'
       case 'optionality-tightened':
         // For writers, optional -> required means must now provide = breaking
+        return 'major'
+      // Enum-related categories
+      case 'enum-member-added':
+        // For writers, new enum members means more options to provide = non-breaking
+        return 'minor'
+      case 'enum-type-opened':
+        // Changing from closed to open is non-breaking (more permissive)
+        return 'minor'
+      case 'enum-type-closed':
+        // Changing from open to closed is breaking for writers (fewer valid values)
         return 'major'
     }
   },

@@ -232,6 +232,149 @@ function detectDefaultChange(
 }
 
 /**
+ * Detects `@enumType` tag changes between old and new symbol metadata.
+ *
+ * @returns The change category if enumType changed, null otherwise
+ */
+function detectEnumTypeChange(
+  oldMetadata: SymbolMetadata | undefined,
+  newMetadata: SymbolMetadata | undefined,
+): 'enum-type-opened' | 'enum-type-closed' | null {
+  // Default to 'closed' if no @enumType tag is present
+  const oldEnumType = oldMetadata?.enumType ?? 'closed'
+  const newEnumType = newMetadata?.enumType ?? 'closed'
+
+  if (oldEnumType === 'closed' && newEnumType === 'open') {
+    return 'enum-type-opened'
+  }
+  if (oldEnumType === 'open' && newEnumType === 'closed') {
+    return 'enum-type-closed'
+  }
+  return null
+}
+
+/**
+ * Extracts string literal members from a union type.
+ *
+ * @returns Array of string literal values, or null if not a string literal union
+ */
+function extractStringLiteralMembers(
+  type: ts.Type,
+  _checker: ts.TypeChecker,
+  _tsModule: typeof ts,
+): string[] | null {
+  // Check if it's a union type
+  if (!type.isUnion()) {
+    // Check if it's a single string literal type
+    if (type.isStringLiteral()) {
+      return [type.value]
+    }
+    return null
+  }
+
+  const members: string[] = []
+  for (const member of type.types) {
+    if (member.isStringLiteral()) {
+      members.push(member.value)
+    } else {
+      // Not a pure string literal union
+      return null
+    }
+  }
+
+  return members
+}
+
+/**
+ * Extracts enum member names from an enum type.
+ *
+ * @returns Array of enum member names, or null if not an enum
+ */
+function extractEnumMembers(
+  type: ts.Type,
+  checker: ts.TypeChecker,
+  tsModule: typeof ts,
+): string[] | null {
+  // Get the symbol of the type (the enum itself)
+  const typeSymbol = type.getSymbol()
+  if (!typeSymbol) {
+    return null
+  }
+
+  // Check if this is an enum symbol
+  if (!(typeSymbol.flags & tsModule.SymbolFlags.Enum)) {
+    return null
+  }
+
+  // Get the enum's exports which are its members
+  const exports = typeSymbol.exports
+  if (!exports) {
+    return []
+  }
+
+  const members: string[] = []
+  exports.forEach((memberSymbol, memberName) => {
+    if (memberSymbol.flags & tsModule.SymbolFlags.EnumMember) {
+      members.push(memberName.toString())
+    }
+  })
+
+  return members
+}
+
+/**
+ * Result of analyzing enum/union expansion.
+ */
+interface EnumExpansionAnalysis {
+  /** Members that were added */
+  added: string[]
+  /** Members that were removed */
+  removed: string[]
+}
+
+/**
+ * Detects if an enum or string literal union has been expanded or contracted.
+ *
+ * @returns Analysis of added/removed members, or null if not applicable
+ */
+function detectEnumExpansion(
+  oldType: ts.Type,
+  newType: ts.Type,
+  oldChecker: ts.TypeChecker,
+  newChecker: ts.TypeChecker,
+  tsModule: typeof ts,
+  symbolKind: SymbolKind,
+): EnumExpansionAnalysis | null {
+  let oldMembers: string[] | null = null
+  let newMembers: string[] | null = null
+
+  if (symbolKind === 'enum') {
+    oldMembers = extractEnumMembers(oldType, oldChecker, tsModule)
+    newMembers = extractEnumMembers(newType, newChecker, tsModule)
+  } else if (symbolKind === 'type') {
+    // Check if it's a string literal union
+    oldMembers = extractStringLiteralMembers(oldType, oldChecker, tsModule)
+    newMembers = extractStringLiteralMembers(newType, newChecker, tsModule)
+  }
+
+  if (!oldMembers || !newMembers) {
+    return null
+  }
+
+  const oldSet = new Set(oldMembers)
+  const newSet = new Set(newMembers)
+
+  const added = newMembers.filter((m) => !oldSet.has(m))
+  const removed = oldMembers.filter((m) => !newSet.has(m))
+
+  if (added.length === 0 && removed.length === 0) {
+    return null // No changes
+  }
+
+  return { added, removed }
+}
+
+/**
  * Refines a type-widened or type-narrowed category to a more specific optionality category
  * when the change is purely about optional vs required.
  *
@@ -640,6 +783,8 @@ interface ExplanationContext {
   oldDefaultValue?: string
   /** New default value for default changes */
   newDefaultValue?: string
+  /** Enum/union expansion analysis */
+  enumExpansion?: EnumExpansionAnalysis
 }
 
 /**
@@ -736,6 +881,19 @@ function generateExplanation(
         `${symbolKind} '${symbolName}' became required (was optional)` +
         signatureDetail
       )
+    // Enum-related categories
+    case 'enum-member-added':
+      if (context?.enumExpansion?.added.length) {
+        const addedList = context.enumExpansion.added
+          .map((m) => `'${m}'`)
+          .join(', ')
+        return `Added member(s) ${addedList} to ${symbolKind} '${symbolName}'`
+      }
+      return `Added member(s) to ${symbolKind} '${symbolName}'${signatureDetail}`
+    case 'enum-type-opened':
+      return `${symbolKind} '${symbolName}' changed from closed to open (new members non-breaking)`
+    case 'enum-type-closed':
+      return `${symbolKind} '${symbolName}' changed from open to closed (new members now breaking)`
   }
 }
 
@@ -881,6 +1039,33 @@ export function compareDeclarationResults(
       })
     }
 
+    // Check for @enumType tag changes (only on enums and string literal union types)
+    if (
+      (oldSymbol.kind === 'enum' || oldSymbol.kind === 'type') &&
+      (newSymbol.kind === 'enum' || newSymbol.kind === 'type')
+    ) {
+      const enumTypeChange = detectEnumTypeChange(
+        oldSymbol.metadata,
+        newSymbol.metadata,
+      )
+      if (enumTypeChange) {
+        changes.push({
+          symbolName: name,
+          symbolKind: newSymbol.kind,
+          category: enumTypeChange,
+          explanation: generateExplanation(
+            name,
+            newSymbol.kind,
+            enumTypeChange,
+            oldSymbol.signature,
+            newSymbol.signature,
+          ),
+          before: oldSymbol.signature,
+          after: newSymbol.signature,
+        })
+      }
+    }
+
     const oldTypeSym = oldTypeSymbols.get(name)
     const newTypeSym = newTypeSymbols.get(name)
 
@@ -971,6 +1156,30 @@ export function compareDeclarationResults(
 
     let category = typeAnalysis.category
     const parameterAnalysis = typeAnalysis.parameterAnalysis
+    let enumExpansion: EnumExpansionAnalysis | undefined
+
+    // Check for enum/union member expansion
+    // We check this regardless of current category because enum expansion might be
+    // detected as type-narrowed or type-widened depending on the type analysis
+    if (oldSymbol.kind === 'enum' || oldSymbol.kind === 'type') {
+      const expansion = detectEnumExpansion(
+        oldType,
+        newType,
+        oldParsed.checker,
+        newParsed.checker,
+        tsModule,
+        oldSymbol.kind,
+      )
+      // Only use enum-member-added if members were added and none removed
+      if (
+        expansion &&
+        expansion.added.length > 0 &&
+        expansion.removed.length === 0
+      ) {
+        category = 'enum-member-added'
+        enumExpansion = expansion
+      }
+    }
 
     // Refine type-widened/type-narrowed to optionality-specific categories
     if (category === 'type-widened' || category === 'type-narrowed') {
@@ -991,7 +1200,7 @@ export function compareDeclarationResults(
         category,
         oldSymbol.signature,
         newSymbol.signature,
-        { parameterAnalysis },
+        { parameterAnalysis, enumExpansion },
       ),
       before: oldSymbol.signature,
       after: newSymbol.signature,

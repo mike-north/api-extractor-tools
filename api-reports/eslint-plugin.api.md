@@ -64,6 +64,21 @@ export interface ApiExtractorMessagesConfig {
 }
 
 // @alpha
+export interface EnumTypeExtraction {
+    count: number;
+    found: boolean;
+    isValid: boolean;
+    rawValue?: string;
+    value?: string;
+}
+
+// @alpha
+export type EnumTypeValue = 'open' | 'closed';
+
+// @alpha
+export function extractEnumType(commentText: string): EnumTypeExtraction;
+
+// @alpha
 export function extractReleaseTag(docComment: DocComment): ReleaseTag | undefined;
 
 // @alpha
@@ -165,6 +180,12 @@ export const rules: {
     readonly 'extra-release-tag': RuleModule<"extraReleaseTag", [ExtraReleaseTagRuleOptions], unknown, RuleListener>;
     readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>;
     readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>;
+    readonly 'valid-enum-type': RuleModule<"missingValue" | "invalidValue" | "multipleEnumTypes" | "invalidConstruct" | "missingEnumType", [ValidEnumTypeRuleOptions], unknown, RuleListener>;
 };
+
+// @alpha
+export interface ValidEnumTypeRuleOptions {
+    requireOnExported?: boolean;
+}
 
 ```

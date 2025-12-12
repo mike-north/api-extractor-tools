@@ -41,6 +41,7 @@ export type {
   ExportedSymbol,
   Change,
   AnalyzedChange,
+  ClassifyContext,
   VersioningPolicy,
   ChangeDetails,
   ChangesByImpact,
@@ -258,6 +259,8 @@ export function compareDeclarations(
     oldParsed.symbols.size,
     newParsed.symbols.size,
     policy,
+    oldParsed.symbols,
+    newParsed.symbols,
   )
 
   return {
