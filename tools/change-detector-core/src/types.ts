@@ -242,27 +242,3 @@ export interface ComparisonReport {
   /** Identifier for the new declaration source (file path or label) */
   newFile: string
 }
-
-/**
- * Options for comparing declarations from string content.
- *
- * @alpha
- */
-export interface CompareStringOptions {
-  /** Content of the old (baseline) declaration */
-  oldContent: string
-  /** Content of the new declaration to compare against */
-  newContent: string
-  /** Optional filename for the old content (defaults to 'old.d.ts') */
-  oldFilename?: string
-  /** Optional filename for the new content (defaults to 'new.d.ts') */
-  newFilename?: string
-  /** Optional versioning policy to use (defaults to standard semantic versioning) */
-  policy?: VersioningPolicy
-  /**
-   * Optional resolver for TypeScript lib files.
-   * Use `createNodeLibResolver(ts)` for Node.js environments.
-   * If not provided, built-in types like string, Array won't resolve.
-   */
-  libFileResolver?: (fileName: string) => string | undefined
-}

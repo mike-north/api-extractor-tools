@@ -4,8 +4,11 @@
  */
 
 export {
-  formatReportAsText,
-  formatReportAsMarkdown,
-  reportToJSON,
-  type ComparisonReportJSON,
+  createASTComparisonReport,
+  formatSourceLocation,
+  formatASTReportAsText,
+  formatASTReportAsMarkdown,
+  formatASTReportAsJSON,
+  type ASTReporterOptions,
+  type ASTChangeJSON,
 } from '@api-extractor-tools/change-detector-core'

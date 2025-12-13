@@ -1,13 +1,22 @@
-import * as ts from 'typescript'
 import {
-  compareDeclarationResults,
-  type CompareResult,
-  type ParseResultWithTypes,
+  diffModules,
+  type ModuleAnalysisWithTypes,
+  type ApiChange,
+  type DiffOptions,
 } from '@api-extractor-tools/change-detector-core'
-import { parseDeclarationFileWithTypes } from './parser'
+import { parseDeclarationFile } from './parser'
 
-// Re-export types from core
-export type { CompareResult }
+/**
+ * Result of comparing two parsed declaration files.
+ *
+ * @alpha
+ */
+export interface CompareResult {
+  /** All detected API changes */
+  changes: ApiChange[]
+  /** Any errors from parsing */
+  errors: string[]
+}
 
 /**
  * Compares two parsed declaration files and detects all changes.
@@ -15,10 +24,13 @@ export type { CompareResult }
  * @alpha
  */
 export function compareDeclarationFiles(
-  oldParsed: ParseResultWithTypes,
-  newParsed: ParseResultWithTypes,
+  oldParsed: ModuleAnalysisWithTypes,
+  newParsed: ModuleAnalysisWithTypes,
+  options?: DiffOptions,
 ): CompareResult {
-  return compareDeclarationResults(oldParsed, newParsed, ts)
+  const changes = diffModules(oldParsed, newParsed, options)
+  const errors = [...oldParsed.errors, ...newParsed.errors]
+  return { changes, errors }
 }
 
 /**
@@ -29,9 +41,10 @@ export function compareDeclarationFiles(
 export function compareFiles(
   oldFilePath: string,
   newFilePath: string,
+  options?: DiffOptions,
 ): CompareResult {
-  const oldParsed = parseDeclarationFileWithTypes(oldFilePath)
-  const newParsed = parseDeclarationFileWithTypes(newFilePath)
+  const oldParsed = parseDeclarationFile(oldFilePath)
+  const newParsed = parseDeclarationFile(newFilePath)
 
-  return compareDeclarationResults(oldParsed, newParsed, ts)
+  return compareDeclarationFiles(oldParsed, newParsed, options)
 }

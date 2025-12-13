@@ -108,6 +108,70 @@ describe('tsdoc-utils', () => {
       })
     })
 
+    describe('malformed comments', () => {
+      it('handles comment without closing */', () => {
+        // Should not crash, may return empty metadata
+        const result = extractTSDocMetadata('/** @deprecated')
+        expect(result).toBeDefined()
+      })
+
+      it('handles comment with only opening /**', () => {
+        const result = extractTSDocMetadata('/**')
+        expect(result).toBeDefined()
+        expect(result.isDeprecated).toBe(false)
+      })
+
+      it('handles random text (not a comment)', () => {
+        const result = extractTSDocMetadata('this is not a comment')
+        expect(result).toBeDefined()
+        expect(result.isDeprecated).toBe(false)
+      })
+
+      it('handles nested comment-like syntax', () => {
+        const result = extractTSDocMetadata('/** outer /* inner */ more */')
+        expect(result).toBeDefined()
+      })
+
+      it('handles broken tags', () => {
+        const result = extractTSDocMetadata('/** @@ @deprecated@ */')
+        expect(result).toBeDefined()
+      })
+
+      it('handles very long content gracefully', () => {
+        const longContent = '/** ' + 'x'.repeat(10000) + ' @deprecated */'
+        const result = extractTSDocMetadata(longContent)
+        expect(result).toBeDefined()
+        // May or may not detect deprecated depending on parser limits
+      })
+
+      it('handles unicode characters', () => {
+        const result = extractTSDocMetadata(
+          '/** @deprecated Use 新しい関数 instead */',
+        )
+        expect(result).toBeDefined()
+        expect(result.isDeprecated).toBe(true)
+      })
+
+      it('handles emoji in comments', () => {
+        const result = extractTSDocMetadata('/** @deprecated 🚫 deprecated */')
+        expect(result).toBeDefined()
+        expect(result.isDeprecated).toBe(true)
+      })
+
+      it('handles newlines in various formats', () => {
+        const crlfComment = '/** @deprecated\r\n * Use new function */'
+        const result = extractTSDocMetadata(crlfComment)
+        expect(result.isDeprecated).toBe(true)
+      })
+
+      it('handles tabs and mixed whitespace', () => {
+        const result = extractTSDocMetadata(
+          '/**\t@deprecated\t\tOld function */',
+        )
+        expect(result.isDeprecated).toBe(true)
+      })
+    })
+
     describe('@enumType tag', () => {
       it('extracts @enumType open', () => {
         const result = extractTSDocMetadata('/** @enumType open */')
@@ -168,4 +232,3 @@ describe('tsdoc-utils', () => {
     })
   })
 })
-

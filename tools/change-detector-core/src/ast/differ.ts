@@ -9,7 +9,7 @@
 
 import type {
   AnalyzableNode,
-  ModuleAnalysis,
+  ModuleAnalysisWithTypes,
   ApiChange,
   ChangeDescriptor,
   ChangeTarget,
@@ -17,10 +17,19 @@ import type {
   ChangeImpact,
   ChangeTag,
   DiffOptions,
+  DiffContext,
   Modifier,
   NodeKind,
+  TypeParameterInfo,
 } from './types'
-import { editDistance, nameSimilarity } from '../parameter-analysis'
+import {
+  editDistance,
+  nameSimilarity,
+  detectParameterReordering as detectParamReorder,
+  type ParameterInfo,
+  type ParameterOrderAnalysis,
+} from '../parameter-analysis'
+import type * as ts from 'typescript'
 
 // =============================================================================
 // Default Options
@@ -31,6 +40,7 @@ const DEFAULT_DIFF_OPTIONS: Required<DiffOptions> = {
   includeNestedChanges: true,
   resolveTypeRelationships: true,
   maxNestingDepth: 10,
+  detectParameterReordering: true,
 }
 
 // =============================================================================
@@ -288,28 +298,100 @@ function createModifiedDescriptor(
 /**
  * Classifies the type of change between two nodes.
  * Returns a multi-dimensional ChangeDescriptor and human-readable explanation.
+ *
+ * @param oldNode - The old node
+ * @param newNode - The new node
+ * @param context - Optional diff context with TypeChecker for semantic analysis
  */
 function classifyChange(
   oldNode: AnalyzableNode,
   newNode: AnalyzableNode,
-): { descriptor: ChangeDescriptor; explanation: string } {
+  context?: DiffContext,
+): {
+  descriptor: ChangeDescriptor
+  explanation: string
+  parameterAnalysis?: ParameterOrderAnalysis
+} {
   const target = nodeKindToTarget(oldNode.kind)
+
+  // Check for parameter reordering (for functions/methods)
+  // This check happens even when signatures are identical because
+  // parameter reordering preserves types but changes names
+  if (
+    oldNode.kind === 'function' ||
+    oldNode.kind === 'method' ||
+    oldNode.kind === 'call-signature'
+  ) {
+    const reorderAnalysis = detectParameterReordering(oldNode, newNode)
+    if (reorderAnalysis) {
+      return {
+        descriptor: createSimpleDescriptor('parameter', 'reordered'),
+        explanation: `Parameters reordered in '${oldNode.name}': ${reorderAnalysis.summary}`,
+        parameterAnalysis: reorderAnalysis,
+      }
+    }
+  }
+
+  // Check for type parameter changes (generics)
+  const typeParamChange = classifyTypeParameterChange(oldNode, newNode)
+  if (typeParamChange) {
+    return typeParamChange
+  }
+
+  // Check for enum member value changes
+  if (
+    oldNode.kind === 'enum-member' &&
+    oldNode.typeInfo.signature !== newNode.typeInfo.signature
+  ) {
+    return {
+      descriptor: createModifiedDescriptor(
+        'enum-member',
+        'enum-value',
+        'unrelated',
+      ),
+      explanation: `Changed value of enum member '${oldNode.name}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`,
+    }
+  }
 
   // Check for type changes
   if (oldNode.typeInfo.signature !== newNode.typeInfo.signature) {
+    // Look up TypeScript types from symbols if context available
+    const oldSymbol = context?.oldSymbols?.get(oldNode.path)
+    const newSymbol = context?.newSymbols?.get(newNode.path)
+    let oldTsType: ts.Type | undefined
+    let newTsType: ts.Type | undefined
+
+    if (context && oldSymbol && newSymbol) {
+      const oldDecl = oldSymbol.getDeclarations()?.[0]
+      const newDecl = newSymbol.getDeclarations()?.[0]
+      if (oldDecl && newDecl) {
+        oldTsType = context.checker.getTypeOfSymbolAtLocation(
+          oldSymbol,
+          oldDecl,
+        )
+        newTsType = context.checker.getTypeOfSymbolAtLocation(
+          newSymbol,
+          newDecl,
+        )
+      }
+    }
+
     const impact = determineTypeImpact(
       oldNode.typeInfo.signature,
       newNode.typeInfo.signature,
+      context && oldTsType && newTsType
+        ? { checker: context.checker, oldTsType, newTsType }
+        : undefined,
     )
 
     const explanation =
       impact === 'equivalent'
-        ? `Type syntax changed but semantically equivalent`
+        ? `Type of '${oldNode.path}' changed syntax but is semantically equivalent`
         : impact === 'widening'
-          ? `Type widened from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
+          ? `Widened type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
           : impact === 'narrowing'
-            ? `Type narrowed from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
-            : `Type changed from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
+            ? `Narrowed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
+            : `Changed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
 
     return {
       descriptor: createModifiedDescriptor(target, 'type', impact),
@@ -329,13 +411,13 @@ function classifyChange(
   if (addedModifiers.includes('readonly')) {
     return {
       descriptor: createModifiedDescriptor(target, 'readonly', 'narrowing'),
-      explanation: `Made readonly`,
+      explanation: `Made '${oldNode.path}' readonly`,
     }
   }
   if (removedModifiers.includes('readonly')) {
     return {
       descriptor: createModifiedDescriptor(target, 'readonly', 'widening'),
-      explanation: `Readonly removed`,
+      explanation: `Made '${oldNode.path}' writable (removed readonly)`,
     }
   }
 
@@ -346,7 +428,7 @@ function classifyChange(
         'was-required',
         'now-optional',
       ]),
-      explanation: `Made optional`,
+      explanation: `Made '${oldNode.path}' optional (was required)`,
     }
   }
   if (removedModifiers.includes('optional')) {
@@ -355,7 +437,35 @@ function classifyChange(
         'was-optional',
         'now-required',
       ]),
-      explanation: `Made required`,
+      explanation: `Made '${oldNode.path}' required (was optional)`,
+    }
+  }
+
+  // Check for abstract changes
+  const wasAbstract = oldNode.modifiers.has('abstract')
+  const isAbstract = newNode.modifiers.has('abstract')
+  if (wasAbstract !== isAbstract) {
+    return {
+      descriptor: createModifiedDescriptor(
+        target,
+        'abstractness',
+        isAbstract ? 'narrowing' : 'widening',
+      ),
+      explanation: isAbstract
+        ? `Made '${oldNode.path}' abstract`
+        : `Made '${oldNode.path}' concrete (removed abstract)`,
+    }
+  }
+
+  // Check for static changes
+  const wasStatic = oldNode.modifiers.has('static')
+  const isStatic = newNode.modifiers.has('static')
+  if (wasStatic !== isStatic) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'staticness', 'unrelated'),
+      explanation: isStatic
+        ? `Made '${oldNode.path}' static`
+        : `Made '${oldNode.path}' an instance member (removed static)`,
     }
   }
 
@@ -369,8 +479,68 @@ function classifyChange(
           'visibility',
           'undetermined',
         ),
-        explanation: `Visibility changed to ${mod}`,
+        explanation: `Changed visibility of '${oldNode.path}' to ${mod}`,
       }
+    }
+  }
+
+  // Check for extends clause changes
+  const oldExtends = oldNode.extends ?? []
+  const newExtends = newNode.extends ?? []
+  const extendsChanged =
+    oldExtends.length !== newExtends.length ||
+    oldExtends.some((e, i) => e !== newExtends[i])
+
+  if (extendsChanged) {
+    // Adding extends is narrowing (more constraints)
+    // Removing extends is widening (fewer constraints)
+    const impact: ChangeImpact =
+      oldExtends.length === 0
+        ? 'narrowing' // Added extends
+        : newExtends.length === 0
+          ? 'widening' // Removed extends
+          : 'undetermined' // Changed extends
+
+    const explanation =
+      oldExtends.length === 0
+        ? `Added extends clause to '${newNode.path}': now extends ${newExtends.join(', ')}`
+        : newExtends.length === 0
+          ? `Removed extends clause from '${oldNode.path}' (no longer extends ${oldExtends.join(', ')})`
+          : `Changed extends clause of '${oldNode.path}' from '${oldExtends.join(', ')}' to '${newExtends.join(', ')}'`
+
+    return {
+      descriptor: createModifiedDescriptor(target, 'extends-clause', impact),
+      explanation,
+    }
+  }
+
+  // Check for implements clause changes
+  const oldImplements = oldNode.implements ?? []
+  const newImplements = newNode.implements ?? []
+  const implementsChanged =
+    oldImplements.length !== newImplements.length ||
+    oldImplements.some((e, i) => e !== newImplements[i])
+
+  if (implementsChanged) {
+    // Adding implements is narrowing (more constraints)
+    // Removing implements is widening (fewer constraints)
+    const impact: ChangeImpact =
+      oldImplements.length === 0
+        ? 'narrowing' // Added implements
+        : newImplements.length === 0
+          ? 'widening' // Removed implements
+          : 'undetermined' // Changed implements
+
+    const explanation =
+      oldImplements.length === 0
+        ? `Added implements clause to '${newNode.path}': now implements ${newImplements.join(', ')}`
+        : newImplements.length === 0
+          ? `Removed implements clause from '${oldNode.path}' (no longer implements ${oldImplements.join(', ')})`
+          : `Changed implements clause of '${oldNode.path}' from '${oldImplements.join(', ')}' to '${newImplements.join(', ')}'`
+
+    return {
+      descriptor: createModifiedDescriptor(target, 'implements-clause', impact),
+      explanation,
     }
   }
 
@@ -381,14 +551,14 @@ function classifyChange(
   if (!wasDeprecated && isDeprecated) {
     return {
       descriptor: createModifiedDescriptor(target, 'deprecation', 'widening'),
-      explanation: `Marked as @deprecated${newNode.metadata?.deprecationMessage ? `: ${newNode.metadata.deprecationMessage}` : ''}`,
+      explanation: `Marked '${oldNode.path}' as @deprecated${newNode.metadata?.deprecationMessage ? `: ${newNode.metadata.deprecationMessage}` : ''}`,
     }
   }
 
   if (wasDeprecated && !isDeprecated) {
     return {
       descriptor: createModifiedDescriptor(target, 'deprecation', 'narrowing'),
-      explanation: `@deprecated tag removed`,
+      explanation: `Removed @deprecated from '${oldNode.path}'`,
     }
   }
 
@@ -400,10 +570,18 @@ function classifyChange(
 }
 
 /**
- * Determines the semantic impact of a type change.
- * This is a simplified heuristic - full analysis requires TypeChecker.
+ * Determines the semantic impact of a type change using TypeChecker.
+ * Falls back to string-based heuristics when TypeChecker info is unavailable.
  */
-function determineTypeImpact(oldType: string, newType: string): ChangeImpact {
+function determineTypeImpact(
+  oldType: string,
+  newType: string,
+  context?: {
+    checker: ts.TypeChecker
+    oldTsType?: ts.Type
+    newTsType?: ts.Type
+  },
+): ChangeImpact {
   const oldNorm = normalizeSignature(oldType)
   const newNorm = normalizeSignature(newType)
 
@@ -411,6 +589,87 @@ function determineTypeImpact(oldType: string, newType: string): ChangeImpact {
     return 'equivalent'
   }
 
+  // Try TypeChecker-based analysis if available
+  if (context?.checker && context.oldTsType && context.newTsType) {
+    return determineTypeImpactWithChecker(
+      context.oldTsType,
+      context.newTsType,
+      context.checker,
+    )
+  }
+
+  // Fall back to string-based heuristics
+  return determineTypeImpactFromStrings(oldNorm, newNorm)
+}
+
+/**
+ * TypeChecker-based type variance analysis using isTypeAssignableTo.
+ */
+function determineTypeImpactWithChecker(
+  oldType: ts.Type,
+  newType: ts.Type,
+  checker: ts.TypeChecker,
+): ChangeImpact {
+  // Check if types are assignable to each other
+  // Note: isTypeAssignableTo is internal to TS, but we can use type compatibility checks
+  const oldTypeStr = checker.typeToString(oldType)
+  const newTypeStr = checker.typeToString(newType)
+
+  if (oldTypeStr === newTypeStr) {
+    return 'equivalent'
+  }
+
+  // For union types, check if one is a subset of the other
+  if (oldType.isUnion() && newType.isUnion()) {
+    const oldMembers = oldType.types.map((t) => checker.typeToString(t))
+    const newMembers = newType.types.map((t) => checker.typeToString(t))
+
+    const oldSet = new Set(oldMembers)
+    const newSet = new Set(newMembers)
+
+    // If new type has all old members plus more → widening
+    const oldSubsetOfNew = oldMembers.every((m) => newSet.has(m))
+    // If old type has all new members plus more → narrowing
+    const newSubsetOfOld = newMembers.every((m) => oldSet.has(m))
+
+    if (oldSubsetOfNew && !newSubsetOfOld) {
+      return 'widening'
+    }
+    if (newSubsetOfOld && !oldSubsetOfNew) {
+      return 'narrowing'
+    }
+    if (oldSubsetOfNew && newSubsetOfOld) {
+      return 'equivalent'
+    }
+  }
+
+  // Check if new is union containing old → widening
+  if (newType.isUnion()) {
+    const newMembers = newType.types.map((t) => checker.typeToString(t))
+    if (newMembers.includes(oldTypeStr)) {
+      return 'widening'
+    }
+  }
+
+  // Check if old is union containing new → narrowing
+  if (oldType.isUnion()) {
+    const oldMembers = oldType.types.map((t) => checker.typeToString(t))
+    if (oldMembers.includes(newTypeStr)) {
+      return 'narrowing'
+    }
+  }
+
+  // Types are different and not in subset relationship
+  return 'unrelated'
+}
+
+/**
+ * String-based heuristics for type variance (fallback).
+ */
+function determineTypeImpactFromStrings(
+  oldNorm: string,
+  newNorm: string,
+): ChangeImpact {
   // Check if new type is a union that includes old type (widening)
   if (newNorm.includes('|')) {
     const newParts = newNorm.split('|').map((p) => p.trim())
@@ -441,11 +700,231 @@ function determineTypeImpact(oldType: string, newType: string): ChangeImpact {
 }
 
 // =============================================================================
+// Parameter Reordering Detection
+// =============================================================================
+
+/**
+ * Converts AST ParameterInfo to the format used by parameter-analysis.
+ */
+function toParamAnalysisInfo(
+  astParams: import('./types').ParameterInfo[],
+): ParameterInfo[] {
+  return astParams.map((p, i) => ({
+    name: p.name,
+    type: p.type,
+    position: i,
+    isOptional: p.optional,
+    isRest: p.rest,
+  }))
+}
+
+/**
+ * Detects parameter reordering between two function/method nodes.
+ * Returns the analysis if reordering is detected, null otherwise.
+ */
+function detectParameterReordering(
+  oldNode: AnalyzableNode,
+  newNode: AnalyzableNode,
+): ParameterOrderAnalysis | null {
+  // Get call signatures from both nodes
+  const oldSigs = oldNode.typeInfo.callSignatures
+  const newSigs = newNode.typeInfo.callSignatures
+
+  if (!oldSigs?.length || !newSigs?.length) {
+    return null
+  }
+
+  // Compare first signatures (primary signature)
+  const oldSig = oldSigs[0]
+  const newSig = newSigs[0]
+
+  if (!oldSig || !newSig) {
+    return null
+  }
+
+  // Convert to parameter-analysis format
+  const oldParams = toParamAnalysisInfo(oldSig.parameters)
+  const newParams = toParamAnalysisInfo(newSig.parameters)
+
+  // Detect reordering
+  const analysis = detectParamReorder(oldParams, newParams)
+
+  return analysis.hasReordering ? analysis : null
+}
+
+// =============================================================================
+// Type Parameter Change Detection
+// =============================================================================
+
+interface TypeParameterChange {
+  kind: 'added' | 'removed' | 'constraint-changed' | 'default-changed'
+  name: string
+  oldValue?: string
+  newValue?: string
+}
+
+/**
+ * Detects changes in type parameters between two nodes.
+ * Returns null if no type parameter changes detected.
+ */
+function detectTypeParameterChanges(
+  oldNode: AnalyzableNode,
+  newNode: AnalyzableNode,
+): TypeParameterChange[] {
+  const oldTypeParams = oldNode.typeInfo.typeParameters ?? []
+  const newTypeParams = newNode.typeInfo.typeParameters ?? []
+
+  const changes: TypeParameterChange[] = []
+
+  // Create maps for easier lookup
+  const oldByName = new Map<string, TypeParameterInfo>(
+    oldTypeParams.map((tp) => [tp.name, tp]),
+  )
+  const newByName = new Map<string, TypeParameterInfo>(
+    newTypeParams.map((tp) => [tp.name, tp]),
+  )
+
+  // Check for removed type parameters
+  for (const oldTp of oldTypeParams) {
+    if (!newByName.has(oldTp.name)) {
+      changes.push({
+        kind: 'removed',
+        name: oldTp.name,
+      })
+    }
+  }
+
+  // Check for added type parameters
+  for (const newTp of newTypeParams) {
+    if (!oldByName.has(newTp.name)) {
+      changes.push({
+        kind: 'added',
+        name: newTp.name,
+      })
+    }
+  }
+
+  // Check for constraint and default changes on matching type parameters
+  for (const oldTp of oldTypeParams) {
+    const newTp = newByName.get(oldTp.name)
+    if (!newTp) continue
+
+    // Constraint change
+    if (oldTp.constraint !== newTp.constraint) {
+      changes.push({
+        kind: 'constraint-changed',
+        name: oldTp.name,
+        oldValue: oldTp.constraint,
+        newValue: newTp.constraint,
+      })
+    }
+
+    // Default change
+    if (oldTp.default !== newTp.default) {
+      changes.push({
+        kind: 'default-changed',
+        name: oldTp.name,
+        oldValue: oldTp.default,
+        newValue: newTp.default,
+      })
+    }
+  }
+
+  return changes
+}
+
+/**
+ * Gets the first significant type parameter change, if any.
+ * Returns the change descriptor and explanation if found.
+ */
+function classifyTypeParameterChange(
+  oldNode: AnalyzableNode,
+  newNode: AnalyzableNode,
+): { descriptor: ChangeDescriptor; explanation: string } | null {
+  const changes = detectTypeParameterChanges(oldNode, newNode)
+  if (changes.length === 0) return null
+
+  const firstChange = changes[0]!
+
+  switch (firstChange.kind) {
+    case 'added':
+      return {
+        descriptor: createSimpleDescriptor('type-parameter', 'added', [
+          'affects-type-parameter',
+        ]),
+        explanation: `Added type parameter '${firstChange.name}' to '${oldNode.path}'`,
+      }
+    case 'removed':
+      return {
+        descriptor: createSimpleDescriptor('type-parameter', 'removed', [
+          'affects-type-parameter',
+        ]),
+        explanation: `Removed type parameter '${firstChange.name}' from '${oldNode.path}'`,
+      }
+    case 'constraint-changed': {
+      // Loosening constraint (removing or broadening) is widening (less restrictive)
+      // Tightening constraint (adding or narrowing) is narrowing (more restrictive)
+      const impact: ChangeImpact = !firstChange.newValue
+        ? 'widening' // Removed constraint
+        : !firstChange.oldValue
+          ? 'narrowing' // Added constraint
+          : 'undetermined' // Changed constraint
+
+      return {
+        descriptor: createModifiedDescriptor(
+          'type-parameter',
+          'constraint',
+          impact,
+          ['affects-type-parameter'],
+        ),
+        explanation:
+          firstChange.oldValue && firstChange.newValue
+            ? `Changed constraint on type parameter '${firstChange.name}' in '${oldNode.path}' from '${firstChange.oldValue}' to '${firstChange.newValue}'`
+            : firstChange.newValue
+              ? `Added constraint '${firstChange.newValue}' to type parameter '${firstChange.name}' in '${oldNode.path}'`
+              : `Removed constraint from type parameter '${firstChange.name}' in '${oldNode.path}' (was '${firstChange.oldValue}')`,
+      }
+    }
+    case 'default-changed': {
+      // Adding a default is widening (type parameter becomes optional)
+      // Removing a default is narrowing (type parameter becomes required)
+      const impact: ChangeImpact = !firstChange.oldValue
+        ? 'widening' // Added default
+        : !firstChange.newValue
+          ? 'narrowing' // Removed default
+          : 'undetermined' // Changed default
+
+      return {
+        descriptor: createModifiedDescriptor(
+          'type-parameter',
+          'default-type',
+          impact,
+          ['affects-type-parameter'],
+        ),
+        explanation:
+          firstChange.oldValue && firstChange.newValue
+            ? `Changed default type of type parameter '${firstChange.name}' in '${oldNode.path}' from '${firstChange.oldValue}' to '${firstChange.newValue}'`
+            : firstChange.newValue
+              ? `Added default type '${firstChange.newValue}' to type parameter '${firstChange.name}' in '${oldNode.path}'`
+              : `Removed default type from type parameter '${firstChange.name}' in '${oldNode.path}' (was '${firstChange.oldValue}')`,
+      }
+    }
+  }
+}
+
+// =============================================================================
 // Nested Change Detection
 // =============================================================================
 
 /**
  * Detects changes in nested members (properties, methods, etc.).
+ *
+ * @param oldNode - The old parent node
+ * @param newNode - The new parent node
+ * @param options - Diff options
+ * @param depth - Current nesting depth
+ * @param ancestors - Path of ancestor nodes
+ * @param context - Optional diff context with TypeChecker
  */
 function detectNestedChanges(
   oldNode: AnalyzableNode,
@@ -453,6 +932,7 @@ function detectNestedChanges(
   options: Required<DiffOptions>,
   depth: number,
   ancestors: string[],
+  context?: DiffContext,
 ): ApiChange[] {
   if (depth >= options.maxNestingDepth) {
     return []
@@ -507,7 +987,11 @@ function detectNestedChanges(
 
   // Process modified members
   for (const { old: oldChild, new: newChild } of matched) {
-    const { descriptor, explanation } = classifyChange(oldChild, newChild)
+    const { descriptor, explanation } = classifyChange(
+      oldChild,
+      newChild,
+      context,
+    )
     const isEquivalent =
       descriptor.aspect === 'type' && descriptor.impact === 'equivalent'
 
@@ -520,6 +1004,7 @@ function detectNestedChanges(
               options,
               depth + 1,
               newAncestors,
+              context,
             )
           : []
 
@@ -561,18 +1046,29 @@ function detectNestedChanges(
 /**
  * Compares two module analyses and produces API changes.
  *
- * @param oldAnalysis - The old (baseline) module analysis
- * @param newAnalysis - The new module analysis
+ * Requires TypeChecker for accurate semantic analysis. Use `parseModuleWithTypes()`
+ * to create the input analyses.
+ *
+ * @param oldAnalysis - The old (baseline) module analysis with TypeChecker
+ * @param newAnalysis - The new module analysis with TypeChecker
  * @param options - Comparison options
  * @returns Array of API changes with multi-dimensional descriptors
  */
 export function diffModules(
-  oldAnalysis: ModuleAnalysis,
-  newAnalysis: ModuleAnalysis,
+  oldAnalysis: ModuleAnalysisWithTypes,
+  newAnalysis: ModuleAnalysisWithTypes,
   options: DiffOptions = {},
 ): ApiChange[] {
   const opts: Required<DiffOptions> = { ...DEFAULT_DIFF_OPTIONS, ...options }
   const changes: ApiChange[] = []
+
+  // Create diff context with TypeChecker for semantic analysis
+  const context: DiffContext = {
+    checker: newAnalysis.checker,
+    options: opts,
+    oldSymbols: oldAnalysis.symbols,
+    newSymbols: newAnalysis.symbols,
+  }
 
   // Match exports (top-level comparison)
   const { matched, removed, added } = matchNodes(
@@ -588,7 +1084,7 @@ export function diffModules(
   // Process renames
   for (const { oldNode, newNode, confidence } of renames) {
     const nestedChanges = opts.includeNestedChanges
-      ? detectNestedChanges(oldNode, newNode, opts, 0, [])
+      ? detectNestedChanges(oldNode, newNode, opts, 0, [], context)
       : []
 
     const descriptor = createSimpleDescriptor('export', 'renamed')
@@ -657,9 +1153,13 @@ export function diffModules(
 
   // Process modifications
   for (const { old: oldNode, new: newNode } of matched) {
-    const { descriptor, explanation } = classifyChange(oldNode, newNode)
+    const { descriptor, explanation } = classifyChange(
+      oldNode,
+      newNode,
+      context,
+    )
     const nestedChanges = opts.includeNestedChanges
-      ? detectNestedChanges(oldNode, newNode, opts, 0, [])
+      ? detectNestedChanges(oldNode, newNode, opts, 0, [], context)
       : []
 
     const isEquivalent =

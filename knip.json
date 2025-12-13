@@ -31,6 +31,18 @@
         "@/*": ["src/*"]
       }
     },
+    "tools/change-detector-core": {
+      "entry": [
+        "src/index.ts",
+        "src/ast/index.ts",
+        "src/rules.ts",
+        "src/plugins.ts"
+      ],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
     "tools/*": {
       "entry": ["src/index.ts"],
       "paths": {
