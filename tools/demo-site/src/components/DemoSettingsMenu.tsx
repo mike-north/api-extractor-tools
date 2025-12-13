@@ -4,8 +4,8 @@ import { type PolicyName } from '../types'
 import './DemoSettingsMenu.css'
 
 interface DemoSettingsMenuProps {
-  selectedPolicy: PolicyName
-  onPolicyChange: (policy: PolicyName) => void
+  selectedPolicy: Exclude<PolicyName, 'custom'>
+  onPolicyChange: (policy: Exclude<PolicyName, 'custom'>) => void
   onExampleSelect: (example: Example) => void
 }
 
@@ -45,7 +45,7 @@ export function DemoSettingsMenu({
     }
   }, [isOpen])
 
-  const handlePolicySelect = useCallback((policy: PolicyName) => {
+  const handlePolicySelect = useCallback((policy: Exclude<PolicyName, 'custom'>) => {
     onPolicyChange(policy)
     setIsOpen(false)
   }, [onPolicyChange])
