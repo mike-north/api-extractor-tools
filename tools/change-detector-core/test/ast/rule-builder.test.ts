@@ -154,6 +154,57 @@ describe('Rule Builder', () => {
       expect(nonRestParamRule.matches(restParam)).toBe(false)
     })
 
+    it('creates a rule that matches any of multiple tags with hasAnyTag()', () => {
+      const optionalOrDefaultRule = rule('optional-or-default')
+        .hasAnyTag('now-optional', 'has-default')
+        .returns('minor')
+
+      const optionalChange = makeChange({
+        tags: new Set(['now-optional']),
+      })
+      const defaultChange = makeChange({
+        tags: new Set(['has-default']),
+      })
+      const bothChange = makeChange({
+        tags: new Set(['now-optional', 'has-default']),
+      })
+      const neitherChange = makeChange({
+        tags: new Set(['some-other-tag']),
+      })
+      const noTagsChange = makeChange({})
+
+      expect(optionalOrDefaultRule.matches(optionalChange)).toBe(true)
+      expect(optionalOrDefaultRule.matches(defaultChange)).toBe(true)
+      expect(optionalOrDefaultRule.matches(bothChange)).toBe(true)
+      expect(optionalOrDefaultRule.matches(neitherChange)).toBe(false)
+      expect(optionalOrDefaultRule.matches(noTagsChange)).toBe(false)
+    })
+
+    it('hasAnyTag() returns false when no tags are present', () => {
+      const tagRule = rule('needs-tag')
+        .hasAnyTag('tag1', 'tag2')
+        .returns('minor')
+
+      const noTagsChange = makeChange({})
+      expect(tagRule.matches(noTagsChange)).toBe(false)
+    })
+
+    it('hasAnyTag() works with single tag (same as hasTag)', () => {
+      const singleTagRule = rule('single-tag')
+        .hasAnyTag('specific-tag')
+        .returns('minor')
+
+      const matchingChange = makeChange({
+        tags: new Set(['specific-tag']),
+      })
+      const nonMatchingChange = makeChange({
+        tags: new Set(['other-tag']),
+      })
+
+      expect(singleTagRule.matches(matchingChange)).toBe(true)
+      expect(singleTagRule.matches(nonMatchingChange)).toBe(false)
+    })
+
     it('creates a rule that matches nested changes', () => {
       const nestedRule = rule('nested-only').nested(true).returns('minor')
 

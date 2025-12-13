@@ -105,6 +105,7 @@ function getNodeKind(node: TSESTree.Node): NodeKind {
 
     case AST_NODE_TYPES.TSMethodSignature:
     case AST_NODE_TYPES.MethodDefinition:
+    case AST_NODE_TYPES.TSAbstractMethodDefinition:
       return 'method'
 
     case AST_NODE_TYPES.TSCallSignatureDeclaration:
@@ -829,16 +830,26 @@ function processMember(
     }
   } else if (
     member.type === AST_NODE_TYPES.TSMethodSignature ||
-    member.type === AST_NODE_TYPES.MethodDefinition
+    member.type === AST_NODE_TYPES.MethodDefinition ||
+    member.type === AST_NODE_TYPES.TSAbstractMethodDefinition
   ) {
-    const sig = extractSignatureInfo(
-      source,
-      member as TSESTree.TSMethodSignature | TSESTree.MethodDefinition,
-    )
+    // For MethodDefinition and TSAbstractMethodDefinition, the signature info
+    // is on the nested 'value' function expression
+    let sigSource = member as
+      | TSESTree.TSMethodSignature
+      | TSESTree.MethodDefinition
+    if ('value' in member && member.value) {
+      sigSource = member.value as unknown as TSESTree.TSMethodSignature
+    }
+    const sig = extractSignatureInfo(source, sigSource)
     typeInfo = {
       signature: sig.normalized,
       raw: getNodeText(source, member),
       callSignatures: [sig],
+    }
+    // Check for abstract modifier on TSAbstractMethodDefinition
+    if (member.type === AST_NODE_TYPES.TSAbstractMethodDefinition) {
+      modifiers.add('abstract')
     }
   } else {
     typeInfo = extractBasicTypeInfo(source, member)
