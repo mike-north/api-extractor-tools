@@ -245,3 +245,4 @@ function getSourceEquivalents(filePath: string): string[] {
 export function clearPackageJsonCache(): void {
   packageJsonCache.clear()
 }
+

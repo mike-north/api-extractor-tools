@@ -13,6 +13,8 @@
     "**/*.md"
   ],
   "ignores": [
+    "scratch",
+    ".scratch",
     // Ignore generated documentation
     "docs/**",
     "api-reports/**",

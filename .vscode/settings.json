@@ -1,3 +1,8 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.associations": {
+    "*api-extractor*.json": "jsonc",
+    "api-extractor.json": "jsonc",
+    "tsdoc.json": "jsonc"
+  }
 }

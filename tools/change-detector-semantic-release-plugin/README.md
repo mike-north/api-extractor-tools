@@ -674,3 +674,4 @@ const analysis = analyzeAPIChanges(process.cwd(), config, lastRelease)
 ## License
 
 MIT
+

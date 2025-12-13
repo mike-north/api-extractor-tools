@@ -247,6 +247,120 @@ const policyPlugin: ChangeDetectorPlugin = {
 export default policyPlugin
 ```
 
+## AST-Based Policy Example (Advanced)
+
+For more precise change classification, use the AST-based rule builder system:
+
+```typescript
+import type {
+  ChangeDetectorPlugin,
+  ASTAwarePolicyDefinition,
+  Policy,
+} from '@api-extractor-tools/change-detector-core'
+import { rule, createPolicy } from '@api-extractor-tools/change-detector-core'
+
+// Build a rule-based policy using the declarative API
+const strictApiPolicy: Policy = createPolicy('strict-api')
+  // Breaking changes (major)
+  .addRule(
+    rule('export-removed')
+      .target('export')
+      .action('removed')
+      .rationale('Removing exports breaks consumers')
+      .returns('major'),
+  )
+  .addRule(
+    rule('required-param-added')
+      .target('parameter')
+      .action('added')
+      .hasTag('now-required')
+      .rationale('Adding required parameters breaks existing callers')
+      .returns('major'),
+  )
+  .addRule(
+    rule('type-narrowing')
+      .target('property', 'parameter')
+      .action('modified')
+      .aspect('type')
+      .impact('narrowing')
+      .rationale('Narrowing types may reject previously valid values')
+      .returns('major'),
+  )
+  // New features (minor)
+  .addRule(
+    rule('export-added')
+      .target('export')
+      .action('added')
+      .rationale('New exports are backwards compatible')
+      .returns('minor'),
+  )
+  // Default fallback
+  .defaultRule('patch')
+  .build()
+
+// Create AST-aware policy definition
+const astPolicyDef: ASTAwarePolicyDefinition = {
+  id: 'strict-api',
+  name: 'Strict API Policy',
+  description: 'Strict semver rules for public APIs',
+  astCapability: 'policy',
+  createPolicy: () => strictApiPolicy,
+}
+
+const plugin: ChangeDetectorPlugin = {
+  metadata: {
+    id: 'strict-policies',
+    name: 'Strict Policies Plugin',
+    version: '1.0.0',
+  },
+  policies: [astPolicyDef],
+}
+
+export default plugin
+```
+
+### Rule Builder API
+
+The rule builder provides a fluent API for defining classification rules:
+
+```typescript
+rule('rule-name')
+  .target('export', 'property') // What construct (can specify multiple)
+  .action('modified') // What happened
+  .aspect('type') // What aspect changed (for 'modified')
+  .impact('narrowing', 'unrelated') // Semantic impact (can specify multiple)
+  .hasTag('now-required') // Must have this tag
+  .hasAnyTag('tag1', 'tag2') // Must have at least one of these tags
+  .rationale('Why this rule exists') // Documentation
+  .returns('major') // The release type
+```
+
+Rules are evaluated in order (first match wins). Use `.defaultRule()` for the fallback.
+
+### Using the AST Analysis
+
+You can also work directly with AST analysis:
+
+```typescript
+import {
+  analyzeChanges,
+  semverDefaultPolicy,
+} from '@api-extractor-tools/change-detector-core'
+
+// One-liner for analyzing changes
+const result = analyzeChanges(oldSource, newSource, {
+  policy: semverDefaultPolicy,
+})
+
+console.log(`Release type: ${result.releaseType}`)
+for (const { change, releaseType, matchedRule } of result.results) {
+  console.log(`[${releaseType}] ${change.path}: ${change.explanation}`)
+  if (matchedRule) {
+    console.log(`  Rule: ${matchedRule.name} - ${matchedRule.rationale}`)
+  }
+}
+```
+
 ## Reporter Example
 
 Reporters format comparison reports for various outputs.

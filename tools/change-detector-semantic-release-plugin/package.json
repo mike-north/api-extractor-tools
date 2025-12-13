@@ -5,12 +5,13 @@
   "main": "dist/index.js",
   "types": "dist/change-detector-semantic-release-plugin-public.d.ts",
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "tsc",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
-    "check:eslint": "eslint src",
+    "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json",
     "check:api-report": "api-extractor run"
   },

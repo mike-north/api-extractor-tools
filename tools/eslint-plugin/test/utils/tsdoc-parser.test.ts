@@ -219,3 +219,4 @@ describe('tsdoc-parser', () => {
     })
   })
 })
+
