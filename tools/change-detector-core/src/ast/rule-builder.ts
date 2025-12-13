@@ -24,6 +24,8 @@ import type {
   ChangeAspect,
   ChangeImpact,
   ChangeTag,
+  ClassifiedChange,
+  NodeKind,
 } from './types'
 
 // =============================================================================
@@ -86,6 +88,7 @@ export class RuleBuilder {
   private tagConditions: ChangeTag[] = []
   private anyTagConditions: ChangeTag[] = []
   private notTagConditions: ChangeTag[] = []
+  private nodeKindConditions: NodeKind[] = []
   private nestedCondition?: boolean
   private customMatchers: ChangeMatcher[] = []
   private ruleRationale?: string
@@ -127,6 +130,27 @@ export class RuleBuilder {
    */
   impact(...impacts: ChangeImpact[]): this {
     this.impactConditions.push(...impacts)
+    return this
+  }
+
+  /**
+   * Matches changes affecting specific AST node kinds.
+   * Multiple kinds are OR'd together.
+   *
+   * Use this to distinguish between different types of constructs
+   * with the same target, e.g., function vs interface removals.
+   *
+   * @example
+   * ```ts
+   * // Only match function removals (not interface or class)
+   * rule('function-removed').action('removed').nodeKind('function').returns('major')
+   *
+   * // Match interface or type-alias changes
+   * rule('type-def-changed').nodeKind('interface', 'type-alias').returns('minor')
+   * ```
+   */
+  nodeKind(...kinds: NodeKind[]): this {
+    this.nodeKindConditions.push(...kinds)
     return this
   }
 
@@ -234,16 +258,30 @@ export class RuleBuilder {
 
       // Check aspect conditions (OR)
       if (this.aspectConditions.length > 0) {
-        if (!descriptor.aspect || !this.aspectConditions.includes(descriptor.aspect)) {
+        if (
+          !descriptor.aspect ||
+          !this.aspectConditions.includes(descriptor.aspect)
+        ) {
           return false
         }
       }
 
       // Check impact conditions (OR)
       if (this.impactConditions.length > 0) {
-        if (!descriptor.impact || !this.impactConditions.includes(descriptor.impact)) {
+        if (
+          !descriptor.impact ||
+          !this.impactConditions.includes(descriptor.impact)
+        ) {
           return false
         }
+      }
+
+      // Check nodeKind conditions (OR)
+      if (
+        this.nodeKindConditions.length > 0 &&
+        !this.nodeKindConditions.includes(change.nodeKind)
+      ) {
+        return false
       }
 
       // Check required tags (AND - must have ALL)
@@ -255,7 +293,9 @@ export class RuleBuilder {
 
       // Check any tags (OR - must have at least ONE)
       if (this.anyTagConditions.length > 0) {
-        const hasAny = this.anyTagConditions.some((tag) => descriptor.tags.has(tag))
+        const hasAny = this.anyTagConditions.some((tag) =>
+          descriptor.tags.has(tag),
+        )
         if (!hasAny) {
           return false
         }
@@ -375,16 +415,20 @@ export function createPolicy(
 
 /**
  * Result of classifying a change with a policy.
+ *
+ * @remarks
+ * This type extends ClassifiedChange which contains the full change data
+ * plus the release type and matched rule info. The `change` property is
+ * provided for backward compatibility but is effectively the same as `this`.
+ *
+ * New code should use ClassifiedChange directly.
  */
-export interface ClassificationResult {
-  /** The original change */
+export interface ClassificationResult extends ClassifiedChange {
+  /**
+   * The original change (for backward compatibility).
+   * @deprecated Access properties directly on the result instead.
+   */
   change: ApiChange
-
-  /** The determined release type */
-  releaseType: ReleaseType
-
-  /** The rule that matched (undefined if default was used) */
-  matchedRule?: PolicyRule
 }
 
 /**
@@ -401,15 +445,20 @@ export function classifyChange(
   for (const policyRule of policy.rules) {
     if (policyRule.matches(change)) {
       return {
-        change,
+        ...change,
+        change, // Backward compatibility
         releaseType: policyRule.releaseType,
-        matchedRule: policyRule,
+        matchedRule: {
+          name: policyRule.name,
+          description: policyRule.rationale,
+        },
       }
     }
   }
 
   return {
-    change,
+    ...change,
+    change, // Backward compatibility
     releaseType: policy.defaultReleaseType,
   }
 }
@@ -431,9 +480,12 @@ export function classifyChanges(
 /**
  * Determines the overall release type from classification results.
  * Returns the highest severity: forbidden \> major \> minor \> patch \> none.
+ *
+ * @param results - Array of classified changes or classification results
+ * @returns The highest severity release type
  */
 export function determineOverallRelease(
-  results: ClassificationResult[],
+  results: ReadonlyArray<Pick<ClassifiedChange, 'releaseType'>>,
 ): ReleaseType {
   const priorities: Record<ReleaseType, number> = {
     forbidden: 5,

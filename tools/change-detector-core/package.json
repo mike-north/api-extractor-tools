@@ -42,6 +42,34 @@
       "types": "./dist/esm/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
+    },
+    "./ast": {
+      "types": "./dist/esm/ast/index.d.ts",
+      "import": "./dist/esm/ast/index.js",
+      "require": "./dist/cjs/ast/index.js"
+    },
+    "./rules": {
+      "types": "./dist/esm/rules.d.ts",
+      "import": "./dist/esm/rules.js",
+      "require": "./dist/cjs/rules.js"
+    },
+    "./plugins": {
+      "types": "./dist/esm/plugins.d.ts",
+      "import": "./dist/esm/plugins.js",
+      "require": "./dist/cjs/plugins.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "ast": [
+        "./dist/esm/ast/index.d.ts"
+      ],
+      "rules": [
+        "./dist/esm/rules.d.ts"
+      ],
+      "plugins": [
+        "./dist/esm/plugins.d.ts"
+      ]
     }
   },
   "files": [

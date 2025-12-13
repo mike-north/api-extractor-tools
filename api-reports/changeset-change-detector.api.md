@@ -4,7 +4,7 @@
 
 ```ts
 
-import { ComparisonReport } from '@api-extractor-tools/change-detector-core';
+import { ComparisonReport } from '@api-extractor-tools/change-detector-core/plugins';
 import type { NewChangeset } from '@changesets/types';
 import { ReleaseType } from '@api-extractor-tools/change-detector-core';
 

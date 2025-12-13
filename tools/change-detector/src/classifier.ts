@@ -4,6 +4,16 @@
  */
 
 export {
+  classifyChange,
   classifyChanges,
-  type ClassificationResult,
+  determineOverallRelease,
+  // Built-in policies
+  semverDefaultPolicy,
+  semverReadOnlyPolicy,
+  semverWriteOnlyPolicy,
+  // Rule builder
+  rule,
+  createPolicy,
+  RuleBuilder,
+  PolicyBuilder,
 } from '@api-extractor-tools/change-detector-core'

@@ -246,6 +246,12 @@ export interface AnalyzableNode {
   /** Child nodes (members, parameters, etc.) */
   children: Map<string, AnalyzableNode>
 
+  /** Heritage clause - types that this class/interface extends */
+  extends?: string[]
+
+  /** Heritage clause - types that this class implements */
+  implements?: string[]
+
   /**
    * Raw AST node for advanced analysis.
    * Note: This should not be serialized; use for runtime analysis only.
@@ -519,6 +525,14 @@ export interface ApiChange {
 export interface ClassifiedChange extends ApiChange {
   /** The semver release type determined by the policy */
   releaseType: ReleaseType
+
+  /** The policy rule that matched this change (undefined if default was used) */
+  matchedRule?: {
+    /** Name of the matching rule */
+    name?: string
+    /** Description of why the rule matched */
+    description?: string
+  }
 }
 
 // =============================================================================
@@ -554,4 +568,25 @@ export interface DiffOptions {
 
   /** Maximum depth for nested change detection */
   maxNestingDepth?: number
+
+  /** Whether to detect parameter reordering (default: true) */
+  detectParameterReordering?: boolean
+}
+
+/**
+ * Internal context passed through diff operations.
+ * Contains TypeChecker and other state needed for semantic analysis.
+ */
+export interface DiffContext {
+  /** TypeScript type checker for semantic analysis */
+  checker: import('typescript').TypeChecker
+
+  /** Resolved diff options */
+  options: Required<DiffOptions>
+
+  /** Map from node paths to ts.Symbol for type lookups */
+  oldSymbols: Map<string, import('typescript').Symbol>
+
+  /** Map from node paths to ts.Symbol for type lookups */
+  newSymbols: Map<string, import('typescript').Symbol>
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import {
   compareDeclarations,
-  formatReportAsText,
-  formatReportAsMarkdown,
-  reportToJSON,
+  formatASTReportAsText,
+  formatASTReportAsMarkdown,
+  formatASTReportAsJSON,
 } from './index'
 
 interface CliOptions {
@@ -82,7 +82,7 @@ EXAMPLES:
 }
 
 function printVersion(): void {
-  console.log('change-detector v0.0.1')
+  console.log('change-detector v0.1.0-alpha.1')
 }
 
 function main(): void {
@@ -107,18 +107,18 @@ function main(): void {
   }
 
   try {
-    const report = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: options.oldFile,
       newFile: options.newFile,
     })
 
     // Output in requested format
     if (options.json) {
-      console.log(JSON.stringify(reportToJSON(report), null, 2))
+      console.log(JSON.stringify(formatASTReportAsJSON(result.report), null, 2))
     } else if (options.markdown) {
-      console.log(formatReportAsMarkdown(report))
+      console.log(formatASTReportAsMarkdown(result.report))
     } else {
-      console.log(formatReportAsText(report))
+      console.log(formatASTReportAsText(result.report))
     }
 
     // Exit with code based on release type

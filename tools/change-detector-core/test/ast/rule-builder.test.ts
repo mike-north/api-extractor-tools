@@ -7,12 +7,18 @@ import {
   determineOverallRelease,
   type Policy,
 } from '../../src/ast/rule-builder'
-import type { ApiChange, ChangeDescriptor, ChangeContext } from '../../src/ast/types'
+import type {
+  ApiChange,
+  ChangeDescriptor,
+  ChangeContext,
+  NodeKind,
+} from '../../src/ast/types'
 
 /** Helper to create a minimal ApiChange for testing */
 function makeChange(
   descriptor: Partial<ChangeDescriptor>,
   context: Partial<ChangeContext> = {},
+  nodeKind: NodeKind = 'interface',
 ): ApiChange {
   return {
     descriptor: {
@@ -22,7 +28,7 @@ function makeChange(
       ...descriptor,
     },
     path: 'Test',
-    nodeKind: 'interface',
+    nodeKind,
     nestedChanges: [],
     context: {
       isNested: false,
@@ -81,6 +87,39 @@ describe('Rule Builder', () => {
 
       expect(wideningRule.matches(wideningChange)).toBe(true)
       expect(wideningRule.matches(narrowingChange)).toBe(false)
+    })
+
+    it('creates a rule that matches by nodeKind', () => {
+      const functionRule = rule('function-removal')
+        .action('removed')
+        .nodeKind('function')
+        .returns('major')
+
+      const functionRemoval = makeChange({ action: 'removed' }, {}, 'function')
+      const interfaceRemoval = makeChange(
+        { action: 'removed' },
+        {},
+        'interface',
+      )
+      const classRemoval = makeChange({ action: 'removed' }, {}, 'class')
+
+      expect(functionRule.matches(functionRemoval)).toBe(true)
+      expect(functionRule.matches(interfaceRemoval)).toBe(false)
+      expect(functionRule.matches(classRemoval)).toBe(false)
+    })
+
+    it('creates a rule that matches multiple nodeKinds (OR)', () => {
+      const typeDefRule = rule('type-def')
+        .nodeKind('interface', 'type-alias')
+        .returns('minor')
+
+      const interfaceChange = makeChange({}, {}, 'interface')
+      const typeAliasChange = makeChange({}, {}, 'type-alias')
+      const classChange = makeChange({}, {}, 'class')
+
+      expect(typeDefRule.matches(interfaceChange)).toBe(true)
+      expect(typeDefRule.matches(typeAliasChange)).toBe(true)
+      expect(typeDefRule.matches(classChange)).toBe(false)
     })
 
     it('creates a rule that matches by tag', () => {
@@ -253,7 +292,9 @@ describe('Rule Builder', () => {
 
     it('returns first matching rule (order matters)', () => {
       const overlappingPolicy = createPolicy('overlap', 'none')
-        .addRule(rule('specific').action('removed').target('export').returns('major'))
+        .addRule(
+          rule('specific').action('removed').target('export').returns('major'),
+        )
         .addRule(rule('general').action('removed').returns('minor'))
         .build()
 

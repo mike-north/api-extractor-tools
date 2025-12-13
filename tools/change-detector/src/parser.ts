@@ -1,53 +1,37 @@
 import * as fs from 'fs'
 import * as ts from 'typescript'
 import {
-  parseDeclarationString,
-  parseDeclarationStringWithTypes,
-  type ParseResult,
-  type ParseResultWithTypes,
+  parseModuleWithTypes,
+  type ModuleAnalysisWithTypes,
+  type ParseOptions,
 } from '@api-extractor-tools/change-detector-core'
-
-// Re-export types from core
-export type { ParseResult, ParseResultWithTypes }
 
 /**
  * Parses a declaration file from a file path and extracts all exported symbols.
  *
- * @alpha
- */
-export function parseDeclarationFile(filePath: string): ParseResult {
-  // Check file exists
-  if (!fs.existsSync(filePath)) {
-    return {
-      symbols: new Map(),
-      errors: [`File not found: ${filePath}`],
-    }
-  }
-
-  const content = fs.readFileSync(filePath, 'utf-8')
-  return parseDeclarationString(content, ts, filePath)
-}
-
-/**
- * Parses a declaration file and returns TypeScript type information
- * for deep comparison.
- *
  * @param filePath - Path to the declaration file to parse
- * @returns Parse result with TypeScript program and type checker for deep analysis
+ * @param options - Optional parse options
+ * @returns Module analysis with TypeScript type information
  *
  * @alpha
  */
-export function parseDeclarationFileWithTypes(
+export function parseDeclarationFile(
   filePath: string,
-): ParseResultWithTypes {
+  options?: ParseOptions,
+): ModuleAnalysisWithTypes {
   // Check file exists
   if (!fs.existsSync(filePath)) {
-    // Return a minimal result with empty data
-    const emptyResult = parseDeclarationStringWithTypes('', ts, filePath)
-    emptyResult.errors.push(`File not found: ${filePath}`)
-    return emptyResult
+    // Return a minimal result with error
+    // Note: filePath takes precedence over options.filename
+    const result = parseModuleWithTypes('', ts, {
+      ...options,
+      filename: filePath,
+    })
+    result.errors.push(`File not found: ${filePath}`)
+    return result
   }
 
   const content = fs.readFileSync(filePath, 'utf-8')
-  return parseDeclarationStringWithTypes(content, ts, filePath)
+  // Note: filePath takes precedence over options.filename
+  return parseModuleWithTypes(content, ts, { ...options, filename: filePath })
 }
