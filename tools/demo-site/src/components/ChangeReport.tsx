@@ -1,43 +1,52 @@
-import type { ComparisonReport, Change } from '@api-extractor-tools/change-detector-core'
+import type { ASTComparisonReport, ClassifiedChange } from '@api-extractor-tools/change-detector-core'
 import { hasExports } from '../utils/exportDetection'
 
 interface ChangeReportProps {
-  report: ComparisonReport
+  report: ASTComparisonReport
   oldContent?: string
   newContent?: string
 }
 
-/** Format a change category for display (e.g., "type-narrowed" -> "Type Narrowed") */
-function formatCategory(category: string | undefined): string {
-  if (!category) return ''
-  return category
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+/** Format a change descriptor for display */
+function formatDescriptor(change: ClassifiedChange): string {
+  const parts: string[] = []
+  if (change.descriptor.action) {
+    parts.push(change.descriptor.action)
+  }
+  if (change.descriptor.target) {
+    parts.push(change.descriptor.target)
+  }
+  if (change.descriptor.aspect) {
+    parts.push(`(${change.descriptor.aspect})`)
+  }
+  return parts.join(' ') || 'change'
 }
 
-function ChangeItem({ change }: { change: Change }) {
-  const categoryLabel = formatCategory(change.category)
+function ChangeItem({ change }: { change: ClassifiedChange }) {
+  const descriptorLabel = formatDescriptor(change)
+  const oldSig = change.oldNode?.typeInfo.signature
+  const newSig = change.newNode?.typeInfo.signature
+
   return (
     <li className={`change-item ${change.releaseType}`}>
       <div className="symbol-info">
-        <span className="symbol-name">{change.symbolName}</span>
-        <span className="symbol-kind">{change.symbolKind}</span>
-        {categoryLabel && <span className="change-category">{categoryLabel}</span>}
+        <span className="symbol-name">{change.path}</span>
+        <span className="symbol-kind">{change.nodeKind}</span>
+        <span className="change-category">{descriptorLabel}</span>
       </div>
       <div className="explanation">{change.explanation}</div>
-      {(change.before || change.after) && (
+      {(oldSig || newSig) && (
         <div className="signatures">
-          {change.before && (
+          {oldSig && (
             <div className="before">
               <span className="label">Before:</span>
-              <code>{change.before}</code>
+              <code>{oldSig}</code>
             </div>
           )}
-          {change.after && (
+          {newSig && (
             <div className="after">
               <span className="label">After:</span>
-              <code>{change.after}</code>
+              <code>{newSig}</code>
             </div>
           )}
         </div>
@@ -70,14 +79,14 @@ export function ChangeReport({ report, oldContent = '', newContent = '' }: Chang
         </span>
       </div>
 
-      {report.changes.forbidden && report.changes.forbidden.length > 0 && (
+      {report.byReleaseType.forbidden.length > 0 && (
         <div className="changes-section">
           <h3>
             Forbidden Changes{' '}
-            <span className="count forbidden">{report.changes.forbidden.length}</span>
+            <span className="count forbidden">{report.byReleaseType.forbidden.length}</span>
           </h3>
           <ul className="change-list">
-            {report.changes.forbidden.map((change, idx) => (
+            {report.byReleaseType.forbidden.map((change, idx) => (
               <ChangeItem key={`forbidden-${idx}`} change={change} />
             ))}
           </ul>
@@ -87,12 +96,12 @@ export function ChangeReport({ report, oldContent = '', newContent = '' }: Chang
       <div className="changes-section">
         <h3>
           Breaking Changes{' '}
-          <span className="count">{report.changes.breaking.length}</span>
+          <span className="count">{report.byReleaseType.major.length}</span>
         </h3>
-        {report.changes.breaking.length > 0 ? (
+        {report.byReleaseType.major.length > 0 ? (
           <ul className="change-list">
-            {report.changes.breaking.map((change, idx) => (
-              <ChangeItem key={`breaking-${idx}`} change={change} />
+            {report.byReleaseType.major.map((change, idx) => (
+              <ChangeItem key={`major-${idx}`} change={change} />
             ))}
           </ul>
         ) : (
@@ -103,12 +112,15 @@ export function ChangeReport({ report, oldContent = '', newContent = '' }: Chang
       <div className="changes-section">
         <h3>
           Non-Breaking Changes{' '}
-          <span className="count">{report.changes.nonBreaking.length}</span>
+          <span className="count">{report.byReleaseType.minor.length + report.byReleaseType.patch.length}</span>
         </h3>
-        {report.changes.nonBreaking.length > 0 ? (
+        {report.byReleaseType.minor.length > 0 || report.byReleaseType.patch.length > 0 ? (
           <ul className="change-list">
-            {report.changes.nonBreaking.map((change, idx) => (
-              <ChangeItem key={`nonbreaking-${idx}`} change={change} />
+            {report.byReleaseType.minor.map((change, idx) => (
+              <ChangeItem key={`minor-${idx}`} change={change} />
+            ))}
+            {report.byReleaseType.patch.map((change, idx) => (
+              <ChangeItem key={`patch-${idx}`} change={change} />
             ))}
           </ul>
         ) : (
@@ -120,20 +132,20 @@ export function ChangeReport({ report, oldContent = '', newContent = '' }: Chang
         <h3>Summary</h3>
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="value">{report.stats.added}</div>
+            <div className="value">{report.stats.minor}</div>
             <div className="label">Added</div>
           </div>
           <div className="stat-card">
-            <div className="value">{report.stats.removed}</div>
-            <div className="label">Removed</div>
+            <div className="value">{report.stats.major}</div>
+            <div className="label">Breaking</div>
           </div>
           <div className="stat-card">
-            <div className="value">{report.stats.modified}</div>
-            <div className="label">Modified</div>
+            <div className="value">{report.stats.patch}</div>
+            <div className="label">Patch</div>
           </div>
           <div className="stat-card">
-            <div className="value">{report.stats.unchanged}</div>
-            <div className="label">Unchanged</div>
+            <div className="value">{report.stats.total}</div>
+            <div className="label">Total</div>
           </div>
         </div>
       </div>

@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import * as ts from 'typescript'
 import {
-  compareDeclarations,
-  formatReportAsText,
-  defaultPolicy,
-  readOnlyPolicy,
-  writeOnlyPolicy,
-  type ComparisonReport,
-  type VersioningPolicy,
-  type ReleaseType,
+  analyzeChanges,
+  formatASTReportAsText,
+  semverDefaultPolicy,
+  semverReadOnlyPolicy,
+  semverWriteOnlyPolicy,
+  type ASTComparisonReport,
+  type Policy,
+  createASTComparisonReport,
 } from '@api-extractor-tools/change-detector-core'
 import { DtsEditor } from './components/DtsEditor'
 import { ChangeReport } from './components/ChangeReport'
@@ -20,55 +20,15 @@ import { DemoProvider, type DemoCapabilities } from './contexts/DemoContext'
 import { examples, type Example } from './examples'
 import { encodeBase64, decodeBase64 } from './utils/encoding'
 import { isUrlTooLong } from './utils/urlLimits'
-import { type PolicyName, type CustomPolicyData, DEFAULT_CUSTOM_POLICY_DATA, CHANGE_CATEGORIES } from './types'
+import { type PolicyName } from './types'
 
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
 
-const turnkeyPolicies: Record<Exclude<PolicyName, 'custom'>, VersioningPolicy> = {
-  'default': defaultPolicy,
-  'read-only': readOnlyPolicy,
-  'write-only': writeOnlyPolicy,
-}
-
-/**
- * Creates a VersioningPolicy from custom policy data.
- */
-function createCustomPolicy(data: CustomPolicyData): VersioningPolicy {
-  return {
-    name: 'custom',
-    classify(change) {
-      return data[change.category]
-    },
-  }
-}
-
-/**
- * Validates and parses custom policy data from JSON.
- * Returns null if invalid.
- */
-function parseCustomPolicyData(json: string): CustomPolicyData | null {
-  try {
-    const parsed = JSON.parse(json) as unknown
-    if (typeof parsed !== 'object' || parsed === null) {
-      return null
-    }
-    
-    // Validate that all change categories are present with valid release types
-    const validReleaseTypes = new Set<ReleaseType>(['forbidden', 'major', 'minor', 'patch', 'none'])
-    const data = parsed as Record<string, unknown>
-    
-    for (const { category } of CHANGE_CATEGORIES) {
-      const value = data[category]
-      if (typeof value !== 'string' || !validReleaseTypes.has(value as ReleaseType)) {
-        return null
-      }
-    }
-    
-    return data as CustomPolicyData
-  } catch {
-    return null
-  }
+const turnkeyPolicies: Record<Exclude<PolicyName, 'custom'>, Policy> = {
+  'default': semverDefaultPolicy,
+  'read-only': semverReadOnlyPolicy,
+  'write-only': semverWriteOnlyPolicy,
 }
 
 function getSystemTheme(): ResolvedTheme {
@@ -98,31 +58,13 @@ function getInitialContent(): { old: string; new: string } {
   return { old: examples[0].old, new: examples[0].new }
 }
 
-function getInitialPolicy(): PolicyName {
+function getInitialPolicy(): Exclude<PolicyName, 'custom'> {
   const params = new URLSearchParams(window.location.search)
   const policyParam = params.get('policy')
-  if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only' || policyParam === 'custom') {
+  if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only') {
     return policyParam
   }
   return 'default'
-}
-
-function getInitialCustomPolicyData(): CustomPolicyData {
-  const params = new URLSearchParams(window.location.search)
-  const policyParam = params.get('policy')
-  const policyDataParam = params.get('policy_data')
-  
-  if (policyParam === 'custom' && policyDataParam) {
-    const decoded = decodeBase64(policyDataParam)
-    if (decoded) {
-      const parsed = parseCustomPolicyData(decoded)
-      if (parsed) {
-        return parsed
-      }
-    }
-  }
-  
-  return { ...DEFAULT_CUSTOM_POLICY_DATA }
 }
 
 const initialContent = getInitialContent()
@@ -130,23 +72,19 @@ const initialContent = getInitialContent()
 function App() {
   const [oldContent, setOldContent] = useState(initialContent.old)
   const [newContent, setNewContent] = useState(initialContent.new)
-  const [report, setReport] = useState<ComparisonReport | null>(null)
+  const [report, setReport] = useState<ASTComparisonReport | null>(null)
   const [editorHeight, setEditorHeight] = useState(250)
   const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
-  const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>(getInitialPolicy())
-  const [customPolicyData, setCustomPolicyData] = useState<CustomPolicyData>(getInitialCustomPolicyData)
+  const [selectedPolicy, setSelectedPolicy] = useState<Exclude<PolicyName, 'custom'>>(getInitialPolicy())
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
 
   // Memoize the resolved policy to use for analysis
-  const resolvedPolicy = useMemo((): VersioningPolicy => {
-    if (selectedPolicy === 'custom') {
-      return createCustomPolicy(customPolicyData)
-    }
+  const resolvedPolicy = useMemo((): Policy => {
     return turnkeyPolicies[selectedPolicy]
-  }, [selectedPolicy, customPolicyData])
+  }, [selectedPolicy])
 
   // Resolve the actual theme to apply
   const resolvedTheme: ResolvedTheme = themePreference === 'auto' ? systemTheme : themePreference
@@ -177,26 +115,21 @@ function App() {
     setThemePreference(theme)
   }, [])
 
-  const handlePolicyChange = useCallback((policy: PolicyName) => {
+  const handlePolicyChange = useCallback((policy: Exclude<PolicyName, 'custom'>) => {
     setSelectedPolicy(policy)
-  }, [])
-
-  const handleCustomPolicyDataChange = useCallback((data: CustomPolicyData) => {
-    setCustomPolicyData(data)
   }, [])
 
   // Auto-analyze with 100ms debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const result = compareDeclarations(
-        {
-          oldContent,
-          newContent,
-          policy: resolvedPolicy,
-        },
-        ts,
+      const result = analyzeChanges(oldContent, newContent, ts, {
+        policy: resolvedPolicy,
+      })
+      // Convert to ASTComparisonReport format
+      const astReport = createASTComparisonReport(
+        result.results.map(r => ({ ...r.change, releaseType: r.releaseType }))
       )
-      setReport(result)
+      setReport(astReport)
     }, 100)
 
     return () => clearTimeout(timeoutId)
@@ -209,14 +142,9 @@ function App() {
       params.set('old', encodeBase64(oldContent))
       params.set('new', encodeBase64(newContent))
       params.set('policy', selectedPolicy)
-      
-      // Add policy_data for custom policy, remove it for turnkey policies
-      if (selectedPolicy === 'custom') {
-        params.set('policy_data', encodeBase64(JSON.stringify(customPolicyData)))
-      }
-      
+
       const newUrl = `${window.location.pathname}?${params.toString()}`
-      
+
       // Only update URL if it's within safe length limits
       // If too long, clear the URL params to avoid issues
       if (isUrlTooLong(newUrl)) {
@@ -227,7 +155,7 @@ function App() {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [oldContent, newContent, selectedPolicy, customPolicyData])
+  }, [oldContent, newContent, selectedPolicy])
 
   // Handle resize drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -302,24 +230,6 @@ function App() {
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
 
   const getLLMContent = useCallback(() => {
-    // Format policy information
-    let policySection = `## Versioning Policy
-
-**Selected Policy**: ${selectedPolicy}
-`
-    
-    if (selectedPolicy === 'custom') {
-      policySection += `
-### Custom Policy Configuration
-
-The user has configured a custom versioning policy with the following change category → release type mappings:
-
-\`\`\`json
-${JSON.stringify(customPolicyData, null, 2)}
-\`\`\`
-`
-    }
-
     return `## Old API (.d.ts)
 
 \`\`\`typescript
@@ -332,12 +242,15 @@ ${oldContent}
 ${newContent}
 \`\`\`
 
-${policySection}
+## Versioning Policy
+
+**Selected Policy**: ${selectedPolicy}
+
 ## Analysis Result
 
-${report ? formatReportAsText(report) : 'No analysis available'}
+${report ? formatASTReportAsText(report) : 'No analysis available'}
 `
-  }, [oldContent, newContent, selectedPolicy, customPolicyData, report])
+  }, [oldContent, newContent, selectedPolicy, report])
 
   const demoCapabilities: DemoCapabilities = useMemo(() => ({
     getLLMContent,
@@ -357,8 +270,6 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
               selectedPolicy={selectedPolicy}
               onPolicyChange={handlePolicyChange}
               onExampleSelect={handleExampleSelect}
-              customPolicyData={customPolicyData}
-              onCustomPolicyDataChange={handleCustomPolicyDataChange}
             />
             <AppSettingsMenu
               themePreference={themePreference}
@@ -417,7 +328,6 @@ ${report ? formatReportAsText(report) : 'No analysis available'}
             oldContent={oldContent}
             newContent={newContent}
             policyName={selectedPolicy}
-            customPolicyData={selectedPolicy === 'custom' ? customPolicyData : undefined}
             onClose={() => setIsBugReportOpen(false)}
           />
         )}

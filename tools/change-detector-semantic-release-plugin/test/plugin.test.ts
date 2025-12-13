@@ -4,6 +4,11 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
+import type {
+  ClassifiedChange,
+  AnalyzableNode,
+  ChangeDescriptor,
+} from '@api-extractor-tools/change-detector'
 import {
   verifyConditions,
   validateVersionBump,
@@ -12,6 +17,53 @@ import {
   type AnalysisResult,
   resolveConfig,
 } from '@'
+
+// Helper to create mock nodes for tests
+function createMockNode(name: string, signature: string): AnalyzableNode {
+  return {
+    path: name,
+    name,
+    kind: 'function',
+    typeInfo: { signature, raw: signature },
+    modifiers: new Set(),
+    children: new Map(),
+    location: {
+      start: { line: 1, column: 0, offset: 0 },
+      end: { line: 1, column: 0, offset: 0 },
+    },
+  }
+}
+
+// Helper to create a classified change
+function createChange(
+  path: string,
+  releaseType: 'major' | 'minor' | 'patch',
+  action: 'added' | 'removed' | 'modified',
+  explanation: string,
+): ClassifiedChange {
+  const descriptor: ChangeDescriptor = {
+    target: 'export',
+    action,
+    tags: new Set(),
+  } as ChangeDescriptor
+  return {
+    path,
+    nodeKind: 'function',
+    releaseType,
+    descriptor,
+    explanation,
+    oldNode:
+      action !== 'added'
+        ? createMockNode(path, `function ${path}(): void`)
+        : undefined,
+    newNode:
+      action !== 'removed'
+        ? createMockNode(path, `function ${path}(): void`)
+        : undefined,
+    nestedChanges: [],
+    context: { isNested: false, depth: 0, ancestors: [] },
+  }
+}
 
 /**
  * Creates a mock semantic-release context.
@@ -133,30 +185,24 @@ describe('validateVersionBump', () => {
     const analysis: AnalysisResult = {
       report: {
         releaseType: 'major',
-        changes: {
+        changes: [],
+        byReleaseType: {
           forbidden: [],
-          breaking: [
-            {
-              symbolName: 'foo',
-              symbolKind: 'function',
-              category: 'symbol-removed',
-              releaseType: 'major',
-              explanation: 'Function foo was removed',
-            },
+          major: [
+            createChange('foo', 'major', 'removed', 'Function foo was removed'),
           ],
-          nonBreaking: [],
-          unchanged: [],
+          minor: [],
+          patch: [],
+          none: [],
         },
         stats: {
-          totalSymbolsOld: 1,
-          totalSymbolsNew: 0,
-          added: 0,
-          removed: 1,
-          modified: 0,
-          unchanged: 0,
+          forbidden: 0,
+          major: 1,
+          minor: 0,
+          patch: 0,
+          none: 0,
+          total: 1,
         },
-        oldFile: 'old.d.ts',
-        newFile: 'new.d.ts',
       },
       recommendedBump: 'major',
       isNewPackage: false,
@@ -233,4 +279,3 @@ describe('resolveConfig', () => {
     expect(config.failOnMismatch).toBe(false)
   })
 })
-

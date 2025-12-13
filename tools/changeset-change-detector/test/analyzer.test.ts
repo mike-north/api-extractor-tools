@@ -5,12 +5,84 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'node:path'
+import type {
+  ASTComparisonReport,
+  ClassifiedChange,
+  AnalyzableNode,
+  ChangeDescriptor,
+} from '@api-extractor-tools/change-detector'
 import {
   discoverPackages,
   formatChangeSummary,
   generateChangeDescription,
   type PackageAnalysisResult,
 } from '@'
+
+// Helper to create mock nodes for tests
+function createMockNode(name: string, signature: string): AnalyzableNode {
+  return {
+    path: name,
+    name,
+    kind: 'function',
+    typeInfo: { signature, raw: signature },
+    modifiers: new Set(),
+    children: new Map(),
+    location: {
+      start: { line: 1, column: 0, offset: 0 },
+      end: { line: 1, column: 0, offset: 0 },
+    },
+  }
+}
+
+// Helper to create a classified change
+function createChange(
+  path: string,
+  releaseType: 'major' | 'minor' | 'patch',
+  action: 'added' | 'removed' | 'modified',
+  explanation: string,
+  oldSig?: string,
+  newSig?: string,
+): ClassifiedChange {
+  const descriptor: ChangeDescriptor = {
+    target: 'export',
+    action,
+    tags: new Set(),
+  } as ChangeDescriptor
+  return {
+    path,
+    nodeKind: 'function',
+    releaseType,
+    descriptor,
+    explanation,
+    oldNode: oldSig ? createMockNode(path, oldSig) : undefined,
+    newNode: newSig ? createMockNode(path, newSig) : undefined,
+    nestedChanges: [],
+    context: { isNested: false, depth: 0, ancestors: [] },
+  }
+}
+
+// Helper to create an empty report
+function createEmptyReport(): ASTComparisonReport {
+  return {
+    releaseType: 'none',
+    changes: [],
+    byReleaseType: {
+      forbidden: [],
+      major: [],
+      minor: [],
+      patch: [],
+      none: [],
+    },
+    stats: {
+      forbidden: 0,
+      major: 0,
+      minor: 0,
+      patch: 0,
+      none: 0,
+      total: 0,
+    },
+  }
+}
 
 describe('discoverPackages', () => {
   let project: Project
@@ -115,30 +187,31 @@ describe('formatChangeSummary', () => {
       },
       report: {
         releaseType: 'major',
-        changes: {
+        changes: [],
+        byReleaseType: {
           forbidden: [],
-          breaking: [
-            {
-              symbolName: 'foo',
-              symbolKind: 'function',
-              category: 'symbol-removed',
-              releaseType: 'major',
-              explanation: 'Removed foo',
-            },
+          major: [
+            createChange(
+              'foo',
+              'major',
+              'removed',
+              'Removed foo',
+              'function foo(): void',
+              undefined,
+            ),
           ],
-          nonBreaking: [],
-          unchanged: [],
+          minor: [],
+          patch: [],
+          none: [],
         },
         stats: {
-          totalSymbolsOld: 2,
-          totalSymbolsNew: 1,
-          added: 0,
-          removed: 1,
-          modified: 0,
-          unchanged: 1,
+          forbidden: 0,
+          major: 1,
+          minor: 0,
+          patch: 0,
+          none: 0,
+          total: 1,
         },
-        oldFile: 'old.d.ts',
-        newFile: 'new.d.ts',
       },
       recommendedBump: 'major',
     }
@@ -172,25 +245,7 @@ describe('formatChangeSummary', () => {
         version: '1.0.0',
         declarationFile: '/test/dist/index.d.ts',
       },
-      report: {
-        releaseType: 'none',
-        changes: {
-          forbidden: [],
-          breaking: [],
-          nonBreaking: [],
-          unchanged: [],
-        },
-        stats: {
-          totalSymbolsOld: 1,
-          totalSymbolsNew: 1,
-          added: 0,
-          removed: 0,
-          modified: 0,
-          unchanged: 1,
-        },
-        oldFile: 'old.d.ts',
-        newFile: 'new.d.ts',
-      },
+      report: createEmptyReport(),
       recommendedBump: 'none',
     }
 
@@ -210,45 +265,48 @@ describe('generateChangeDescription', () => {
       },
       report: {
         releaseType: 'major',
-        changes: {
+        changes: [],
+        byReleaseType: {
           forbidden: [],
-          breaking: [
-            {
-              symbolName: 'foo',
-              symbolKind: 'function',
-              category: 'symbol-removed',
-              releaseType: 'major',
-              explanation: 'Function foo was removed',
-            },
-            {
-              symbolName: 'bar',
-              symbolKind: 'function',
-              category: 'param-added-required',
-              releaseType: 'major',
-              explanation: 'Required parameter added to bar',
-            },
+          major: [
+            createChange(
+              'foo',
+              'major',
+              'removed',
+              'Function foo was removed',
+              'function foo(): void',
+              undefined,
+            ),
+            createChange(
+              'bar',
+              'major',
+              'modified',
+              'Required parameter added to bar',
+              'function bar(): void',
+              'function bar(x: string): void',
+            ),
           ],
-          nonBreaking: [
-            {
-              symbolName: 'baz',
-              symbolKind: 'function',
-              category: 'symbol-added',
-              releaseType: 'minor',
-              explanation: 'Function baz was added',
-            },
+          minor: [
+            createChange(
+              'baz',
+              'minor',
+              'added',
+              'Function baz was added',
+              undefined,
+              'function baz(): void',
+            ),
           ],
-          unchanged: [],
+          patch: [],
+          none: [],
         },
         stats: {
-          totalSymbolsOld: 2,
-          totalSymbolsNew: 2,
-          added: 1,
-          removed: 1,
-          modified: 1,
-          unchanged: 0,
+          forbidden: 0,
+          major: 2,
+          minor: 1,
+          patch: 0,
+          none: 0,
+          total: 3,
         },
-        oldFile: 'old.d.ts',
-        newFile: 'new.d.ts',
       },
       recommendedBump: 'major',
     }
@@ -287,28 +345,31 @@ describe('generateChangeDescription', () => {
       },
       report: {
         releaseType: 'major',
-        changes: {
+        changes: [],
+        byReleaseType: {
           forbidden: [],
-          breaking: Array.from({ length: 10 }, (_, i) => ({
-            symbolName: `func${i}`,
-            symbolKind: 'function' as const,
-            category: 'symbol-removed' as const,
-            releaseType: 'major' as const,
-            explanation: `Function func${i} was removed`,
-          })),
-          nonBreaking: [],
-          unchanged: [],
+          major: Array.from({ length: 10 }, (_, i) =>
+            createChange(
+              `func${i}`,
+              'major',
+              'removed',
+              `Function func${i} was removed`,
+              `function func${i}(): void`,
+              undefined,
+            ),
+          ),
+          minor: [],
+          patch: [],
+          none: [],
         },
         stats: {
-          totalSymbolsOld: 10,
-          totalSymbolsNew: 0,
-          added: 0,
-          removed: 10,
-          modified: 0,
-          unchanged: 0,
+          forbidden: 0,
+          major: 10,
+          minor: 0,
+          patch: 0,
+          none: 0,
+          total: 10,
         },
-        oldFile: 'old.d.ts',
-        newFile: 'new.d.ts',
       },
       recommendedBump: 'major',
     }

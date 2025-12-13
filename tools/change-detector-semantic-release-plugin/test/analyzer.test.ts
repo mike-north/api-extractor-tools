@@ -6,7 +6,82 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import { findDeclarationFile, formatChangeSummary } from '../src/analyzer'
 import { resolveConfig, type ResolvedPluginConfig } from '../src/types'
-import type { ComparisonReport } from '@api-extractor-tools/change-detector'
+import type {
+  ASTComparisonReport,
+  ClassifiedChange,
+  AnalyzableNode,
+  ChangeDescriptor,
+} from '@api-extractor-tools/change-detector'
+
+// Helper to create mock nodes for tests
+function createMockNode(name: string, signature: string): AnalyzableNode {
+  return {
+    path: name,
+    name,
+    kind: 'function',
+    typeInfo: { signature, raw: signature },
+    modifiers: new Set(),
+    children: new Map(),
+    location: {
+      start: { line: 1, column: 0, offset: 0 },
+      end: { line: 1, column: 0, offset: 0 },
+    },
+  }
+}
+
+// Helper to create a classified change
+function createChange(
+  path: string,
+  releaseType: 'major' | 'minor' | 'patch',
+  action: 'added' | 'removed' | 'modified',
+  explanation: string,
+): ClassifiedChange {
+  const descriptor: ChangeDescriptor = {
+    target: 'export',
+    action,
+    tags: new Set(),
+  } as ChangeDescriptor
+  return {
+    path,
+    nodeKind: 'function',
+    releaseType,
+    descriptor,
+    explanation,
+    oldNode:
+      action !== 'added'
+        ? createMockNode(path, `function ${path}(): void`)
+        : undefined,
+    newNode:
+      action !== 'removed'
+        ? createMockNode(path, `function ${path}(): void`)
+        : undefined,
+    nestedChanges: [],
+    context: { isNested: false, depth: 0, ancestors: [] },
+  }
+}
+
+// Helper to create an empty report
+function createEmptyReport(): ASTComparisonReport {
+  return {
+    releaseType: 'none',
+    changes: [],
+    byReleaseType: {
+      forbidden: [],
+      major: [],
+      minor: [],
+      patch: [],
+      none: [],
+    },
+    stats: {
+      forbidden: 0,
+      major: 0,
+      minor: 0,
+      patch: 0,
+      none: 0,
+      total: 0,
+    },
+  }
+}
 
 describe('findDeclarationFile', () => {
   let project: Project
@@ -298,25 +373,7 @@ describe('formatChangeSummary', () => {
   })
 
   it('returns default message for report with no changes', () => {
-    const report: ComparisonReport = {
-      releaseType: 'none',
-      changes: {
-        forbidden: [],
-        breaking: [],
-        nonBreaking: [],
-        unchanged: [],
-      },
-      stats: {
-        totalSymbolsOld: 5,
-        totalSymbolsNew: 5,
-        added: 0,
-        removed: 0,
-        modified: 0,
-        unchanged: 5,
-      },
-      oldFile: 'old.d.ts',
-      newFile: 'new.d.ts',
-    }
+    const report = createEmptyReport()
 
     const result = formatChangeSummary(report)
 
@@ -324,74 +381,54 @@ describe('formatChangeSummary', () => {
   })
 
   it('formats breaking changes only', () => {
-    const report: ComparisonReport = {
+    const report: ASTComparisonReport = {
       releaseType: 'major',
-      changes: {
+      changes: [],
+      byReleaseType: {
         forbidden: [],
-        breaking: [
-          {
-            symbolName: 'foo',
-            symbolKind: 'function',
-            category: 'symbol-removed',
-            releaseType: 'major',
-            explanation: 'Removed',
-          },
-        ],
-        nonBreaking: [],
-        unchanged: [],
+        major: [createChange('foo', 'major', 'removed', 'Removed')],
+        minor: [],
+        patch: [],
+        none: [],
       },
       stats: {
-        totalSymbolsOld: 1,
-        totalSymbolsNew: 0,
-        added: 0,
-        removed: 1,
-        modified: 0,
-        unchanged: 0,
+        forbidden: 0,
+        major: 1,
+        minor: 0,
+        patch: 0,
+        none: 0,
+        total: 1,
       },
-      oldFile: 'old.d.ts',
-      newFile: 'new.d.ts',
     }
 
     const result = formatChangeSummary(report)
 
     expect(result).toContain('1 breaking change(s)')
-    expect(result).toContain('1 removed')
+    expect(result).toContain('1 removed/breaking')
   })
 
   it('formats non-breaking changes only', () => {
-    const report: ComparisonReport = {
+    const report: ASTComparisonReport = {
       releaseType: 'minor',
-      changes: {
+      changes: [],
+      byReleaseType: {
         forbidden: [],
-        breaking: [],
-        nonBreaking: [
-          {
-            symbolName: 'bar',
-            symbolKind: 'function',
-            category: 'symbol-added',
-            releaseType: 'minor',
-            explanation: 'Added',
-          },
-          {
-            symbolName: 'baz',
-            symbolKind: 'function',
-            category: 'symbol-added',
-            releaseType: 'minor',
-            explanation: 'Added',
-          },
+        major: [],
+        minor: [
+          createChange('bar', 'minor', 'added', 'Added'),
+          createChange('baz', 'minor', 'added', 'Added'),
         ],
-        unchanged: [],
+        patch: [],
+        none: [],
       },
       stats: {
-        totalSymbolsOld: 0,
-        totalSymbolsNew: 2,
-        added: 2,
-        removed: 0,
-        modified: 0,
-        unchanged: 0,
+        forbidden: 0,
+        major: 0,
+        minor: 2,
+        patch: 0,
+        none: 0,
+        total: 2,
       },
-      oldFile: 'old.d.ts',
-      newFile: 'new.d.ts',
     }
 
     const result = formatChangeSummary(report)
@@ -401,40 +438,24 @@ describe('formatChangeSummary', () => {
   })
 
   it('formats mixed changes', () => {
-    const report: ComparisonReport = {
+    const report: ASTComparisonReport = {
       releaseType: 'major',
-      changes: {
+      changes: [],
+      byReleaseType: {
         forbidden: [],
-        breaking: [
-          {
-            symbolName: 'foo',
-            symbolKind: 'function',
-            category: 'symbol-removed',
-            releaseType: 'major',
-            explanation: 'Removed',
-          },
-        ],
-        nonBreaking: [
-          {
-            symbolName: 'bar',
-            symbolKind: 'function',
-            category: 'symbol-added',
-            releaseType: 'minor',
-            explanation: 'Added',
-          },
-        ],
-        unchanged: [],
+        major: [createChange('foo', 'major', 'removed', 'Removed')],
+        minor: [createChange('bar', 'minor', 'added', 'Added')],
+        patch: [],
+        none: [],
       },
       stats: {
-        totalSymbolsOld: 2,
-        totalSymbolsNew: 2,
-        added: 1,
-        removed: 1,
-        modified: 0,
-        unchanged: 0,
+        forbidden: 0,
+        major: 1,
+        minor: 1,
+        patch: 0,
+        none: 0,
+        total: 2,
       },
-      oldFile: 'old.d.ts',
-      newFile: 'new.d.ts',
     }
 
     const result = formatChangeSummary(report)
@@ -442,36 +463,28 @@ describe('formatChangeSummary', () => {
     expect(result).toContain('1 breaking change(s)')
     expect(result).toContain('1 non-breaking change(s)')
     expect(result).toContain('1 added')
-    expect(result).toContain('1 removed')
+    expect(result).toContain('1 removed/breaking')
   })
 
   it('includes modification count', () => {
-    const report: ComparisonReport = {
-      releaseType: 'major',
-      changes: {
+    const report: ASTComparisonReport = {
+      releaseType: 'patch',
+      changes: [],
+      byReleaseType: {
         forbidden: [],
-        breaking: [
-          {
-            symbolName: 'foo',
-            symbolKind: 'function',
-            category: 'return-type-changed',
-            releaseType: 'major',
-            explanation: 'Return type changed',
-          },
-        ],
-        nonBreaking: [],
-        unchanged: [],
+        major: [],
+        minor: [],
+        patch: [createChange('foo', 'patch', 'modified', 'Modified')],
+        none: [],
       },
       stats: {
-        totalSymbolsOld: 1,
-        totalSymbolsNew: 1,
-        added: 0,
-        removed: 0,
-        modified: 1,
-        unchanged: 0,
+        forbidden: 0,
+        major: 0,
+        minor: 0,
+        patch: 1,
+        none: 0,
+        total: 1,
       },
-      oldFile: 'old.d.ts',
-      newFile: 'new.d.ts',
     }
 
     const result = formatChangeSummary(report)

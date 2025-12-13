@@ -5,7 +5,7 @@
  */
 
 import type {
-  ComparisonReport,
+  ASTComparisonReport,
   ReleaseType,
 } from '@api-extractor-tools/change-detector'
 
@@ -113,7 +113,7 @@ export interface ResolvedPluginConfig {
  */
 export interface AnalysisResult {
   /** The comparison report from change-detector, null if no baseline exists */
-  report: ComparisonReport | null
+  report: ASTComparisonReport | null
   /** The recommended version bump based on the analysis */
   recommendedBump: ReleaseType
   /** Whether this is a new package (no previous release) */
@@ -137,7 +137,7 @@ export interface ValidationResult {
   /** Human-readable explanation of the validation result */
   message: string
   /** Detailed changes, if available */
-  changes?: ComparisonReport['changes']
+  changes?: ASTComparisonReport['byReleaseType']
 }
 
 /**

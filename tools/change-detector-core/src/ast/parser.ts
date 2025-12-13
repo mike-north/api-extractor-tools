@@ -888,12 +888,25 @@ function processStatement(
         extractMetadataOpt,
         outputMap,
       )
-      // Mark the processed node as exported
-      const name = getDeclarationName(statement.declaration)
-      if (name) {
-        const node = outputMap.get(name)
-        if (node) {
-          node.modifiers.add('exported')
+      // Mark the processed node(s) as exported
+      // VariableDeclaration can have multiple declarators, so handle it specially
+      if (statement.declaration.type === AST_NODE_TYPES.VariableDeclaration) {
+        for (const declarator of statement.declaration.declarations) {
+          const name = getDeclarationName(declarator)
+          if (name) {
+            const node = outputMap.get(name)
+            if (node) {
+              node.modifiers.add('exported')
+            }
+          }
+        }
+      } else {
+        const name = getDeclarationName(statement.declaration)
+        if (name) {
+          const node = outputMap.get(name)
+          if (node) {
+            node.modifiers.add('exported')
+          }
         }
       }
     }
