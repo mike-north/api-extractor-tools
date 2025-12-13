@@ -5,14 +5,10 @@
  * reads files from disk and delegates to the core comparison logic.
  *
  * For comprehensive comparison logic tests, see \@api-extractor-tools/change-detector-core:
- * - functions.test.ts - Function signature change tests
- * - interfaces.test.ts - Interface change tests
- * - types.test.ts - Type alias change tests
- * - classes.test.ts - Class change tests
- * - enums.test.ts - Enum change tests
- * - generics.test.ts - Generic type change tests
- * - classifier.test.ts - Change classification tests
- * - reporter.test.ts - Report formatting tests
+ * - ast/differ.test.ts - AST-based change detection tests
+ * - ast/rule-builder.test.ts - Rule builder and policy tests
+ * - ast/builtin-policies.test.ts - Built-in policy tests
+ * - ast/reporter.test.ts - Report formatting tests
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
@@ -31,31 +27,33 @@ describe('compareDeclarations (file-based API)', () => {
     project.dispose()
   })
 
-  it('reads files from disk and returns a valid ComparisonReport', async () => {
+  it('reads files from disk and returns a valid result', async () => {
     project.files = {
       'old.d.ts': `export declare function greet(name: string): string;`,
       'new.d.ts': `export declare function greet(name: string): string;`,
     }
     await project.write()
 
-    const report = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: path.join(project.baseDir, 'old.d.ts'),
       newFile: path.join(project.baseDir, 'new.d.ts'),
     })
 
-    // Verify report structure
-    expect(report).toHaveProperty('releaseType')
-    expect(report).toHaveProperty('changes')
-    expect(report).toHaveProperty('stats')
-    expect(report).toHaveProperty('oldFile')
-    expect(report).toHaveProperty('newFile')
+    // Verify result structure
+    expect(result).toHaveProperty('releaseType')
+    expect(result).toHaveProperty('changes')
+    expect(result).toHaveProperty('results')
+    expect(result).toHaveProperty('report')
+    expect(result).toHaveProperty('oldFile')
+    expect(result).toHaveProperty('newFile')
 
     // Verify file paths are set correctly
-    expect(report.oldFile).toContain('old.d.ts')
-    expect(report.newFile).toContain('new.d.ts')
+    expect(result.oldFile).toContain('old.d.ts')
+    expect(result.newFile).toContain('new.d.ts')
 
     // Verify no changes detected
-    expect(report.releaseType).toBe('none')
+    expect(result.releaseType).toBe('none')
+    expect(result.changes).toHaveLength(0)
   })
 
   it('correctly delegates comparison to core and returns breaking changes', async () => {
@@ -65,14 +63,14 @@ describe('compareDeclarations (file-based API)', () => {
     }
     await project.write()
 
-    const report = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: path.join(project.baseDir, 'old.d.ts'),
       newFile: path.join(project.baseDir, 'new.d.ts'),
     })
 
-    expect(report.releaseType).toBe('major')
-    expect(report.changes.breaking).toHaveLength(1)
-    expect(report.changes.breaking[0]?.category).toBe('symbol-removed')
+    expect(result.releaseType).toBe('major')
+    expect(result.changes).toHaveLength(1)
+    expect(result.changes[0]?.descriptor.action).toBe('removed')
   })
 
   it('correctly delegates comparison to core and returns non-breaking changes', async () => {
@@ -82,14 +80,14 @@ describe('compareDeclarations (file-based API)', () => {
     }
     await project.write()
 
-    const report = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: path.join(project.baseDir, 'old.d.ts'),
       newFile: path.join(project.baseDir, 'new.d.ts'),
     })
 
-    expect(report.releaseType).toBe('minor')
-    expect(report.changes.nonBreaking).toHaveLength(1)
-    expect(report.changes.nonBreaking[0]?.category).toBe('symbol-added')
+    expect(result.releaseType).toBe('minor')
+    expect(result.changes).toHaveLength(1)
+    expect(result.changes[0]?.descriptor.action).toBe('added')
   })
 
   it('provides accurate statistics from file comparison', async () => {
@@ -107,16 +105,31 @@ export declare function d(y: string): void;
     }
     await project.write()
 
-    const report = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: path.join(project.baseDir, 'old.d.ts'),
       newFile: path.join(project.baseDir, 'new.d.ts'),
     })
 
-    expect(report.stats.totalSymbolsOld).toBe(3)
-    expect(report.stats.totalSymbolsNew).toBe(3)
-    expect(report.stats.added).toBe(1)
-    expect(report.stats.removed).toBe(1)
-    expect(report.stats.modified).toBe(1)
-    expect(report.stats.unchanged).toBe(1)
+    // Verify stats from the report
+    expect(result.report.stats.total).toBe(3) // b removed, c modified, d added
+    expect(result.report.stats.major).toBe(2) // b removed, c return type changed
+    expect(result.report.stats.minor).toBe(1) // d added
+  })
+
+  it('groups changes by release type in the report', async () => {
+    project.files = {
+      'old.d.ts': `export declare function a(): void;`,
+      'new.d.ts': `export declare function b(): void;`, // a removed, b added
+    }
+    await project.write()
+
+    const result = compareDeclarations({
+      oldFile: path.join(project.baseDir, 'old.d.ts'),
+      newFile: path.join(project.baseDir, 'new.d.ts'),
+    })
+
+    // Should have major (removal) and minor (addition) changes
+    expect(result.report.byReleaseType.major).toHaveLength(1)
+    expect(result.report.byReleaseType.minor).toHaveLength(1)
   })
 })

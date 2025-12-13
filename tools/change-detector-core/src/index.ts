@@ -2,7 +2,7 @@
  * An isomorphic library for detecting and classifying changes between TypeScript declaration files.
  *
  * @remarks
- * This package analyzes `.d.ts` content to identify API changes and classify them
+ * This package analyzes TypeScript source code to identify API changes and classify them
  * according to semantic versioning impact (major, minor, patch, or none).
  *
  * This core package is designed to work in both Node.js and browser environments.
@@ -11,85 +11,41 @@
  * @example
  * ```ts
  * import * as ts from 'typescript';
- * import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector-core';
+ * import { analyzeChanges } from '@api-extractor-tools/change-detector-core';
  *
- * const report = compareDeclarations({
- *   oldContent: 'export declare function greet(name: string): string;',
- *   newContent: 'export declare function greet(name: string, prefix?: string): string;',
- * }, ts);
+ * const result = analyzeChanges(oldSource, newSource, ts);
+ * console.log(`Release type: ${result.releaseType}`);
  *
- * console.log(report.releaseType); // "minor"
- * console.log(formatReportAsMarkdown(report));
+ * for (const { change, releaseType, matchedRule } of result.results) {
+ *   console.log(`[${releaseType}] ${change.explanation}`);
+ * }
  * ```
  *
  * @packageDocumentation
  */
 
 import type * as ts from 'typescript'
-import type { CompareStringOptions, ComparisonReport } from './types'
-import { parseDeclarationStringWithTypes } from './parser-core'
-import { compareDeclarationResults } from './comparator'
-import { classifyChanges } from './classifier'
 
-// Type exports
+// Core type exports
 export type {
   ReleaseType,
-  ChangeCategory,
+  // Symbol-based types (used by input processors and plugins)
   SymbolKind,
-  SymbolMetadata,
   SourceLocation,
+  SymbolMetadata,
   ExportedSymbol,
-  Change,
+  // Legacy types (deprecated - use AST types instead)
+  ChangeCategory,
   AnalyzedChange,
-  ClassifyContext,
+  Change,
   VersioningPolicy,
-  ChangeDetails,
+  ClassifyContext,
   ChangesByImpact,
   ComparisonStats,
   ComparisonReport,
-  CompareStringOptions,
 } from './types'
 
-// Policy exports
-export { defaultPolicy, readOnlyPolicy, writeOnlyPolicy } from './policies'
-
-// Parser exports
-export {
-  parseDeclarationString,
-  parseDeclarationStringWithTypes,
-  createInMemoryCompilerHost,
-  createNodeLibResolver,
-  createBundledLibResolver,
-  getSourceLocation,
-  type ParseResult,
-  type ParseResultWithTypes,
-  type LibFileResolver,
-  type CompilerHostOptions,
-} from './parser-core'
-
-// Comparator exports
-export {
-  compareDeclarationStrings,
-  compareDeclarationResults,
-  type CompareResult,
-} from './comparator'
-
-// Classifier exports
-export {
-  classifyChanges,
-  applyPolicy,
-  type ClassificationResult,
-} from './classifier'
-
-// Reporter exports
-export {
-  type ComparisonReportJSON,
-  formatReportAsText,
-  formatReportAsMarkdown,
-  reportToJSON,
-} from './reporter'
-
-// Parameter analysis exports
+// Parameter analysis exports (used by AST differ)
 export {
   type ParameterInfo,
   type ParameterPositionAnalysis,
@@ -185,99 +141,11 @@ export {
   createPluginRegistry,
 } from './plugin-registry'
 
-/**
- * Compares two declaration strings and generates a comprehensive report.
- *
- * This is the main entry point for programmatic usage of the change detector core.
- *
- * @param options - Comparison options including old and new declaration content
- * @param tsModule - The TypeScript module to use for parsing and analysis
- * @returns A comparison report with release type classification and detailed changes
- *
- * @example
- * ```ts
- * import * as ts from 'typescript';
- * import { compareDeclarations, formatReportAsText } from '@api-extractor-tools/change-detector-core';
- *
- * const report = compareDeclarations({
- *   oldContent: 'export declare function greet(name: string): string;',
- *   newContent: 'export declare function greet(name: string, greeting: string): string;',
- * }, ts);
- *
- * console.log(report.releaseType); // "major" (required param added)
- * console.log(formatReportAsText(report));
- * ```
- *
- * @alpha
- */
-export function compareDeclarations(
-  options: CompareStringOptions,
-  tsModule: typeof ts,
-): ComparisonReport {
-  const {
-    oldContent,
-    newContent,
-    oldFilename = 'old.d.ts',
-    newFilename = 'new.d.ts',
-    policy,
-    libFileResolver,
-  } = options
-
-  // Build compiler host options
-  const compilerHostOptions = libFileResolver ? { libFileResolver } : undefined
-
-  // Parse both contents with type information
-  const oldParsed = parseDeclarationStringWithTypes(
-    oldContent,
-    tsModule,
-    oldFilename,
-    compilerHostOptions,
-  )
-  const newParsed = parseDeclarationStringWithTypes(
-    newContent,
-    tsModule,
-    newFilename,
-    compilerHostOptions,
-  )
-
-  // Compare the parsed results
-  const { changes, errors } = compareDeclarationResults(
-    oldParsed,
-    newParsed,
-    tsModule,
-  )
-
-  // Log errors if any (but don't fail)
-  if (errors.length > 0) {
-    for (const error of errors) {
-      console.warn(`[change-detector-core] ${error}`)
-    }
-  }
-
-  // Classify changes and compute stats
-  const { releaseType, changesByImpact, stats } = classifyChanges(
-    changes,
-    oldParsed.symbols.size,
-    newParsed.symbols.size,
-    policy,
-    oldParsed.symbols,
-    newParsed.symbols,
-  )
-
-  return {
-    releaseType,
-    changes: changesByImpact,
-    stats,
-    oldFile: oldFilename,
-    newFile: newFilename,
-  }
-}
-
 // =============================================================================
-// AST-based Change Detection Module
+// AST-based Change Detection (Primary API)
 // =============================================================================
 
-// AST type exports
+// Type exports
 export type {
   // Source location types
   SourcePosition,
@@ -286,7 +154,7 @@ export type {
   NodeKind,
   Modifier,
   // Type information
-  TypeParameterInfo as ASTTypeParameterInfo,
+  TypeParameterInfo,
   ParameterInfo as ASTParameterInfo,
   SignatureInfo,
   PropertyInfo,
@@ -320,13 +188,17 @@ export type {
   DiffOptions,
 } from './ast/types'
 
-// AST parser exports
+// Parser exports
 export { parseModule, parseModuleWithTypes } from './ast/parser'
 
-// AST differ exports
-export { diffModules, flattenChanges, groupChangesByDescriptor } from './ast/differ'
+// Differ exports
+export {
+  diffModules,
+  flattenChanges,
+  groupChangesByDescriptor,
+} from './ast/differ'
 
-// AST reporter type exports
+// Reporter type exports
 export type {
   ASTReporterOptions,
   ASTComparisonReport,
@@ -334,7 +206,7 @@ export type {
   ASTReportJSON,
 } from './ast/reporter'
 
-// AST reporter exports
+// Reporter exports
 export {
   createASTComparisonReport,
   formatSourceLocation,
@@ -343,7 +215,7 @@ export {
   formatASTReportAsJSON,
 } from './ast/reporter'
 
-// AST plugin type exports
+// Plugin type exports
 export type {
   ASTAwarePolicyOptions,
   ASTAwarePolicyDefinition,
@@ -356,7 +228,7 @@ export type {
   ASTCapability,
 } from './ast/plugin-types'
 
-// AST plugin type guards and factories
+// Plugin type guards and factories
 export {
   isASTAwarePolicyDefinition,
   isASTAwareReporterDefinition,
@@ -365,51 +237,54 @@ export {
   createASTAwareReporterDefinition,
 } from './ast/plugin-types'
 
-// Built-in AST-aware policy definitions
+// Built-in policy definitions
 export {
   defaultASTPolicy,
   readOnlyASTPolicy,
   writeOnlyASTPolicy,
 } from './ast/plugin-types'
 
-// Built-in AST-aware reporter definitions
+// Built-in reporter definitions
 export {
   textASTReporter,
   markdownASTReporter,
   jsonASTReporter,
 } from './ast/plugin-types'
 
-// AST rule builder type exports
+// Rule builder type exports
 export type {
   ChangeMatcher,
   PolicyRule,
   Policy,
-  ClassificationResult as ASTClassificationResult,
+  ClassificationResult,
 } from './ast/rule-builder'
 
-// AST rule builder exports
+// Rule builder exports
 export {
   RuleBuilder,
   rule,
   PolicyBuilder,
   createPolicy,
-  classifyChange as classifyASTChange,
-  classifyChanges as classifyASTChanges,
+  classifyChange,
+  classifyChanges,
   determineOverallRelease,
 } from './ast/rule-builder'
 
-// Built-in AST rule-based policies
+// Built-in rule-based policies
 export {
   semverDefaultPolicy,
   semverReadOnlyPolicy,
   semverWriteOnlyPolicy,
 } from './ast/builtin-policies'
 
-// AST convenience function - re-implement here to avoid circular dependency
-import type { ReleaseType } from './types'
+// =============================================================================
+// Convenience Functions
+// =============================================================================
+
 import type { ApiChange, ParseOptions, DiffOptions } from './ast/types'
 import type { Policy, ClassificationResult } from './ast/rule-builder'
-import { parseModule as parseASTModule } from './ast/parser'
+import type { ReleaseType } from './types'
+import { parseModuleWithTypes as parseASTModule } from './ast/parser'
 import { diffModules as diffASTModules } from './ast/differ'
 import {
   classifyChanges as classifyASTChangesInternal,
@@ -444,23 +319,25 @@ export interface AnalyzeChangesResult {
 /**
  * Convenience function that combines parsing, diffing, and classification.
  *
- * This is the recommended entry point for AST-based analysis. It handles the
+ * This is the recommended entry point for change analysis. It handles the
  * full workflow of:
- * 1. Parsing both source files into AST analyses
+ * 1. Parsing both source files into AST analyses with TypeChecker
  * 2. Computing structural changes between them
  * 3. Classifying changes according to the policy
  * 4. Determining the overall release type
  *
  * @param oldSource - The old (baseline) source code
  * @param newSource - The new source code to compare
+ * @param tsModule - The TypeScript module to use for type checking
  * @param options - Optional configuration for parsing, diffing, and policy
  * @returns Analysis results including changes, classifications, and release type
  *
  * @example
  * ```ts
+ * import * as ts from 'typescript';
  * import { analyzeChanges } from '@api-extractor-tools/change-detector-core';
  *
- * const result = analyzeChanges(oldSource, newSource);
+ * const result = analyzeChanges(oldSource, newSource, ts);
  * console.log(`Release type: ${result.releaseType}`);
  *
  * for (const { change, releaseType, matchedRule } of result.results) {
@@ -474,6 +351,7 @@ export interface AnalyzeChangesResult {
 export function analyzeChanges(
   oldSource: string,
   newSource: string,
+  tsModule: typeof ts,
   options: AnalyzeChangesOptions = {},
 ): AnalyzeChangesResult {
   const {
@@ -482,9 +360,9 @@ export function analyzeChanges(
     diffOptions = { includeNestedChanges: true },
   } = options
 
-  // Parse both sources
-  const oldAnalysis = parseASTModule(oldSource, parseOptions)
-  const newAnalysis = parseASTModule(newSource, parseOptions)
+  // Parse both sources with TypeChecker
+  const oldAnalysis = parseASTModule(oldSource, tsModule, parseOptions)
+  const newAnalysis = parseASTModule(newSource, tsModule, parseOptions)
 
   // Compute changes
   const changes = diffASTModules(oldAnalysis, newAnalysis, diffOptions)
@@ -499,5 +377,117 @@ export function analyzeChanges(
     changes,
     results,
     releaseType,
+  }
+}
+
+// =============================================================================
+// Legacy Compatibility Functions
+// =============================================================================
+
+import type { ExportedSymbol, SymbolKind, SourceLocation } from './types'
+import { parseModule as parseASTModuleSimple } from './ast/parser'
+import type { AnalyzableNode, NodeKind } from './ast/types'
+
+/**
+ * Result of parsing a declaration string.
+ */
+export interface ParseDeclarationResult {
+  /** Map of symbol names to their information */
+  symbols: Map<string, ExportedSymbol>
+  /** Any errors encountered during parsing */
+  errors: string[]
+}
+
+/**
+ * Convert NodeKind to SymbolKind for backwards compatibility.
+ */
+function nodeKindToSymbolKind(kind: NodeKind): SymbolKind {
+  switch (kind) {
+    case 'function':
+      return 'function'
+    case 'class':
+      return 'class'
+    case 'interface':
+      return 'interface'
+    case 'type-alias':
+      return 'type'
+    case 'variable':
+      return 'variable'
+    case 'enum':
+      return 'enum'
+    case 'namespace':
+      return 'namespace'
+    default:
+      return 'variable' // Default fallback
+  }
+}
+
+/**
+ * Convert an AnalyzableNode to an ExportedSymbol for backwards compatibility.
+ */
+function nodeToExportedSymbol(node: AnalyzableNode): ExportedSymbol {
+  const sourceLocation: SourceLocation | undefined = node.location
+    ? {
+        line: node.location.start.line,
+        column: node.location.start.column,
+        endLine: node.location.end.line,
+        endColumn: node.location.end.column,
+      }
+    : undefined
+
+  return {
+    name: node.name,
+    kind: nodeKindToSymbolKind(node.kind),
+    signature: node.typeInfo.signature,
+    metadata: node.metadata
+      ? {
+          isDeprecated: node.metadata.deprecated,
+          deprecationMessage: node.metadata.deprecationMessage,
+          defaultValue: node.metadata.defaultValue,
+        }
+      : undefined,
+    sourceLocation,
+  }
+}
+
+/**
+ * Parse a TypeScript declaration string and extract exported symbols.
+ *
+ * @remarks
+ * This is a compatibility function that wraps the AST parser to provide
+ * the legacy ExportedSymbol format used by input processors.
+ *
+ * @param content - TypeScript source code to parse
+ * @param tsModule - The TypeScript module to use
+ * @param filename - Optional filename for error messages
+ * @returns Parse result with symbols and errors
+ *
+ * @example
+ * ```ts
+ * import * as ts from 'typescript';
+ * import { parseDeclarationString } from '@api-extractor-tools/change-detector-core';
+ *
+ * const result = parseDeclarationString(
+ *   'export declare function greet(name: string): string;',
+ *   ts
+ * );
+ * console.log(result.symbols.get('greet'));
+ * ```
+ */
+export function parseDeclarationString(
+  content: string,
+  _tsModule: typeof ts,
+  _filename: string = 'input.d.ts',
+): ParseDeclarationResult {
+  const analysis = parseASTModuleSimple(content, { extractMetadata: true })
+
+  const symbols = new Map<string, ExportedSymbol>()
+  for (const [name, node] of analysis.exports) {
+    symbols.set(name, nodeToExportedSymbol(node))
+  }
+
+  return {
+    symbols,
+    errors: analysis.errors,
   }
 }

@@ -8,7 +8,7 @@ import { execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import { compareDeclarations } from '@api-extractor-tools/change-detector'
-import type { ComparisonReport } from '@api-extractor-tools/change-detector'
+import type { ASTComparisonReport } from '@api-extractor-tools/change-detector'
 import type { AnalysisResult, ResolvedPluginConfig } from './types'
 
 /**
@@ -292,14 +292,14 @@ export function analyzeAPIChanges(
     fs.writeFileSync(baselineFile, baselineContent)
 
     // Run change-detector comparison
-    const report: ComparisonReport = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: baselineFile,
       newFile: declarationFile,
     })
 
     return {
-      report,
-      recommendedBump: report.releaseType,
+      report: result.report,
+      recommendedBump: result.releaseType,
       isNewPackage: false,
     }
   } catch (err) {
@@ -327,19 +327,28 @@ export function analyzeAPIChanges(
  *
  * @alpha
  */
-export function formatChangeSummary(report: ComparisonReport | null): string {
+export function formatChangeSummary(
+  report: ASTComparisonReport | null,
+): string {
   if (!report) {
     return 'No API changes detected'
   }
 
-  const { changes, stats } = report
+  const { byReleaseType, stats } = report
   const parts: string[] = []
 
-  if (changes.breaking.length > 0) {
-    parts.push(`${changes.breaking.length} breaking change(s)`)
+  // Breaking changes are forbidden + major
+  const breakingCount =
+    byReleaseType.forbidden.length + byReleaseType.major.length
+  if (breakingCount > 0) {
+    parts.push(`${breakingCount} breaking change(s)`)
   }
-  if (changes.nonBreaking.length > 0) {
-    parts.push(`${changes.nonBreaking.length} non-breaking change(s)`)
+
+  // Non-breaking changes are minor + patch
+  const nonBreakingCount =
+    byReleaseType.minor.length + byReleaseType.patch.length
+  if (nonBreakingCount > 0) {
+    parts.push(`${nonBreakingCount} non-breaking change(s)`)
   }
 
   if (parts.length === 0) {
@@ -347,7 +356,7 @@ export function formatChangeSummary(report: ComparisonReport | null): string {
   }
 
   const summary = parts.join(', ')
-  const detail = `(${stats.added} added, ${stats.removed} removed, ${stats.modified} modified)`
+  const detail = `(${stats.minor} added, ${stats.major} removed/breaking, ${stats.patch} modified)`
 
   return `${summary} ${detail}`
 }

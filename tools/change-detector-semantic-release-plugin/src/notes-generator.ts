@@ -5,8 +5,8 @@
  */
 
 import type {
-  ComparisonReport,
-  Change,
+  ASTComparisonReport,
+  ClassifiedChange,
 } from '@api-extractor-tools/change-detector'
 import type {
   PluginConfig,
@@ -78,12 +78,18 @@ export function generateNotes(
  *
  * @alpha
  */
-export function formatAPIChangesAsMarkdown(report: ComparisonReport): string {
-  const { changes, stats } = report
+export function formatAPIChangesAsMarkdown(
+  report: ASTComparisonReport,
+): string {
+  const { byReleaseType, stats } = report
   const sections: string[] = []
 
+  // Get all changes
+  const breakingChanges = [...byReleaseType.forbidden, ...byReleaseType.major]
+  const nonBreakingChanges = [...byReleaseType.minor, ...byReleaseType.patch]
+
   // Only include section if there are changes
-  if (changes.breaking.length === 0 && changes.nonBreaking.length === 0) {
+  if (breakingChanges.length === 0 && nonBreakingChanges.length === 0) {
     return ''
   }
 
@@ -91,16 +97,16 @@ export function formatAPIChangesAsMarkdown(report: ComparisonReport): string {
   sections.push('')
 
   // Breaking changes section
-  if (changes.breaking.length > 0) {
+  if (breakingChanges.length > 0) {
     sections.push('### Breaking Changes')
     sections.push('')
-    sections.push(...formatChangesAsList(changes.breaking))
+    sections.push(...formatChangesAsList(breakingChanges))
     sections.push('')
   }
 
   // Added exports
-  const addedChanges = changes.nonBreaking.filter(
-    (c) => c.category === 'symbol-added',
+  const addedChanges = nonBreakingChanges.filter(
+    (c) => c.descriptor.action === 'added',
   )
   if (addedChanges.length > 0) {
     sections.push('### Added Exports')
@@ -110,8 +116,8 @@ export function formatAPIChangesAsMarkdown(report: ComparisonReport): string {
   }
 
   // Modified exports (non-breaking)
-  const modifiedChanges = changes.nonBreaking.filter(
-    (c) => c.category !== 'symbol-added',
+  const modifiedChanges = nonBreakingChanges.filter(
+    (c) => c.descriptor.action !== 'added',
   )
   if (modifiedChanges.length > 0) {
     sections.push('### Modified Exports')
@@ -123,9 +129,9 @@ export function formatAPIChangesAsMarkdown(report: ComparisonReport): string {
   // Summary stats
   sections.push('### Summary')
   sections.push('')
-  sections.push(`- **Added**: ${stats.added}`)
-  sections.push(`- **Removed**: ${stats.removed}`)
-  sections.push(`- **Modified**: ${stats.modified}`)
+  sections.push(`- **Added**: ${stats.minor}`)
+  sections.push(`- **Breaking**: ${stats.major + stats.forbidden}`)
+  sections.push(`- **Other Changes**: ${stats.patch}`)
   sections.push('')
 
   return sections.join('\n')
@@ -134,21 +140,23 @@ export function formatAPIChangesAsMarkdown(report: ComparisonReport): string {
 /**
  * Formats a list of changes as markdown bullet points.
  */
-function formatChangesAsList(changes: Change[]): string[] {
+function formatChangesAsList(changes: ClassifiedChange[]): string[] {
   const lines: string[] = []
 
   for (const change of changes) {
-    const badge = getSymbolKindBadge(change.symbolKind)
-    lines.push(`- ${badge} \`${change.symbolName}\`: ${change.explanation}`)
+    const badge = getNodeKindBadge(change.nodeKind)
+    lines.push(`- ${badge} \`${change.path}\`: ${change.explanation}`)
 
     // Add before/after if available and useful
-    if (change.before && change.after && change.category !== 'symbol-removed') {
+    const before = change.oldNode?.typeInfo.signature
+    const after = change.newNode?.typeInfo.signature
+    if (before && after && change.descriptor.action !== 'removed') {
       // Truncate long signatures
-      const before = truncateSignature(change.before)
-      const after = truncateSignature(change.after)
-      if (before !== after) {
-        lines.push(`  - Before: \`${before}\``)
-        lines.push(`  - After: \`${after}\``)
+      const beforeStr = truncateSignature(before)
+      const afterStr = truncateSignature(after)
+      if (beforeStr !== afterStr) {
+        lines.push(`  - Before: \`${beforeStr}\``)
+        lines.push(`  - After: \`${afterStr}\``)
       }
     }
   }
@@ -159,16 +167,17 @@ function formatChangesAsList(changes: Change[]): string[] {
 /**
  * Formats added exports with their signatures.
  */
-function formatAddedExports(changes: Change[]): string[] {
+function formatAddedExports(changes: ClassifiedChange[]): string[] {
   const lines: string[] = []
 
   for (const change of changes) {
-    const badge = getSymbolKindBadge(change.symbolKind)
-    if (change.after) {
-      const signature = truncateSignature(change.after)
-      lines.push(`- ${badge} \`${signature}\``)
+    const badge = getNodeKindBadge(change.nodeKind)
+    const signature = change.newNode?.typeInfo.signature
+    if (signature) {
+      const truncated = truncateSignature(signature)
+      lines.push(`- ${badge} \`${truncated}\``)
     } else {
-      lines.push(`- ${badge} \`${change.symbolName}\``)
+      lines.push(`- ${badge} \`${change.path}\``)
     }
   }
 
@@ -176,17 +185,19 @@ function formatAddedExports(changes: Change[]): string[] {
 }
 
 /**
- * Gets a badge/label for a symbol kind.
+ * Gets a badge/label for a node kind.
  */
-function getSymbolKindBadge(kind: Change['symbolKind']): string {
-  const badges: Record<Change['symbolKind'], string> = {
+function getNodeKindBadge(kind: ClassifiedChange['nodeKind']): string {
+  const badges: Record<string, string> = {
     function: '**function**',
     class: '**class**',
     interface: '**interface**',
-    type: '**type**',
+    'type-alias': '**type**',
     variable: '**const**',
     enum: '**enum**',
     namespace: '**namespace**',
+    method: '**method**',
+    property: '**property**',
   }
   return badges[kind] ?? kind
 }
@@ -235,29 +246,31 @@ export function generateDetailedDescription(analysis: AnalysisResult): string {
     return ''
   }
 
-  const { changes } = analysis.report
+  const { byReleaseType } = analysis.report
   const lines: string[] = []
 
   // Breaking changes
-  if (changes.breaking.length > 0) {
+  const breakingChanges = [...byReleaseType.forbidden, ...byReleaseType.major]
+  if (breakingChanges.length > 0) {
     lines.push('**Breaking Changes:**')
-    for (const change of changes.breaking.slice(0, 5)) {
+    for (const change of breakingChanges.slice(0, 5)) {
       lines.push(`- ${change.explanation}`)
     }
-    if (changes.breaking.length > 5) {
-      lines.push(`- ...and ${changes.breaking.length - 5} more`)
+    if (breakingChanges.length > 5) {
+      lines.push(`- ...and ${breakingChanges.length - 5} more`)
     }
     lines.push('')
   }
 
   // Non-breaking changes
-  if (changes.nonBreaking.length > 0) {
+  const nonBreakingChanges = [...byReleaseType.minor, ...byReleaseType.patch]
+  if (nonBreakingChanges.length > 0) {
     lines.push('**New Features/Additions:**')
-    for (const change of changes.nonBreaking.slice(0, 5)) {
+    for (const change of nonBreakingChanges.slice(0, 5)) {
       lines.push(`- ${change.explanation}`)
     }
-    if (changes.nonBreaking.length > 5) {
-      lines.push(`- ...and ${changes.nonBreaking.length - 5} more`)
+    if (nonBreakingChanges.length > 5) {
+      lines.push(`- ...and ${nonBreakingChanges.length - 5} more`)
     }
   }
 

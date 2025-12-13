@@ -1,26 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { examples, type Example } from '../examples'
-import { type PolicyName, type CustomPolicyData } from '../types'
-import { CustomPolicyEditor } from './CustomPolicyEditor'
+import { type PolicyName } from '../types'
 import './DemoSettingsMenu.css'
 
 interface DemoSettingsMenuProps {
   selectedPolicy: PolicyName
   onPolicyChange: (policy: PolicyName) => void
   onExampleSelect: (example: Example) => void
-  customPolicyData: CustomPolicyData
-  onCustomPolicyDataChange: (data: CustomPolicyData) => void
 }
 
 export function DemoSettingsMenu({
   selectedPolicy,
   onPolicyChange,
   onExampleSelect,
-  customPolicyData,
-  onCustomPolicyDataChange,
 }: DemoSettingsMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [isCustomPolicyEditorOpen, setIsCustomPolicyEditorOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -56,109 +50,67 @@ export function DemoSettingsMenu({
     setIsOpen(false)
   }, [onPolicyChange])
 
-  const handleCustomPolicyClick = useCallback(() => {
-    onPolicyChange('custom')
-    setIsCustomPolicyEditorOpen(true)
-    setIsOpen(false)
-  }, [onPolicyChange])
-
-  const handleEditCustomPolicy = useCallback(() => {
-    setIsCustomPolicyEditorOpen(true)
-    setIsOpen(false)
-  }, [])
-
   const handleExampleSelect = useCallback((example: Example) => {
     onExampleSelect(example)
     setIsOpen(false)
   }, [onExampleSelect])
 
   return (
-    <>
-      <div className="demo-settings-menu" ref={menuRef}>
-        <button
-          className="demo-settings-button"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Demo settings"
-          aria-expanded={isOpen}
-          aria-haspopup="true"
-        >
-          Demo Settings ▾
-        </button>
-        
-        {isOpen && (
-          <div className="demo-settings-dropdown" role="menu">
-            <div className="demo-settings-section">
-              <div className="demo-settings-label">Versioning Policy</div>
-              <button
-                className={`demo-settings-item ${selectedPolicy === 'default' ? 'active' : ''}`}
-                onClick={() => handlePolicySelect('default')}
-                role="menuitem"
-              >
-                Bidirectional (Default)
-              </button>
-              <button
-                className={`demo-settings-item ${selectedPolicy === 'read-only' ? 'active' : ''}`}
-                onClick={() => handlePolicySelect('read-only')}
-                role="menuitem"
-              >
-                Read-Only (Consumer)
-              </button>
-              <button
-                className={`demo-settings-item ${selectedPolicy === 'write-only' ? 'active' : ''}`}
-                onClick={() => handlePolicySelect('write-only')}
-                role="menuitem"
-              >
-                Write-Only (Producer)
-              </button>
-              
-              <div className="demo-settings-divider-inline" />
-              
-              {selectedPolicy === 'custom' ? (
-                <button
-                  className="demo-settings-item active"
-                  onClick={handleEditCustomPolicy}
-                  role="menuitem"
-                >
-                  <span>Custom</span>
-                  <span className="demo-settings-item-action">Edit →</span>
-                </button>
-              ) : (
-                <button
-                  className="demo-settings-item"
-                  onClick={handleCustomPolicyClick}
-                  role="menuitem"
-                >
-                  Custom…
-                </button>
-              )}
-            </div>
+    <div className="demo-settings-menu" ref={menuRef}>
+      <button
+        className="demo-settings-button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Demo settings"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        Demo Settings ▾
+      </button>
 
-            <div className="demo-settings-divider" />
-
-            <div className="demo-settings-section">
-              <div className="demo-settings-label">Load Example</div>
-              {examples.map((example) => (
-                <button
-                  key={example.name}
-                  className="demo-settings-item"
-                  onClick={() => handleExampleSelect(example)}
-                  role="menuitem"
-                >
-                  {example.name}
-                </button>
-              ))}
-            </div>
+      {isOpen && (
+        <div className="demo-settings-dropdown" role="menu">
+          <div className="demo-settings-section">
+            <div className="demo-settings-label">Versioning Policy</div>
+            <button
+              className={`demo-settings-item ${selectedPolicy === 'default' ? 'active' : ''}`}
+              onClick={() => handlePolicySelect('default')}
+              role="menuitem"
+            >
+              Bidirectional (Default)
+            </button>
+            <button
+              className={`demo-settings-item ${selectedPolicy === 'read-only' ? 'active' : ''}`}
+              onClick={() => handlePolicySelect('read-only')}
+              role="menuitem"
+            >
+              Read-Only (Consumer)
+            </button>
+            <button
+              className={`demo-settings-item ${selectedPolicy === 'write-only' ? 'active' : ''}`}
+              onClick={() => handlePolicySelect('write-only')}
+              role="menuitem"
+            >
+              Write-Only (Producer)
+            </button>
           </div>
-        )}
-      </div>
 
-      {isCustomPolicyEditorOpen && (
-        <CustomPolicyEditor
-          data={customPolicyData}
-          onChange={onCustomPolicyDataChange}
-          onClose={() => setIsCustomPolicyEditorOpen(false)}
-        />
+          <div className="demo-settings-divider" />
+
+          <div className="demo-settings-section">
+            <div className="demo-settings-label">Load Example</div>
+            {examples.map((example) => (
+              <button
+                key={example.name}
+                className="demo-settings-item"
+                onClick={() => handleExampleSelect(example)}
+                role="menuitem"
+              >
+                {example.name}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
-    </>
+    </div>
   )
 }

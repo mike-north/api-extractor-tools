@@ -5,7 +5,7 @@
  */
 
 import type {
-  ComparisonReport,
+  ASTComparisonReport,
   ReleaseType,
 } from '@api-extractor-tools/change-detector'
 
@@ -42,7 +42,7 @@ export interface PackageAnalysisResult {
   /** The package that was analyzed */
   package: PackageInfo
   /** The comparison report from change-detector, null if no baseline exists */
-  report: ComparisonReport | null
+  report: ASTComparisonReport | null
   /** The recommended version bump based on the analysis */
   recommendedBump: ReleaseType
   /** Error message if analysis failed */

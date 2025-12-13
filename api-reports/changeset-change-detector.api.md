@@ -4,7 +4,7 @@
 
 ```ts
 
-import { ComparisonReport } from '@api-extractor-tools/change-detector-core';
+import { ASTComparisonReport } from '@api-extractor-tools/change-detector-core';
 import type { NewChangeset } from '@changesets/types';
 import { ReleaseType } from '@api-extractor-tools/change-detector-core';
 
@@ -77,7 +77,7 @@ export interface PackageAnalysisResult {
     error?: string;
     package: PackageInfo;
     recommendedBump: ReleaseType;
-    report: ComparisonReport | null;
+    report: ASTComparisonReport | null;
 }
 
 // @alpha

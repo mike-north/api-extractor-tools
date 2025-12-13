@@ -9,15 +9,15 @@
  *
  * @example
  * ```ts
- * import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector';
+ * import { compareDeclarations, formatASTReportAsMarkdown } from '@api-extractor-tools/change-detector';
  *
- * const report = compareDeclarations({
+ * const result = compareDeclarations({
  *   oldFile: './dist/v1/index.d.ts',
  *   newFile: './dist/v2/index.d.ts',
  * });
  *
- * console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
- * console.log(formatReportAsMarkdown(report));
+ * console.log(result.releaseType); // "major" | "minor" | "patch" | "none"
+ * console.log(formatASTReportAsMarkdown(result.report));
  * ```
  *
  * @packageDocumentation
@@ -26,43 +26,66 @@
 // Type exports (local types + re-exported from core)
 export type {
   ReleaseType,
-  ChangeCategory,
-  SymbolKind,
-  ExportedSymbol,
-  Change,
-  ChangesByImpact,
-  ComparisonStats,
-  ComparisonReport,
+  NodeKind,
+  Modifier,
+  SourceRange,
+  AnalyzableNode,
+  ModuleAnalysis,
+  ModuleAnalysisWithTypes,
+  ChangeTarget,
+  ChangeAction,
+  ChangeAspect,
+  ChangeImpact,
+  ChangeTag,
+  ChangeDescriptor,
+  ChangeContext,
+  ApiChange,
+  ClassifiedChange,
+  ParseOptions,
+  DiffOptions,
+  ASTComparisonReport,
+  ASTReportJSON,
+  Policy,
+  PolicyRule,
+  ClassificationResult,
   CompareOptions,
+  ComparisonResult,
+  // Legacy types for backward compatibility
+  ComparisonReport,
+  ComparisonStats,
+  ChangesByImpact,
 } from './types'
 
-// Re-export CompareStringOptions from core for users who want to use string-based API
-export type { CompareStringOptions } from '@api-extractor-tools/change-detector-core'
-
 // Parser exports
-export {
-  parseDeclarationFile,
-  parseDeclarationFileWithTypes,
-  type ParseResult,
-  type ParseResultWithTypes,
-} from './parser'
+export { parseDeclarationFile } from './parser'
 
 // Comparator exports
-export {
-  compareFiles,
-  compareDeclarationFiles,
-  type CompareResult,
-} from './comparator'
+export { compareFiles, compareDeclarationFiles } from './comparator'
+export type { CompareResult } from './comparator'
 
 // Classifier exports (re-exported from core)
-export { classifyChanges, type ClassificationResult } from './classifier'
+export {
+  classifyChange,
+  classifyChanges,
+  determineOverallRelease,
+  semverDefaultPolicy,
+  semverReadOnlyPolicy,
+  semverWriteOnlyPolicy,
+  rule,
+  createPolicy,
+  RuleBuilder,
+  PolicyBuilder,
+} from './classifier'
 
 // Reporter exports (re-exported from core)
 export {
-  type ComparisonReportJSON,
-  formatReportAsText,
-  formatReportAsMarkdown,
-  reportToJSON,
+  createASTComparisonReport,
+  formatSourceLocation,
+  formatASTReportAsText,
+  formatASTReportAsMarkdown,
+  formatASTReportAsJSON,
+  type ASTReporterOptions,
+  type ASTChangeJSON,
 } from './reporter'
 
 // Parameter analysis exports (re-exported from core)
@@ -78,17 +101,30 @@ export {
   interpretNameChange,
 } from './parameter-analysis'
 
-// Re-export core's string-based comparison function for convenience
-export { compareDeclarations as compareDeclarationStrings } from '@api-extractor-tools/change-detector-core'
-
 // Re-export the TypeScript input processor plugin for batteries-included usage
 export { default as typescriptPlugin } from '@api-extractor-tools/input-processor-typescript'
 
 // Main API
-import type { CompareOptions, ComparisonReport } from './types'
-import { parseDeclarationFileWithTypes } from './parser'
+import type { CompareOptions, ComparisonResult } from './types'
+import type { ASTComparisonReport } from '@api-extractor-tools/change-detector-core'
+import { parseDeclarationFile } from './parser'
 import { compareDeclarationFiles } from './comparator'
-import { classifyChanges } from './classifier'
+import {
+  classifyChanges,
+  determineOverallRelease,
+  semverDefaultPolicy,
+} from './classifier'
+import { createASTComparisonReport } from './reporter'
+
+/**
+ * Result of the compareDeclarations function.
+ *
+ * @alpha
+ */
+export interface CompareDeclarationsResult extends ComparisonResult {
+  /** Formatted comparison report for display */
+  report: ASTComparisonReport
+}
 
 /**
  * Compares two declaration files and generates a comprehensive report.
@@ -96,29 +132,31 @@ import { classifyChanges } from './classifier'
  * This is the main entry point for programmatic usage of the change detector.
  *
  * @param options - Comparison options including paths to old and new files
- * @returns A comparison report with release type classification and detailed changes
+ * @returns A comparison result with release type, changes, and formatted report
  *
  * @example
  * ```ts
- * import { compareDeclarations, formatReportAsText } from '@api-extractor-tools/change-detector';
+ * import { compareDeclarations, formatASTReportAsText } from '@api-extractor-tools/change-detector';
  *
- * const report = compareDeclarations({
+ * const result = compareDeclarations({
  *   oldFile: './dist/v1/index.d.ts',
  *   newFile: './dist/v2/index.d.ts',
  * });
  *
- * console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
- * console.log(formatReportAsText(report));
+ * console.log(result.releaseType); // "major" | "minor" | "patch" | "none"
+ * console.log(formatASTReportAsText(result.report));
  * ```
  *
  * @alpha
  */
-export function compareDeclarations(options: CompareOptions): ComparisonReport {
-  const { oldFile, newFile } = options
+export function compareDeclarations(
+  options: CompareOptions,
+): CompareDeclarationsResult {
+  const { oldFile, newFile, policy = semverDefaultPolicy } = options
 
   // Parse both files with type information
-  const oldParsed = parseDeclarationFileWithTypes(oldFile)
-  const newParsed = parseDeclarationFileWithTypes(newFile)
+  const oldParsed = parseDeclarationFile(oldFile)
+  const newParsed = parseDeclarationFile(newFile)
 
   // Compare the files
   const { changes, errors } = compareDeclarationFiles(oldParsed, newParsed)
@@ -130,18 +168,21 @@ export function compareDeclarations(options: CompareOptions): ComparisonReport {
     }
   }
 
-  // Classify changes and compute stats
-  const { releaseType, changesByImpact, stats } = classifyChanges(
-    changes,
-    oldParsed.symbols.size,
-    newParsed.symbols.size,
-  )
+  // Classify changes
+  const results = classifyChanges(changes, policy)
+
+  // Determine overall release type
+  const releaseType = determineOverallRelease(results)
+
+  // Create formatted report
+  const report = createASTComparisonReport(results)
 
   return {
     releaseType,
-    changes: changesByImpact,
-    stats,
+    changes,
+    results,
     oldFile,
     newFile,
+    report,
   }
 }

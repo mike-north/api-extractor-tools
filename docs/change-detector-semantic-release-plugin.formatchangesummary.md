@@ -12,7 +12,7 @@ Formats API changes as a human-readable summary.
 **Signature:**
 
 ```typescript
-export declare function formatChangeSummary(report: ComparisonReport | null): string;
+export declare function formatChangeSummary(report: ASTComparisonReport | null): string;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ report
 
 </td><td>
 
-ComparisonReport \| null
+ASTComparisonReport \| null
 
 
 </td><td>

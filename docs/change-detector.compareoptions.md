@@ -76,5 +76,24 @@ string
 
 
 </td></tr>
+<tr><td>
+
+[policy?](./change-detector.compareoptions.policy.md)
+
+
+</td><td>
+
+
+</td><td>
+
+import('@api-extractor-tools/change-detector-core').Policy
+
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_ Optional policy for classification (defaults to semverDefaultPolicy)
+
+
+</td></tr>
 </tbody></table>
 

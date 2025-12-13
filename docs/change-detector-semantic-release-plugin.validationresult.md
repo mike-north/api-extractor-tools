@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-ComparisonReport\['changes'\]
+ASTComparisonReport\['byReleaseType'\]
 
 
 </td><td>

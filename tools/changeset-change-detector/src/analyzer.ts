@@ -8,7 +8,6 @@ import { execSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { compareDeclarations } from '@api-extractor-tools/change-detector'
-import type { ComparisonReport } from '@api-extractor-tools/change-detector'
 import type {
   AnalyzeOptions,
   PackageAnalysisResult,
@@ -241,15 +240,15 @@ export function analyzePackage(
     fs.writeFileSync(baselineFile, baselineContent)
 
     // Run change-detector comparison
-    const report: ComparisonReport = compareDeclarations({
+    const result = compareDeclarations({
       oldFile: baselineFile,
       newFile: pkg.declarationFile,
     })
 
     return {
       package: pkg,
-      report,
-      recommendedBump: report.releaseType,
+      report: result.report,
+      recommendedBump: result.releaseType,
     }
   } catch (err) {
     return {
@@ -342,14 +341,21 @@ export function formatChangeSummary(result: PackageAnalysisResult): string {
     return result.error ?? 'No changes detected'
   }
 
-  const { changes, stats } = result.report
+  const { byReleaseType, stats } = result.report
   const parts: string[] = []
 
-  if (changes.breaking.length > 0) {
-    parts.push(`${changes.breaking.length} breaking change(s)`)
+  // Breaking changes are forbidden + major
+  const breakingCount =
+    byReleaseType.forbidden.length + byReleaseType.major.length
+  if (breakingCount > 0) {
+    parts.push(`${breakingCount} breaking change(s)`)
   }
-  if (changes.nonBreaking.length > 0) {
-    parts.push(`${changes.nonBreaking.length} non-breaking change(s)`)
+
+  // Non-breaking changes are minor + patch
+  const nonBreakingCount =
+    byReleaseType.minor.length + byReleaseType.patch.length
+  if (nonBreakingCount > 0) {
+    parts.push(`${nonBreakingCount} non-breaking change(s)`)
   }
 
   if (parts.length === 0) {
@@ -357,7 +363,7 @@ export function formatChangeSummary(result: PackageAnalysisResult): string {
   }
 
   const summary = parts.join(', ')
-  const detail = `(${stats.added} added, ${stats.removed} removed, ${stats.modified} modified)`
+  const detail = `(${stats.minor} added, ${stats.major} removed/breaking, ${stats.patch} modified)`
 
   return `${summary} ${detail}`
 }
@@ -380,29 +386,31 @@ export function generateChangeDescription(
     return ''
   }
 
-  const { changes } = result.report
+  const { byReleaseType } = result.report
   const lines: string[] = []
 
-  // Add breaking changes
-  if (changes.breaking.length > 0) {
+  // Breaking changes are forbidden + major
+  const breakingChanges = [...byReleaseType.forbidden, ...byReleaseType.major]
+  if (breakingChanges.length > 0) {
     lines.push('**Breaking Changes:**')
-    for (const change of changes.breaking.slice(0, 5)) {
+    for (const change of breakingChanges.slice(0, 5)) {
       lines.push(`- ${change.explanation}`)
     }
-    if (changes.breaking.length > 5) {
-      lines.push(`- ...and ${changes.breaking.length - 5} more`)
+    if (breakingChanges.length > 5) {
+      lines.push(`- ...and ${breakingChanges.length - 5} more`)
     }
     lines.push('')
   }
 
-  // Add non-breaking changes
-  if (changes.nonBreaking.length > 0) {
+  // Non-breaking changes are minor + patch
+  const nonBreakingChanges = [...byReleaseType.minor, ...byReleaseType.patch]
+  if (nonBreakingChanges.length > 0) {
     lines.push('**New Features/Additions:**')
-    for (const change of changes.nonBreaking.slice(0, 5)) {
+    for (const change of nonBreakingChanges.slice(0, 5)) {
       lines.push(`- ${change.explanation}`)
     }
-    if (changes.nonBreaking.length > 5) {
-      lines.push(`- ...and ${changes.nonBreaking.length - 5} more`)
+    if (nonBreakingChanges.length > 5) {
+      lines.push(`- ...and ${nonBreakingChanges.length - 5} more`)
     }
   }
 

@@ -7,12 +7,18 @@ import {
   determineOverallRelease,
   type Policy,
 } from '../../src/ast/rule-builder'
-import type { ApiChange, ChangeDescriptor, ChangeContext } from '../../src/ast/types'
+import type {
+  ApiChange,
+  ChangeDescriptor,
+  ChangeContext,
+  NodeKind,
+} from '../../src/ast/types'
 
 /** Helper to create a minimal ApiChange for testing */
 function makeChange(
   descriptor: Partial<ChangeDescriptor>,
   context: Partial<ChangeContext> = {},
+  nodeKind: NodeKind = 'interface',
 ): ApiChange {
   return {
     descriptor: {
@@ -22,7 +28,7 @@ function makeChange(
       ...descriptor,
     },
     path: 'Test',
-    nodeKind: 'interface',
+    nodeKind,
     nestedChanges: [],
     context: {
       isNested: false,
@@ -83,6 +89,39 @@ describe('Rule Builder', () => {
       expect(wideningRule.matches(narrowingChange)).toBe(false)
     })
 
+    it('creates a rule that matches by nodeKind', () => {
+      const functionRule = rule('function-removal')
+        .action('removed')
+        .nodeKind('function')
+        .returns('major')
+
+      const functionRemoval = makeChange({ action: 'removed' }, {}, 'function')
+      const interfaceRemoval = makeChange(
+        { action: 'removed' },
+        {},
+        'interface',
+      )
+      const classRemoval = makeChange({ action: 'removed' }, {}, 'class')
+
+      expect(functionRule.matches(functionRemoval)).toBe(true)
+      expect(functionRule.matches(interfaceRemoval)).toBe(false)
+      expect(functionRule.matches(classRemoval)).toBe(false)
+    })
+
+    it('creates a rule that matches multiple nodeKinds (OR)', () => {
+      const typeDefRule = rule('type-def')
+        .nodeKind('interface', 'type-alias')
+        .returns('minor')
+
+      const interfaceChange = makeChange({}, {}, 'interface')
+      const typeAliasChange = makeChange({}, {}, 'type-alias')
+      const classChange = makeChange({}, {}, 'class')
+
+      expect(typeDefRule.matches(interfaceChange)).toBe(true)
+      expect(typeDefRule.matches(typeAliasChange)).toBe(true)
+      expect(typeDefRule.matches(classChange)).toBe(false)
+    })
+
     it('creates a rule that matches by tag', () => {
       const optionalParamRule = rule('optional-param')
         .hasTag('now-optional')
@@ -113,6 +152,57 @@ describe('Rule Builder', () => {
 
       expect(nonRestParamRule.matches(normalParam)).toBe(true)
       expect(nonRestParamRule.matches(restParam)).toBe(false)
+    })
+
+    it('creates a rule that matches any of multiple tags with hasAnyTag()', () => {
+      const optionalOrDefaultRule = rule('optional-or-default')
+        .hasAnyTag('now-optional', 'has-default')
+        .returns('minor')
+
+      const optionalChange = makeChange({
+        tags: new Set(['now-optional']),
+      })
+      const defaultChange = makeChange({
+        tags: new Set(['has-default']),
+      })
+      const bothChange = makeChange({
+        tags: new Set(['now-optional', 'has-default']),
+      })
+      const neitherChange = makeChange({
+        tags: new Set(['some-other-tag']),
+      })
+      const noTagsChange = makeChange({})
+
+      expect(optionalOrDefaultRule.matches(optionalChange)).toBe(true)
+      expect(optionalOrDefaultRule.matches(defaultChange)).toBe(true)
+      expect(optionalOrDefaultRule.matches(bothChange)).toBe(true)
+      expect(optionalOrDefaultRule.matches(neitherChange)).toBe(false)
+      expect(optionalOrDefaultRule.matches(noTagsChange)).toBe(false)
+    })
+
+    it('hasAnyTag() returns false when no tags are present', () => {
+      const tagRule = rule('needs-tag')
+        .hasAnyTag('tag1', 'tag2')
+        .returns('minor')
+
+      const noTagsChange = makeChange({})
+      expect(tagRule.matches(noTagsChange)).toBe(false)
+    })
+
+    it('hasAnyTag() works with single tag (same as hasTag)', () => {
+      const singleTagRule = rule('single-tag')
+        .hasAnyTag('specific-tag')
+        .returns('minor')
+
+      const matchingChange = makeChange({
+        tags: new Set(['specific-tag']),
+      })
+      const nonMatchingChange = makeChange({
+        tags: new Set(['other-tag']),
+      })
+
+      expect(singleTagRule.matches(matchingChange)).toBe(true)
+      expect(singleTagRule.matches(nonMatchingChange)).toBe(false)
     })
 
     it('creates a rule that matches nested changes', () => {
@@ -253,7 +343,9 @@ describe('Rule Builder', () => {
 
     it('returns first matching rule (order matters)', () => {
       const overlappingPolicy = createPolicy('overlap', 'none')
-        .addRule(rule('specific').action('removed').target('export').returns('major'))
+        .addRule(
+          rule('specific').action('removed').target('export').returns('major'),
+        )
         .addRule(rule('general').action('removed').returns('minor'))
         .build()
 

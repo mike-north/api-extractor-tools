@@ -16,15 +16,15 @@ For browser/isomorphic usage, see the `@api-extractor-tools/change-detector-core
 
 
 ```ts
-import { compareDeclarations, formatReportAsMarkdown } from '@api-extractor-tools/change-detector';
+import { compareDeclarations, formatASTReportAsMarkdown } from '@api-extractor-tools/change-detector';
 
-const report = compareDeclarations({
+const result = compareDeclarations({
   oldFile: './dist/v1/index.d.ts',
   newFile: './dist/v2/index.d.ts',
 });
 
-console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
-console.log(formatReportAsMarkdown(report));
+console.log(result.releaseType); // "major" | "minor" | "patch" | "none"
+console.log(formatASTReportAsMarkdown(result.report));
 ```
 
 ## Functions
@@ -42,7 +42,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[compareDeclarationFiles(oldParsed, newParsed)](./change-detector.comparedeclarationfiles.md)
+[compareDeclarationFiles(oldParsed, newParsed, options)](./change-detector.comparedeclarationfiles.md)
 
 
 </td><td>
@@ -66,7 +66,7 @@ This is the main entry point for programmatic usage of the change detector.
 </td></tr>
 <tr><td>
 
-[compareFiles(oldFilePath, newFilePath)](./change-detector.comparefiles.md)
+[compareFiles(oldFilePath, newFilePath, options)](./change-detector.comparefiles.md)
 
 
 </td><td>
@@ -77,23 +77,12 @@ This is the main entry point for programmatic usage of the change detector.
 </td></tr>
 <tr><td>
 
-[parseDeclarationFile(filePath)](./change-detector.parsedeclarationfile.md)
+[parseDeclarationFile(filePath, options)](./change-detector.parsedeclarationfile.md)
 
 
 </td><td>
 
 **_(ALPHA)_** Parses a declaration file from a file path and extracts all exported symbols.
-
-
-</td></tr>
-<tr><td>
-
-[parseDeclarationFileWithTypes(filePath)](./change-detector.parsedeclarationfilewithtypes.md)
-
-
-</td><td>
-
-**_(ALPHA)_** Parses a declaration file and returns TypeScript type information for deep comparison.
 
 
 </td></tr>
@@ -114,12 +103,45 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[CompareDeclarationsResult](./change-detector.comparedeclarationsresult.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Result of the compareDeclarations function.
+
+
+</td></tr>
+<tr><td>
+
 [CompareOptions](./change-detector.compareoptions.md)
 
 
 </td><td>
 
 **_(ALPHA)_** Options for comparing declarations from file paths.
+
+
+</td></tr>
+<tr><td>
+
+[CompareResult](./change-detector.compareresult.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Result of comparing two parsed declaration files.
+
+
+</td></tr>
+<tr><td>
+
+[ComparisonResult](./change-detector.comparisonresult.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Result of comparing two declaration files.
 
 
 </td></tr>

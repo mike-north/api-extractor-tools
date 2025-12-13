@@ -12,5 +12,5 @@ Detailed changes, if available
 **Signature:**
 
 ```typescript
-changes?: ComparisonReport['changes'];
+changes?: ASTComparisonReport['byReleaseType'];
 ```

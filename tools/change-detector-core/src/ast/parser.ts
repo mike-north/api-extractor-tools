@@ -105,6 +105,7 @@ function getNodeKind(node: TSESTree.Node): NodeKind {
 
     case AST_NODE_TYPES.TSMethodSignature:
     case AST_NODE_TYPES.MethodDefinition:
+    case AST_NODE_TYPES.TSAbstractMethodDefinition:
       return 'method'
 
     case AST_NODE_TYPES.TSCallSignatureDeclaration:
@@ -377,6 +378,8 @@ function extractBasicTypeInfo(source: string, node: TSESTree.Node): TypeInfo {
         signature: sig.normalized,
         raw,
         callSignatures: [sig],
+        typeParameters:
+          sig.typeParameters.length > 0 ? sig.typeParameters : undefined,
       }
     }
 
@@ -442,6 +445,16 @@ function extractBasicTypeInfo(source: string, node: TSESTree.Node): TypeInfo {
           `${p.readonly ? 'readonly ' : ''}${p.name}${p.optional ? '?' : ''}: ${p.type}`,
       )
 
+      // Extract interface type parameters
+      const interfaceTypeParams: TypeParameterInfo[] = []
+      if (node.typeParameters?.params) {
+        for (let i = 0; i < node.typeParameters.params.length; i++) {
+          interfaceTypeParams.push(
+            extractTypeParameterInfo(source, node.typeParameters.params[i]!, i),
+          )
+        }
+      }
+
       return {
         signature: `{ ${propSigs.join('; ')} }`,
         raw,
@@ -451,14 +464,27 @@ function extractBasicTypeInfo(source: string, node: TSESTree.Node): TypeInfo {
           constructSignatures.length > 0 ? constructSignatures : undefined,
         stringIndexType,
         numberIndexType,
+        typeParameters:
+          interfaceTypeParams.length > 0 ? interfaceTypeParams : undefined,
       }
     }
 
     case AST_NODE_TYPES.TSTypeAliasDeclaration: {
       const typeStr = getNodeText(source, node.typeAnnotation)
+      // Extract type alias type parameters
+      const typeAliasTypeParams: TypeParameterInfo[] = []
+      if (node.typeParameters?.params) {
+        for (let i = 0; i < node.typeParameters.params.length; i++) {
+          typeAliasTypeParams.push(
+            extractTypeParameterInfo(source, node.typeParameters.params[i]!, i),
+          )
+        }
+      }
       return {
         signature: typeStr,
         raw,
+        typeParameters:
+          typeAliasTypeParams.length > 0 ? typeAliasTypeParams : undefined,
       }
     }
 
@@ -641,6 +667,26 @@ function processDeclaration(
     astNode: node,
   }
 
+  // Extract heritage clauses (extends/implements)
+  if (node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
+    // Interfaces can only extend
+    if (node.extends && node.extends.length > 0) {
+      analyzableNode.extends = node.extends.map((ext) =>
+        getNodeText(source, ext.expression),
+      )
+    }
+  } else if (node.type === AST_NODE_TYPES.ClassDeclaration) {
+    // Classes can extend and implement
+    if (node.superClass) {
+      analyzableNode.extends = [getNodeText(source, node.superClass)]
+    }
+    if (node.implements && node.implements.length > 0) {
+      analyzableNode.implements = node.implements.map((impl) =>
+        getNodeText(source, impl.expression),
+      )
+    }
+  }
+
   // Process children for container types
   if (node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
     for (const member of node.body.body) {
@@ -784,16 +830,26 @@ function processMember(
     }
   } else if (
     member.type === AST_NODE_TYPES.TSMethodSignature ||
-    member.type === AST_NODE_TYPES.MethodDefinition
+    member.type === AST_NODE_TYPES.MethodDefinition ||
+    member.type === AST_NODE_TYPES.TSAbstractMethodDefinition
   ) {
-    const sig = extractSignatureInfo(
-      source,
-      member as TSESTree.TSMethodSignature | TSESTree.MethodDefinition,
-    )
+    // For MethodDefinition and TSAbstractMethodDefinition, the signature info
+    // is on the nested 'value' function expression
+    let sigSource = member as
+      | TSESTree.TSMethodSignature
+      | TSESTree.MethodDefinition
+    if ('value' in member && member.value) {
+      sigSource = member.value as unknown as TSESTree.TSMethodSignature
+    }
+    const sig = extractSignatureInfo(source, sigSource)
     typeInfo = {
       signature: sig.normalized,
       raw: getNodeText(source, member),
       callSignatures: [sig],
+    }
+    // Check for abstract modifier on TSAbstractMethodDefinition
+    if (member.type === AST_NODE_TYPES.TSAbstractMethodDefinition) {
+      modifiers.add('abstract')
     }
   } else {
     typeInfo = extractBasicTypeInfo(source, member)
@@ -832,12 +888,25 @@ function processStatement(
         extractMetadataOpt,
         outputMap,
       )
-      // Mark the processed node as exported
-      const name = getDeclarationName(statement.declaration)
-      if (name) {
-        const node = outputMap.get(name)
-        if (node) {
-          node.modifiers.add('exported')
+      // Mark the processed node(s) as exported
+      // VariableDeclaration can have multiple declarators, so handle it specially
+      if (statement.declaration.type === AST_NODE_TYPES.VariableDeclaration) {
+        for (const declarator of statement.declaration.declarations) {
+          const name = getDeclarationName(declarator)
+          if (name) {
+            const node = outputMap.get(name)
+            if (node) {
+              node.modifiers.add('exported')
+            }
+          }
+        }
+      } else {
+        const name = getDeclarationName(statement.declaration)
+        if (name) {
+          const node = outputMap.get(name)
+          if (node) {
+            node.modifiers.add('exported')
+          }
         }
       }
     }

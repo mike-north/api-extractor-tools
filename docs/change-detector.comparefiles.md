@@ -12,7 +12,7 @@ Compares two declaration files by path.
 **Signature:**
 
 ```typescript
-export declare function compareFiles(oldFilePath: string, newFilePath: string): CompareResult;
+export declare function compareFiles(oldFilePath: string, newFilePath: string, options?: DiffOptions): CompareResult;
 ```
 
 ## Parameters
@@ -61,9 +61,25 @@ string
 
 
 </td></tr>
+<tr><td>
+
+options
+
+
+</td><td>
+
+DiffOptions
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
 </tbody></table>
 
 **Returns:**
 
-CompareResult
+[CompareResult](./change-detector.compareresult.md)
 

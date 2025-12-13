@@ -12,7 +12,7 @@ Parses a declaration file from a file path and extracts all exported symbols.
 **Signature:**
 
 ```typescript
-export declare function parseDeclarationFile(filePath: string): ParseResult;
+export declare function parseDeclarationFile(filePath: string, options?: ParseOptions): ModuleAnalysisWithTypes;
 ```
 
 ## Parameters
@@ -45,11 +45,31 @@ string
 
 </td><td>
 
+Path to the declaration file to parse
+
+
+</td></tr>
+<tr><td>
+
+options
+
+
+</td><td>
+
+ParseOptions
+
+
+</td><td>
+
+_(Optional)_ Optional parse options
+
 
 </td></tr>
 </tbody></table>
 
 **Returns:**
 
-ParseResult
+ModuleAnalysisWithTypes
+
+Module analysis with TypeScript type information
 

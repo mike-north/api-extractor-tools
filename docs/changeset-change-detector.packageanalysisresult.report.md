@@ -12,5 +12,5 @@ The comparison report from change-detector, null if no baseline exists
 **Signature:**
 
 ```typescript
-report: ComparisonReport | null;
+report: ASTComparisonReport | null;
 ```

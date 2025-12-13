@@ -231,7 +231,7 @@ export function validateVersionBump(
         proposedBump: null,
         detectedBump,
         message: `No release proposed, but API analysis detected ${detectedBump}-level changes.`,
-        changes: analysis.report?.changes,
+        changes: analysis.report?.byReleaseType,
       }
     }
     return {
@@ -260,7 +260,7 @@ export function validateVersionBump(
         message:
           `Proposed ${proposedBump} bump is higher than needed ` +
           `(API analysis detected ${detectedBump}).`,
-        changes: analysis.report?.changes,
+        changes: analysis.report?.byReleaseType,
       }
     }
     return {
@@ -279,7 +279,7 @@ export function validateVersionBump(
     message:
       `Proposed ${proposedBump} bump is insufficient. ` +
       `API analysis detected ${detectedBump}-level changes.`,
-    changes: analysis.report?.changes,
+    changes: analysis.report?.byReleaseType,
   }
 }
 
@@ -300,28 +300,34 @@ function formatValidationError(
     '',
   ]
 
-  if (analysis.report?.changes.breaking.length) {
+  // Breaking changes are forbidden + major
+  const breakingChanges = [
+    ...(analysis.report?.byReleaseType.forbidden ?? []),
+    ...(analysis.report?.byReleaseType.major ?? []),
+  ]
+  if (breakingChanges.length > 0) {
     lines.push('Breaking changes detected:')
-    for (const change of analysis.report.changes.breaking.slice(0, 10)) {
+    for (const change of breakingChanges.slice(0, 10)) {
       lines.push(`  • ${change.explanation}`)
     }
-    if (analysis.report.changes.breaking.length > 10) {
-      lines.push(
-        `  ... and ${analysis.report.changes.breaking.length - 10} more`,
-      )
+    if (breakingChanges.length > 10) {
+      lines.push(`  ... and ${breakingChanges.length - 10} more`)
     }
     lines.push('')
   }
 
-  if (analysis.report?.changes.nonBreaking.length) {
+  // Non-breaking changes are minor + patch
+  const nonBreakingChanges = [
+    ...(analysis.report?.byReleaseType.minor ?? []),
+    ...(analysis.report?.byReleaseType.patch ?? []),
+  ]
+  if (nonBreakingChanges.length > 0) {
     lines.push('Non-breaking changes detected:')
-    for (const change of analysis.report.changes.nonBreaking.slice(0, 5)) {
+    for (const change of nonBreakingChanges.slice(0, 5)) {
       lines.push(`  • ${change.explanation}`)
     }
-    if (analysis.report.changes.nonBreaking.length > 5) {
-      lines.push(
-        `  ... and ${analysis.report.changes.nonBreaking.length - 5} more`,
-      )
+    if (nonBreakingChanges.length > 5) {
+      lines.push(`  ... and ${nonBreakingChanges.length - 5} more`)
     }
     lines.push('')
   }
@@ -344,15 +350,19 @@ function logChanges(
   logger: SemanticReleaseContext['logger'],
   changes: NonNullable<ValidationResult['changes']>,
 ): void {
-  if (changes.breaking.length > 0) {
+  // Breaking changes are forbidden + major
+  const breakingChanges = [...changes.forbidden, ...changes.major]
+  if (breakingChanges.length > 0) {
     logger.warn('Breaking changes:')
-    for (const change of changes.breaking.slice(0, 5)) {
+    for (const change of breakingChanges.slice(0, 5)) {
       logger.warn(`  - ${change.explanation}`)
     }
   }
-  if (changes.nonBreaking.length > 0) {
+  // Non-breaking changes are minor + patch
+  const nonBreakingChanges = [...changes.minor, ...changes.patch]
+  if (nonBreakingChanges.length > 0) {
     logger.log('Non-breaking changes:')
-    for (const change of changes.nonBreaking.slice(0, 5)) {
+    for (const change of nonBreakingChanges.slice(0, 5)) {
       logger.log(`  - ${change.explanation}`)
     }
   }

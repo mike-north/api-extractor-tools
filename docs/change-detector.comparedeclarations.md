@@ -14,7 +14,7 @@ This is the main entry point for programmatic usage of the change detector.
 **Signature:**
 
 ```typescript
-export declare function compareDeclarations(options: CompareOptions): ComparisonReport;
+export declare function compareDeclarations(options: CompareOptions): CompareDeclarationsResult;
 ```
 
 ## Parameters
@@ -55,22 +55,22 @@ Comparison options including paths to old and new files
 
 **Returns:**
 
-ComparisonReport
+[CompareDeclarationsResult](./change-detector.comparedeclarationsresult.md)
 
-A comparison report with release type classification and detailed changes
+A comparison result with release type, changes, and formatted report
 
 ## Example
 
 
 ```ts
-import { compareDeclarations, formatReportAsText } from '@api-extractor-tools/change-detector';
+import { compareDeclarations, formatASTReportAsText } from '@api-extractor-tools/change-detector';
 
-const report = compareDeclarations({
+const result = compareDeclarations({
   oldFile: './dist/v1/index.d.ts',
   newFile: './dist/v2/index.d.ts',
 });
 
-console.log(report.releaseType); // "major" | "minor" | "patch" | "none"
-console.log(formatReportAsText(report));
+console.log(result.releaseType); // "major" | "minor" | "patch" | "none"
+console.log(formatASTReportAsText(result.report));
 ```
 

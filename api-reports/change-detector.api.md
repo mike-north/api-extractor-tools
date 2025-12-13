@@ -4,88 +4,169 @@
 
 ```ts
 
-import { Change } from '@api-extractor-tools/change-detector-core';
-import { ChangeCategory } from '@api-extractor-tools/change-detector-core';
-import { ChangesByImpact } from '@api-extractor-tools/change-detector-core';
+import { AnalyzableNode } from '@api-extractor-tools/change-detector-core';
+import { ApiChange } from '@api-extractor-tools/change-detector-core';
+import { ASTChangeJSON } from '@api-extractor-tools/change-detector-core';
+import { ASTComparisonReport } from '@api-extractor-tools/change-detector-core';
+import { ASTReporterOptions } from '@api-extractor-tools/change-detector-core';
+import { ASTReportJSON } from '@api-extractor-tools/change-detector-core';
+import { ChangeAction } from '@api-extractor-tools/change-detector-core';
+import { ChangeAspect } from '@api-extractor-tools/change-detector-core';
+import { ChangeContext } from '@api-extractor-tools/change-detector-core';
+import { ChangeDescriptor } from '@api-extractor-tools/change-detector-core';
+import { ChangeImpact } from '@api-extractor-tools/change-detector-core';
+import { ChangesByImpact } from '@api-extractor-tools/change-detector-core/plugins';
+import { ChangeTag } from '@api-extractor-tools/change-detector-core';
+import { ChangeTarget } from '@api-extractor-tools/change-detector-core';
 import { ClassificationResult } from '@api-extractor-tools/change-detector-core';
+import { ClassifiedChange } from '@api-extractor-tools/change-detector-core';
+import { classifyChange } from '@api-extractor-tools/change-detector-core';
 import { classifyChanges } from '@api-extractor-tools/change-detector-core';
-import { compareDeclarations as compareDeclarationStrings } from '@api-extractor-tools/change-detector-core';
-import { CompareResult } from '@api-extractor-tools/change-detector-core';
-import { CompareStringOptions } from '@api-extractor-tools/change-detector-core';
-import { ComparisonReport } from '@api-extractor-tools/change-detector-core';
-import { ComparisonReportJSON } from '@api-extractor-tools/change-detector-core';
-import { ComparisonStats } from '@api-extractor-tools/change-detector-core';
+import { ComparisonReport } from '@api-extractor-tools/change-detector-core/plugins';
+import { ComparisonStats } from '@api-extractor-tools/change-detector-core/plugins';
+import { createASTComparisonReport } from '@api-extractor-tools/change-detector-core';
+import { createPolicy } from '@api-extractor-tools/change-detector-core';
 import { detectParameterReordering } from '@api-extractor-tools/change-detector-core';
+import { determineOverallRelease } from '@api-extractor-tools/change-detector-core';
+import { DiffOptions } from '@api-extractor-tools/change-detector-core';
 import { editDistance } from '@api-extractor-tools/change-detector-core';
-import { ExportedSymbol } from '@api-extractor-tools/change-detector-core';
 import { extractParameterInfo } from '@api-extractor-tools/change-detector-core';
-import { formatReportAsMarkdown } from '@api-extractor-tools/change-detector-core';
-import { formatReportAsText } from '@api-extractor-tools/change-detector-core';
+import { formatASTReportAsJSON } from '@api-extractor-tools/change-detector-core';
+import { formatASTReportAsMarkdown } from '@api-extractor-tools/change-detector-core';
+import { formatASTReportAsText } from '@api-extractor-tools/change-detector-core';
+import { formatSourceLocation } from '@api-extractor-tools/change-detector-core';
 import { interpretNameChange } from '@api-extractor-tools/change-detector-core';
+import { Modifier } from '@api-extractor-tools/change-detector-core';
+import { ModuleAnalysis } from '@api-extractor-tools/change-detector-core';
+import { ModuleAnalysisWithTypes } from '@api-extractor-tools/change-detector-core';
 import { nameSimilarity } from '@api-extractor-tools/change-detector-core';
+import { NodeKind } from '@api-extractor-tools/change-detector-core';
 import { ParameterInfo } from '@api-extractor-tools/change-detector-core';
 import { ParameterOrderAnalysis } from '@api-extractor-tools/change-detector-core';
 import { ParameterPositionAnalysis } from '@api-extractor-tools/change-detector-core';
-import { ParseResult } from '@api-extractor-tools/change-detector-core';
-import { ParseResultWithTypes } from '@api-extractor-tools/change-detector-core';
+import { ParseOptions } from '@api-extractor-tools/change-detector-core';
+import { Policy } from '@api-extractor-tools/change-detector-core';
+import { PolicyBuilder } from '@api-extractor-tools/change-detector-core';
+import { PolicyRule } from '@api-extractor-tools/change-detector-core';
 import { ReleaseType } from '@api-extractor-tools/change-detector-core';
 import { ReorderingConfidence } from '@api-extractor-tools/change-detector-core';
-import { reportToJSON } from '@api-extractor-tools/change-detector-core';
-import { SymbolKind } from '@api-extractor-tools/change-detector-core';
+import { rule } from '@api-extractor-tools/change-detector-core';
+import { RuleBuilder } from '@api-extractor-tools/change-detector-core';
+import { semverDefaultPolicy } from '@api-extractor-tools/change-detector-core';
+import { semverReadOnlyPolicy } from '@api-extractor-tools/change-detector-core';
+import { semverWriteOnlyPolicy } from '@api-extractor-tools/change-detector-core';
+import { SourceRange } from '@api-extractor-tools/change-detector-core';
 import { default as typescriptPlugin } from '@api-extractor-tools/input-processor-typescript';
 
-export { Change }
+export { AnalyzableNode }
 
-export { ChangeCategory }
+export { ApiChange }
+
+export { ASTChangeJSON }
+
+export { ASTComparisonReport }
+
+export { ASTReporterOptions }
+
+export { ASTReportJSON }
+
+export { ChangeAction }
+
+export { ChangeAspect }
+
+export { ChangeContext }
+
+export { ChangeDescriptor }
+
+export { ChangeImpact }
 
 export { ChangesByImpact }
 
+export { ChangeTag }
+
+export { ChangeTarget }
+
 export { ClassificationResult }
+
+export { ClassifiedChange }
+
+export { classifyChange }
 
 export { classifyChanges }
 
 // @alpha
-export function compareDeclarationFiles(oldParsed: ParseResultWithTypes, newParsed: ParseResultWithTypes): CompareResult;
+export function compareDeclarationFiles(oldParsed: ModuleAnalysisWithTypes, newParsed: ModuleAnalysisWithTypes, options?: DiffOptions): CompareResult;
 
 // @alpha
-export function compareDeclarations(options: CompareOptions): ComparisonReport;
-
-export { compareDeclarationStrings }
+export function compareDeclarations(options: CompareOptions): CompareDeclarationsResult;
 
 // @alpha
-export function compareFiles(oldFilePath: string, newFilePath: string): CompareResult;
+export interface CompareDeclarationsResult extends ComparisonResult {
+    report: ASTComparisonReport;
+}
+
+// @alpha
+export function compareFiles(oldFilePath: string, newFilePath: string, options?: DiffOptions): CompareResult;
 
 // @alpha
 export interface CompareOptions {
     newFile: string;
     oldFile: string;
+    policy?: Policy;
 }
 
-export { CompareResult }
-
-export { CompareStringOptions }
+// @alpha
+export interface CompareResult {
+    changes: ApiChange[];
+    errors: string[];
+}
 
 export { ComparisonReport }
 
-export { ComparisonReportJSON }
+// @alpha
+export interface ComparisonResult {
+    changes: ApiChange[];
+    newFile: string;
+    oldFile: string;
+    releaseType: ReleaseType;
+    results: ClassificationResult[];
+}
 
 export { ComparisonStats }
 
+export { createASTComparisonReport }
+
+export { createPolicy }
+
 export { detectParameterReordering }
+
+export { determineOverallRelease }
+
+export { DiffOptions }
 
 export { editDistance }
 
-export { ExportedSymbol }
-
 export { extractParameterInfo }
 
-export { formatReportAsMarkdown }
+export { formatASTReportAsJSON }
 
-export { formatReportAsText }
+export { formatASTReportAsMarkdown }
+
+export { formatASTReportAsText }
+
+export { formatSourceLocation }
 
 export { interpretNameChange }
 
+export { Modifier }
+
+export { ModuleAnalysis }
+
+export { ModuleAnalysisWithTypes }
+
 export { nameSimilarity }
+
+export { NodeKind }
 
 export { ParameterInfo }
 
@@ -94,22 +175,31 @@ export { ParameterOrderAnalysis }
 export { ParameterPositionAnalysis }
 
 // @alpha
-export function parseDeclarationFile(filePath: string): ParseResult;
+export function parseDeclarationFile(filePath: string, options?: ParseOptions): ModuleAnalysisWithTypes;
 
-// @alpha
-export function parseDeclarationFileWithTypes(filePath: string): ParseResultWithTypes;
+export { ParseOptions }
 
-export { ParseResult }
+export { Policy }
 
-export { ParseResultWithTypes }
+export { PolicyBuilder }
+
+export { PolicyRule }
 
 export { ReleaseType }
 
 export { ReorderingConfidence }
 
-export { reportToJSON }
+export { rule }
 
-export { SymbolKind }
+export { RuleBuilder }
+
+export { semverDefaultPolicy }
+
+export { semverReadOnlyPolicy }
+
+export { semverWriteOnlyPolicy }
+
+export { SourceRange }
 
 export { typescriptPlugin }
 
