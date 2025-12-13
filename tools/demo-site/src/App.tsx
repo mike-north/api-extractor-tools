@@ -58,7 +58,7 @@ function getInitialContent(): { old: string; new: string } {
   return { old: examples[0].old, new: examples[0].new }
 }
 
-function getInitialPolicy(): Exclude<PolicyName, 'custom'> {
+function getInitialPolicy(): PolicyName {
   const params = new URLSearchParams(window.location.search)
   const policyParam = params.get('policy')
   if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only') {
@@ -115,7 +115,7 @@ function App() {
     setThemePreference(theme)
   }, [])
 
-  const handlePolicyChange = useCallback((policy: Exclude<PolicyName, 'custom'>) => {
+  const handlePolicyChange = useCallback((policy: PolicyName) => {
     setSelectedPolicy(policy)
   }, [])
 
