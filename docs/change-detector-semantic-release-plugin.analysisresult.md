@@ -105,7 +105,7 @@ ReleaseType
 
 </td><td>
 
-ComparisonReport \| null
+ASTComparisonReport \| null
 
 
 </td><td>

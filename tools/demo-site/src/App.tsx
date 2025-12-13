@@ -25,7 +25,7 @@ import { type PolicyName } from './types'
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
 
-const turnkeyPolicies: Record<Exclude<PolicyName, 'custom'>, Policy> = {
+const turnkeyPolicies: Record<PolicyName, Policy> = {
   'default': semverDefaultPolicy,
   'read-only': semverReadOnlyPolicy,
   'write-only': semverWriteOnlyPolicy,
@@ -58,7 +58,7 @@ function getInitialContent(): { old: string; new: string } {
   return { old: examples[0].old, new: examples[0].new }
 }
 
-function getInitialPolicy(): Exclude<PolicyName, 'custom'> {
+function getInitialPolicy(): PolicyName {
   const params = new URLSearchParams(window.location.search)
   const policyParam = params.get('policy')
   if (policyParam === 'default' || policyParam === 'read-only' || policyParam === 'write-only') {
@@ -76,7 +76,7 @@ function App() {
   const [editorHeight, setEditorHeight] = useState(250)
   const [themePreference, setThemePreference] = useState<ThemePreference>(getInitialTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme())
-  const [selectedPolicy, setSelectedPolicy] = useState<Exclude<PolicyName, 'custom'>>(getInitialPolicy())
+  const [selectedPolicy, setSelectedPolicy] = useState<PolicyName>(getInitialPolicy())
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -115,7 +115,7 @@ function App() {
     setThemePreference(theme)
   }, [])
 
-  const handlePolicyChange = useCallback((policy: Exclude<PolicyName, 'custom'>) => {
+  const handlePolicyChange = useCallback((policy: PolicyName) => {
     setSelectedPolicy(policy)
   }, [])
 

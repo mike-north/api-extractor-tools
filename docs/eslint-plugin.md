@@ -44,6 +44,17 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[extractEnumType(commentText)](./eslint-plugin.extractenumtype.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Extracts `@enumType` tag information from a TSDoc comment.
+
+
+</td></tr>
+<tr><td>
+
 [extractReleaseTag(docComment)](./eslint-plugin.extractreleasetag.md)
 
 
@@ -158,6 +169,17 @@ Description
 </td></tr>
 <tr><td>
 
+[EnumTypeExtraction](./eslint-plugin.enumtypeextraction.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Result of extracting `@enumType` tag from a TSDoc comment.
+
+
+</td></tr>
+<tr><td>
+
 [ExtraReleaseTagRuleOptions](./eslint-plugin.extrareleasetagruleoptions.md)
 
 
@@ -244,6 +266,17 @@ Description
 
 
 </td></tr>
+<tr><td>
+
+[ValidEnumTypeRuleOptions](./eslint-plugin.validenumtyperuleoptions.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Options for the valid-enum-type rule.
+
+
+</td></tr>
 </tbody></table>
 
 ## Variables
@@ -326,6 +359,17 @@ Description
 </td><td>
 
 **_(ALPHA)_** Log levels supported by API Extractor message configuration.
+
+
+</td></tr>
+<tr><td>
+
+[EnumTypeValue](./eslint-plugin.enumtypevalue.md)
+
+
+</td><td>
+
+**_(ALPHA)_** Enum type values for `@enumType` tag.
 
 
 </td></tr>

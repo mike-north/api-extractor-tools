@@ -12,7 +12,7 @@ Formats API changes as markdown for release notes.
 **Signature:**
 
 ```typescript
-export declare function formatAPIChangesAsMarkdown(report: ComparisonReport): string;
+export declare function formatAPIChangesAsMarkdown(report: ASTComparisonReport): string;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ report
 
 </td><td>
 
-ComparisonReport
+ASTComparisonReport
 
 
 </td><td>

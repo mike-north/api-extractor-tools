@@ -15,12 +15,15 @@ import { ChangeAspect } from '@api-extractor-tools/change-detector-core';
 import { ChangeContext } from '@api-extractor-tools/change-detector-core';
 import { ChangeDescriptor } from '@api-extractor-tools/change-detector-core';
 import { ChangeImpact } from '@api-extractor-tools/change-detector-core';
+import { ChangesByImpact } from '@api-extractor-tools/change-detector-core/plugins';
 import { ChangeTag } from '@api-extractor-tools/change-detector-core';
 import { ChangeTarget } from '@api-extractor-tools/change-detector-core';
 import { ClassificationResult } from '@api-extractor-tools/change-detector-core';
 import { ClassifiedChange } from '@api-extractor-tools/change-detector-core';
 import { classifyChange } from '@api-extractor-tools/change-detector-core';
 import { classifyChanges } from '@api-extractor-tools/change-detector-core';
+import { ComparisonReport } from '@api-extractor-tools/change-detector-core/plugins';
+import { ComparisonStats } from '@api-extractor-tools/change-detector-core/plugins';
 import { createASTComparisonReport } from '@api-extractor-tools/change-detector-core';
 import { createPolicy } from '@api-extractor-tools/change-detector-core';
 import { detectParameterReordering } from '@api-extractor-tools/change-detector-core';
@@ -77,6 +80,8 @@ export { ChangeDescriptor }
 
 export { ChangeImpact }
 
+export { ChangesByImpact }
+
 export { ChangeTag }
 
 export { ChangeTarget }
@@ -116,6 +121,8 @@ export interface CompareResult {
     errors: string[];
 }
 
+export { ComparisonReport }
+
 // @alpha
 export interface ComparisonResult {
     changes: ApiChange[];
@@ -124,6 +131,8 @@ export interface ComparisonResult {
     releaseType: ReleaseType;
     results: ClassificationResult[];
 }
+
+export { ComparisonStats }
 
 export { createASTComparisonReport }
 

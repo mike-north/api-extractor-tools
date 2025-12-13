@@ -12,7 +12,7 @@ Compares two parsed declaration files and detects all changes.
 **Signature:**
 
 ```typescript
-export declare function compareDeclarationFiles(oldParsed: ParseResultWithTypes, newParsed: ParseResultWithTypes): CompareResult;
+export declare function compareDeclarationFiles(oldParsed: ModuleAnalysisWithTypes, newParsed: ModuleAnalysisWithTypes, options?: DiffOptions): CompareResult;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ oldParsed
 
 </td><td>
 
-ParseResultWithTypes
+ModuleAnalysisWithTypes
 
 
 </td><td>
@@ -54,10 +54,26 @@ newParsed
 
 </td><td>
 
-ParseResultWithTypes
+ModuleAnalysisWithTypes
 
 
 </td><td>
+
+
+</td></tr>
+<tr><td>
+
+options
+
+
+</td><td>
+
+DiffOptions
+
+
+</td><td>
+
+_(Optional)_
 
 
 </td></tr>
@@ -65,5 +81,5 @@ ParseResultWithTypes
 
 **Returns:**
 
-CompareResult
+[CompareResult](./change-detector.compareresult.md)
 

@@ -4,7 +4,7 @@
 
 ```ts
 
-import { ComparisonReport } from '@api-extractor-tools/change-detector-core/plugins';
+import { ASTComparisonReport } from '@api-extractor-tools/change-detector-core';
 import { ReleaseType } from '@api-extractor-tools/change-detector-core';
 
 // @alpha
@@ -12,7 +12,7 @@ export interface AnalysisResult {
     error?: string;
     isNewPackage: boolean;
     recommendedBump: ReleaseType;
-    report: ComparisonReport | null;
+    report: ASTComparisonReport | null;
 }
 
 // @alpha
@@ -40,10 +40,10 @@ export function determineBaseline(cwd: string, lastRelease?: {
 export function findDeclarationFile(cwd: string, config: ResolvedPluginConfig): string | null;
 
 // @alpha
-export function formatAPIChangesAsMarkdown(report: ComparisonReport): string;
+export function formatAPIChangesAsMarkdown(report: ASTComparisonReport): string;
 
 // @alpha
-export function formatChangeSummary(report: ComparisonReport | null): string;
+export function formatChangeSummary(report: ASTComparisonReport | null): string;
 
 // @alpha
 export function generateDetailedDescription(analysis: AnalysisResult): string;
@@ -130,7 +130,7 @@ export function validateVersionBump(proposedBump: SemanticReleaseType | null, an
 
 // @alpha
 export interface ValidationResult {
-    changes?: ComparisonReport['changes'];
+    changes?: ASTComparisonReport['byReleaseType'];
     detectedBump: ReleaseType;
     message: string;
     proposedBump: SemanticReleaseType | null;
