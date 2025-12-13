@@ -1,6 +1,7 @@
 import { RuleTester } from '@typescript-eslint/rule-tester'
 import { describe, it, afterAll } from 'vitest'
 import { validEnumType } from '../../src/rules/valid-enum-type'
+import parser from '@typescript-eslint/parser'
 
 RuleTester.afterAll = afterAll
 RuleTester.describe = describe
@@ -8,7 +9,7 @@ RuleTester.it = it
 
 const ruleTester = new RuleTester({
   languageOptions: {
-    parser: require('@typescript-eslint/parser'),
+    parser,
     parserOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

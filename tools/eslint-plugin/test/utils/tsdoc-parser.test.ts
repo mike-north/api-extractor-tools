@@ -34,7 +34,7 @@ describe('tsdoc-parser', () => {
  * @public
  */`
       const result = parseTSDocComment(comment)
-      const tag = extractReleaseTag(result.docComment!)
+      const tag = extractReleaseTag(result.docComment)
       expect(tag).toBe('public')
     })
 
@@ -43,7 +43,7 @@ describe('tsdoc-parser', () => {
  * @beta
  */`
       const result = parseTSDocComment(comment)
-      const tag = extractReleaseTag(result.docComment!)
+      const tag = extractReleaseTag(result.docComment)
       expect(tag).toBe('beta')
     })
 
@@ -52,7 +52,7 @@ describe('tsdoc-parser', () => {
  * @alpha
  */`
       const result = parseTSDocComment(comment)
-      const tag = extractReleaseTag(result.docComment!)
+      const tag = extractReleaseTag(result.docComment)
       expect(tag).toBe('alpha')
     })
 
@@ -61,7 +61,7 @@ describe('tsdoc-parser', () => {
  * @internal
  */`
       const result = parseTSDocComment(comment)
-      const tag = extractReleaseTag(result.docComment!)
+      const tag = extractReleaseTag(result.docComment)
       expect(tag).toBe('internal')
     })
 
@@ -70,7 +70,7 @@ describe('tsdoc-parser', () => {
  * Just a description.
  */`
       const result = parseTSDocComment(comment)
-      const tag = extractReleaseTag(result.docComment!)
+      const tag = extractReleaseTag(result.docComment)
       expect(tag).toBeUndefined()
     })
   })
@@ -81,7 +81,7 @@ describe('tsdoc-parser', () => {
  * @override
  */`
       const result = parseTSDocComment(comment)
-      expect(hasOverrideTag(result.docComment!)).toBe(true)
+      expect(hasOverrideTag(result.docComment)).toBe(true)
     })
 
     it('should return false when no @override tag', () => {
@@ -89,7 +89,7 @@ describe('tsdoc-parser', () => {
  * Just a comment.
  */`
       const result = parseTSDocComment(comment)
-      expect(hasOverrideTag(result.docComment!)).toBe(false)
+      expect(hasOverrideTag(result.docComment)).toBe(false)
     })
   })
 
@@ -100,7 +100,7 @@ describe('tsdoc-parser', () => {
  * @packageDocumentation
  */`
       const result = parseTSDocComment(comment)
-      expect(hasPackageDocumentation(result.docComment!)).toBe(true)
+      expect(hasPackageDocumentation(result.docComment)).toBe(true)
     })
 
     it('should return false when no @packageDocumentation tag', () => {
@@ -108,7 +108,7 @@ describe('tsdoc-parser', () => {
  * Just a comment.
  */`
       const result = parseTSDocComment(comment)
-      expect(hasPackageDocumentation(result.docComment!)).toBe(false)
+      expect(hasPackageDocumentation(result.docComment)).toBe(false)
     })
   })
 

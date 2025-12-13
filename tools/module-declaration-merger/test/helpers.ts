@@ -2,7 +2,7 @@ import type { IConfigFile } from '@microsoft/api-extractor'
 
 /**
  * Creates a minimal valid api-extractor.json config.
- * Uses the IConfigFile type from @microsoft/api-extractor to ensure validity.
+ * Uses the IConfigFile type from `@microsoft/api-extractor` to ensure validity.
  */
 export function createApiExtractorConfig(
   overrides: Partial<IConfigFile> = {},

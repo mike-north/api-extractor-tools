@@ -10,8 +10,8 @@ describe('createResolver', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('resolves module paths relative to entry point', async () => {
@@ -117,7 +117,7 @@ describe('createResolver', () => {
     expect(resolved).toBe('./utils/parent')
   })
 
-  it('preserves bare package imports', async () => {
+  it('preserves bare package imports', () => {
     const resolver = createResolver({
       projectFolder: '/project',
       mainEntryPointFilePath: '/project/src/index.ts',
@@ -129,7 +129,7 @@ describe('createResolver', () => {
     )
   })
 
-  it('preserves scoped package imports', async () => {
+  it('preserves scoped package imports', () => {
     const resolver = createResolver({
       projectFolder: '/project',
       mainEntryPointFilePath: '/project/src/index.ts',

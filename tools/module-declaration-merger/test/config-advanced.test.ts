@@ -10,8 +10,8 @@ describe('config inheritance (extends)', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('inherits from a base config file', async () => {
@@ -159,8 +159,8 @@ describe('path token resolution', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('resolves <projectFolder> in mainEntryPointFilePath', async () => {
@@ -265,8 +265,8 @@ describe('partial rollup configurations', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('handles config with only public rollup', async () => {
@@ -328,8 +328,8 @@ describe('doc model path resolution', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('resolves custom apiJsonFilePath', async () => {
@@ -412,8 +412,8 @@ describe('doc model path resolution', () => {
 describe('package name edge cases', () => {
   let project: Project
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('handles scoped package names', async () => {
@@ -569,8 +569,8 @@ describe('missing release tag config parsing', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('parses error log level', async () => {

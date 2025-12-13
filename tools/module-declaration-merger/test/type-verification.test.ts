@@ -13,8 +13,8 @@ describe('TypeScript type verification', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('produces valid TypeScript that compiles', async () => {
@@ -69,8 +69,8 @@ export interface FirstThing {
       configPath: path.join(project.baseDir, 'api-extractor.json'),
     })
 
-    // Read the augmented rollup
-    const rollupContent = fs.readFileSync(
+    // Read the augmented rollup (used implicitly by createProgram below which reads it)
+    const _rollupContent = fs.readFileSync(
       path.join(project.baseDir, 'dist/index.d.ts'),
       'utf-8',
     )

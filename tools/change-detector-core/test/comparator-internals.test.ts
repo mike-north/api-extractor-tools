@@ -144,7 +144,8 @@ export declare function removeUser(id: string): void;`,
       )
 
       // createUser -> makeUser and deleteUser -> removeUser are both plausible
-      const renameChanges = report.changes.breaking.filter(
+      // Note: renameChanges may be empty if the comparator detects as removed + added
+      const _renameChanges = report.changes.breaking.filter(
         (c) => c.category === 'field-renamed',
       )
 

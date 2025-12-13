@@ -16,8 +16,6 @@ import {
   compareReleaseSeverity,
   releaseTypeToSemanticType,
   semanticTypeToReleaseType,
-  type AnalysisResult,
-  type ResolvedPluginConfig,
 } from '../src/index'
 
 /**

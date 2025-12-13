@@ -477,3 +477,4 @@ The `recommended` configuration enables all rules with these defaults:
 ## License
 
 MIT
+

@@ -11,8 +11,8 @@ describe('edge cases', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('handles empty declare module block', async () => {
@@ -143,8 +143,8 @@ describe('error handling', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('throws on invalid api-extractor.json', async () => {

@@ -6,13 +6,14 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "pnpm build:esm && pnpm build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
-    "check:eslint": "eslint src",
+    "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json"
   },
   "keywords": [
@@ -27,12 +28,14 @@
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
     "@microsoft/tsdoc": "^0.16.0",
+    "@typescript-eslint/typescript-estree": "^8.49.0",
     "typescript": "5.8.3"
   },
   "devDependencies": {
     "@types/node": "^22.19.1",
     "@vitest/coverage-v8": "^4.0.15",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.15",
+    "zod": "^4.1.13"
   },
   "exports": {
     ".": {

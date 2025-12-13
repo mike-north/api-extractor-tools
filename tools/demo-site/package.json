@@ -4,6 +4,7 @@
   "version": "0.0.2-alpha.1",
   "type": "module",
   "scripts": {
+    "clean": "rm -rf dist",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",

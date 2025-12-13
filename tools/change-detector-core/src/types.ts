@@ -79,11 +79,11 @@ export interface SourceLocation {
  * @alpha
  */
 export interface SymbolMetadata {
-  /** Whether the symbol is marked with @deprecated */
+  /** Whether the symbol is marked with \@deprecated */
   isDeprecated?: boolean
-  /** Deprecation message if provided in @deprecated tag */
+  /** Deprecation message if provided in \@deprecated tag */
   deprecationMessage?: string
-  /** Default value from @default or @defaultValue tag */
+  /** Default value from \@default or \@defaultValue tag */
   defaultValue?: string
   /** Whether this symbol's type is a reference to another type */
   isReference?: boolean

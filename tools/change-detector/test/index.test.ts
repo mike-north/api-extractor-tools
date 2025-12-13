@@ -4,7 +4,7 @@
  * These tests verify that the file-based `compareDeclarations` API correctly
  * reads files from disk and delegates to the core comparison logic.
  *
- * For comprehensive comparison logic tests, see @api-extractor-tools/change-detector-core:
+ * For comprehensive comparison logic tests, see \@api-extractor-tools/change-detector-core:
  * - functions.test.ts - Function signature change tests
  * - interfaces.test.ts - Interface change tests
  * - types.test.ts - Type alias change tests

@@ -74,7 +74,7 @@ describe('package-documentation', () => {
  */`
       const parsed = parseTSDocComment(comment)
       expect(parsed.docComment).toBeDefined()
-      expect(hasPackageDocumentation(parsed.docComment!)).toBe(true)
+      expect(hasPackageDocumentation(parsed.docComment)).toBe(true)
     })
 
     it('should return false when @packageDocumentation is missing', () => {
@@ -83,7 +83,7 @@ describe('package-documentation', () => {
  */`
       const parsed = parseTSDocComment(comment)
       expect(parsed.docComment).toBeDefined()
-      expect(hasPackageDocumentation(parsed.docComment!)).toBe(false)
+      expect(hasPackageDocumentation(parsed.docComment)).toBe(false)
     })
   })
 
@@ -110,7 +110,7 @@ export function foo() {}`
  * This is the main entry point.
  * @packageDocumentation
  */`)
-      expect(hasPackageDocumentation(parsed.docComment!)).toBe(true)
+      expect(hasPackageDocumentation(parsed.docComment)).toBe(true)
     })
 
     it('should fail when entry point lacks @packageDocumentation', () => {
@@ -133,7 +133,7 @@ export function foo() {}`
       const parsed = parseTSDocComment(`/**
  * This is the main entry point.
  */`)
-      expect(hasPackageDocumentation(parsed.docComment!)).toBe(false)
+      expect(hasPackageDocumentation(parsed.docComment)).toBe(false)
     })
 
     it('should not require @packageDocumentation for non-entry points', () => {

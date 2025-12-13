@@ -13,8 +13,8 @@ describe('doc model (.api.json) augmentation', () => {
       project = new Project('test-pkg')
     })
 
-    afterEach(async () => {
-      await project.dispose()
+    afterEach(() => {
+      project.dispose()
     })
 
     it('parses docModel config with custom path', async () => {
@@ -164,8 +164,8 @@ describe('doc model (.api.json) augmentation', () => {
       project = new Project('test-pkg')
     })
 
-    afterEach(async () => {
-      await project.dispose()
+    afterEach(() => {
+      project.dispose()
     })
 
     it('reports docModelAugmented as false when .api.json does not exist', async () => {

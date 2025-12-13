@@ -1,8 +1,25 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { execSync, spawn } from 'child_process'
+import * as fs from 'fs'
+import { execSync } from 'child_process'
 import { createApiExtractorConfig } from './helpers'
+
+/**
+ * Type guard for exec sync errors that have stdout/stderr/status properties.
+ */
+interface ExecSyncError extends Error {
+  stdout: Buffer | string | null
+  stderr: Buffer | string | null
+  status: number | null
+}
+
+function isExecSyncError(error: unknown): error is ExecSyncError {
+  return (
+    error instanceof Error &&
+    ('stdout' in error || 'stderr' in error || 'status' in error)
+  )
+}
 
 /**
  * Runs the CLI and returns its output.
@@ -24,13 +41,14 @@ function runCli(
     })
     return { stdout, stderr: '', exitCode: 0 }
   } catch (error) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const e = error as any
-    return {
-      stdout: e.stdout?.toString() || '',
-      stderr: e.stderr?.toString() || '',
-      exitCode: e.status ?? 1,
+    if (isExecSyncError(error)) {
+      return {
+        stdout: error.stdout?.toString() ?? '',
+        stderr: error.stderr?.toString() ?? '',
+        exitCode: error.status ?? 1,
+      }
     }
+    return { stdout: '', stderr: String(error), exitCode: 1 }
   }
 }
 
@@ -41,8 +59,8 @@ describe('CLI', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   describe('argument parsing', () => {
@@ -209,7 +227,7 @@ declare module "./registry" {
       expect(result.stdout).toContain('Would augment')
 
       // File should remain unchanged
-      const content = require('fs').readFileSync(
+      const content = fs.readFileSync(
         path.join(project.baseDir, 'dist/index.d.ts'),
         'utf-8',
       )

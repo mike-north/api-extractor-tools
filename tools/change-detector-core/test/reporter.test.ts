@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { z } from 'zod'
 import { compare } from './helpers'
 import {
   formatReportAsText,
@@ -7,6 +8,27 @@ import {
   type ComparisonReport,
   type Change,
 } from '../src/index'
+
+// Zod schema for validating JSON reporter output
+const ComparisonReportJSONSchema = z.object({
+  releaseType: z.enum(['major', 'minor', 'patch', 'none', 'forbidden']),
+  changes: z.object({
+    forbidden: z.array(z.unknown()),
+    breaking: z.array(z.unknown()),
+    nonBreaking: z.array(z.unknown()),
+    unchanged: z.array(z.unknown()),
+  }),
+  stats: z.object({
+    totalSymbolsOld: z.number(),
+    totalSymbolsNew: z.number(),
+    added: z.number(),
+    removed: z.number(),
+    modified: z.number(),
+    unchanged: z.number(),
+  }),
+  oldFile: z.string(),
+  newFile: z.string(),
+})
 
 describe('report formatters', () => {
   describe('formatReportAsText', () => {
@@ -225,7 +247,7 @@ export declare enum Enum { A = 0, B = 1, C = 2 }`,
 
       const json = reportToJSON(report)
       const serialized = JSON.stringify(json)
-      const parsed = JSON.parse(serialized)
+      const parsed = ComparisonReportJSONSchema.parse(JSON.parse(serialized))
 
       expect(parsed.releaseType).toBe(json.releaseType)
       expect(parsed.stats).toEqual(json.stats)

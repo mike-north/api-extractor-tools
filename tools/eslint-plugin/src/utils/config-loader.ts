@@ -192,3 +192,4 @@ export function logLevelToSeverity(logLevel: ApiExtractorLogLevel): 0 | 1 | 2 {
 export function clearConfigCache(): void {
   configCache.clear()
 }
+

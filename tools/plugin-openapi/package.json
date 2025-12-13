@@ -6,6 +6,7 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "pnpm inject-version && pnpm build:esm && pnpm build:cjs",
     "inject-version": "node scripts/inject-version.mjs",
     "build:esm": "tsc -p tsconfig.esm.json",
@@ -13,7 +14,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
-    "check:eslint": "eslint src",
+    "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json"
   },
   "keywords": [

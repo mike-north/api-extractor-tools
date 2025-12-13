@@ -259,6 +259,165 @@ Examples:
 'enum Status { Active = 0, Inactive = 1 }'
 ```
 
+## AST-Based Change Detection (Advanced)
+
+For more sophisticated change detection, the system provides an AST-based module with multi-dimensional change classification and rule-based policies.
+
+### Two Systems
+
+The change-detector supports two approaches:
+
+1. **Symbol-based (Simple)**: Uses `ExportedSymbol` with string signatures. Best for non-TypeScript formats or simple use cases.
+2. **AST-based (Advanced)**: Uses `AnalyzableNode` with full structural analysis. Best for TypeScript and detailed change classification.
+
+### Multi-Dimensional Change Descriptors
+
+AST-based changes use a multi-dimensional `ChangeDescriptor` for precise classification:
+
+```typescript
+interface ChangeDescriptor {
+  target: ChangeTarget    // What was affected (export, property, parameter, etc.)
+  action: ChangeAction    // What happened (added, removed, modified, renamed, reordered)
+  aspect?: ChangeAspect   // What aspect changed (type, optionality, visibility, etc.)
+  impact?: ChangeImpact   // Semantic effect (widening, narrowing, equivalent, etc.)
+  tags: Set<ChangeTag>    // Additional metadata tags
+}
+
+// Target types
+type ChangeTarget =
+  | 'export' | 'parameter' | 'return-type' | 'type-parameter'
+  | 'property' | 'method' | 'enum-member' | 'index-signature'
+  | 'constructor' | 'accessor'
+
+// Action types
+type ChangeAction = 'added' | 'removed' | 'modified' | 'renamed' | 'reordered'
+
+// Aspect types (for 'modified' actions)
+type ChangeAspect =
+  | 'type' | 'optionality' | 'readonly' | 'visibility'
+  | 'deprecation' | 'constraint' | 'default-type' | 'enum-value'
+  | 'extends-clause' | 'implements-clause'
+
+// Impact types (for 'modified' actions)
+type ChangeImpact = 'widening' | 'narrowing' | 'equivalent' | 'unrelated' | 'undetermined'
+```
+
+The descriptor uses a discriminated union to enforce that `modified` actions include both `aspect` and `impact`:
+
+```typescript
+// 'added' and 'removed' don't have aspect/impact
+interface AddedDescriptor { action: 'added'; aspect?: never; impact?: never }
+interface RemovedDescriptor { action: 'removed'; aspect?: never; impact?: never }
+
+// 'modified' requires both aspect and impact
+interface ModifiedDescriptor { action: 'modified'; aspect: ChangeAspect; impact: ChangeImpact }
+```
+
+### Rule-Based Policy System
+
+AST-based policies use a declarative rule builder:
+
+```typescript
+import { rule, createPolicy } from '@api-extractor-tools/change-detector-core'
+
+const myPolicy = createPolicy('my-policy')
+  .addRule(
+    rule('breaking-removal')
+      .target('export')
+      .action('removed')
+      .rationale('Removing exports breaks consumers')
+      .returns('major'),
+  )
+  .addRule(
+    rule('optional-to-required')
+      .target('parameter')
+      .action('modified')
+      .aspect('optionality')
+      .impact('narrowing')
+      .hasTag('now-required')
+      .rationale('Making optional parameters required breaks callers')
+      .returns('major'),
+  )
+  .addRule(
+    rule('new-export')
+      .target('export')
+      .action('added')
+      .rationale('New exports are backwards compatible')
+      .returns('minor'),
+  )
+  .defaultRule('patch')  // Fallback for unmatched changes
+  .build()
+```
+
+Built-in policies:
+
+- `semverDefaultPolicy` - Standard semver rules
+- `semverReadOnlyPolicy` - Optimized for read-only APIs (type narrowing is safe)
+- `semverWriteOnlyPolicy` - Optimized for write-only APIs (type widening is safe)
+
+### AST-Aware Plugin Types
+
+Plugins can provide AST-aware capabilities:
+
+```typescript
+import type {
+  ASTAwarePolicyDefinition,
+  ASTAwareReporterDefinition,
+  ASTAwareInputProcessor,
+} from '@api-extractor-tools/change-detector-core'
+
+// AST-aware policy definition
+const astPolicy: ASTAwarePolicyDefinition = {
+  id: 'my-ast-policy',
+  name: 'My AST Policy',
+  astCapability: 'policy',
+  createPolicy: () => myRuleBasedPolicy,
+}
+
+// AST-aware reporter definition
+const astReporter: ASTAwareReporterDefinition = {
+  id: 'my-ast-reporter',
+  name: 'My AST Reporter',
+  format: 'markdown',
+  astCapability: 'reporter',
+  createReporter: () => ({
+    format(report: ASTComparisonReport) {
+      // Format with full AST context
+      return { format: 'markdown', content: '...' }
+    },
+  }),
+}
+
+// Hybrid policy supporting both systems
+const hybridPolicy: HybridPolicyDefinition = {
+  id: 'hybrid',
+  name: 'Hybrid Policy',
+  astCapability: 'hybrid',
+  createPolicy: () => legacyPolicy,
+  createASTPolicy: () => astRuleBasedPolicy,
+}
+```
+
+### Convenience Function
+
+For simple AST-based analysis:
+
+```typescript
+import { analyzeChanges } from '@api-extractor-tools/change-detector-core'
+
+const result = analyzeChanges(oldSource, newSource, {
+  policy: semverDefaultPolicy,  // Optional, defaults to semverDefaultPolicy
+})
+
+console.log(`Release type: ${result.releaseType}`)
+for (const { change, releaseType, matchedRule } of result.results) {
+  console.log(`[${releaseType}] ${change.explanation}`)
+  if (matchedRule) {
+    console.log(`  Matched rule: ${matchedRule.name}`)
+  }
+}
+```
+
 ## Lifecycle Hooks
 
 Plugins can implement lifecycle hooks for initialization and cleanup:

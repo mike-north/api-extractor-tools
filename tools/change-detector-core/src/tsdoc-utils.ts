@@ -23,7 +23,7 @@ import {
 import type { SymbolMetadata } from './types'
 
 /**
- * TSDoc parser instance configured for standard tags plus @default.
+ * TSDoc parser instance configured for standard tags plus \@default.
  */
 let parserInstance: TSDocParser | undefined
 
@@ -110,7 +110,7 @@ function extractDeprecatedMessage(docComment: DocComment): string | undefined {
 }
 
 /**
- * Extracts the value from a @default or @defaultValue block tag.
+ * Extracts the value from a \@default or \@defaultValue block tag.
  */
 function extractDefaultValue(docComment: DocComment): string | undefined {
   // Look for @defaultValue or @default in custom blocks
@@ -162,7 +162,7 @@ interface TSDocMetadata {
   isDeprecated: boolean
   /** The deprecation message if provided */
   deprecationMessage?: string
-  /** The default value from @default or @defaultValue tag */
+  /** The default value from \@default or \@defaultValue tag */
   defaultValue?: string
   /** The enum type from `@enumType` tag ('open' or 'closed') */
   enumType?: 'open' | 'closed'
@@ -264,3 +264,4 @@ export function isTSDocComment(commentText: string): boolean {
   const trimmed = commentText.trim()
   return trimmed.startsWith('/**') && trimmed.endsWith('*/')
 }
+

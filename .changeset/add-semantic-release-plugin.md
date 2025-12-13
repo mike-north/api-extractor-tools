@@ -14,3 +14,4 @@ Features:
 - Enhanced release notes: Automatically add API change details to release notes
 - Smart baseline detection: Uses last release tag, main branch, or custom refs
 - Programmatic API for custom integrations
+

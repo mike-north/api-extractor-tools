@@ -6,13 +6,14 @@
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "pnpm build:esm && pnpm build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
-    "check:eslint": "eslint src",
+    "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json"
   },
   "keywords": [

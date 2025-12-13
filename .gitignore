@@ -149,5 +149,6 @@ temp/*
 
 # Editor logs
 .nvimlog
-./scratch
+.scratch
+scratch
 .claude

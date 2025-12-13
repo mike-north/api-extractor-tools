@@ -12,8 +12,8 @@ describe('mergeModuleDeclarations (integration)', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('merges module declarations into rollup files', async () => {
