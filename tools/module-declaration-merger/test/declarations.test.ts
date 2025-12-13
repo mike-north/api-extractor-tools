@@ -9,8 +9,8 @@ describe('declaration kind coverage', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('extracts interface declarations', async () => {

@@ -11,8 +11,8 @@ describe('parseConfig', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('parses api-extractor.json and extracts rollup paths', async () => {

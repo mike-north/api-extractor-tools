@@ -6,7 +6,7 @@
  * actual file parsing.
  *
  * For comprehensive symbol parsing and signature generation tests, see
- * @api-extractor-tools/change-detector-core which tests the string-based parser.
+ * \@api-extractor-tools/change-detector-core which tests the string-based parser.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'

@@ -64,7 +64,7 @@ describe('SourceLocation interface', () => {
       }
 
       expect(location.line).toBe(location.endLine)
-      expect(location.column).toBeLessThan(location.endColumn!)
+      expect(location.column).toBeLessThan(location.endColumn)
     })
 
     it('accepts multi-line range', () => {
@@ -75,7 +75,7 @@ describe('SourceLocation interface', () => {
         endColumn: 10,
       }
 
-      expect(location.line).toBeLessThan(location.endLine!)
+      expect(location.line).toBeLessThan(location.endLine)
     })
   })
 

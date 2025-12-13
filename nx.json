@@ -2,10 +2,12 @@
   "$schema": "https://nx.dev/nx.schema.json",
   "namedInputs": {
     "source": ["{projectRoot}/src/**/*"],
+    "tests": ["{projectRoot}/test/**/*"],
     "tsConfig": [
       "{projectRoot}/tsconfig.json",
       "{workspaceRoot}/tsconfig.json"
     ],
+
     "eslintConfig": ["{workspaceRoot}/eslint.config.mts"],
     "apiExtractorConfig": [
       "{projectRoot}/api-extractor.json",
@@ -63,7 +65,7 @@
     },
     "check:eslint": {
       "cache": true,
-      "inputs": ["source", "eslintConfig"],
+      "inputs": ["source", "tests", "eslintConfig"],
       "outputs": []
     },
     "check:typecheck-tests": {

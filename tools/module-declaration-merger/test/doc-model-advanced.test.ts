@@ -16,8 +16,8 @@ describe('doc model augmenter advanced scenarios', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   describe('canAugmentDocModel', () => {

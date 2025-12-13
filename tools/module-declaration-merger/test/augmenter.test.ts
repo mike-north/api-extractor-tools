@@ -11,8 +11,8 @@ describe('augmentRollups', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('appends module declarations to rollup files', async () => {

@@ -4,6 +4,22 @@ import * as path from 'path'
 import { execSync } from 'child_process'
 
 /**
+ * Type guard for exec sync errors that have stdout/stderr/status properties.
+ */
+interface ExecSyncError extends Error {
+  stdout: Buffer | string | null
+  stderr: Buffer | string | null
+  status: number | null
+}
+
+function isExecSyncError(error: unknown): error is ExecSyncError {
+  return (
+    error instanceof Error &&
+    ('stdout' in error || 'stderr' in error || 'status' in error)
+  )
+}
+
+/**
  * Runs the CLI and returns its output.
  * Uses the compiled CLI from dist.
  */
@@ -23,13 +39,14 @@ function runCli(
     })
     return { stdout, stderr: '', exitCode: 0 }
   } catch (error) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const e = error as any
-    return {
-      stdout: e.stdout?.toString() || '',
-      stderr: e.stderr?.toString() || '',
-      exitCode: e.status ?? 1,
+    if (isExecSyncError(error)) {
+      return {
+        stdout: error.stdout?.toString() ?? '',
+        stderr: error.stderr?.toString() ?? '',
+        exitCode: error.status ?? 1,
+      }
     }
+    return { stdout: '', stderr: String(error), exitCode: 1 }
   }
 }
 
@@ -40,8 +57,8 @@ describe('CLI', () => {
     project = new Project('test-workspace')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   describe('argument parsing', () => {

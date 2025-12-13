@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { compare } from './helpers'
-import type { ChangeCategory } from '../src/index'
 
 /**
  * Tests for symbols that have multiple simultaneous changes.

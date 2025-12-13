@@ -1,5 +1,6 @@
 import { RuleTester } from '@typescript-eslint/rule-tester'
 import { describe, it, afterAll } from 'vitest'
+import * as tseslintParser from '@typescript-eslint/parser'
 import { missingReleaseTag } from '../../src/rules/missing-release-tag'
 
 RuleTester.afterAll = afterAll
@@ -8,7 +9,7 @@ RuleTester.it = it
 
 const ruleTester = new RuleTester({
   languageOptions: {
-    parser: require('@typescript-eslint/parser'),
+    parser: tseslintParser,
     parserOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

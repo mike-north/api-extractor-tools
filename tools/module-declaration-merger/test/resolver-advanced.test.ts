@@ -10,8 +10,8 @@ describe('resolver edge cases', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   describe('non-relative module specifiers', () => {

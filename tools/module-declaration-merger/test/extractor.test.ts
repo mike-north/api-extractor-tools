@@ -9,8 +9,8 @@ describe('extractModuleAugmentations', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('extracts declare module blocks from source files', async () => {

@@ -12,8 +12,8 @@ describe('complex maturity scenarios', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('defaults untagged declarations to @public', async () => {
@@ -146,8 +146,8 @@ describe('ae-missing-release-tag handling', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('silently defaults to @public when no config', async () => {
@@ -372,8 +372,8 @@ describe('multiple source files', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('extracts augmentations from multiple files', async () => {

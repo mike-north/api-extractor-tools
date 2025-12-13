@@ -1,7 +1,7 @@
 /**
  * Edge cases that require file system access.
  *
- * NOTE: Most edge case tests have been moved to @api-extractor-tools/change-detector-core.
+ * NOTE: Most edge case tests have been moved to \@api-extractor-tools/change-detector-core.
  * This file only contains tests that require actual file system operations.
  * See change-detector-core/test/edge-cases.test.ts for string-based edge case tests.
  */

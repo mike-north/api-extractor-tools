@@ -4,7 +4,6 @@ import * as ts from 'typescript'
 import {
   parseDeclarationString,
   parseDeclarationStringWithTypes,
-  compareDeclarations,
 } from '../src/index'
 
 describe('error handling and malformed inputs', () => {

@@ -9,8 +9,8 @@ describe('TSDoc comment preservation', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   it('preserves multi-line descriptions', async () => {

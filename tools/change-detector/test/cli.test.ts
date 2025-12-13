@@ -2,6 +2,25 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
 import { execSync } from 'child_process'
+import { z } from 'zod'
+
+/**
+ * Zod schema for validating CLI JSON output.
+ */
+const CliOutputSchema = z.object({
+  releaseType: z.enum(['major', 'minor', 'patch', 'none']),
+  changes: z.object({
+    breaking: z.array(z.unknown()),
+    nonBreaking: z.array(z.unknown()),
+  }),
+})
+
+/**
+ * Parses and validates CLI JSON output.
+ */
+function parseCliOutput(stdout: string) {
+  return CliOutputSchema.parse(JSON.parse(stdout))
+}
 
 /**
  * Runs the CLI and returns its output.
@@ -22,9 +41,19 @@ function runCli(
       stdio: ['pipe', 'pipe', 'pipe'],
     })
     return { stdout, stderr: '', exitCode: 0 }
-  } catch (error) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const e = error as any
+  } catch (error: unknown) {
+    function isExecError(err: unknown): err is {
+      stdout?: string | Buffer
+      stderr?: string | Buffer
+      status?: number
+    } {
+      return (
+        typeof err === 'object' &&
+        err !== null &&
+        ('stdout' in err || 'stderr' in err || 'status' in err)
+      )
+    }
+    const e = isExecError(error) ? error : {}
     return {
       stdout: e.stdout?.toString() || '',
       stderr: e.stderr?.toString() || '',
@@ -40,8 +69,8 @@ describe('CLI', () => {
     project = new Project('test-pkg')
   })
 
-  afterEach(async () => {
-    await project.dispose()
+  afterEach(() => {
+    project.dispose()
   })
 
   describe('argument parsing', () => {
@@ -116,7 +145,7 @@ describe('CLI', () => {
 
       // CLI treats missing files as empty - detects all symbols as additions
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('minor')
     })
 
@@ -134,7 +163,7 @@ describe('CLI', () => {
 
       // CLI treats missing files as empty - detects all symbols as removals
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('major')
     })
   })
@@ -154,7 +183,9 @@ describe('CLI', () => {
 
       expect(result.exitCode).toBe(0)
       // Default text output should not be JSON
-      expect(() => JSON.parse(result.stdout)).toThrow()
+      expect(() => {
+        JSON.parse(result.stdout)
+      }).toThrow()
     })
 
     it('outputs JSON with --json flag', async () => {
@@ -171,7 +202,7 @@ describe('CLI', () => {
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed).toHaveProperty('releaseType')
       expect(parsed).toHaveProperty('changes')
     })
@@ -227,7 +258,7 @@ describe('CLI', () => {
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('none')
       expect(parsed.changes.breaking).toHaveLength(0)
       expect(parsed.changes.nonBreaking).toHaveLength(0)
@@ -248,7 +279,7 @@ export declare const bar: number;`,
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('minor')
       expect(parsed.changes.nonBreaking.length).toBeGreaterThan(0)
     })
@@ -268,7 +299,7 @@ export declare const bar: number;`,
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('major')
     })
 
@@ -286,7 +317,7 @@ export declare const bar: number;`,
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('major')
     })
   })
@@ -336,7 +367,7 @@ export declare const bar: number;`,
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       // Adding properties to interface is detected as a change
       const totalChanges =
         parsed.changes.breaking.length + parsed.changes.nonBreaking.length
@@ -358,7 +389,7 @@ export declare const bar: number;`,
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       // Adding optional parameter should be minor
       expect(['minor', 'patch']).toContain(parsed.releaseType)
     })
@@ -384,7 +415,7 @@ export declare const bar: number;`,
       ])
 
       expect(result.exitCode).toBe(0)
-      const parsed = JSON.parse(result.stdout)
+      const parsed = parseCliOutput(result.stdout)
       // Adding a method to a class is considered major (changes class shape)
       expect(parsed.releaseType).toBe('major')
     })

@@ -93,6 +93,9 @@ importers:
       vitest:
         specifier: ^4.0.15
         version: 4.0.15(@types/node@22.19.1)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2)
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
 
   tools/change-detector-core:
     dependencies:
@@ -115,6 +118,9 @@ importers:
       vitest:
         specifier: ^4.0.15
         version: 4.0.15(@types/node@22.19.1)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2)
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
 
   tools/change-detector-semantic-release-plugin:
     dependencies:
@@ -6827,6 +6833,14 @@ snapshots:
       chai: 6.2.1
       tinyrainbow: 3.0.3
 
+  '@vitest/mocker@4.0.15(vite@7.2.6(@types/node@22.19.1)(jiti@2.6.1)(yaml@2.8.2))':
+    dependencies:
+      '@vitest/spy': 4.0.15
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 7.2.6(@types/node@22.19.1)(jiti@2.6.1)(yaml@2.8.2)
+
   '@vitest/mocker@4.0.15(vite@7.2.6(@types/node@24.10.2)(jiti@2.6.1)(yaml@2.8.2))':
     dependencies:
       '@vitest/spy': 4.0.15
@@ -9842,7 +9856,7 @@ snapshots:
   vitest@4.0.15(@types/node@22.19.1)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.15
-      '@vitest/mocker': 4.0.15(vite@7.2.6(@types/node@24.10.2)(jiti@2.6.1)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.15(vite@7.2.6(@types/node@22.19.1)(jiti@2.6.1)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.15
       '@vitest/runner': 4.0.15
       '@vitest/snapshot': 4.0.15
