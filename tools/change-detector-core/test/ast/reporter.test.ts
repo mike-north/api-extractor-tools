@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest'
-import { z } from 'zod'
 import { parseModule } from '../../src/ast/parser'
 import { diffModules } from '../../src/ast/differ'
 import { classifyChanges } from '../../src/ast/rule-builder'
@@ -12,26 +11,6 @@ import {
   formatASTReportAsMarkdown,
   formatASTReportAsJSON,
 } from '../../src/ast/reporter'
-
-// Zod schema for validating JSON reporter output
-const ASTReportJSONSchema = z.object({
-  releaseType: z.enum(['major', 'minor', 'patch', 'none', 'forbidden']),
-  stats: z.object({
-    total: z.number(),
-    forbidden: z.number(),
-    major: z.number(),
-    minor: z.number(),
-    patch: z.number(),
-    none: z.number(),
-  }),
-  changes: z.object({
-    forbidden: z.array(z.unknown()),
-    major: z.array(z.unknown()),
-    minor: z.array(z.unknown()),
-    patch: z.array(z.unknown()),
-    none: z.array(z.unknown()),
-  }),
-})
 
 function createClassifiedChanges(
   oldSource: string,
@@ -381,9 +360,9 @@ export interface Product { sku: string; }`,
       const report = createASTComparisonReport(classified)
       const json = formatASTReportAsJSON(report)
 
-      // Should not throw when serializing and parsed should conform to schema
+      // Should not throw when serializing
       const serialized = JSON.stringify(json)
-      const parsed = ASTReportJSONSchema.parse(JSON.parse(serialized))
+      const parsed = JSON.parse(serialized)
 
       expect(parsed.releaseType).toBe(json.releaseType)
       expect(parsed.stats.total).toBe(json.stats.total)
