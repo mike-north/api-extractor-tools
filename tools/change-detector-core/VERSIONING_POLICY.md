@@ -1,10 +1,18 @@
 # Versioning Policy
 
-This document defines the versioning semantics used by `change-detector-core` to classify API changes. It builds on [Semantic Versioning 2.0.0](https://semver.org/) with additional considerations for TypeScript-specific changes and semantic modifications.
+This document defines the versioning semantics used by `change-detector-core` to classify API changes. It builds on [Semantic Versioning 2.0.0](https://semver.org/) with sophisticated AST-based analysis and multi-dimensional change classification for TypeScript declarations.
 
 ## Table of Contents
 
+- [Overview](#overview)
 - [Release Types](#release-types)
+- [AST-Based Change Detection](#ast-based-change-detection)
+  - [Multi-Dimensional Classification](#multi-dimensional-classification)
+  - [Change Examples](#change-examples)
+- [Built-in Policies](#built-in-policies)
+  - [Default Policy (Bidirectional)](#default-policy-bidirectional)
+  - [Read-Only Policy (Consumer)](#read-only-policy-consumer)
+  - [Write-Only Policy (Producer)](#write-only-policy-producer)
 - [Change Categories](#change-categories)
   - [Major (Breaking) Changes](#major-breaking-changes)
   - [Minor (Non-Breaking) Changes](#minor-non-breaking-changes)
@@ -14,13 +22,37 @@ This document defines the versioning semantics used by `change-detector-core` to
   - [Understanding Variance](#understanding-variance)
   - [Impact Matrix](#impact-matrix)
   - [Examples](#examples)
-  - [Current Behavior](#current-behavior)
-- [Symbol-Specific Rules](#symbol-specific-rules)
+- [Symbol-Specific Patterns](#symbol-specific-patterns)
   - [Functions](#functions)
-  - [Interfaces](#interfaces)
+  - [Interfaces and Types](#interfaces-and-types)
   - [Classes](#classes)
-  - [Type Aliases](#type-aliases)
   - [Enums](#enums)
+
+---
+
+## Overview
+
+`change-detector-core` uses **Abstract Syntax Tree (AST) analysis** to provide precise, semantic understanding of API changes. Unlike simple string comparison, the system:
+
+1. **Parses TypeScript declarations** into structured nodes with type information
+2. **Classifies changes multi-dimensionally** using target, action, aspect, and impact
+3. **Applies rule-based policies** to determine semantic versioning impact
+4. **Provides detailed explanations** for each detected change
+
+### Quick Start
+
+```typescript
+import * as ts from 'typescript'
+import { analyzeChanges } from '@api-extractor-tools/change-detector-core'
+
+const result = analyzeChanges(oldSource, newSource, ts)
+console.log(`Release type: ${result.releaseType}`)
+
+// Examine individual changes
+for (const change of result.results) {
+  console.log(`${change.path}: ${change.explanation} [${change.releaseType}]`)
+}
+```
 
 ---
 
@@ -45,40 +77,188 @@ The `forbidden` release type represents changes that should **never be allowed**
 
 Unlike `major` changes (which signal "proceed with caution during upgrade"), `forbidden` changes signal "this change must be reverted or addressed before release."
 
-The built-in policies (`defaultPolicy`, `readOnlyPolicy`, `writeOnlyPolicy`) never return `forbidden` – this release type is designed for **custom policies** that encode domain-specific constraints.
+The built-in policies (`semverDefaultPolicy`, `semverReadOnlyPolicy`, `semverWriteOnlyPolicy`) never return `forbidden` – this release type is designed for **custom policies** that encode domain-specific constraints.
 
 ```typescript
-// Example: Database schema policy that forbids incompatible type changes
-const databaseSchemaPolicy: VersioningPolicy = {
-  name: 'database-schema',
-  classify(change: AnalyzedChange): ReleaseType {
-    // Forbid certain type changes that would break data integrity
-    if (
-      change.category === 'type-narrowed' ||
-      change.category === 'type-widened'
-    ) {
-      // Check if this is an incompatible type change
-      if (isIncompatibleTypeChange(change.before, change.after)) {
-        return 'forbidden'
-      }
-    }
-    // Fall back to default policy for other changes
-    return defaultPolicy.classify(change)
-  },
+import { createPolicy, rule } from '@api-extractor-tools/change-detector-core'
+
+// Example: Database schema policy with forbidden changes
+const databaseSchemaPolicy = createPolicy('database-schema', 'major')
+  .addRule(
+    rule('column-removal')
+      .action('removed')
+      .rationale('Column removal causes data loss')
+      .returns('forbidden')
+  )
+  .addRule(
+    rule('incompatible-type-change')
+      .aspect('type')
+      .when(change => wouldBreakExistingData(change))
+      .rationale('Type changes that invalidate existing data are forbidden')
+      .returns('forbidden')
+  )
+  .build()
+
+function wouldBreakExistingData(change): boolean {
+  // Custom logic to detect data-breaking type changes
+  return change.oldType === 'string' && change.newType === 'number'
 }
 ```
 
 ---
 
+## AST-Based Change Detection
+
+The library analyzes TypeScript declarations at the AST level to provide precise change classification.
+
+### Multi-Dimensional Classification
+
+Changes are classified using multiple dimensions to enable fine-grained policy rules:
+
+```typescript
+interface ChangeDescriptor {
+  /** What API construct was affected */
+  target: ChangeTarget // 'export' | 'parameter' | 'property' | 'method' | etc.
+  
+  /** What happened to the construct */
+  action: ChangeAction // 'added' | 'removed' | 'modified' | 'renamed' | 'reordered'
+  
+  /** What aspect changed (for modifications) */
+  aspect?: ChangeAspect // 'type' | 'optionality' | 'readonly' | etc.
+  
+  /** Semantic direction of the change */
+  impact?: ChangeImpact // 'widening' | 'narrowing' | 'equivalent' | 'unrelated'
+  
+  /** Additional metadata */
+  tags: Set<ChangeTag> // 'now-required', 'was-optional', etc.
+}
+```
+
+### Change Examples
+
+Here are examples of how common API changes are classified:
+
+```typescript
+// Adding a required parameter
+{
+  target: 'parameter',
+  action: 'added',
+  tags: new Set(['now-required'])
+}
+
+// Making a property optional
+{
+  target: 'property',
+  action: 'modified',
+  aspect: 'optionality',
+  impact: 'widening',
+  tags: new Set(['was-required', 'now-optional'])
+}
+
+// Narrowing a union type
+{
+  target: 'export',
+  action: 'modified',
+  aspect: 'type',
+  impact: 'narrowing'
+}
+
+// Removing an export
+{
+  target: 'export',
+  action: 'removed'
+}
+```
+
+---
+
+## Built-in Policies
+
+The library includes three built-in policies that handle common versioning scenarios.
+
+### Default Policy (Bidirectional)
+
+`semverDefaultPolicy` implements conservative semver rules assuming APIs are used both for reading and writing:
+
+```typescript
+import * as ts from 'typescript'
+import { analyzeChanges, semverDefaultPolicy } from '@api-extractor-tools/change-detector-core'
+
+const result = analyzeChanges(oldSource, newSource, ts, {
+  policy: semverDefaultPolicy // This is the default
+})
+```
+
+**Key characteristics:**
+- **Conservative**: Treats changes as breaking if they could break either readers or writers
+- **Safe for public APIs**: When you don't control how consumers use your types
+- **Bidirectional**: Considers both input and output perspectives
+
+### Read-Only Policy (Consumer)
+
+`semverReadOnlyPolicy` optimized for APIs where you only consume/read data:
+
+```typescript
+import * as ts from 'typescript'
+import { analyzeChanges, semverReadOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+
+const result = analyzeChanges(oldApiTypes, newApiTypes, ts, {
+  policy: semverReadOnlyPolicy
+})
+```
+
+**Best for:**
+- Frontend applications consuming REST APIs
+- Reading configuration objects
+- Processing callback data
+- Any scenario where you receive but don't create data
+
+**Key differences:**
+- Adding required properties is **minor** (you'll receive them)
+- Removing properties is **major** (you expect them)
+- Type widening is **minor** (can handle broader types)
+- Type narrowing is **major** (might not handle restricted types)
+
+### Write-Only Policy (Producer)
+
+`semverWriteOnlyPolicy` optimized for APIs where you produce/write data:
+
+```typescript
+import * as ts from 'typescript'
+import { analyzeChanges, semverWriteOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+
+const result = analyzeChanges(oldServiceTypes, newServiceTypes, ts, {
+  policy: semverWriteOnlyPolicy
+})
+```
+
+**Best for:**
+- Backend services implementing APIs
+- Creating objects to send to APIs
+- Implementing interfaces
+- Any scenario where you create data that others consume
+
+**Key differences:**
+- Adding required properties is **major** (you must provide them)
+- Removing properties is **minor** (no longer need to provide)
+- Type narrowing is **minor** (stricter requirements, existing code still valid)
+- Type widening is **major** (must handle new value types)
+
+---
+
 ## Change Categories
+
+The following sections describe how different types of changes are typically classified. The actual classification depends on the policy in use.
 
 ### Major (Breaking) Changes
 
-These changes require a major version bump because they may break existing code:
+Changes that typically require a major version bump:
 
-#### Symbol Removal (`symbol-removed`)
+#### Export Removal
 
 Removing any exported symbol from the public API.
+
+**Classification:** `{target: 'export', action: 'removed'}`
 
 ```typescript
 // BEFORE
@@ -88,9 +268,11 @@ export function processData(data: string): void
 // (function no longer exported)
 ```
 
-#### Type Narrowing (`type-narrowed`)
+#### Type Narrowing
 
 Making a type more restrictive, reducing the set of valid values.
+
+**Classification:** `{action: 'modified', aspect: 'type', impact: 'narrowing'}`
 
 ```typescript
 // BEFORE - accepts string or number
@@ -100,9 +282,11 @@ export function process(value: string | number): void
 export function process(value: string): void
 ```
 
-#### Required Parameter Added (`param-added-required`)
+#### Required Parameter Addition
 
 Adding a new parameter that must be provided.
+
+**Classification:** `{target: 'parameter', action: 'added', tags: ['now-required']}`
 
 ```typescript
 // BEFORE
@@ -112,9 +296,11 @@ export function connect(host: string): void
 export function connect(host: string, port: number): void
 ```
 
-#### Parameter Removed (`param-removed`)
+#### Parameter Removal
 
 Removing a parameter from a function signature.
+
+**Classification:** `{target: 'parameter', action: 'removed'}`
 
 ```typescript
 // BEFORE
@@ -124,9 +310,11 @@ export function configure(name: string, options: Options): void
 export function configure(name: string): void
 ```
 
-#### Parameter Order Changed (`param-order-changed`)
+#### Parameter Reordering
 
 Reordering parameters of the same type. This is a **semantic change** that may not be caught by the TypeScript compiler but can cause runtime bugs.
+
+**Classification:** `{target: 'parameter', action: 'reordered'}`
 
 ```typescript
 // BEFORE
@@ -136,9 +324,11 @@ export function transfer(from: string, to: string): void
 export function transfer(to: string, from: string): void
 ```
 
-#### Return Type Changed (`return-type-changed`)
+#### Return Type Changes
 
 Any modification to a function's return type.
+
+**Classification:** `{target: 'return-type', action: 'modified', aspect: 'type'}`
 
 ```typescript
 // BEFORE
@@ -148,9 +338,11 @@ export function getData(): string
 export function getData(): Promise<string>
 ```
 
-#### Symbol Renamed (`field-renamed`)
+#### Symbol Renaming
 
 Renaming a symbol while keeping its signature. This is detected by finding a removed symbol that matches an added symbol with an identical (modulo name) signature.
+
+**Classification:** `{action: 'renamed'}`
 
 ```typescript
 // BEFORE
@@ -160,9 +352,11 @@ export function processData(x: number): string
 export function handleData(x: number): string
 ```
 
-#### Optionality Tightened (`optionality-tightened`)
+#### Making Properties Required
 
 Making an optional parameter or property required.
+
+**Classification:** `{action: 'modified', aspect: 'optionality', impact: 'narrowing', tags: ['was-optional', 'now-required']}`
 
 ```typescript
 // BEFORE
@@ -174,11 +368,13 @@ export function greet(name: string): string
 
 ### Minor (Non-Breaking) Changes
 
-These changes add functionality without breaking existing consumers:
+Changes that typically add functionality without breaking existing consumers:
 
-#### Symbol Addition (`symbol-added`)
+#### Export Addition
 
 Adding a new export to the public API.
+
+**Classification:** `{target: 'export', action: 'added'}`
 
 ```typescript
 // BEFORE
@@ -189,9 +385,11 @@ export function existingFunction(): void
 export function newFunction(): void
 ```
 
-#### Type Widening (`type-widened`)
+#### Type Widening
 
 Making a type more permissive, expanding the set of valid values.
+
+**Classification:** `{action: 'modified', aspect: 'type', impact: 'widening'}`
 
 ```typescript
 // BEFORE
@@ -201,9 +399,11 @@ export function greet(name: string): string
 export function greet(name?: string): string
 ```
 
-#### Optional Parameter Added (`param-added-optional`)
+#### Optional Parameter Addition
 
 Adding a new parameter that has a default value or is marked optional.
+
+**Classification:** `{target: 'parameter', action: 'added', tags: ['now-optional']}`
 
 ```typescript
 // BEFORE
@@ -217,9 +417,11 @@ export function fetch(
 ): Promise<Response>
 ```
 
-#### Deprecation Removed (`field-undeprecated`)
+#### Undeprecation
 
 Removing `@deprecated` from a symbol.
+
+**Classification:** `{action: 'modified', aspect: 'deprecation', impact: 'narrowing'}`
 
 ```typescript
 // BEFORE
@@ -230,9 +432,11 @@ export function oldMethod(): void
 export function oldMethod(): void
 ```
 
-#### Default Value Removed (`default-removed`)
+#### Default Value Removal
 
 Removing a documented default value.
+
+**Classification:** `{action: 'modified', aspect: 'default-value', tags: ['had-default']}`
 
 ```typescript
 // BEFORE
@@ -244,9 +448,11 @@ export const timeout: number
 export const timeout: number
 ```
 
-#### Optionality Loosened (`optionality-loosened`)
+#### Making Properties Optional
 
 Making a required parameter or property optional.
+
+**Classification:** `{action: 'modified', aspect: 'optionality', impact: 'widening', tags: ['was-required', 'now-optional']}`
 
 ```typescript
 // BEFORE
@@ -265,9 +471,11 @@ Patch-level changes have no impact on the public API contract:
 - Bug fixes that don't change behavior guarantees
 - Performance improvements
 
-#### Deprecation Added (`field-deprecated`)
+#### Deprecation
 
 Adding `@deprecated` to a symbol. This is informational and doesn't break existing code.
+
+**Classification:** `{action: 'modified', aspect: 'deprecation', impact: 'widening'}`
 
 ```typescript
 // BEFORE
@@ -278,9 +486,11 @@ export function oldMethod(): void
 export function oldMethod(): void
 ```
 
-#### Default Value Added (`default-added`)
+#### Default Value Addition
 
 Adding `@default` or `@defaultValue` to a symbol.
+
+**Classification:** `{action: 'modified', aspect: 'default-value', tags: ['has-default']}`
 
 ```typescript
 // BEFORE
@@ -292,9 +502,11 @@ export const timeout: number
 export const timeout: number
 ```
 
-#### Default Value Changed (`default-changed`)
+#### Default Value Changes
 
 Changing the documented default value.
+
+**Classification:** `{action: 'modified', aspect: 'default-value'}`
 
 ```typescript
 // BEFORE
@@ -504,7 +716,9 @@ export interface ApiRequest {
 
 ---
 
-## Symbol-Specific Rules
+## Symbol-Specific Patterns
+
+The following tables show common change patterns for different types of API constructs. These are general guidelines - the actual classification depends on the policy being used and the multi-dimensional descriptor matching.
 
 ### Functions
 
@@ -518,7 +732,7 @@ export interface ApiRequest {
 | Reorder same-typed params | Major  | Semantic change, silent bugs           |
 | Rename parameter          | None   | No runtime impact (names are erased)   |
 
-### Interfaces
+### Interfaces and Types
 
 | Change                | Impact  | Notes                                |
 | --------------------- | ------- | ------------------------------------ |
@@ -531,7 +745,7 @@ export interface ApiRequest {
 | Add index signature   | Major   | Changes structural compatibility     |
 | Add call signature    | Major   | Changes callable behavior            |
 
-\*Interface property additions are treated conservatively because interfaces can be implemented, extended, or used as type constraints in ways that make additions breaking.
+\*Interface property additions are treated conservatively because interfaces can be implemented, extended, or used as type constraints in ways that make additions breaking. The actual classification depends on the policy and context.
 
 ### Classes
 
@@ -562,16 +776,27 @@ export interface ApiRequest {
 | Change member value | Major   | Runtime behavior changes         |
 | Reorder members     | Patch\* | Unless using numeric auto-values |
 
+**Note**: These patterns represent how the default policy typically classifies changes. Different policies (read-only, write-only, or custom) may classify the same structural changes differently based on their intended usage patterns.
+
 ---
 
 ## Summary
 
-This versioning policy ensures that:
+The AST-based change detection system in `change-detector-core` provides:
 
-1. **Safety**: Breaking changes are never silently missed
-2. **Precision**: Semantic changes like parameter reordering are detected
-3. **Context-awareness**: The Read/Write distinction helps understand true impact
-4. **Practicality**: Conservative defaults can be refined with explicit annotations
-5. **Domain flexibility**: Custom policies can define `forbidden` changes for domain-specific constraints
+1. **Precision**: Multi-dimensional classification captures the exact nature of each change
+2. **Flexibility**: Rule-based policies can be tailored to specific usage patterns
+3. **Safety**: Semantic changes like parameter reordering are detected automatically
+4. **Context-awareness**: Built-in policies for read-only, write-only, and bidirectional scenarios
+5. **Transparency**: Detailed explanations and rule matching for every classification
+6. **Domain flexibility**: Custom policies can define `forbidden` changes for domain-specific constraints
 
-When in doubt, `change-detector-core` errs on the side of classifying changes as breaking (major) to protect consumers from unexpected runtime failures. For changes that must never occur, custom policies can use the `forbidden` release type to enforce hard constraints.
+**Key Features:**
+
+- **AST analysis** provides deep structural understanding beyond string comparison
+- **Multi-dimensional descriptors** enable precise rule matching (target + action + aspect + impact)
+- **Built-in policies** cover common scenarios with appropriate variance handling
+- **Rule-based system** makes custom policies maintainable and self-documenting
+- **Forbidden changes** support for hard constraints beyond normal semver rules
+
+The system defaults to conservative classification (treating ambiguous changes as breaking) to protect consumers from unexpected runtime failures. However, the rule-based approach makes it easy to create policies that are precisely tailored to your API's usage patterns and requirements.
