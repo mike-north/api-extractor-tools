@@ -25,10 +25,10 @@
     "@testing-library/user-event": "^14.5.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^4.0.15",
     "jsdom": "^25.0.1",
-    "vite": "^6.0.3",
+    "vite": "^7.0.0",
     "vitest": "^4.0.15"
   }
 }

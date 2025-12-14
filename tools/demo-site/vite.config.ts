@@ -7,4 +7,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  define: {
+    // Provide process.env for Node.js packages bundled for the browser
+    // This is needed because @typescript-eslint/typescript-estree (via change-detector-core)
+    // includes dependencies that reference process.env
+    'process.env': {},
+  },
 })

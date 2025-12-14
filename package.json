@@ -32,7 +32,7 @@
   "keywords": [],
   "author": "Mike North <michael.l.north@gmail.com>",
   "license": "MIT",
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.25.0",
   "nx": {
     "targets": {
       "knip": {
