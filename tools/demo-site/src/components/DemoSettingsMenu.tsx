@@ -7,12 +7,14 @@ interface DemoSettingsMenuProps {
   selectedPolicy: PolicyName
   onPolicyChange: (policy: PolicyName) => void
   onExampleSelect: (example: Example) => void
+  onEditCustomPolicy?: () => void
 }
 
 export function DemoSettingsMenu({
   selectedPolicy,
   onPolicyChange,
   onExampleSelect,
+  onEditCustomPolicy,
 }: DemoSettingsMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -49,6 +51,11 @@ export function DemoSettingsMenu({
     onPolicyChange(policy)
     setIsOpen(false)
   }, [onPolicyChange])
+
+  const handleEditCustomPolicy = useCallback(() => {
+    setIsOpen(false)
+    onEditCustomPolicy?.()
+  }, [onEditCustomPolicy])
 
   const handleExampleSelect = useCallback((example: Example) => {
     onExampleSelect(example)
@@ -92,6 +99,28 @@ export function DemoSettingsMenu({
             >
               Write-Only (Producer)
             </button>
+            <button
+              className={`demo-settings-item ${selectedPolicy === 'custom' ? 'active' : ''}`}
+              onClick={() => handlePolicySelect('custom')}
+              role="menuitem"
+            >
+              Custom
+              {selectedPolicy === 'custom' && (
+                <span className="demo-settings-item-action">Edit</span>
+              )}
+            </button>
+            {selectedPolicy === 'custom' && (
+              <>
+                <div className="demo-settings-divider-inline" />
+                <button
+                  className="demo-settings-item"
+                  onClick={handleEditCustomPolicy}
+                  role="menuitem"
+                >
+                  Edit Custom Policy...
+                </button>
+              </>
+            )}
           </div>
 
           <div className="demo-settings-divider" />

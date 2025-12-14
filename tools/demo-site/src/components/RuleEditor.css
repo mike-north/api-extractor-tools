@@ -1,0 +1,173 @@
+/* Rule Editor */
+.rule-editor {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rule-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rule-editor-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.rule-editor-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.rule-editor-name-input {
+  flex: 1;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  max-width: 300px;
+}
+
+.rule-editor-name-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 69, 133, 136), 0.2);
+}
+
+.rule-editor-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rule-action-button {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background-color 0.15s, border-color 0.15s;
+  min-width: 2rem;
+}
+
+.rule-action-button:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+.rule-action-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rule-delete-button {
+  color: var(--color-error);
+  font-size: 1.25rem;
+}
+
+.rule-delete-button:hover:not(:disabled) {
+  border-color: var(--color-error);
+  background: var(--color-surface);
+}
+
+.rule-editor-body {
+  padding: 1rem;
+}
+
+.rule-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.rule-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.rule-editor-field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.field-help-inline {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.rule-editor-select,
+.rule-editor-select-single {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.875rem;
+}
+
+.rule-editor-select {
+  min-height: 120px;
+}
+
+.rule-editor-select:focus,
+.rule-editor-select-single:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 69, 133, 136), 0.2);
+}
+
+.rule-editor-select option,
+.rule-editor-select-single option {
+  padding: 0.25rem 0.5rem;
+}
+
+.rule-editor-help {
+  padding: 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.rule-help-text {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.rule-help-text strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rule-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-editor-name-input {
+    max-width: none;
+  }
+}
