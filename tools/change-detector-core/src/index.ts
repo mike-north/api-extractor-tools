@@ -120,16 +120,20 @@ export {
 } from './plugin-validation'
 
 // Plugin discovery exports (Node.js only)
-export {
-  type PluginDiscoveryOptions,
-  type PluginDiscoveryLogger,
-  type PluginPackageInfo,
-  type LoadedPlugin,
-  type PluginDiscoveryError,
-  type PluginDiscoveryResult,
-  discoverPlugins,
-  scanForPlugins,
+// Note: Only exporting types to avoid breaking browser builds
+// The actual functions import Node.js modules (fs, path) that don't exist in browsers
+export type {
+  PluginDiscoveryOptions,
+  PluginDiscoveryLogger,
+  PluginPackageInfo,
+  LoadedPlugin,
+  PluginDiscoveryError,
+  PluginDiscoveryResult,
 } from './plugin-discovery'
+
+// The actual discovery functions are not exported to maintain browser compatibility
+// If you need plugin discovery, import them directly:
+// import { discoverPlugins, scanForPlugins } from '@api-extractor-tools/change-detector-core/plugin-discovery'
 
 // Plugin registry exports
 export {
