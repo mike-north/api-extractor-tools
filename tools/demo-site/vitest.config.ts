@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    // Mock build ID for tests
+    __BUILD_ID__: JSON.stringify('test-build'),
+  },
   test: {
     globals: true,
     environment: 'jsdom',

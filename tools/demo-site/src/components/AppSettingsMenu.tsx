@@ -128,6 +128,12 @@ export function AppSettingsMenu({ themePreference, onThemeChange }: AppSettingsM
           >
             <span>🐛</span> File a Ticket
           </button>
+
+          <div className="settings-menu-divider" />
+
+          <div className="settings-menu-build-id">
+            Build: <code>{__BUILD_ID__}</code>
+          </div>
         </div>
       )}
     </div>

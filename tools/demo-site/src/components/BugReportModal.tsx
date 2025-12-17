@@ -100,6 +100,7 @@ _PLACEHOLDER_
 
 ## Additional Context
 
+- Build ID: \`${__BUILD_ID__}\`
 - Browser: ${navigator.userAgent}
 - Timestamp: ${new Date().toISOString()}
 `
@@ -167,6 +168,7 @@ ${expectedBehavior || '_No description provided_'}
 
 ## Additional Context
 
+- Build ID: \`${__BUILD_ID__}\`
 - Browser: ${navigator.userAgent}
 - Timestamp: ${new Date().toISOString()}
 `

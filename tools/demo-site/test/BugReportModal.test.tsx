@@ -149,7 +149,7 @@ describe('BugReportModal', () => {
         />,
       )
 
-      const overlay = container.querySelector('.modal-overlay')
+      const overlay = container.querySelector('.bug-report-modal-overlay')
       expect(overlay).toBeInTheDocument()
       await user.click(overlay!)
 
@@ -443,7 +443,7 @@ describe('BugReportModal', () => {
       )
 
       const dialog = screen.getByRole('dialog')
-      expect(dialog).toHaveAttribute('aria-labelledby', 'modal-title')
+      expect(dialog).toHaveAttribute('aria-labelledby', 'bug-report-title')
       expect(dialog).toHaveAttribute('aria-modal', 'true')
     })
 
