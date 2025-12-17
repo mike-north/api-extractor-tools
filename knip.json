@@ -26,6 +26,7 @@
     "tools/demo-site": {
       "entry": ["src/main.tsx", "src/App.tsx"],
       "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": ["path-browserify"],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]
