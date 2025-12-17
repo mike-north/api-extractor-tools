@@ -133,7 +133,7 @@ export type {
 
 // The actual discovery functions are not exported to maintain browser compatibility
 // If you need plugin discovery, import them directly:
-// import { discoverPlugins, scanForPlugins } from '@api-extractor-tools/change-detector-core/plugin-discovery'
+// import { discoverPlugins, scanForPlugins } from '@api-extractor-tools/change-detector-core/plugins'
 
 // Plugin registry exports
 export {
