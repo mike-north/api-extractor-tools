@@ -23,7 +23,7 @@ function processPolyfillPlugin(): Plugin {
           'process.versions': JSON.stringify({}),
           'process.env': JSON.stringify({}),
           // This makes `typeof process` evaluate to 'object' instead of throwing
-          'process': JSON.stringify({ versions: {}, env: {} }),
+          process: JSON.stringify({ versions: {}, env: {} }),
         },
       }
     },
