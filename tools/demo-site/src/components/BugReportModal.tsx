@@ -100,6 +100,7 @@ _PLACEHOLDER_
 
 ## Additional Context
 
+- Build ID: \`${__BUILD_ID__}\`
 - Browser: ${navigator.userAgent}
 - Timestamp: ${new Date().toISOString()}
 `
@@ -167,6 +168,7 @@ ${expectedBehavior || '_No description provided_'}
 
 ## Additional Context
 
+- Build ID: \`${__BUILD_ID__}\`
 - Browser: ${navigator.userAgent}
 - Timestamp: ${new Date().toISOString()}
 `
@@ -202,18 +204,18 @@ ${expectedBehavior || '_No description provided_'}
   if (!report) return null
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div className="bug-report-modal-overlay" onClick={handleOverlayClick}>
       <div
-        className="modal-content"
+        className="bug-report-modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
+        aria-labelledby="bug-report-title"
       >
-        <div className="modal-header">
-          <h2 id="modal-title">File a Bug Report</h2>
+        <div className="bug-report-header">
+          <h2 id="bug-report-title">File a Bug Report</h2>
           <button
             ref={closeButtonRef}
-            className="close-button"
+            className="bug-report-close"
             onClick={onClose}
             aria-label="Close modal"
           >
@@ -221,38 +223,43 @@ ${expectedBehavior || '_No description provided_'}
           </button>
         </div>
 
-        <div className="modal-body">
-          <p className="modal-description">
+        <div className="bug-report-content">
+          <p className="bug-report-description">
             Help us improve the change detector by reporting issues you find.
             Your current demo state will be included in the bug report.
           </p>
 
-          <label htmlFor="expected-behavior">
-            <strong>What did you expect to happen?</strong>
-          </label>
-          <textarea
-            id="expected-behavior"
-            value={expectedBehavior}
-            onChange={(e) => setExpectedBehavior(e.target.value)}
-            placeholder="Describe what you expected the change detector to do..."
-            maxLength={maxTextareaLength}
-            rows={4}
-          />
-          {maxTextareaLength > 0 && (
-            <div className="char-count">
-              {expectedBehavior.length} / {maxTextareaLength} characters
+          <div className="bug-report-section">
+            <label htmlFor="expected-behavior">
+              <strong>What did you expect to happen?</strong>
+            </label>
+            <textarea
+              id="expected-behavior"
+              className="bug-report-textarea"
+              value={expectedBehavior}
+              onChange={(e) => setExpectedBehavior(e.target.value)}
+              placeholder="Describe what you expected the change detector to do..."
+              maxLength={maxTextareaLength}
+              rows={4}
+            />
+            {maxTextareaLength > 0 && (
+              <div className="bug-report-char-count">
+                {expectedBehavior.length} / {maxTextareaLength} characters
+              </div>
+            )}
+          </div>
+
+          <div className="bug-report-footer">
+            {errorMessage && <div className="bug-report-error">{errorMessage}</div>}
+
+            <div className="bug-report-actions">
+              <button className="bug-report-button-secondary" onClick={onClose}>
+                Cancel
+              </button>
+              <button className="bug-report-button-primary" onClick={handleFileTicket}>
+                Open GitHub Issue
+              </button>
             </div>
-          )}
-
-          {errorMessage && <div className="error-message">{errorMessage}</div>}
-
-          <div className="modal-actions">
-            <button className="cancel-button" onClick={onClose}>
-              Cancel
-            </button>
-            <button className="submit-button" onClick={handleFileTicket}>
-              Open GitHub Issue
-            </button>
           </div>
         </div>
       </div>

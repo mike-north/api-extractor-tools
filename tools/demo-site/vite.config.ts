@@ -1,5 +1,14 @@
 import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { execSync } from 'child_process'
+
+function getGitSha(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
 
 /**
  * Vite plugin to inject a minimal process polyfill for browser builds.
@@ -35,5 +44,13 @@ export default defineConfig({
   base: '/api-extractor-tools/',
   build: {
     outDir: 'dist',
+  },
+  define: {
+    // Provide process.env for Node.js packages bundled for the browser
+    // This is needed because @typescript-eslint/typescript-estree (via change-detector-core)
+    // includes dependencies that reference process.env
+    'process.env': {},
+    // Build ID for bug reports and version tracking
+    __BUILD_ID__: JSON.stringify(getGitSha()),
   },
 })

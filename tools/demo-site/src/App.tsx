@@ -384,6 +384,17 @@ ${report ? formatASTReportAsText(report) : 'No analysis available'}
             onClose={handleCloseCustomPolicyModal}
           />
         )}
+
+        <footer className="app-footer">
+          <a
+            href={`https://github.com/mike-north/api-extractor-tools/commit/${__BUILD_ID__}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="build-link"
+          >
+            Build: <code>{__BUILD_ID__}</code>
+          </a>
+        </footer>
       </div>
     </DemoProvider>
   )
