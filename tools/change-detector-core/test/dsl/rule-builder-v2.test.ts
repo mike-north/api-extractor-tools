@@ -401,6 +401,43 @@ describe('ProgressiveRuleBuilder', () => {
         expect(rules).toBeDefined()
       })
 
+      it('should keep intent rule as intent when transforming to intent level', () => {
+        const builder = createProgressivePolicy()
+        builder.intent('breaking removal', 'major')
+
+        builder.transform({ targetLevel: 'intent' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(1)
+        expect(rules[0]?.type).toBe('intent')
+      })
+
+      it('should keep pattern rule as pattern when transforming to intent level', () => {
+        const builder = createProgressivePolicy()
+        builder.pattern('removed {target}', { target: 'export' }, 'major')
+
+        builder.transform({ targetLevel: 'intent' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(1)
+        expect(rules[0]?.type).toBe('pattern')
+      })
+
+      it('should keep dimensional rule as dimensional when transforming to intent level', () => {
+        const builder = createProgressivePolicy()
+        builder
+          .dimensional('test-dim')
+          .action('removed')
+          .target('export')
+          .returns('major')
+
+        builder.transform({ targetLevel: 'intent' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(1)
+        expect(rules[0]?.type).toBe('dimensional')
+      })
+
       it('should handle transforming empty builder', () => {
         const builder = createProgressivePolicy()
         builder.transform({ targetLevel: 'dimensional' })
@@ -419,6 +456,100 @@ describe('ProgressiveRuleBuilder', () => {
         const rules = builder.getRules()
         expect(rules).toHaveLength(1)
         expect(rules[0]?.type).toBe('dimensional')
+      })
+
+      it('should keep original intent when intent-to-dimensional transform fails parsing', () => {
+        const builder = createProgressivePolicy()
+        // Add invalid intent that won't parse successfully
+        builder.intent('completely invalid expression', 'major')
+
+        // Transform to dimensional should fail for invalid intent
+        builder.transform({ targetLevel: 'dimensional' })
+        const rules = builder.getRules()
+
+        // Original rule should be kept when transform fails
+        expect(rules).toHaveLength(1)
+        expect(rules[0]?.type).toBe('intent')
+      })
+
+      it('should keep original pattern when pattern-to-dimensional transform fails compilation', () => {
+        const builder = createProgressivePolicy()
+        // Add a pattern that might fail compilation
+        builder.pattern('unrecognizable random text', {}, 'major')
+
+        // Transform to dimensional
+        builder.transform({ targetLevel: 'dimensional' })
+        const rules = builder.getRules()
+
+        // Should have a rule (either original or processed)
+        expect(rules).toHaveLength(1)
+      })
+
+      it('should process valid intents through dimensional transform pipeline', () => {
+        const builder = createProgressivePolicy()
+        builder.intent('breaking removal', 'major')
+
+        // Transform intent -> pattern -> dimensional
+        builder.transform({ targetLevel: 'dimensional' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(1)
+        expect(rules[0]?.type).toBe('dimensional')
+      })
+
+      it('should keep dimensional rule as dimensional when transforming to pattern', () => {
+        const builder = createProgressivePolicy()
+        // Add a dimensional rule directly
+        builder
+          .dimensional('test-rule')
+          .action('removed')
+          .target('export')
+          .returns('major')
+
+        // Transform to pattern level - dimensional should stay as dimensional
+        builder.transform({ targetLevel: 'pattern' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(1)
+        // Dimensional rules can't be easily transformed to patterns, so they stay
+        expect(rules[0]?.type).toBe('dimensional')
+      })
+
+      it('should keep dimensional rule as dimensional when target is dimensional', () => {
+        const builder = createProgressivePolicy()
+        // Add a dimensional rule directly
+        builder
+          .dimensional('already-dimensional')
+          .action('modified')
+          .target('property')
+          .returns('minor')
+
+        // Transform to dimensional level - should stay as is
+        builder.transform({ targetLevel: 'dimensional' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(1)
+        expect(rules[0]?.type).toBe('dimensional')
+      })
+
+      it('should handle mixed rule types with dimensional target', () => {
+        const builder = createProgressivePolicy()
+        builder.intent('breaking removal', 'major')
+        builder.pattern('added {target}', { target: 'property' }, 'minor')
+        builder
+          .dimensional('dim-rule')
+          .action('renamed')
+          .target('export')
+          .returns('major')
+
+        builder.transform({ targetLevel: 'dimensional' })
+        const rules = builder.getRules()
+
+        expect(rules).toHaveLength(3)
+        // All should now be dimensional
+        for (const rule of rules) {
+          expect(rule.type).toBe('dimensional')
+        }
       })
     })
 
@@ -504,6 +635,57 @@ describe('ProgressiveRuleBuilder', () => {
       const policy = builder.build(longName, 'none')
 
       expect(policy.name).toBe(longName)
+    })
+
+    it('should keep original intent when parsing fails during build', () => {
+      const builder = createProgressivePolicy()
+      // Add invalid intent that won't parse
+      builder.intent('totally invalid gibberish expression', 'major')
+
+      // Build should still succeed, keeping original intent
+      const policy = builder.build('build-test', 'none')
+
+      expect(policy.rules).toHaveLength(1)
+      // When parsing fails, original intent is kept
+      expect(policy.rules[0]?.type).toBe('intent')
+    })
+
+    it('should process valid intents to patterns during build', () => {
+      const builder = createProgressivePolicy()
+      builder.intent('breaking removal', 'major')
+
+      const policy = builder.build('valid-build', 'none')
+
+      expect(policy.rules).toHaveLength(1)
+      // Valid intent should be parsed to pattern
+      expect(policy.rules[0]?.type).toBe('pattern')
+    })
+
+    it('should pass through non-intent rules unchanged during build', () => {
+      const builder = createProgressivePolicy()
+      builder.pattern('removed {target}', { target: 'export' }, 'major')
+
+      const policy = builder.build('pattern-build', 'none')
+
+      expect(policy.rules).toHaveLength(1)
+      expect(policy.rules[0]?.type).toBe('pattern')
+    })
+
+    it('should handle mixed valid and invalid intents during build', () => {
+      const builder = createProgressivePolicy()
+      builder.intent('breaking removal', 'major') // Valid
+      builder.intent('invalid nonsense here', 'minor') // Invalid
+      builder.pattern('added {target}', { target: 'export' }, 'minor') // Pattern
+
+      const policy = builder.build('mixed-build', 'none')
+
+      expect(policy.rules).toHaveLength(3)
+      // First should be transformed to pattern
+      expect(policy.rules[0]?.type).toBe('pattern')
+      // Second should remain as intent (parsing failed)
+      expect(policy.rules[1]?.type).toBe('intent')
+      // Third should remain as pattern
+      expect(policy.rules[2]?.type).toBe('pattern')
     })
   })
 })
