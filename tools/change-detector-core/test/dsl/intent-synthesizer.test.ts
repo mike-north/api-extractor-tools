@@ -8,7 +8,7 @@ import {
   detectCommonPattern,
   generateIntentExpression,
 } from '../../src/dsl/intent-synthesizer'
-import type { PatternRule } from '../../src/dsl/dsl-types'
+import type { PatternRule, PatternTemplate } from '../../src/dsl/dsl-types'
 
 describe('synthesizeIntent', () => {
   describe('removal patterns', () => {
@@ -151,17 +151,17 @@ describe('synthesizeIntent', () => {
         variables: [
           {
             name: 'pattern',
-            value: 'removed {target}' as any,
+            value: 'removed {target}' as PatternTemplate,
             type: 'pattern',
           },
-          { name: 'condition', value: 'nested' as any, type: 'condition' },
+          { name: 'condition', value: 'export' as const, type: 'condition' },
         ],
         returns: 'major',
       }
 
       const result = synthesizeIntent(pattern)
       expect(result.success).toBe(true)
-      expect(result.intent?.expression).toBe('breaking removal when nested')
+      expect(result.intent?.expression).toBe('breaking removal when export')
       expect(result.confidence).toBeLessThan(1.0)
     })
 
@@ -172,17 +172,17 @@ describe('synthesizeIntent', () => {
         variables: [
           {
             name: 'pattern',
-            value: 'added optional {target}' as any,
+            value: 'added optional {target}' as PatternTemplate,
             type: 'pattern',
           },
-          { name: 'condition', value: 'internal' as any, type: 'condition' },
+          { name: 'condition', value: 'export' as const, type: 'condition' },
         ],
         returns: 'none',
       }
 
       const result = synthesizeIntent(pattern)
       expect(result.success).toBe(true)
-      expect(result.intent?.expression).toBe('safe addition unless internal')
+      expect(result.intent?.expression).toBe('safe addition unless export')
       expect(result.confidence).toBeLessThan(1.0)
     })
   })
@@ -248,8 +248,8 @@ describe('synthesizeIntent', () => {
     it('should generate fallback intent for unknown patterns', () => {
       const pattern: PatternRule = {
         type: 'pattern',
-        template: 'custom {action}' as any,
-        variables: [{ name: 'action', value: 'change' as any, type: 'target' }],
+        template: 'custom {action}' as PatternTemplate,
+        variables: [{ name: 'action', value: 'export' as const, type: 'target' }],
         returns: 'major',
       }
 
@@ -310,8 +310,8 @@ describe('detectCommonPattern', () => {
       type: 'pattern',
       template: '{pattern} when {condition}',
       variables: [
-        { name: 'pattern', value: 'removed {target}' as any, type: 'pattern' },
-        { name: 'condition', value: 'nested' as any, type: 'condition' },
+        { name: 'pattern', value: 'removed {target}' as PatternTemplate, type: 'pattern' },
+        { name: 'condition', value: 'export' as const, type: 'condition' },
       ],
       returns: 'major',
     }
@@ -324,8 +324,8 @@ describe('detectCommonPattern', () => {
       type: 'pattern',
       template: '{pattern} unless {condition}',
       variables: [
-        { name: 'pattern', value: 'added {target}' as any, type: 'pattern' },
-        { name: 'condition', value: 'internal' as any, type: 'condition' },
+        { name: 'pattern', value: 'added {target}' as PatternTemplate, type: 'pattern' },
+        { name: 'condition', value: 'export' as const, type: 'condition' },
       ],
       returns: 'none',
     }
@@ -338,8 +338,8 @@ describe('detectCommonPattern', () => {
       type: 'pattern',
       template: '{pattern} for {nodeKind}',
       variables: [
-        { name: 'pattern', value: 'removed {target}' as any, type: 'pattern' },
-        { name: 'nodeKind', value: 'Class' as any, type: 'nodeKind' },
+        { name: 'pattern', value: 'removed {target}' as PatternTemplate, type: 'pattern' },
+        { name: 'nodeKind', value: 'Interface' as const, type: 'nodeKind' },
       ],
       returns: 'major',
     }
@@ -350,8 +350,8 @@ describe('detectCommonPattern', () => {
   it('should return null for unknown patterns', () => {
     const pattern: PatternRule = {
       type: 'pattern',
-      template: 'unknown {something}' as any,
-      variables: [{ name: 'something', value: 'value' as any, type: 'target' }],
+      template: 'unknown {something}' as PatternTemplate,
+      variables: [{ name: 'something', value: 'export' as const, type: 'target' }],
       returns: 'major',
     }
 
@@ -375,16 +375,16 @@ describe('generateIntentExpression', () => {
   it('should generate readable expression for unknown patterns', () => {
     const pattern: PatternRule = {
       type: 'pattern',
-      template: 'custom {action} for {target}' as any,
+      template: 'custom {action} for {target}' as PatternTemplate,
       variables: [
-        { name: 'action', value: 'transform' as any, type: 'target' },
+        { name: 'action', value: 'export' as const, type: 'target' },
         { name: 'target', value: 'return-type', type: 'target' },
       ],
       returns: 'major',
     }
 
     const expression = generateIntentExpression(pattern)
-    expect(expression).toContain('transform')
+    expect(expression).toContain('export')
     expect(expression).toContain('return type')
     expect(expression).toContain('breaking')
   })
@@ -405,8 +405,8 @@ describe('generateIntentExpression', () => {
   it('should add severity context based on returns', () => {
     const pattern: PatternRule = {
       type: 'pattern',
-      template: 'custom {change}' as any,
-      variables: [{ name: 'change', value: 'modification' as any, type: 'target' }],
+      template: 'custom {change}' as PatternTemplate,
+      variables: [{ name: 'change', value: 'export' as const, type: 'target' }],
       returns: 'patch',
     }
 

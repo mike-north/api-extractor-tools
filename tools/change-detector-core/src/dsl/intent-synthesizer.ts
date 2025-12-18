@@ -563,7 +563,7 @@ export function generateIntentExpression(pattern: PatternRule): string {
   expression = expression
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/^(breaking|safe|minor|patch)\s+(.)/i, (_, prefix, firstChar) => 
+    .replace(/^(breaking|safe|minor|patch)\s+(.)/i, (_, prefix, firstChar: string) => 
       `${prefix} ${firstChar.toLowerCase()}`
     )
 

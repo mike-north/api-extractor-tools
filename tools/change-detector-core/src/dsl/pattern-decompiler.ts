@@ -13,7 +13,7 @@ import type {
   PatternTemplate,
   PatternVariable,
 } from './dsl-types'
-import type { ChangeTarget, ChangeAction, ChangeAspect, ChangeImpact, NodeKind } from '../ast/types'
+import type { ChangeTarget, ChangeAction, ChangeAspect, ChangeImpact, NodeKind, ChangeTag } from '../ast/types'
 
 /**
  * Pattern template mapping for decompilation
@@ -226,7 +226,7 @@ function matchesDimensions(
     // Check tags
     if (mapping.optionalDimensions.tags && dimensional.tags) {
       const hasTagMatch = mapping.optionalDimensions.tags.some((tag) =>
-        dimensional.tags?.includes(tag as any),
+        dimensional.tags?.includes(tag as ChangeTag),
       )
       if (!hasTagMatch) {
         return false
@@ -316,7 +316,7 @@ function calculateMappingConfidence(
   
   // Dimension coverage score (0-0.3 range)
   const requiredDimensionCount = Object.keys(mapping.requiredDimensions).length
-  const optionalDimensionCount = mapping.optionalDimensions
+  const _optionalDimensionCount = mapping.optionalDimensions
     ? Object.keys(mapping.optionalDimensions).length
     : 0
   
@@ -622,7 +622,7 @@ export function calculatePatternConfidence(
     maxScore += 2
     // Infer impact from pattern
     const inferredImpact = inferImpactFromPattern(pattern)
-    if (inferredImpact && dimensional.impact.includes(inferredImpact as ChangeImpact)) {
+    if (inferredImpact && dimensional.impact.includes(inferredImpact)) {
       score += 2
     } else if (inferredImpact) {
       // Partial credit for having an impact

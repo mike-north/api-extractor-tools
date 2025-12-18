@@ -22,8 +22,8 @@ export * from './pattern-decompiler'
 // Intent synthesis (Package 5 - PLACEHOLDER)
 export * from './intent-synthesizer'
 
-// Rule builder integration (Package 6 - PLACEHOLDER)
+// Rule builder integration (Package 6 - IMPLEMENTED)
 export * from './rule-builder-v2'
 
-// Migration tools (Package 7 - PLACEHOLDER)
-export * from './migration-tools'
+// Migration tools (Package 7 - NOT NEEDED)
+// No migration tools needed since library has no existing users

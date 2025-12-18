@@ -326,6 +326,7 @@ export {
   // Progressive rule builder
   ProgressiveRuleBuilder,
   createProgressivePolicy,
+  createStandardPolicy,
   // Intent parser functions
   parseIntent,
   isValidIntentExpression,
