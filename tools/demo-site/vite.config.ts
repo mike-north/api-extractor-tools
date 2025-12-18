@@ -17,31 +17,60 @@ function getGitSha(): string {
  * 1. change-detector-core includes plugin-discovery.ts which checks process.versions.node
  * 2. @typescript-eslint/typescript-estree uses process.cwd() for resolving paths
  *
- * We use a transform plugin to replace process.cwd() calls with a static value,
- * and define for simple property replacements.
+ * We inject a global process shim and transform process.cwd() calls.
  */
 function processPolyfillPlugin(): Plugin {
+  // Minimal process shim for browser compatibility
+  const processShim = JSON.stringify({
+    env: {},
+    versions: {},
+    cwd: () => '/',
+    platform: 'browser',
+  })
+
   return {
     name: 'process-polyfill',
     config() {
       return {
         define: {
-          // Provide specific process properties for Node.js detection code
-          // The isNodeEnvironment() check does:
-          //   typeof process !== 'undefined' && process.versions != null && process.versions.node != null
-          // By defining process.versions.node as undefined, the check returns false
+          // Define global.process and window.process as well for different access patterns
+          'global.process': processShim,
+          // For specific property access, ensure they resolve correctly
           'process.versions.node': 'undefined',
           'process.versions': JSON.stringify({}),
           'process.env': JSON.stringify({}),
+          'process.platform': JSON.stringify('browser'),
         },
       }
     },
-    // Transform process.cwd() calls to return "/"
+    // Transform process references to use our shim
     transform(code, id) {
-      if (id.includes('node_modules') && code.includes('process.cwd')) {
-        return code.replace(/process\.cwd\(\)/g, '"/"')
+      if (id.includes('node_modules')) {
+        let transformed = code
+        // Replace process.cwd() calls with static "/"
+        if (code.includes('process.cwd')) {
+          transformed = transformed.replace(/process\.cwd\(\)/g, '"/"')
+        }
+        // Only return if we made changes
+        if (transformed !== code) {
+          return transformed
+        }
       }
       return null
+    },
+    // Inject process shim at the start of the bundle
+    transformIndexHtml(html) {
+      return {
+        html,
+        tags: [
+          {
+            tag: 'script',
+            attrs: { type: 'text/javascript' },
+            children: `window.process = ${processShim};`,
+            injectTo: 'head-prepend',
+          },
+        ],
+      }
     },
   }
 }
