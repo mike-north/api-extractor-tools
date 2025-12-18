@@ -9,6 +9,22 @@
         "@/*": ["src/*"]
       }
     },
+    "tools/change-detector-core": {
+      "entry": [
+        "src/index.ts",
+        "src/ast/index.ts",
+        "src/rules.ts",
+        "src/plugins.ts",
+        "test/**/*.test-d.ts",
+        "test/**/*.test.ts"
+      ],
+      "ignoreBinaries": ["tsd", "api-extractor"],
+      "ignoreDependencies": ["@microsoft/api-extractor"],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
     "lib/*": {
       "entry": ["src/index.ts"],
       "paths": {
@@ -32,22 +48,9 @@
         "@/*": ["src/*"]
       }
     },
-    "tools/change-detector-core": {
-      "entry": [
-        "src/index.ts",
-        "src/ast/index.ts",
-        "src/rules.ts",
-        "src/plugins.ts",
-        "test/**/*.test-d.ts",
-        "test/**/*.test.ts"
-      ],
-      "paths": {
-        "@": ["src/index.ts"],
-        "@/*": ["src/*"]
-      }
-    },
     "tools/*": {
       "entry": ["src/index.ts", "test/**/*.test-d.ts", "test/**/*.test.ts"],
+      "ignoreBinaries": ["tsd"],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]
