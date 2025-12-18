@@ -282,6 +282,53 @@ export {
 } from './ast/builtin-policies'
 
 // =============================================================================
+// Progressive DSL System
+// =============================================================================
+
+// DSL type exports
+export type {
+  // Level 1: Intent-based
+  IntentExpression,
+  IntentRule,
+  // Level 2: Pattern-based
+  PatternTemplate,
+  PatternVariable,
+  PatternRule,
+  // Level 3: Dimensional (existing)
+  DimensionalRule,
+  // Unified types
+  DSLRule,
+  DSLPolicy,
+  // Transformation types
+  IntentParseResult,
+  PatternCompileResult,
+  PatternDecompileResult,
+  IntentSynthesisResult,
+  // Validation types
+  ValidationResult as DSLValidationResult,
+  ValidationError as DSLValidationError,
+  ValidationWarning as DSLValidationWarning,
+  // Builder types
+  DSLBuilderState,
+  TransformOptions,
+  TransformationChain,
+} from './dsl'
+
+// DSL exports
+export {
+  // Common patterns and intents
+  COMMON_PATTERNS,
+  COMMON_INTENTS,
+  // Type guards
+  isIntentRule,
+  isPatternRule,
+  isDimensionalRule,
+  // Progressive rule builder
+  ProgressiveRuleBuilder,
+  createProgressivePolicy,
+} from './dsl'
+
+// =============================================================================
 // Convenience Functions
 // =============================================================================
 

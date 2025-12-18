@@ -88,14 +88,14 @@ const databaseSchemaPolicy = createPolicy('database-schema', 'major')
     rule('column-removal')
       .action('removed')
       .rationale('Column removal causes data loss')
-      .returns('forbidden')
+      .returns('forbidden'),
   )
   .addRule(
     rule('incompatible-type-change')
       .aspect('type')
-      .when(change => wouldBreakExistingData(change))
+      .when((change) => wouldBreakExistingData(change))
       .rationale('Type changes that invalidate existing data are forbidden')
-      .returns('forbidden')
+      .returns('forbidden'),
   )
   .build()
 
@@ -119,16 +119,16 @@ Changes are classified using multiple dimensions to enable fine-grained policy r
 interface ChangeDescriptor {
   /** What API construct was affected */
   target: ChangeTarget // 'export' | 'parameter' | 'property' | 'method' | etc.
-  
+
   /** What happened to the construct */
   action: ChangeAction // 'added' | 'removed' | 'modified' | 'renamed' | 'reordered'
-  
+
   /** What aspect changed (for modifications) */
   aspect?: ChangeAspect // 'type' | 'optionality' | 'readonly' | etc.
-  
+
   /** Semantic direction of the change */
   impact?: ChangeImpact // 'widening' | 'narrowing' | 'equivalent' | 'unrelated'
-  
+
   /** Additional metadata */
   tags: Set<ChangeTag> // 'now-required', 'was-optional', etc.
 }
@@ -182,14 +182,18 @@ The library includes three built-in policies that handle common versioning scena
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverDefaultPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverDefaultPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 const result = analyzeChanges(oldSource, newSource, ts, {
-  policy: semverDefaultPolicy // This is the default
+  policy: semverDefaultPolicy, // This is the default
 })
 ```
 
 **Key characteristics:**
+
 - **Conservative**: Treats changes as breaking if they could break either readers or writers
 - **Safe for public APIs**: When you don't control how consumers use your types
 - **Bidirectional**: Considers both input and output perspectives
@@ -200,20 +204,25 @@ const result = analyzeChanges(oldSource, newSource, ts, {
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverReadOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverReadOnlyPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 const result = analyzeChanges(oldApiTypes, newApiTypes, ts, {
-  policy: semverReadOnlyPolicy
+  policy: semverReadOnlyPolicy,
 })
 ```
 
 **Best for:**
+
 - Frontend applications consuming REST APIs
 - Reading configuration objects
 - Processing callback data
 - Any scenario where you receive but don't create data
 
 **Key differences:**
+
 - Adding required properties is **minor** (you'll receive them)
 - Removing properties is **major** (you expect them)
 - Type widening is **minor** (can handle broader types)
@@ -225,20 +234,25 @@ const result = analyzeChanges(oldApiTypes, newApiTypes, ts, {
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverWriteOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverWriteOnlyPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 const result = analyzeChanges(oldServiceTypes, newServiceTypes, ts, {
-  policy: semverWriteOnlyPolicy
+  policy: semverWriteOnlyPolicy,
 })
 ```
 
 **Best for:**
+
 - Backend services implementing APIs
 - Creating objects to send to APIs
 - Implementing interfaces
 - Any scenario where you create data that others consume
 
 **Key differences:**
+
 - Adding required properties is **major** (you must provide them)
 - Removing properties is **minor** (no longer need to provide)
 - Type narrowing is **minor** (stricter requirements, existing code still valid)
@@ -524,7 +538,7 @@ export const timeout: number
 
 Beyond structural type changes, `change-detector-core` detects **semantic changes** that are syntactically valid but semantically breaking. The TypeScript compiler won't catch these, but they can cause runtime bugs.
 
-### Parameter Reordering
+### Semantic Parameter Reordering
 
 When function parameters have the same types, swapping their order creates a semantic breaking change:
 
