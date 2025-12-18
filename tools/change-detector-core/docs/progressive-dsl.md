@@ -6,8 +6,7 @@ The Progressive DSL System is a three-layer Domain Specific Language for express
 
 1. [User Guide](#user-guide)
 2. [API Reference](#api-reference)
-3. [Migration Guide](#migration-guide)
-4. [Examples](#examples)
+3. [Examples](#examples)
 
 ## User Guide
 
@@ -61,31 +60,37 @@ The Intent DSL allows you to express change rules using natural language express
 #### Supported Natural Language Expressions
 
 **Removal Patterns:**
+
 - `'breaking removal'` - Any removal that breaks the API
 - `'safe removal'` - Removals that don't break compatibility  
 - `'export removal is breaking'` - Specifically export removals
 - `'member removal is breaking'` - Specifically member removals
 
 **Addition Patterns:**
+
 - `'safe addition'` - Additions that don't break compatibility
 - `'required addition is breaking'` - Required additions that break compatibility
 - `'optional addition is safe'` - Optional additions that are safe
 
 **Type Change Patterns:**
+
 - `'type narrowing is breaking'` - Type changes that narrow possibilities
 - `'type widening is safe'` - Type changes that widen possibilities
 - `'type change is breaking'` - Any type change is breaking
 
 **Optionality Patterns:**
+
 - `'making optional is breaking'` - Making required things optional
 - `'making required is breaking'` - Making optional things required
 
 **Common Patterns:**
+
 - `'deprecation is patch'` - Deprecations result in patch releases
 - `'rename is breaking'` - Renames are breaking changes
 - `'reorder is breaking'` - Reordering parameters is breaking
 
 **Conditional Patterns:**
+
 - `'breaking removal when nested'` - Conditional expressions using "when"
 - `'safe addition unless required'` - Conditional expressions using "unless"
 
@@ -134,6 +139,7 @@ The Pattern DSL provides template-based rules with placeholders, offering more f
 Pattern templates use `{placeholder}` syntax for variable substitution:
 
 **Action Templates:**
+
 - `'added {target}'` - Something was added
 - `'removed {target}'` - Something was removed  
 - `'renamed {target}'` - Something was renamed
@@ -141,11 +147,13 @@ Pattern templates use `{placeholder}` syntax for variable substitution:
 - `'modified {target}'` - Something was modified
 
 **Action + Modifier Templates:**
+
 - `'added required {target}'` - Required addition
 - `'added optional {target}'` - Optional addition
 - `'removed optional {target}'` - Optional removal
 
 **Aspect Templates:**
+
 - `'{target} type narrowed'` - Type became more restrictive
 - `'{target} type widened'` - Type became less restrictive
 - `'{target} made optional'` - Became optional
@@ -154,11 +162,13 @@ Pattern templates use `{placeholder}` syntax for variable substitution:
 - `'{target} undeprecated'` - Removed deprecation
 
 **Conditional Templates:**
+
 - `'{pattern} when {condition}'` - Pattern with condition
 - `'{pattern} unless {condition}'` - Pattern with negated condition
 - `'{pattern} for {nodeKind}'` - Pattern for specific node types
 
 **Compound Templates:**
+
 - `'{pattern} and {pattern}'` - Multiple patterns (AND)
 - `'{pattern} or {pattern}'` - Alternative patterns (OR)
 
@@ -238,6 +248,7 @@ Use the dimensional DSL when you need:
 #### Complete Dimension Reference
 
 **Targets** (`ChangeTarget`):
+
 - `'export'` - Public API exports
 - `'parameter'` - Function/method parameters
 - `'property'` - Object/class properties
@@ -247,6 +258,7 @@ Use the dimensional DSL when you need:
 - `'constructor'` - Class constructors
 
 **Actions** (`ChangeAction`):
+
 - `'added'` - Something was added
 - `'removed'` - Something was removed
 - `'renamed'` - Something was renamed
@@ -254,6 +266,7 @@ Use the dimensional DSL when you need:
 - `'modified'` - Something was modified
 
 **Aspects** (`ChangeAspect`):
+
 - `'type'` - Type-related changes
 - `'optionality'` - Optional/required changes
 - `'deprecation'` - Deprecation status changes
@@ -261,6 +274,7 @@ Use the dimensional DSL when you need:
 - `'inheritance'` - Inheritance hierarchy changes
 
 **Impacts** (`ChangeImpact`):
+
 - `'narrowing'` - Restricts possible values/usage
 - `'widening'` - Expands possible values/usage
 - `'equivalent'` - No semantic impact
@@ -268,6 +282,7 @@ Use the dimensional DSL when you need:
 - `'undetermined'` - Impact cannot be determined
 
 **Tags** (`ChangeTag`):
+
 - `'optional'` - Marked as optional
 - `'deprecated'` - Marked as deprecated
 - `'internal'` - Internal/private API
@@ -275,6 +290,7 @@ Use the dimensional DSL when you need:
 - `'breaking'` - Explicitly marked breaking
 
 **Node Kinds** (`NodeKind`):
+
 - `'function'` - Function declarations
 - `'class'` - Class declarations
 - `'interface'` - Interface declarations  
@@ -428,7 +444,7 @@ const variation = builder.clone()
 
 Fluent builder for dimensional rules returned by `dimensional()`.
 
-#### Methods
+#### DimensionalRuleBuilder Methods
 
 ##### `action(...actions: ChangeAction[]): this`
 
@@ -640,191 +656,6 @@ interface PatternCompileResult {
   errors?: string[]
   warnings?: string[]
 }
-```
-
-## Migration Guide
-
-### Migrating from Legacy RuleBuilder
-
-The Progressive DSL System is designed to be compatible with the existing RuleBuilder API while providing enhanced capabilities.
-
-#### Before: Legacy RuleBuilder
-
-```typescript
-import { createPolicy, rule } from '@api-extractor/change-detector-core'
-
-const oldPolicy = createPolicy('my-policy', 'major')
-  .addRule(rule('export-removal')
-    .action('removed')
-    .target('export')
-    .returns('major'))
-  .addRule(rule('safe-addition')
-    .action('added')
-    .target('parameter')
-    .hasTag('optional')
-    .returns('none'))
-  .build()
-```
-
-#### After: Progressive DSL
-
-```typescript
-import { createProgressivePolicy } from '@api-extractor/change-detector-core'
-
-// Option 1: Use intent DSL (recommended for readability)
-const newPolicy = createProgressivePolicy()
-  .intent('export removal is breaking', 'major')
-  .intent('optional addition is safe', 'none')
-  .build('my-policy', 'major')
-
-// Option 2: Use dimensional DSL (exact legacy compatibility)
-const compatPolicy = createProgressivePolicy()
-  .dimensional('export-removal')
-    .action('removed')
-    .target('export')
-    .returns('major')
-  .dimensional('safe-addition')
-    .action('added')
-    .target('parameter')
-    .hasTag('optional')
-    .returns('none')
-  .build('my-policy', 'major')
-
-// Option 3: Use pattern DSL (middle ground)
-const patternPolicy = createProgressivePolicy()
-  .pattern('removed {target}', { target: 'export' }, 'major')
-  .pattern('added optional {target}', { target: 'parameter' }, 'none')
-  .build('my-policy', 'major')
-```
-
-### Side-by-Side Migration Examples
-
-#### Example 1: Basic Rules
-
-**Before:**
-```typescript
-const policy = createPolicy('api-policy', 'patch')
-  .addRule(rule('breaking-removal')
-    .action('removed')
-    .target('export')
-    .returns('major'))
-  .addRule(rule('safe-deprecation')
-    .aspect('deprecation')
-    .returns('patch'))
-  .build()
-```
-
-**After:**
-```typescript
-// Recommended: Intent DSL
-const policy = createProgressivePolicy()
-  .intent('export removal is breaking', 'major')
-  .intent('deprecation is patch', 'patch')
-  .build('api-policy', 'patch')
-
-// Alternative: Pattern DSL
-const policy = createProgressivePolicy()
-  .pattern('removed {target}', { target: 'export' }, 'major')
-  .pattern('{target} deprecated', { target: 'export' }, 'patch')
-  .build('api-policy', 'patch')
-```
-
-#### Example 2: Complex Rules
-
-**Before:**
-```typescript
-const policy = createPolicy('strict-policy', 'major')
-  .addRule(rule('type-narrowing')
-    .target('return-type')
-    .aspect('type')
-    .impact('narrowing')
-    .returns('major'))
-  .addRule(rule('nested-interface-change')
-    .action('modified')
-    .target('property')
-    .aspect('type')
-    .nested(true)
-    .returns('major'))
-  .build()
-```
-
-**After:**
-```typescript
-// Mixed approach: Intent + Dimensional
-const policy = createProgressivePolicy()
-  .intent('type narrowing is breaking', 'major')
-  .dimensional('nested-interface-change')
-    .action('modified')
-    .target('property')
-    .aspect('type')
-    .nested(true)
-    .returns('major')
-  .build('strict-policy', 'major')
-
-// All intent (if supported patterns exist)
-const policy = createProgressivePolicy()
-  .intent('type narrowing is breaking', 'major')
-  // Note: Complex nested rules may require dimensional DSL
-  .dimensional('nested-interface-change')
-    .action('modified')
-    .target('property')
-    .aspect('type')
-    .nested(true)
-    .returns('major')
-  .build('strict-policy', 'major')
-```
-
-### Best Practices for Choosing DSL Levels
-
-#### Use Intent DSL When:
-- Rules express common, well-understood patterns
-- Readability and maintainability are priorities
-- Team members are not deeply familiar with change detection theory
-- Creating policies for standard library evolution
-
-#### Use Pattern DSL When:
-- You need parameterized rules with variable substitution
-- Rules follow consistent patterns but with different targets
-- You want more control than intent but less complexity than dimensional
-- Building template-based policy generators
-
-#### Use Dimensional DSL When:
-- Migrating from legacy RuleBuilder
-- Rules are highly complex with multiple intersecting conditions
-- Maximum precision and performance are required
-- Building specialized rules that can't be expressed naturally at higher levels
-
-### Migration Strategy
-
-1. **Start with Intent DSL**: Try expressing rules using natural language
-2. **Fall back to Pattern DSL**: Use patterns for rules that need parameterization
-3. **Use Dimensional DSL**: Only for complex rules that can't be expressed otherwise
-4. **Transform as needed**: Use the transform() method to convert between levels
-
-```typescript
-const migrationPolicy = createProgressivePolicy()
-  // Start with intent for simple cases
-  .intent('export removal is breaking', 'major')
-  .intent('deprecation is patch', 'patch')
-  
-  // Use patterns for parameterized cases
-  .pattern('added {modifier} {target}', 
-    { modifier: 'optional', target: 'parameter' }, 'none')
-  
-  // Use dimensional for complex legacy rules
-  .dimensional('complex-legacy-rule')
-    .action('modified')
-    .target('property', 'return-type')
-    .aspect('type')
-    .impact('narrowing')
-    .hasTag('breaking')
-    .nested(true)
-    .returns('major')
-  
-  // Transform some rules to dimensional for processing efficiency
-  .transform({ targetLevel: 'dimensional', preference: 'precise' })
-  
-  .build('migrated-policy', 'patch')
 ```
 
 ## Examples

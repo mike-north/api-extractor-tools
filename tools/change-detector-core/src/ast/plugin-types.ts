@@ -4,8 +4,6 @@
  * This module provides types for plugins that want to leverage the AST-based
  * analysis capabilities, including structural change detection and precise
  * source locations.
- *
- * @packageDocumentation
  */
 
 import type { ReleaseType } from '../types'
@@ -26,6 +24,8 @@ import type { ASTReporterOptions, ASTComparisonReport } from './reporter'
 
 /**
  * Options for AST-aware policies that extend the base policy options.
+ *
+ * @alpha
  */
 export interface ASTAwarePolicyOptions extends BasePolicyOptions {
   /** Whether to treat nested changes differently */
@@ -46,6 +46,8 @@ export interface ASTAwarePolicyOptions extends BasePolicyOptions {
  *
  * This extends the base PolicyDefinition to create policies that can
  * leverage the full structural context from AST analysis.
+ *
+ * @alpha
  */
 export interface ASTAwarePolicyDefinition<
   TOptions extends ASTAwarePolicyOptions = ASTAwarePolicyOptions,
@@ -68,6 +70,8 @@ export interface ASTAwarePolicyDefinition<
 /**
  * Helper type for creating policy definitions that work with both
  * legacy and AST-aware modes.
+ *
+ * @alpha
  */
 export type HybridPolicyDefinition<
   TOptions extends ASTAwarePolicyOptions = ASTAwarePolicyOptions,
@@ -75,6 +79,8 @@ export type HybridPolicyDefinition<
 
 /**
  * Type guard to check if a policy definition is AST-aware.
+ *
+ * @alpha
  */
 export function isASTAwarePolicyDefinition(
   def: HybridPolicyDefinition,
@@ -88,6 +94,8 @@ export function isASTAwarePolicyDefinition(
 
 /**
  * Extended reporter options that include AST-specific options.
+ *
+ * @alpha
  */
 export interface ASTAwareReporterOptions extends ReporterOptions {
   /** AST-specific reporter options */
@@ -96,6 +104,8 @@ export interface ASTAwareReporterOptions extends ReporterOptions {
 
 /**
  * An AST-aware reporter instance that can format structural changes.
+ *
+ * @alpha
  */
 export interface ASTAwareReporter {
   /**
@@ -113,6 +123,8 @@ export interface ASTAwareReporter {
 
 /**
  * Definition of an AST-aware reporter capability.
+ *
+ * @alpha
  */
 export interface ASTAwareReporterDefinition<
   TOptions extends ASTAwareReporterOptions = ASTAwareReporterOptions,
@@ -130,6 +142,8 @@ export interface ASTAwareReporterDefinition<
 
 /**
  * Type guard to check if a reporter definition is AST-aware.
+ *
+ * @alpha
  */
 export function isASTAwareReporterDefinition(
   def: BaseReporterDefinition | ASTAwareReporterDefinition,
@@ -143,6 +157,8 @@ export function isASTAwareReporterDefinition(
 
 /**
  * Extended process result that includes AST analysis.
+ *
+ * @alpha
  */
 export interface ASTProcessResult {
   /** The parsed module analysis */
@@ -154,6 +170,8 @@ export interface ASTProcessResult {
 
 /**
  * An input processor that produces AST analysis instead of symbol maps.
+ *
+ * @alpha
  */
 export interface ASTAwareInputProcessor {
   /**
@@ -171,6 +189,8 @@ export interface ASTAwareInputProcessor {
 
 /**
  * Type guard to check if an input processor is AST-aware.
+ *
+ * @alpha
  */
 export function isASTAwareInputProcessor(
   processor: unknown,
@@ -191,6 +211,8 @@ export function isASTAwareInputProcessor(
  * Capability object for AST-based analysis.
  *
  * Plugins can implement this to provide AST-aware functionality.
+ *
+ * @alpha
  */
 export interface ASTCapability {
   /**
@@ -236,6 +258,8 @@ export interface ASTCapability {
  *     .build(),
  * })
  * ```
+ *
+ * @alpha
  */
 export function createASTAwarePolicyDefinition<
   TOptions extends ASTAwarePolicyOptions = ASTAwarePolicyOptions,
@@ -265,6 +289,8 @@ export function createASTAwarePolicyDefinition<
  *   }),
  * })
  * ```
+ *
+ * @alpha
  */
 export function createASTAwareReporterDefinition<
   TOptions extends ASTAwareReporterOptions = ASTAwareReporterOptions,
@@ -289,6 +315,8 @@ import {
 
 /**
  * Built-in AST-aware default policy definition.
+ *
+ * @alpha
  */
 export const defaultASTPolicy: ASTAwarePolicyDefinition = {
   id: 'ast-default',
@@ -301,6 +329,8 @@ export const defaultASTPolicy: ASTAwarePolicyDefinition = {
 
 /**
  * Built-in AST-aware read-only (consumer/covariant) policy definition.
+ *
+ * @alpha
  */
 export const readOnlyASTPolicy: ASTAwarePolicyDefinition = {
   id: 'ast-read-only',
@@ -313,6 +343,8 @@ export const readOnlyASTPolicy: ASTAwarePolicyDefinition = {
 
 /**
  * Built-in AST-aware write-only (producer/contravariant) policy definition.
+ *
+ * @alpha
  */
 export const writeOnlyASTPolicy: ASTAwarePolicyDefinition = {
   id: 'ast-write-only',
@@ -335,6 +367,8 @@ import {
 
 /**
  * Built-in AST-aware text reporter definition.
+ *
+ * @alpha
  */
 export const textASTReporter: ASTAwareReporterDefinition = {
   id: 'ast-text',
@@ -348,6 +382,8 @@ export const textASTReporter: ASTAwareReporterDefinition = {
 
 /**
  * Built-in AST-aware markdown reporter definition.
+ *
+ * @alpha
  */
 export const markdownASTReporter: ASTAwareReporterDefinition = {
   id: 'ast-markdown',
@@ -361,6 +397,8 @@ export const markdownASTReporter: ASTAwareReporterDefinition = {
 
 /**
  * Built-in AST-aware JSON reporter definition.
+ *
+ * @alpha
  */
 export const jsonASTReporter: ASTAwareReporterDefinition = {
   id: 'ast-json',

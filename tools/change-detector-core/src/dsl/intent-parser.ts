@@ -1,9 +1,41 @@
 /**
- * Package 2: Intent-to-Pattern Parser
+ * Intent-to-Pattern Parser
  *
  * Parses natural language intent expressions into pattern-based rules.
+ * This module handles the first stage of the downward transformation:
+ * Intent DSL → Pattern DSL.
  *
- * @packageDocumentation
+ * ## Supported Intent Expressions
+ *
+ * The parser recognizes the following categories of natural language expressions:
+ *
+ * - **Removal Patterns**: 'breaking removal', 'safe removal', 'export removal is breaking'
+ * - **Addition Patterns**: 'safe addition', 'required addition is breaking'
+ * - **Type Change Patterns**: 'type narrowing is breaking', 'type widening is safe'
+ * - **Optionality Patterns**: 'making optional is breaking', 'making required is breaking'
+ * - **Common Patterns**: 'deprecation is patch', 'rename is breaking', 'reorder is breaking'
+ * - **Conditional Patterns**: Expressions with 'when' or 'unless' clauses
+ *
+ * @example
+ * ```typescript
+ * import { parseIntent, isValidIntentExpression, suggestIntentCorrections } from '@api-extractor/change-detector-core'
+ *
+ * // Parse an intent expression
+ * const result = parseIntent({
+ *   type: 'intent',
+ *   expression: 'export removal is breaking',
+ *   returns: 'major'
+ * })
+ *
+ * // Validate an expression
+ * if (isValidIntentExpression('breaking removal')) {
+ *   // Expression is valid
+ * }
+ *
+ * // Get typo suggestions
+ * const suggestions = suggestIntentCorrections('braking removal')
+ * // Returns: ['breaking removal']
+ * ```
  */
 
 import type {
@@ -18,7 +50,8 @@ import type { ReleaseType } from '../types'
 import type { ChangeTarget, NodeKind } from '../ast/types'
 
 /**
- * Mapping of intent expressions to their pattern representations
+ * Internal mapping of intent expressions to their pattern representations.
+ * This defines how each natural language expression translates to a pattern rule.
  */
 const INTENT_TO_PATTERN_MAP: Record<
   string,
@@ -181,10 +214,58 @@ function parseConditionalIntent(
 }
 
 /**
- * Parse an intent expression into a pattern rule
+ * Parse an intent expression into a pattern rule.
+ *
+ * This function transforms natural language intent expressions into structured
+ * pattern rules. It handles both direct mappings and conditional patterns
+ * (expressions with 'when' or 'unless' clauses).
+ *
+ * When parsing fails, the result includes error messages and suggestions for
+ * similar valid expressions (based on Levenshtein distance matching).
  *
  * @param intent - The intent rule to parse
- * @returns Parse result with pattern or errors
+ * @returns Parse result with pattern rule (on success) or errors and suggestions (on failure)
+ *
+ * @example Successful parse
+ * ```typescript
+ * const result = parseIntent({
+ *   type: 'intent',
+ *   expression: 'breaking removal',
+ *   returns: 'major'
+ * })
+ *
+ * if (result.success && result.pattern) {
+ *   console.log('Template:', result.pattern.template)
+ *   // Output: "removed {target}"
+ * }
+ * ```
+ *
+ * @example Conditional expression
+ * ```typescript
+ * const result = parseIntent({
+ *   type: 'intent',
+ *   expression: 'breaking removal when nested',
+ *   returns: 'major'
+ * })
+ * // Parses to pattern with 'when' clause
+ * ```
+ *
+ * @example Failed parse with suggestions
+ * ```typescript
+ * const result = parseIntent({
+ *   type: 'intent',
+ *   expression: 'braking removal', // typo
+ *   returns: 'major'
+ * })
+ *
+ * if (!result.success) {
+ *   console.log('Errors:', result.errors)
+ *   console.log('Did you mean:', result.suggestions)
+ *   // suggestions: ['breaking removal']
+ * }
+ * ```
+ *
+ * @alpha
  */
 export function parseIntent(intent: IntentRule): IntentParseResult {
   const { expression, returns } = intent
@@ -226,10 +307,40 @@ export function parseIntent(intent: IntentRule): IntentParseResult {
 }
 
 /**
- * Validate an intent expression
+ * Validate whether a string is a valid intent expression.
  *
- * @param expression - The intent expression to validate
- * @returns True if valid, false otherwise
+ * This function checks if the expression:
+ * 1. Matches a known intent expression in the mapping
+ * 2. Is a valid conditional pattern (contains 'when' or 'unless')
+ *
+ * Use this to validate user input before constructing intent rules.
+ *
+ * @param expression - The expression string to validate
+ * @returns True if the expression is valid, false otherwise (also acts as type guard)
+ *
+ * @example
+ * ```typescript
+ * if (isValidIntentExpression('breaking removal')) {
+ *   // TypeScript now knows this is IntentExpression
+ *   const rule: IntentRule = {
+ *     type: 'intent',
+ *     expression: expression, // type-safe
+ *     returns: 'major'
+ *   }
+ * }
+ * ```
+ *
+ * @example Validating user input
+ * ```typescript
+ * function createRuleFromInput(userInput: string): IntentRule | null {
+ *   if (isValidIntentExpression(userInput)) {
+ *     return { type: 'intent', expression: userInput, returns: 'major' }
+ *   }
+ *   return null
+ * }
+ * ```
+ *
+ * @alpha
  */
 export function isValidIntentExpression(
   expression: string,
@@ -289,10 +400,43 @@ function levenshteinDistance(a: string, b: string): number {
 }
 
 /**
- * Suggest corrections for invalid intent expressions
+ * Suggest corrections for typos or invalid intent expressions.
  *
- * @param expression - The invalid expression
- * @returns Array of suggested corrections
+ * This function uses Levenshtein distance to find similar valid expressions
+ * and returns up to 3 suggestions sorted by similarity.
+ *
+ * Only expressions with distance less than 40% of the input length are suggested,
+ * ensuring suggestions are meaningfully similar.
+ *
+ * @param expression - The invalid or misspelled expression
+ * @returns Array of up to 3 suggested valid expressions, sorted by similarity
+ *
+ * @example
+ * ```typescript
+ * const suggestions = suggestIntentCorrections('braking removal')
+ * // Returns: ['breaking removal']
+ *
+ * const suggestions2 = suggestIntentCorrections('type narrwing')
+ * // Returns: ['type narrowing is breaking']
+ * ```
+ *
+ * @example Integration with validation
+ * ```typescript
+ * function validateWithSuggestions(input: string): {
+ *   valid: boolean
+ *   suggestions?: string[]
+ * } {
+ *   if (isValidIntentExpression(input)) {
+ *     return { valid: true }
+ *   }
+ *   return {
+ *     valid: false,
+ *     suggestions: suggestIntentCorrections(input)
+ *   }
+ * }
+ * ```
+ *
+ * @alpha
  */
 export function suggestIntentCorrections(expression: string): string[] {
   const knownIntents = Object.keys(INTENT_TO_PATTERN_MAP)

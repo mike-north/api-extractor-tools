@@ -40,7 +40,7 @@ report
 
 </td><td>
 
-ASTComparisonReport \| null
+[ASTComparisonReport](./change-detector-core.astcomparisonreport.md) \| null
 
 
 </td><td>

@@ -53,7 +53,7 @@ The semantic-release type
 
 **Returns:**
 
-ReleaseType
+[ReleaseType](./change-detector-core.releasetype.md)
 
 The corresponding change-detector ReleaseType
 

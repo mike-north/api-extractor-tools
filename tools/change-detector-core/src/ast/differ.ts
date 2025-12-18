@@ -3,8 +3,6 @@
  *
  * Detects changes between two versions of a module by comparing
  * their AnalyzableNode structures.
- *
- * @packageDocumentation
  */
 
 import type {
@@ -1053,6 +1051,8 @@ function detectNestedChanges(
  * @param newAnalysis - The new module analysis with TypeChecker
  * @param options - Comparison options
  * @returns Array of API changes with multi-dimensional descriptors
+ *
+ * @alpha
  */
 export function diffModules(
   oldAnalysis: ModuleAnalysisWithTypes,
@@ -1202,6 +1202,8 @@ export function diffModules(
  *
  * Note: This function does NOT mutate the input changes.
  * Each nested change gets a new descriptor with the tag added.
+ *
+ * @alpha
  */
 export function flattenChanges(changes: ApiChange[]): ApiChange[] {
   const result: ApiChange[] = []
@@ -1247,6 +1249,8 @@ function descriptorKey(descriptor: ChangeDescriptor): string {
 
 /**
  * Groups changes by their descriptor key.
+ *
+ * @alpha
  */
 export function groupChangesByDescriptor(
   changes: ApiChange[],

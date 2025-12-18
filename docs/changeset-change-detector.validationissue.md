@@ -105,7 +105,7 @@ string
 
 </td><td>
 
-ReleaseType
+[ReleaseType](./change-detector-core.releasetype.md)
 
 
 </td><td>

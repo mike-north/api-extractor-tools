@@ -37,7 +37,9 @@
         "src/index.ts",
         "src/ast/index.ts",
         "src/rules.ts",
-        "src/plugins.ts"
+        "src/plugins.ts",
+        "test/**/*.test-d.ts",
+        "test/**/*.test.ts"
       ],
       "paths": {
         "@": ["src/index.ts"],
@@ -45,7 +47,7 @@
       }
     },
     "tools/*": {
-      "entry": ["src/index.ts"],
+      "entry": ["src/index.ts", "test/**/*.test-d.ts", "test/**/*.test.ts"],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]

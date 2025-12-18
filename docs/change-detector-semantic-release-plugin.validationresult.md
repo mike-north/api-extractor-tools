@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-ASTComparisonReport\['byReleaseType'\]
+[ASTComparisonReport](./change-detector-core.astcomparisonreport.md)<!-- -->\['byReleaseType'\]
 
 
 </td><td>
@@ -67,7 +67,7 @@ ASTComparisonReport\['byReleaseType'\]
 
 </td><td>
 
-ReleaseType
+[ReleaseType](./change-detector-core.releasetype.md)
 
 
 </td><td>

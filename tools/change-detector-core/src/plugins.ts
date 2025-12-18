@@ -22,8 +22,6 @@
  *   registry.register(plugin);
  * }
  * ```
- *
- * @packageDocumentation
  */
 
 // Core type exports (including symbol-based types for backward compatibility)

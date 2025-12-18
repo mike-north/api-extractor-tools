@@ -10,11 +10,14 @@
     "build": "pnpm build:esm && pnpm build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:types",
+    "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
-    "check": "pnpm check:eslint && pnpm check:typecheck-tests",
+    "generate:api-report": "api-extractor run --local --verbose",
     "check:eslint": "eslint src test",
-    "check:typecheck-tests": "tsc -p test/tsconfig.json"
+    "check:typecheck-tests": "tsc -p test/tsconfig.json",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
+    "check:api-report": "api-extractor run"
   },
   "keywords": [
     "typescript",
@@ -32,9 +35,11 @@
     "typescript": "5.8.3"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.55.2",
     "@types/node": "^22.19.1",
     "@vitest/coverage-v8": "^4.0.15",
     "pkg-up": "^4.0.0",
+    "tsd": "^0.33.0",
     "vitest": "^4.0.15",
     "zod": "^4.1.13"
   },

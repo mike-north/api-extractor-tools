@@ -362,6 +362,8 @@ import { semverDefaultPolicy as defaultPolicy } from './ast/builtin-policies'
 
 /**
  * Options for the analyzeChanges convenience function.
+ *
+ * @alpha
  */
 export interface AnalyzeChangesOptions {
   /** Policy to use for classification (defaults to semverDefaultPolicy) */
@@ -374,6 +376,8 @@ export interface AnalyzeChangesOptions {
 
 /**
  * Result of analyzing changes between two source files.
+ *
+ * @alpha
  */
 export interface AnalyzeChangesResult {
   /** All detected API changes */
@@ -415,6 +419,8 @@ export interface AnalyzeChangesResult {
  *   }
  * }
  * ```
+ *
+ * @alpha
  */
 export function analyzeChanges(
   oldSource: string,
@@ -458,6 +464,8 @@ import type { AnalyzableNode, NodeKind } from './ast/types'
 
 /**
  * Result of parsing a declaration string.
+ *
+ * @alpha
  */
 export interface ParseDeclarationResult {
   /** Map of symbol names to their information */
@@ -541,6 +549,8 @@ function nodeToExportedSymbol(node: AnalyzableNode): ExportedSymbol {
  * );
  * console.log(result.symbols.get('greet'));
  * ```
+ *
+ * @alpha
  */
 export function parseDeclarationString(
   content: string,

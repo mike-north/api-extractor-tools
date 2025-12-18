@@ -86,7 +86,7 @@ string
 
 </td><td>
 
-ReleaseType
+[ReleaseType](./change-detector-core.releasetype.md)
 
 
 </td><td>
@@ -105,7 +105,7 @@ ReleaseType
 
 </td><td>
 
-ASTComparisonReport \| null
+[ASTComparisonReport](./change-detector-core.astcomparisonreport.md) \| null
 
 
 </td><td>

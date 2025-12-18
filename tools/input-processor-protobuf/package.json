@@ -11,7 +11,8 @@
     "inject-version": "node scripts/inject-version.mjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:types",
+    "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
     "check:eslint": "eslint src test",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.15",
+    "tsd": "^0.33.0",
     "vitest": "^4.0.15"
   },
   "exports": {

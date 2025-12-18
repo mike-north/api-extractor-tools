@@ -1,9 +1,43 @@
 /**
- * Package 3: Pattern-to-Dimensional Compiler
+ * Pattern-to-Dimensional Compiler
  *
  * Compiles pattern-based rules into dimensional representation.
+ * This module handles the second stage of the downward transformation:
+ * Pattern DSL → Dimensional DSL.
  *
- * @packageDocumentation
+ * ## How Compilation Works
+ *
+ * The compiler extracts dimensional components from pattern templates:
+ *
+ * 1. **Actions** are extracted from template prefixes ('added', 'removed', etc.)
+ * 2. **Aspects** are inferred from template suffixes ('type narrowed', 'deprecated', etc.)
+ * 3. **Targets** are extracted from variable substitutions
+ * 4. **Impacts** are derived from the combination of action, aspect, and release type
+ * 5. **Conditional patterns** set the `nested` flag
+ *
+ * @example
+ * ```typescript
+ * import { compilePattern, isValidPatternTemplate } from '@api-extractor/change-detector-core'
+ *
+ * // Compile a pattern to dimensional representation
+ * const result = compilePattern({
+ *   type: 'pattern',
+ *   template: 'removed {target}',
+ *   variables: [{ name: 'target', value: 'export', type: 'target' }],
+ *   returns: 'major'
+ * })
+ *
+ * if (result.success && result.dimensional) {
+ *   console.log('Action:', result.dimensional.action)  // ['removed']
+ *   console.log('Target:', result.dimensional.target)  // ['export']
+ *   console.log('Impact:', result.dimensional.impact)  // ['unrelated']
+ * }
+ *
+ * // Validate a template
+ * if (isValidPatternTemplate('removed {target}')) {
+ *   // Template is valid
+ * }
+ * ```
  */
 
 import type {
@@ -22,7 +56,7 @@ import type {
 } from '../ast/types'
 
 /**
- * Template parser to extract actions and modifiers
+ * Internal structure for parsed template components.
  */
 interface ParsedTemplate {
   action?: ChangeAction
@@ -142,10 +176,53 @@ function determineImpact(
 }
 
 /**
- * Compile a pattern rule into dimensional representation
+ * Compile a pattern rule into dimensional representation.
+ *
+ * This function transforms template-based pattern rules into the lowest-level
+ * dimensional representation, extracting all dimensional components:
+ *
+ * - **Actions**: From template prefixes (added, removed, renamed, etc.)
+ * - **Aspects**: From template suffixes (type narrowed, deprecated, etc.)
+ * - **Targets**: From variable substitutions with type='target'
+ * - **Impacts**: Inferred from the combination of action, aspect, and release type
+ * - **Node kinds**: From variables with type='nodeKind'
+ * - **Nested flag**: Set for conditional patterns ('when', 'unless')
+ *
+ * The compilation will fail if the pattern doesn't specify at least one
+ * dimension (action, aspect, or target).
  *
  * @param pattern - The pattern rule to compile
- * @returns Compilation result with dimensional rule or errors
+ * @returns Compilation result with dimensional rule (on success) or errors (on failure)
+ *
+ * @example Basic compilation
+ * ```typescript
+ * const result = compilePattern({
+ *   type: 'pattern',
+ *   template: 'removed {target}',
+ *   variables: [{ name: 'target', value: 'export', type: 'target' }],
+ *   returns: 'major'
+ * })
+ *
+ * if (result.success) {
+ *   // result.dimensional contains the compiled rule
+ *   console.log(result.dimensional.action)  // ['removed']
+ *   console.log(result.dimensional.target)  // ['export']
+ * }
+ * ```
+ *
+ * @example Type change pattern
+ * ```typescript
+ * const result = compilePattern({
+ *   type: 'pattern',
+ *   template: '{target} type narrowed',
+ *   variables: [{ name: 'target', value: 'return-type', type: 'target' }],
+ *   returns: 'major'
+ * })
+ * // result.dimensional.aspect = ['type']
+ * // result.dimensional.impact = ['narrowing']
+ * ```
+ *
+ * @alpha
  */
 export function compilePattern(pattern: PatternRule): PatternCompileResult {
   try {
@@ -214,10 +291,25 @@ export function compilePattern(pattern: PatternRule): PatternCompileResult {
 }
 
 /**
- * Validate a pattern template
+ * Validate whether a string is a valid pattern template.
  *
- * @param template - The pattern template to validate
- * @returns True if valid, false otherwise
+ * A valid pattern template must match at least one of:
+ * - Action prefix (added, removed, renamed, reordered, modified)
+ * - Aspect suffix (type narrowed, type widened, made optional, etc.)
+ * - Placeholder syntax (`\{...\}`)
+ * - Conditional clause (`when \{...\}`, `unless \{...\}`)
+ *
+ * @param template - The template string to validate
+ * @returns True if the template is valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidPatternTemplate('removed {target}')         // true
+ * isValidPatternTemplate('{target} type narrowed')   // true
+ * isValidPatternTemplate('some random text')         // false
+ * ```
+ *
+ * @alpha
  */
 export function isValidPatternTemplate(template: string): boolean {
   // Check for valid pattern structure
@@ -233,10 +325,30 @@ export function isValidPatternTemplate(template: string): boolean {
 }
 
 /**
- * Infer constraints from a pattern
+ * Infer dimensional constraints from a pattern without full compilation.
  *
- * @param pattern - The pattern to analyze
- * @returns Inferred dimensional constraints
+ * This is a lighter-weight alternative to `compilePattern` that returns
+ * a partial dimensional rule with only the constraints that can be
+ * directly inferred from the pattern. Useful for analysis or validation.
+ *
+ * @param pattern - The pattern rule to analyze
+ * @returns Partial dimensional rule with inferred constraints
+ *
+ * @example
+ * ```typescript
+ * const constraints = inferConstraints({
+ *   type: 'pattern',
+ *   template: '{target} type narrowed',
+ *   variables: [{ name: 'target', value: 'parameter', type: 'target' }],
+ *   returns: 'major'
+ * })
+ *
+ * console.log(constraints.aspect)  // ['type']
+ * console.log(constraints.target)  // ['parameter']
+ * console.log(constraints.impact)  // ['narrowing']
+ * ```
+ *
+ * @alpha
  */
 export function inferConstraints(
   pattern: PatternRule,

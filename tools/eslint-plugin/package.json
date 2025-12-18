@@ -18,7 +18,8 @@
     "clean": "rm -rf dist",
     "build": "tsc",
     "generate:api-report": "api-extractor run --local --verbose",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:types",
+    "test:types": "tsd --files 'test/**/*.test-d.ts' --typings src/index.ts",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
     "check:eslint": "eslint src test",
@@ -48,9 +49,10 @@
     "@typescript-eslint/parser": "^8.48.1",
     "@typescript-eslint/rule-tester": "^8.48.1",
     "@typescript-eslint/utils": "^8.48.1",
-    "eslint": "^9.39.1",
-    "typescript": "5.8.3",
     "@vitest/coverage-v8": "^4.0.15",
+    "eslint": "^9.39.1",
+    "tsd": "^0.33.0",
+    "typescript": "5.8.3",
     "vitest": "^4.0.15"
   }
 }

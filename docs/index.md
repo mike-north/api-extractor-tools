@@ -30,6 +30,17 @@ A library for detecting and classifying changes between TypeScript declaration f
 </td></tr>
 <tr><td>
 
+[@api-extractor-tools/change-detector-core](./change-detector-core.md)
+
+
+</td><td>
+
+An isomorphic library for detecting and classifying changes between TypeScript declaration files.
+
+
+</td></tr>
+<tr><td>
+
 [@api-extractor-tools/change-detector-semantic-release-plugin](./change-detector-semantic-release-plugin.md)
 
 

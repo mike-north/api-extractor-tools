@@ -68,7 +68,7 @@ options
 
 </td><td>
 
-DiffOptions
+[DiffOptions](./change-detector-core.diffoptions.md)
 
 
 </td><td>

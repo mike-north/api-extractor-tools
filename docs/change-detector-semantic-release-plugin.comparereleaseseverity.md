@@ -40,7 +40,7 @@ a
 
 </td><td>
 
-ReleaseType \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
+[ReleaseType](./change-detector-core.releasetype.md) \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 
 </td><td>
@@ -56,7 +56,7 @@ b
 
 </td><td>
 
-ReleaseType \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
+[ReleaseType](./change-detector-core.releasetype.md) \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 
 </td><td>

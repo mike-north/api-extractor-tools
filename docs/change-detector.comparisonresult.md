@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-import('@api-extractor-tools/change-detector-core').ApiChange\[\]
+import('@api-extractor-tools/change-detector-core').[ApiChange](./change-detector-core.apichange.md)<!-- -->\[\]
 
 
 </td><td>
@@ -105,7 +105,7 @@ string
 
 </td><td>
 
-import('@api-extractor-tools/change-detector-core').ReleaseType
+import('@api-extractor-tools/change-detector-core').[ReleaseType](./change-detector-core.releasetype.md)
 
 
 </td><td>
@@ -124,7 +124,7 @@ import('@api-extractor-tools/change-detector-core').ReleaseType
 
 </td><td>
 
-import('@api-extractor-tools/change-detector-core').ClassificationResult\[\]
+import('@api-extractor-tools/change-detector-core').[ClassificationResult](./change-detector-core.classificationresult.md)<!-- -->\[\]
 
 
 </td><td>
