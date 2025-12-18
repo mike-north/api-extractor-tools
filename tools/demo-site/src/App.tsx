@@ -161,14 +161,19 @@ function App() {
   // Auto-analyze with 100ms debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const result = analyzeChanges(oldContent, newContent, ts, {
-        policy: resolvedPolicy,
-      })
-      // Convert to ASTComparisonReport format
-      const astReport = createASTComparisonReport(
-        result.results.map(r => ({ ...r.change, releaseType: r.releaseType }))
-      )
-      setReport(astReport)
+      try {
+        const result = analyzeChanges(oldContent, newContent, ts, {
+          policy: resolvedPolicy,
+        })
+        // Convert to ASTComparisonReport format
+        const astReport = createASTComparisonReport(
+          result.results.map(r => ({ ...r.change, releaseType: r.releaseType }))
+        )
+        setReport(astReport)
+      } catch (error) {
+        console.error('Analysis failed:', error)
+        setReport(null)
+      }
     }, 100)
 
     return () => clearTimeout(timeoutId)
