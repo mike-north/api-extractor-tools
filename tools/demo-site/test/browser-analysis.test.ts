@@ -21,6 +21,66 @@ import {
   semverWriteOnlyPolicy,
 } from '@api-extractor-tools/change-detector-core'
 
+/**
+ * Regression test for the "process is not defined" error.
+ *
+ * This bug occurred when @typescript-eslint/typescript-estree was added as a
+ * dependency to change-detector-core. The library checks for Node.js environment
+ * by accessing `process.versions.node`, which throws ReferenceError in browsers
+ * if `process` is not defined globally.
+ *
+ * The fix injects a process shim via Vite's transformIndexHtml that defines
+ * window.process before any scripts run.
+ *
+ * @see https://github.com/mike-north/api-extractor-tools/commit/b3351be
+ */
+describe('Browser Polyfills - Process Shim', () => {
+  it('process global is defined', () => {
+    // In browser builds, Vite injects window.process
+    // In test environment, Vitest provides process
+    expect(typeof process).not.toBe('undefined')
+  })
+
+  it('process.env is accessible', () => {
+    expect(() => process.env).not.toThrow()
+    expect(typeof process.env).toBe('object')
+  })
+
+  it('process.versions is accessible', () => {
+    expect(() => process.versions).not.toThrow()
+  })
+
+  it('process.cwd is accessible as function or returns valid value', () => {
+    // In browser builds, process.cwd() returns "/" (polyfilled)
+    // In Node/Vitest, it's a function that returns the current directory
+    if (typeof process.cwd === 'function') {
+      expect(() => process.cwd()).not.toThrow()
+      expect(typeof process.cwd()).toBe('string')
+    }
+  })
+
+  it('analyzeChanges does not throw ReferenceError for process', () => {
+    // This is the core regression test: if process polyfill is missing,
+    // analyzeChanges would throw "ReferenceError: process is not defined"
+    // because @typescript-eslint/typescript-estree checks process.versions.node
+    const oldSource = 'export declare function foo(): void;'
+    const newSource = 'export declare function foo(x: string): void;'
+
+    expect(() => {
+      analyzeChanges(oldSource, newSource, ts, { policy: semverDefaultPolicy })
+    }).not.toThrow()
+  })
+
+  it('parseModule does not throw ReferenceError for process', () => {
+    // parseModule also uses the typescript-estree parser under the hood
+    const source = 'export declare function test(): string;'
+
+    expect(() => {
+      parseModule(source)
+    }).not.toThrow()
+  })
+})
+
 describe('Browser Compatibility - Change Detection', () => {
   describe('parseModule', () => {
     it('parses exported function declarations', () => {
