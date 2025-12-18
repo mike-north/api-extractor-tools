@@ -596,7 +596,7 @@ describe('findBestPattern', () => {
   })
 
   describe('partial credit for action (line 756)', () => {
-    it('should give partial credit when pattern has action but dimensional doesnt specify', () => {
+    it("should give partial credit when pattern has action but dimensional doesn't specify", () => {
       const dimensional = createDimensionalRule({
         // No action specified
         target: ['export'],
@@ -1498,7 +1498,7 @@ describe('pattern decompiler integration', () => {
     })
 
     describe('target matching with partial credit (lines 783-786)', () => {
-      it('should give partial credit when target variable exists but doesnt match', () => {
+      it("should give partial credit when target variable exists but doesn't match", () => {
         const dimensional = createDimensionalRule({
           action: ['removed'],
           target: ['export'], // dimensional has 'export'
@@ -1614,7 +1614,7 @@ describe('pattern decompiler integration', () => {
     })
 
     describe('nodeKind matching edge cases', () => {
-      it('should give partial credit when nodeKind variable exists but doesnt match', () => {
+      it("should give partial credit when nodeKind variable exists but doesn't match", () => {
         const dimensional = createDimensionalRule({
           action: ['removed'],
           target: ['export'],
