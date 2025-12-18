@@ -12,8 +12,6 @@
  *   .addRule(rule('type-widening').aspect('type').impact('widening').returns('minor'))
  *   .build();
  * ```
- *
- * @packageDocumentation
  */
 
 import type { ReleaseType } from '../types'
@@ -34,11 +32,15 @@ import type {
 
 /**
  * A predicate that matches changes based on their descriptor.
+ *
+ * @alpha
  */
 export type ChangeMatcher = (change: ApiChange) => boolean
 
 /**
  * A single rule in a policy that matches changes and assigns release types.
+ *
+ * @alpha
  */
 export interface PolicyRule {
   /** Human-readable name for the rule */
@@ -56,6 +58,8 @@ export interface PolicyRule {
 
 /**
  * A complete policy consisting of ordered rules.
+ *
+ * @alpha
  */
 export interface Policy {
   /** Human-readable name for the policy */
@@ -78,6 +82,8 @@ export interface Policy {
  * Rules match changes based on descriptor dimensions. All conditions
  * are combined with AND logic - a change must match all specified
  * conditions for the rule to apply.
+ *
+ * @alpha
  */
 export class RuleBuilder {
   private readonly ruleName: string
@@ -337,6 +343,8 @@ export class RuleBuilder {
  *   .action('removed')
  *   .returns('major')
  * ```
+ *
+ * @alpha
  */
 export function rule(name: string): RuleBuilder {
   return new RuleBuilder(name)
@@ -348,6 +356,8 @@ export function rule(name: string): RuleBuilder {
 
 /**
  * Builder for creating complete policies.
+ *
+ * @alpha
  */
 export class PolicyBuilder {
   private readonly policyName: string
@@ -401,6 +411,8 @@ export class PolicyBuilder {
  *   .addRule(rule('addition').action('added').returns('minor'))
  *   .build();
  * ```
+ *
+ * @alpha
  */
 export function createPolicy(
   name: string,
@@ -422,6 +434,8 @@ export function createPolicy(
  * provided for backward compatibility but is effectively the same as `this`.
  *
  * New code should use ClassifiedChange directly.
+ *
+ * @alpha
  */
 export interface ClassificationResult extends ClassifiedChange {
   /**
@@ -437,6 +451,8 @@ export interface ClassificationResult extends ClassifiedChange {
  * @param change - The change to classify
  * @param policy - The policy to apply
  * @returns Classification result with release type and matched rule
+ *
+ * @alpha
  */
 export function classifyChange(
   change: ApiChange,
@@ -469,6 +485,8 @@ export function classifyChange(
  * @param changes - The changes to classify
  * @param policy - The policy to apply
  * @returns Array of classification results
+ *
+ * @alpha
  */
 export function classifyChanges(
   changes: ApiChange[],
@@ -483,6 +501,8 @@ export function classifyChanges(
  *
  * @param results - Array of classified changes or classification results
  * @returns The highest severity release type
+ *
+ * @alpha
  */
 export function determineOverallRelease(
   results: ReadonlyArray<Pick<ClassifiedChange, 'releaseType'>>,

@@ -9,8 +9,6 @@
  * **Note:** This module uses Node.js APIs (fs, path) and will only work in
  * Node.js environments. In browser environments, plugins must be registered
  * manually using the registry.
- *
- * @packageDocumentation
  */
 
 import type { ChangeDetectorPlugin, InputProcessorPlugin } from './plugin-types'

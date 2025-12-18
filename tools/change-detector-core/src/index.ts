@@ -282,6 +282,70 @@ export {
 } from './ast/builtin-policies'
 
 // =============================================================================
+// Progressive DSL System
+// =============================================================================
+
+// DSL type exports
+export type {
+  // Level 1: Intent-based
+  IntentExpression,
+  IntentRule,
+  // Level 2: Pattern-based
+  PatternTemplate,
+  PatternVariable,
+  PatternRule,
+  // Level 3: Dimensional (existing)
+  DimensionalRule,
+  // Unified types
+  DSLRule,
+  DSLPolicy,
+  // Transformation types
+  IntentParseResult,
+  PatternCompileResult,
+  PatternDecompileResult,
+  IntentSynthesisResult,
+  // Validation types
+  ValidationResult as DSLValidationResult,
+  ValidationError as DSLValidationError,
+  ValidationWarning as DSLValidationWarning,
+  // Builder types
+  DSLBuilderState,
+  TransformOptions,
+  TransformationChain,
+} from './dsl'
+
+// DSL exports
+export {
+  // Common patterns and intents
+  COMMON_PATTERNS,
+  COMMON_INTENTS,
+  // Type guards
+  isIntentRule,
+  isPatternRule,
+  isDimensionalRule,
+  // Progressive rule builder
+  ProgressiveRuleBuilder,
+  createProgressivePolicy,
+  createStandardPolicy,
+  // Intent parser functions
+  parseIntent,
+  isValidIntentExpression,
+  suggestIntentCorrections,
+  // Pattern compiler functions
+  compilePattern,
+  isValidPatternTemplate,
+  inferConstraints,
+  // Pattern decompiler functions
+  decompileToPattern,
+  findBestPattern,
+  calculatePatternConfidence,
+  // Intent synthesizer functions
+  synthesizeIntent,
+  detectCommonPattern,
+  generateIntentExpression,
+} from './dsl'
+
+// =============================================================================
 // Convenience Functions
 // =============================================================================
 
@@ -298,6 +362,8 @@ import { semverDefaultPolicy as defaultPolicy } from './ast/builtin-policies'
 
 /**
  * Options for the analyzeChanges convenience function.
+ *
+ * @alpha
  */
 export interface AnalyzeChangesOptions {
   /** Policy to use for classification (defaults to semverDefaultPolicy) */
@@ -310,6 +376,8 @@ export interface AnalyzeChangesOptions {
 
 /**
  * Result of analyzing changes between two source files.
+ *
+ * @alpha
  */
 export interface AnalyzeChangesResult {
   /** All detected API changes */
@@ -351,6 +419,8 @@ export interface AnalyzeChangesResult {
  *   }
  * }
  * ```
+ *
+ * @alpha
  */
 export function analyzeChanges(
   oldSource: string,
@@ -394,6 +464,8 @@ import type { AnalyzableNode, NodeKind } from './ast/types'
 
 /**
  * Result of parsing a declaration string.
+ *
+ * @alpha
  */
 export interface ParseDeclarationResult {
   /** Map of symbol names to their information */
@@ -477,6 +549,8 @@ function nodeToExportedSymbol(node: AnalyzableNode): ExportedSymbol {
  * );
  * console.log(result.symbols.get('greet'));
  * ```
+ *
+ * @alpha
  */
 export function parseDeclarationString(
   content: string,

@@ -3,8 +3,6 @@
  *
  * This module defines the core domain model for AST-aware change detection,
  * enabling fine-grained structural analysis of TypeScript declarations.
- *
- * @packageDocumentation
  */
 
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
@@ -19,6 +17,8 @@ import type { ReleaseType } from '../types'
  * Represents a position in source code.
  * Line numbers are 1-based (matching most editors).
  * Column numbers are 0-based (matching LSP specification).
+ *
+ * @alpha
  */
 export interface SourcePosition {
   /** 1-based line number */
@@ -31,6 +31,8 @@ export interface SourcePosition {
 
 /**
  * Represents a range in source code.
+ *
+ * @alpha
  */
 export interface SourceRange {
   /** Start position of the range */
@@ -45,6 +47,8 @@ export interface SourceRange {
 
 /**
  * The kind of AST construct being analyzed.
+ *
+ * @alpha
  */
 export type NodeKind =
   | 'function'
@@ -67,6 +71,8 @@ export type NodeKind =
 
 /**
  * Modifiers that can be applied to declarations.
+ *
+ * @alpha
  */
 export type Modifier =
   | 'exported'
@@ -88,6 +94,8 @@ export type Modifier =
 
 /**
  * Information about a type parameter (generic).
+ *
+ * @alpha
  */
 export interface TypeParameterInfo {
   /** Name of the type parameter */
@@ -104,6 +112,8 @@ export interface TypeParameterInfo {
 
 /**
  * Information about a function/method parameter.
+ *
+ * @alpha
  */
 export interface ParameterInfo {
   /** Name of the parameter */
@@ -124,6 +134,8 @@ export interface ParameterInfo {
 
 /**
  * Information about a call/construct signature.
+ *
+ * @alpha
  */
 export interface SignatureInfo {
   /** Type parameters for the signature */
@@ -140,6 +152,8 @@ export interface SignatureInfo {
 
 /**
  * Information about an object property or interface member.
+ *
+ * @alpha
  */
 export interface PropertyInfo {
   /** Name of the property */
@@ -156,6 +170,8 @@ export interface PropertyInfo {
 
 /**
  * Information about an enum member.
+ *
+ * @alpha
  */
 export interface EnumMemberInfo {
   /** Name of the enum member */
@@ -170,6 +186,8 @@ export interface EnumMemberInfo {
 
 /**
  * Comprehensive type information resolved from the TypeChecker.
+ *
+ * @alpha
  */
 export interface TypeInfo {
   /** Normalized string representation for comparison */
@@ -199,6 +217,8 @@ export interface TypeInfo {
 
 /**
  * Metadata extracted from TSDoc comments.
+ *
+ * @alpha
  */
 export interface NodeMetadata {
   /** Whether the symbol is marked \@deprecated */
@@ -214,6 +234,8 @@ export interface NodeMetadata {
 /**
  * A normalized AST node ready for comparison.
  * This is the primary unit of analysis in the AST-based system.
+ *
+ * @alpha
  */
 export interface AnalyzableNode {
   /**
@@ -265,6 +287,8 @@ export interface AnalyzableNode {
 
 /**
  * Complete analysis of a module/file.
+ *
+ * @alpha
  */
 export interface ModuleAnalysis {
   /** The source filename */
@@ -285,6 +309,8 @@ export interface ModuleAnalysis {
 
 /**
  * Module analysis with TypeScript program access for deep type queries.
+ *
+ * @alpha
  */
 export interface ModuleAnalysisWithTypes extends ModuleAnalysis {
   /** TypeScript program */
@@ -304,6 +330,8 @@ export interface ModuleAnalysisWithTypes extends ModuleAnalysis {
 /**
  * What API construct was affected by the change.
  * Fine-grained to allow precise policy matching.
+ *
+ * @alpha
  */
 export type ChangeTarget =
   | 'export' // Top-level export (function, class, interface, type, enum, variable)
@@ -319,6 +347,8 @@ export type ChangeTarget =
 
 /**
  * What happened to the target construct.
+ *
+ * @alpha
  */
 export type ChangeAction =
   | 'added' // Target was added (didn't exist before)
@@ -329,6 +359,8 @@ export type ChangeAction =
 
 /**
  * What aspect of the target changed (for 'modified' actions).
+ *
+ * @alpha
  */
 export type ChangeAspect =
   | 'type' // The type annotation changed
@@ -349,6 +381,8 @@ export type ChangeAspect =
  * The semantic effect of the change.
  * Critical for variance-aware policies (read-only vs write-only APIs).
  * Required for all 'modified' actions.
+ *
+ * @alpha
  */
 export type ChangeImpact =
   | 'widening' // Accepts more values (e.g., number → number | string)
@@ -360,6 +394,8 @@ export type ChangeImpact =
 /**
  * Metadata tags for fine-grained policy matching.
  * Use for secondary characteristics that don't warrant a full dimension.
+ *
+ * @alpha
  */
 export type ChangeTag =
   // Optionality state
@@ -391,6 +427,8 @@ interface ChangeDescriptorBase {
 
 /**
  * Descriptor for 'added' actions.
+ *
+ * @alpha
  */
 export interface AddedDescriptor extends ChangeDescriptorBase {
   action: 'added'
@@ -400,6 +438,8 @@ export interface AddedDescriptor extends ChangeDescriptorBase {
 
 /**
  * Descriptor for 'removed' actions.
+ *
+ * @alpha
  */
 export interface RemovedDescriptor extends ChangeDescriptorBase {
   action: 'removed'
@@ -410,6 +450,8 @@ export interface RemovedDescriptor extends ChangeDescriptorBase {
 /**
  * Descriptor for 'modified' actions.
  * Requires aspect and impact to be specified.
+ *
+ * @alpha
  */
 export interface ModifiedDescriptor extends ChangeDescriptorBase {
   action: 'modified'
@@ -421,6 +463,8 @@ export interface ModifiedDescriptor extends ChangeDescriptorBase {
 
 /**
  * Descriptor for 'renamed' actions.
+ *
+ * @alpha
  */
 export interface RenamedDescriptor extends ChangeDescriptorBase {
   action: 'renamed'
@@ -430,6 +474,8 @@ export interface RenamedDescriptor extends ChangeDescriptorBase {
 
 /**
  * Descriptor for 'reordered' actions.
+ *
+ * @alpha
  */
 export interface ReorderedDescriptor extends ChangeDescriptorBase {
   action: 'reordered'
@@ -441,6 +487,8 @@ export interface ReorderedDescriptor extends ChangeDescriptorBase {
  * Multi-dimensional change classification.
  * Uses a discriminated union to enforce that 'modified' actions
  * include both aspect and impact.
+ *
+ * @alpha
  */
 export type ChangeDescriptor =
   | AddedDescriptor
@@ -451,6 +499,8 @@ export type ChangeDescriptor =
 
 /**
  * Additional context for a detected change.
+ *
+ * @alpha
  */
 export interface ChangeContext {
   /** Is this a nested change within another change? */
@@ -481,6 +531,8 @@ export interface ChangeContext {
 /**
  * An API change detected between two versions.
  * Uses multi-dimensional classification for precise policy matching.
+ *
+ * @alpha
  */
 export interface ApiChange {
   /** Multi-dimensional change classification */
@@ -521,6 +573,8 @@ export interface ApiChange {
 /**
  * An API change with its release type classification.
  * This is the output of applying a policy to an ApiChange.
+ *
+ * @alpha
  */
 export interface ClassifiedChange extends ApiChange {
   /** The semver release type determined by the policy */
@@ -541,6 +595,8 @@ export interface ClassifiedChange extends ApiChange {
 
 /**
  * Options for parsing source code.
+ *
+ * @alpha
  */
 export interface ParseOptions {
   /** Filename for the source (defaults to 'input.d.ts') */
@@ -555,6 +611,8 @@ export interface ParseOptions {
 
 /**
  * Options for comparing two module analyses.
+ *
+ * @alpha
  */
 export interface DiffOptions {
   /** Threshold for rename detection (0-1, default 0.8) */

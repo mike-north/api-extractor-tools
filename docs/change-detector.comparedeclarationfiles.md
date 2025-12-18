@@ -40,7 +40,7 @@ oldParsed
 
 </td><td>
 
-ModuleAnalysisWithTypes
+[ModuleAnalysisWithTypes](./change-detector-core.moduleanalysiswithtypes.md)
 
 
 </td><td>
@@ -54,7 +54,7 @@ newParsed
 
 </td><td>
 
-ModuleAnalysisWithTypes
+[ModuleAnalysisWithTypes](./change-detector-core.moduleanalysiswithtypes.md)
 
 
 </td><td>
@@ -68,7 +68,7 @@ options
 
 </td><td>
 
-DiffOptions
+[DiffOptions](./change-detector-core.diffoptions.md)
 
 
 </td><td>

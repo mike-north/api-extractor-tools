@@ -112,7 +112,7 @@ describe('CustomPolicyModal', () => {
       expect(screen.queryByText(/no rules yet/i)).not.toBeInTheDocument()
     })
 
-    it('renders Add Rule button', () => {
+    it('renders Add Rule buttons for intent and dimensional modes', () => {
       render(
         <CustomPolicyModal
           initialPolicy={null}
@@ -121,7 +121,8 @@ describe('CustomPolicyModal', () => {
         />,
       )
 
-      expect(screen.getByText('+ Add Rule')).toBeInTheDocument()
+      expect(screen.getByText('+ Add Intent Rule')).toBeInTheDocument()
+      expect(screen.getByText('+ Add Dimensional Rule')).toBeInTheDocument()
     })
 
     it('renders Save and Cancel buttons', () => {
@@ -320,7 +321,7 @@ describe('CustomPolicyModal', () => {
       )
     })
 
-    it('adds new rule when Add Rule clicked', async () => {
+    it('adds new rule when Add Intent Rule clicked', async () => {
       const user = userEvent.setup()
       render(
         <CustomPolicyModal
@@ -332,7 +333,25 @@ describe('CustomPolicyModal', () => {
 
       expect(screen.queryByText('Rule 1')).not.toBeInTheDocument()
 
-      const addButton = screen.getByText('+ Add Rule')
+      const addButton = screen.getByText('+ Add Intent Rule')
+      await user.click(addButton)
+
+      expect(screen.getByText('Rule 1')).toBeInTheDocument()
+    })
+
+    it('adds new rule when Add Dimensional Rule clicked', async () => {
+      const user = userEvent.setup()
+      render(
+        <CustomPolicyModal
+          initialPolicy={createTestSerializablePolicy({ rules: [] })}
+          onSave={mockOnSave}
+          onClose={mockOnClose}
+        />,
+      )
+
+      expect(screen.queryByText('Rule 1')).not.toBeInTheDocument()
+
+      const addButton = screen.getByText('+ Add Dimensional Rule')
       await user.click(addButton)
 
       expect(screen.getByText('Rule 1')).toBeInTheDocument()

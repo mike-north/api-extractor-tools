@@ -86,7 +86,7 @@ string
 
 </td><td>
 
-import('@api-extractor-tools/change-detector-core').Policy
+import('@api-extractor-tools/change-detector-core').[Policy](./change-detector-core.policy.md)
 
 
 </td><td>

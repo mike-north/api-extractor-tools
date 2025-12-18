@@ -3,8 +3,6 @@
  *
  * These reporters format ClassifiedChange arrays with
  * precise source locations and diff-style output.
- *
- * @packageDocumentation
  */
 
 import type { ReleaseType } from '../types'
@@ -16,6 +14,8 @@ import type { SourceRange, ClassifiedChange } from './types'
 
 /**
  * Options for AST-aware reporters.
+ *
+ * @alpha
  */
 export interface ASTReporterOptions {
   /** Whether to include source locations */
@@ -43,6 +43,8 @@ export interface ASTReporterOptions {
 
 /**
  * A report grouping changes by release type.
+ *
+ * @alpha
  */
 export interface ASTComparisonReport {
   /** The overall release type */
@@ -71,6 +73,8 @@ export interface ASTComparisonReport {
 
 /**
  * Creates a comparison report from classified changes.
+ *
+ * @alpha
  */
 export function createASTComparisonReport(
   changes: ClassifiedChange[],
@@ -127,6 +131,8 @@ function formatReleaseType(releaseType: ReleaseType): string {
 
 /**
  * Formats a source location as a string.
+ *
+ * @alpha
  */
 export function formatSourceLocation(
   location: SourceRange | undefined,
@@ -247,7 +253,8 @@ function formatChangeAsText(
         // Nested changes may not have releaseType - treat as 'none' if missing
         const nestedWithRelease: ClassifiedChange = {
           ...nested,
-          releaseType: (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
+          releaseType:
+            (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
         }
         if (
           nestedWithRelease.releaseType !== 'none' ||
@@ -266,6 +273,8 @@ function formatChangeAsText(
 
 /**
  * Formats an AST comparison report as plain text.
+ *
+ * @alpha
  */
 export function formatASTReportAsText(
   report: ASTComparisonReport,
@@ -402,13 +411,16 @@ function formatChangeAsMarkdown(
         // Nested changes may not have releaseType - treat as 'none' if missing
         const nestedWithRelease: ClassifiedChange = {
           ...nested,
-          releaseType: (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
+          releaseType:
+            (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
         }
         if (
           nestedWithRelease.releaseType !== 'none' ||
           options.includeUnchanged !== false
         ) {
-          lines.push(formatChangeAsMarkdown(nestedWithRelease, options, depth + 1))
+          lines.push(
+            formatChangeAsMarkdown(nestedWithRelease, options, depth + 1),
+          )
         }
       }
     }
@@ -437,6 +449,8 @@ function getMarkdownEmoji(releaseType: ReleaseType): string {
 
 /**
  * Formats an AST comparison report as markdown.
+ *
+ * @alpha
  */
 export function formatASTReportAsMarkdown(
   report: ASTComparisonReport,
@@ -526,8 +540,7 @@ export function formatASTReportAsMarkdown(
   lines.push(`| Total Changes | ${report.stats.total} |`)
   if (report.stats.forbidden > 0)
     lines.push(`| Forbidden | ${report.stats.forbidden} |`)
-  if (report.stats.major > 0)
-    lines.push(`| Breaking | ${report.stats.major} |`)
+  if (report.stats.major > 0) lines.push(`| Breaking | ${report.stats.major} |`)
   if (report.stats.minor > 0) lines.push(`| Minor | ${report.stats.minor} |`)
   if (report.stats.patch > 0) lines.push(`| Patch | ${report.stats.patch} |`)
   if (options.includeUnchanged && report.stats.none > 0)
@@ -542,6 +555,8 @@ export function formatASTReportAsMarkdown(
 
 /**
  * JSON-serializable change representation.
+ *
+ * @alpha
  */
 export interface ASTChangeJSON {
   path: string
@@ -573,6 +588,8 @@ export interface ASTChangeJSON {
 
 /**
  * JSON-serializable report representation.
+ *
+ * @alpha
  */
 export interface ASTReportJSON {
   releaseType: ReleaseType
@@ -664,7 +681,8 @@ function changeToJSON(
     json.nestedChanges = change.nestedChanges.map((nested) => {
       const nestedWithRelease: ClassifiedChange = {
         ...nested,
-        releaseType: (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
+        releaseType:
+          (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
       }
       return changeToJSON(nestedWithRelease, options)
     })
@@ -675,6 +693,8 @@ function changeToJSON(
 
 /**
  * Converts an AST comparison report to JSON format.
+ *
+ * @alpha
  */
 export function formatASTReportAsJSON(
   report: ASTComparisonReport,

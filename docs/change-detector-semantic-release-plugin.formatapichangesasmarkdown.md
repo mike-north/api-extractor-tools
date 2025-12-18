@@ -40,7 +40,7 @@ report
 
 </td><td>
 
-ASTComparisonReport
+[ASTComparisonReport](./change-detector-core.astcomparisonreport.md)
 
 
 </td><td>

@@ -56,7 +56,7 @@ options
 
 </td><td>
 
-ParseOptions
+[ParseOptions](./change-detector-core.parseoptions.md)
 
 
 </td><td>
@@ -69,7 +69,7 @@ _(Optional)_ Optional parse options
 
 **Returns:**
 
-ModuleAnalysisWithTypes
+[ModuleAnalysisWithTypes](./change-detector-core.moduleanalysiswithtypes.md)
 
 Module analysis with TypeScript type information
 

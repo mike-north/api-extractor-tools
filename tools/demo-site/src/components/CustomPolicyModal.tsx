@@ -8,6 +8,7 @@ import type { SerializablePolicy, SerializableRule } from '../types/custom-polic
 import { createEmptyPolicy, createEmptyRule } from '../utils/policySerializer'
 import { RELEASE_TYPES, RELEASE_TYPE_LABELS } from '../constants/rule-options'
 import { RuleEditor } from './RuleEditor'
+import { IntentRuleEditor } from './IntentRuleEditor'
 import './CustomPolicyModal.css'
 
 interface CustomPolicyModalProps {
@@ -49,8 +50,8 @@ export function CustomPolicyModal({
     return () => document.removeEventListener('keydown', handleEscape)
   }, [onClose])
 
-  const handleAddRule = useCallback(() => {
-    setRules((prev) => [...prev, createEmptyRule(prev.length)])
+  const handleAddRule = useCallback((mode: 'intent' | 'dimensional' = 'dimensional') => {
+    setRules((prev) => [...prev, { ...createEmptyRule(prev.length), editorMode: mode }])
   }, [])
 
   const handleUpdateRule = useCallback(
@@ -75,6 +76,15 @@ export function CustomPolicyModal({
         newRules[targetIndex] = temp
         return newRules
       })
+    },
+    [],
+  )
+
+  const handleSwitchMode = useCallback(
+    (index: number, mode: 'intent' | 'dimensional') => {
+      setRules((prev) =>
+        prev.map((r, i) => (i === index ? { ...r, editorMode: mode } : r))
+      )
     },
     [],
   )
@@ -164,27 +174,51 @@ export function CustomPolicyModal({
               </div>
             ) : (
               <div className="rules-list">
-                {rules.map((rule, index) => (
-                  <RuleEditor
-                    key={index}
-                    rule={rule}
-                    index={index}
-                    totalRules={rules.length}
-                    onChange={(updated) => handleUpdateRule(index, updated)}
-                    onDelete={() => handleDeleteRule(index)}
-                    onMove={(direction) => handleMoveRule(index, direction)}
-                  />
-                ))}
+                {rules.map((rule, index) =>
+                  rule.editorMode === 'intent' ? (
+                    <IntentRuleEditor
+                      key={index}
+                      rule={rule}
+                      index={index}
+                      totalRules={rules.length}
+                      onChange={(updated) => handleUpdateRule(index, updated)}
+                      onDelete={() => handleDeleteRule(index)}
+                      onMove={(direction) => handleMoveRule(index, direction)}
+                      onSwitchToDimensional={() => handleSwitchMode(index, 'dimensional')}
+                    />
+                  ) : (
+                    <RuleEditor
+                      key={index}
+                      rule={rule}
+                      index={index}
+                      totalRules={rules.length}
+                      onChange={(updated) => handleUpdateRule(index, updated)}
+                      onDelete={() => handleDeleteRule(index)}
+                      onMove={(direction) => handleMoveRule(index, direction)}
+                    />
+                  )
+                )}
               </div>
             )}
 
-            <button
-              className="add-rule-button"
-              onClick={handleAddRule}
-              type="button"
-            >
-              + Add Rule
-            </button>
+            <div className="add-rule-buttons">
+              <button
+                className="add-rule-button"
+                onClick={() => handleAddRule('intent')}
+                type="button"
+                title="Add a rule using natural language intent expressions"
+              >
+                + Add Intent Rule
+              </button>
+              <button
+                className="add-rule-button secondary"
+                onClick={() => handleAddRule('dimensional')}
+                type="button"
+                title="Add a rule using dimensional classification"
+              >
+                + Add Dimensional Rule
+              </button>
+            </div>
           </div>
         </div>
 

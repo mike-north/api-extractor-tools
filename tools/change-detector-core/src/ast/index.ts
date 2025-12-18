@@ -14,7 +14,6 @@
  * const changes = diffModules(oldAnalysis, newAnalysis);
  * ```
  *
- * @packageDocumentation
  */
 
 // Type exports

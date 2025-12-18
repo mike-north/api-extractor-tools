@@ -50,27 +50,27 @@ Each detected change is represented as an `ApiChange` with:
 interface ApiChange {
   /** Multi-dimensional change classification */
   descriptor: ChangeDescriptor
-  
+
   /** The affected node path (e.g., "MyInterface.myProperty") */
   path: string
-  
+
   /** The kind of AST node affected */
   nodeKind: NodeKind
-  
+
   /** Location information for old/new source */
   oldLocation?: SourceRange
   newLocation?: SourceRange
-  
+
   /** The actual old/new nodes */
   oldNode?: AnalyzableNode
   newNode?: AnalyzableNode
-  
+
   /** Nested changes within this node */
   nestedChanges: ApiChange[]
-  
+
   /** Additional context for this change */
   context: ChangeContext
-  
+
   /** Human-readable explanation */
   explanation: string
 }
@@ -112,14 +112,14 @@ const myPolicy = createPolicy('my-policy', 'major')
       .target('export')
       .action('removed')
       .rationale('Removing exports breaks consumers')
-      .returns('major')
+      .returns('major'),
   )
   .addRule(
     rule('optional-addition')
       .action('added')
       .hasTag('now-optional')
       .rationale('Optional additions are backward compatible')
-      .returns('minor')
+      .returns('minor'),
   )
   .build()
 ```
@@ -141,16 +141,16 @@ Changes are classified using a **multi-dimensional descriptor system** that capt
 type ChangeDescriptor = {
   /** What API construct was affected */
   target: ChangeTarget // 'export' | 'parameter' | 'property' | 'method' | etc.
-  
+
   /** What happened to the construct */
   action: ChangeAction // 'added' | 'removed' | 'modified' | 'renamed' | 'reordered'
-  
+
   /** What aspect changed (for 'modified' actions) */
   aspect?: ChangeAspect // 'type' | 'optionality' | 'readonly' | etc.
-  
+
   /** The semantic direction of the change */
   impact?: ChangeImpact // 'widening' | 'narrowing' | 'equivalent' | 'unrelated'
-  
+
   /** Additional metadata tags */
   tags: Set<ChangeTag> // 'now-required', 'was-optional', etc.
 }
@@ -162,7 +162,7 @@ type ChangeDescriptor = {
 // Adding a required parameter
 {
   target: 'parameter',
-  action: 'added', 
+  action: 'added',
   tags: new Set(['now-required'])
 }
 
@@ -200,10 +200,7 @@ import { createPolicy, rule } from '@api-extractor-tools/change-detector-core'
 const customPolicy = createPolicy('custom', 'major')
   // Match export removals
   .addRule(
-    rule('export-removal')
-      .target('export')
-      .action('removed')
-      .returns('major')
+    rule('export-removal').target('export').action('removed').returns('major'),
   )
   // Match optional parameter additions
   .addRule(
@@ -211,7 +208,7 @@ const customPolicy = createPolicy('custom', 'major')
       .target('parameter')
       .action('added')
       .hasTag('now-optional')
-      .returns('minor')
+      .returns('minor'),
   )
   // Match type widening in return positions
   .addRule(
@@ -219,13 +216,13 @@ const customPolicy = createPolicy('custom', 'major')
       .target('return-type')
       .aspect('type')
       .impact('widening')
-      .returns('minor')
+      .returns('minor'),
   )
   // Custom logic with matcher functions
   .addRule(
     rule('special-case')
-      .when(change => change.path.startsWith('Internal'))
-      .returns('patch')
+      .when((change) => change.path.startsWith('Internal'))
+      .returns('patch'),
   )
   .build()
 ```
@@ -249,9 +246,9 @@ The library includes three built-in policies that implement common versioning st
 
 ```typescript
 import {
-  semverDefaultPolicy,     // Conservative bidirectional policy
-  semverReadOnlyPolicy,    // Optimized for consumers
-  semverWriteOnlyPolicy    // Optimized for producers
+  semverDefaultPolicy, // Conservative bidirectional policy
+  semverReadOnlyPolicy, // Optimized for consumers
+  semverWriteOnlyPolicy, // Optimized for producers
 } from '@api-extractor-tools/change-detector-core'
 ```
 
@@ -261,7 +258,10 @@ When your code only **reads** data from APIs (consuming responses, reading confi
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverReadOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverReadOnlyPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 // Use the built-in read-only policy
 const result = analyzeChanges(oldSource, newSource, ts, {
@@ -270,7 +270,9 @@ const result = analyzeChanges(oldSource, newSource, ts, {
 
 console.log(`Release type: ${result.releaseType}`)
 for (const classifiedChange of result.results) {
-  console.log(`[${classifiedChange.releaseType}] ${classifiedChange.explanation}`)
+  console.log(
+    `[${classifiedChange.releaseType}] ${classifiedChange.explanation}`,
+  )
   if (classifiedChange.matchedRule) {
     console.log(`  Rule: ${classifiedChange.matchedRule.name}`)
   }
@@ -319,7 +321,10 @@ When your code only **writes** data to APIs (creating objects, sending requests)
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverWriteOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverWriteOnlyPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 // Use the built-in write-only policy
 const result = analyzeChanges(oldSource, newSource, ts, {
@@ -372,7 +377,10 @@ When your code both reads and writes, or you're not sure:
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverDefaultPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverDefaultPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 // The default policy assumes bidirectional usage
 const result = analyzeChanges(oldSource, newSource, ts, {
@@ -403,7 +411,7 @@ import {
   classifyChange,
   semverReadOnlyPolicy,
   semverWriteOnlyPolicy,
-  semverDefaultPolicy
+  semverDefaultPolicy,
 } from '@api-extractor-tools/change-detector-core'
 
 // Custom policy that delegates to other policies based on symbol name
@@ -411,23 +419,23 @@ const mixedUsagePolicy = createPolicy('mixed-usage', 'major')
   // Response types use read-only rules (via custom matcher)
   .addRule(
     rule('response-types')
-      .when(change => change.path.endsWith('Response'))
-      .when(change => {
+      .when((change) => change.path.endsWith('Response'))
+      .when((change) => {
         // Delegate to read-only policy
         const result = classifyChange(change, semverReadOnlyPolicy)
         return result.releaseType === 'minor'
       })
-      .returns('minor')
+      .returns('minor'),
   )
   // Request types use write-only rules
   .addRule(
     rule('request-types')
-      .when(change => change.path.endsWith('Request'))
-      .when(change => {
+      .when((change) => change.path.endsWith('Request'))
+      .when((change) => {
         const result = classifyChange(change, semverWriteOnlyPolicy)
         return result.releaseType === 'minor'
       })
-      .returns('minor')
+      .returns('minor'),
   )
   // Everything else uses default conservative rules
   .build()
@@ -437,7 +445,7 @@ const delegatingPolicy = {
   name: 'delegating-policy',
   rules: [],
   defaultReleaseType: 'major' as const,
-  
+
   // Custom classify method that delegates to other policies
   classify(change) {
     if (change.path.endsWith('Response')) {
@@ -447,7 +455,7 @@ const delegatingPolicy = {
       return classifyChange(change, semverWriteOnlyPolicy).releaseType
     }
     return classifyChange(change, semverDefaultPolicy).releaseType
-  }
+  },
 }
 ```
 
@@ -481,7 +489,7 @@ export interface User {
 const result = analyzeChanges(oldSource, newSource, ts, {
   policy: semverDefaultPolicy, // Optional, this is the default
   parseOptions: { extractMetadata: true },
-  diffOptions: { includeNestedChanges: true }
+  diffOptions: { includeNestedChanges: true },
 })
 
 console.log(`Release type: ${result.releaseType}`) // 'major'
@@ -491,7 +499,7 @@ console.log(`Changes: ${result.changes.length}`)
 for (const classifiedChange of result.results) {
   console.log(`${classifiedChange.path}: ${classifiedChange.explanation}`)
   console.log(`  Impact: ${classifiedChange.releaseType}`)
-  
+
   if (classifiedChange.matchedRule) {
     console.log(`  Matched rule: ${classifiedChange.matchedRule.name}`)
     console.log(`  Rationale: ${classifiedChange.matchedRule.description}`)
@@ -509,17 +517,21 @@ import {
   parseModuleWithTypes,
   diffModules,
   classifyChanges,
-  semverDefaultPolicy
+  semverDefaultPolicy,
 } from '@api-extractor-tools/change-detector-core'
 
 // 1. Parse source code into analyzable nodes
-const oldAnalysis = parseModuleWithTypes(oldSource, ts, { extractMetadata: true })
-const newAnalysis = parseModuleWithTypes(newSource, ts, { extractMetadata: true })
+const oldAnalysis = parseModuleWithTypes(oldSource, ts, {
+  extractMetadata: true,
+})
+const newAnalysis = parseModuleWithTypes(newSource, ts, {
+  extractMetadata: true,
+})
 
 // 2. Compute structural differences
 const changes = diffModules(oldAnalysis, newAnalysis, {
   includeNestedChanges: true,
-  renameThreshold: 0.8
+  renameThreshold: 0.8,
 })
 
 // 3. Classify changes using a policy
@@ -539,7 +551,7 @@ import {
   createASTComparisonReport,
   formatASTReportAsText,
   formatASTReportAsMarkdown,
-  formatASTReportAsJSON
+  formatASTReportAsJSON,
 } from '@api-extractor-tools/change-detector-core'
 
 const result = analyzeChanges(oldSource, newSource, ts)
@@ -550,7 +562,7 @@ const report = createASTComparisonReport({
   results: result.results,
   releaseType: result.releaseType,
   oldFile: 'v1.0.0',
-  newFile: 'v1.1.0'
+  newFile: 'v1.1.0',
 })
 
 // Format as text
@@ -573,17 +585,15 @@ Use the read-only policy when your app only consumes API responses:
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverReadOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverReadOnlyPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 // Analyze changes to API response types
-const result = analyzeChanges(
-  oldApiResponseTypes,
-  newApiResponseTypes,
-  ts,
-  {
-    policy: semverReadOnlyPolicy,
-  }
-)
+const result = analyzeChanges(oldApiResponseTypes, newApiResponseTypes, ts, {
+  policy: semverReadOnlyPolicy,
+})
 
 if (result.releaseType === 'major') {
   console.warn('API response changes may break your application!')
@@ -593,7 +603,7 @@ if (result.releaseType === 'major') {
     results: result.results,
     releaseType: result.releaseType,
     oldFile: 'previous-api.d.ts',
-    newFile: 'current-api.d.ts'
+    newFile: 'current-api.d.ts',
   })
   console.log(formatASTReportAsMarkdown(report))
 }
@@ -607,23 +617,23 @@ Use the write-only policy when your service produces data:
 
 ```typescript
 import * as ts from 'typescript'
-import { analyzeChanges, semverWriteOnlyPolicy } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  semverWriteOnlyPolicy,
+} from '@api-extractor-tools/change-detector-core'
 
 // Analyze changes to types your service must produce
-const result = analyzeChanges(
-  oldServiceInterface,
-  newServiceInterface,
-  ts,
-  {
-    policy: semverWriteOnlyPolicy,
-  }
-)
+const result = analyzeChanges(oldServiceInterface, newServiceInterface, ts, {
+  policy: semverWriteOnlyPolicy,
+})
 
 // Backend services often have stricter requirements
 if (result.releaseType === 'major') {
   console.error('Breaking changes detected in service interface')
   // Show which specific changes require attention
-  const breakingChanges = result.results.filter(r => r.releaseType === 'major')
+  const breakingChanges = result.results.filter(
+    (r) => r.releaseType === 'major',
+  )
   for (const change of breakingChanges) {
     console.error(`- ${change.path}: ${change.explanation}`)
   }
@@ -641,35 +651,30 @@ import * as ts from 'typescript'
 import { analyzeChanges } from '@api-extractor-tools/change-detector-core'
 
 // Default policy is conservative - treats both read and write breaking changes as major
-const result = analyzeChanges(
-  oldPublicAPI,
-  newPublicAPI,
-  ts,
-  {
-    // No policy specified - uses semverDefaultPolicy
-  }
-)
+const result = analyzeChanges(oldPublicAPI, newPublicAPI, ts, {
+  // No policy specified - uses semverDefaultPolicy
+})
 
 // Library authors need detailed change tracking
 console.log(`Recommended version bump: ${result.releaseType}`)
 
 // Group changes by severity for release notes
 const changesBySeverity = {
-  major: result.results.filter(r => r.releaseType === 'major'),
-  minor: result.results.filter(r => r.releaseType === 'minor'),
-  patch: result.results.filter(r => r.releaseType === 'patch')
+  major: result.results.filter((r) => r.releaseType === 'major'),
+  minor: result.results.filter((r) => r.releaseType === 'minor'),
+  patch: result.results.filter((r) => r.releaseType === 'patch'),
 }
 
 if (changesBySeverity.major.length > 0) {
   console.log('\nBREAKING CHANGES:')
-  changesBySeverity.major.forEach(change => {
+  changesBySeverity.major.forEach((change) => {
     console.log(`- ${change.path}: ${change.explanation}`)
   })
 }
 
 if (changesBySeverity.minor.length > 0) {
   console.log('\nNEW FEATURES:')
-  changesBySeverity.minor.forEach(change => {
+  changesBySeverity.minor.forEach((change) => {
     console.log(`- ${change.path}: ${change.explanation}`)
   })
 }
@@ -690,7 +695,7 @@ import {
   semverReadOnlyPolicy,
   semverWriteOnlyPolicy,
   semverDefaultPolicy,
-  analyzeChanges
+  analyzeChanges,
 } from '@api-extractor-tools/change-detector-core'
 
 // GraphQL schema policy that applies different rules based on type patterns
@@ -699,49 +704,46 @@ const graphQLPolicy = createPolicy('graphql-schema', 'major')
   .addRule(
     rule('query-field-addition')
       .action('added')
-      .when(change => 
-        change.path.includes('Query') || 
-        change.path.endsWith('QueryResult')
+      .when(
+        (change) =>
+          change.path.includes('Query') || change.path.endsWith('QueryResult'),
       )
-      .returns('minor')
+      .returns('minor'),
   )
   .addRule(
     rule('query-field-removal')
       .action('removed')
-      .when(change => 
-        change.path.includes('Query') ||
-        change.path.endsWith('QueryResult')
+      .when(
+        (change) =>
+          change.path.includes('Query') || change.path.endsWith('QueryResult'),
       )
-      .returns('major')
+      .returns('major'),
   )
   // Mutation input types (write-only): additions can be major, removals minor
   .addRule(
     rule('mutation-required-input')
       .action('added')
       .hasTag('now-required')
-      .when(change => 
-        change.path.endsWith('Input') ||
-        change.path.includes('MutationArgs')
+      .when(
+        (change) =>
+          change.path.endsWith('Input') || change.path.includes('MutationArgs'),
       )
-      .returns('major')
+      .returns('major'),
   )
   .addRule(
     rule('mutation-input-removal')
       .action('removed')
-      .when(change =>
-        change.path.endsWith('Input') ||
-        change.path.includes('MutationArgs')
+      .when(
+        (change) =>
+          change.path.endsWith('Input') || change.path.includes('MutationArgs'),
       )
-      .returns('minor')
+      .returns('minor'),
   )
   .build()
 
-const result = analyzeChanges(
-  oldSchemaTypes,
-  newSchemaTypes,
-  ts,
-  { policy: graphQLPolicy }
-)
+const result = analyzeChanges(oldSchemaTypes, newSchemaTypes, ts, {
+  policy: graphQLPolicy,
+})
 ```
 
 ### 5. **Database Schema Validation**
@@ -755,7 +757,7 @@ import {
   rule,
   classifyChange,
   semverDefaultPolicy,
-  analyzeChanges
+  analyzeChanges,
 } from '@api-extractor-tools/change-detector-core'
 
 // Database schema policy with forbidden changes
@@ -765,7 +767,7 @@ const databaseSchemaPolicy = createPolicy('database-schema', 'major')
     rule('column-removal-forbidden')
       .action('removed')
       .rationale('Removing columns causes data loss')
-      .returns('forbidden')
+      .returns('forbidden'),
   )
   // Type narrowing is forbidden - existing data might not satisfy constraints
   .addRule(
@@ -773,14 +775,14 @@ const databaseSchemaPolicy = createPolicy('database-schema', 'major')
       .aspect('type')
       .impact('narrowing')
       .rationale('Type narrowing may invalidate existing data')
-      .returns('forbidden')
+      .returns('forbidden'),
   )
   // Renames are forbidden - break queries and foreign keys
   .addRule(
     rule('field-rename-forbidden')
       .action('renamed')
       .rationale('Renames break existing queries and foreign key relationships')
-      .returns('forbidden')
+      .returns('forbidden'),
   )
   // Making fields required is forbidden - existing nulls become invalid
   .addRule(
@@ -788,7 +790,7 @@ const databaseSchemaPolicy = createPolicy('database-schema', 'major')
       .aspect('optionality')
       .impact('narrowing')
       .rationale('Making fields required invalidates existing null values')
-      .returns('forbidden')
+      .returns('forbidden'),
   )
   // Safe additions are allowed
   .addRule(
@@ -796,7 +798,7 @@ const databaseSchemaPolicy = createPolicy('database-schema', 'major')
       .action('added')
       .hasTag('now-optional')
       .rationale('Adding optional columns is safe')
-      .returns('minor')
+      .returns('minor'),
   )
   // Type widening is generally safe
   .addRule(
@@ -804,30 +806,31 @@ const databaseSchemaPolicy = createPolicy('database-schema', 'major')
       .aspect('type')
       .impact('widening')
       .rationale('Type widening preserves existing data validity')
-      .returns('minor')
+      .returns('minor'),
   )
   .build()
 
-const result = analyzeChanges(
-  oldSchemaTypes,
-  newSchemaTypes,
-  ts,
-  { policy: databaseSchemaPolicy }
-)
+const result = analyzeChanges(oldSchemaTypes, newSchemaTypes, ts, {
+  policy: databaseSchemaPolicy,
+})
 
 // Handle forbidden changes
 if (result.releaseType === 'forbidden') {
   console.error('❌ FORBIDDEN CHANGES DETECTED')
-  console.error('These changes must be reverted or addressed before deployment:')
-  
-  const forbiddenChanges = result.results.filter(r => r.releaseType === 'forbidden')
+  console.error(
+    'These changes must be reverted or addressed before deployment:',
+  )
+
+  const forbiddenChanges = result.results.filter(
+    (r) => r.releaseType === 'forbidden',
+  )
   for (const change of forbiddenChanges) {
     console.error(`\n- ${change.path}: ${change.explanation}`)
     if (change.matchedRule?.description) {
       console.error(`  Reason: ${change.matchedRule.description}`)
     }
   }
-  
+
   process.exit(1)
 }
 ```
@@ -845,14 +848,14 @@ import { readFileSync } from 'fs'
 import {
   analyzeChanges,
   semverDefaultPolicy,
-  formatASTReportAsMarkdown
+  formatASTReportAsMarkdown,
 } from '@api-extractor-tools/change-detector-core'
 
 const oldTypes = readFileSync('dist/v1.d.ts', 'utf-8')
 const newTypes = readFileSync('dist/v2.d.ts', 'utf-8')
 
 const result = analyzeChanges(oldTypes, newTypes, ts, {
-  policy: semverDefaultPolicy
+  policy: semverDefaultPolicy,
 })
 
 const currentVersion = process.env.CURRENT_VERSION || '1.0.0'
@@ -865,40 +868,40 @@ if (shouldBumpBeHigher(result.releaseType, proposedBump)) {
   console.error(`⚠️ Version bump insufficient!`)
   console.error(`Detected changes require: ${result.releaseType}`)
   console.error(`Proposed version implies: ${proposedBump}`)
-  
+
   // Generate markdown report for PR comment
   const report = createASTComparisonReport({
     changes: result.changes,
     results: result.results,
     releaseType: result.releaseType,
     oldFile: currentVersion,
-    newFile: proposedVersion
+    newFile: proposedVersion,
   })
-  
+
   console.log('\n## API Change Analysis')
   console.log(formatASTReportAsMarkdown(report))
-  
+
   process.exit(1)
 }
 
 console.log('✅ Version bump is appropriate for detected changes')
 
-function getVersionBump(oldVer: string, newVer: string): 'major' | 'minor' | 'patch' {
+function getVersionBump(
+  oldVer: string,
+  newVer: string,
+): 'major' | 'minor' | 'patch' {
   // Implementation depends on your versioning scheme
   // This is a simplified example
   const [oldMajor, oldMinor, oldPatch] = oldVer.split('.').map(Number)
   const [newMajor, newMinor, newPatch] = newVer.split('.').map(Number)
-  
+
   if (newMajor > oldMajor) return 'major'
   if (newMinor > oldMinor) return 'minor'
   if (newPatch > oldPatch) return 'patch'
   return 'patch' // Default
 }
 
-function shouldBumpBeHigher(
-  detected: string, 
-  proposed: string
-): boolean {
+function shouldBumpBeHigher(detected: string, proposed: string): boolean {
   const severity = { forbidden: 4, major: 3, minor: 2, patch: 1, none: 0 }
   return severity[detected] > severity[proposed]
 }
@@ -939,15 +942,17 @@ const result = analyzeChanges(oldSource, newSource, ts, { policy })
 
 if (result.releaseType === 'forbidden') {
   console.error('❌ Forbidden changes detected - cannot release')
-  
-  const forbiddenChanges = result.results.filter(r => r.releaseType === 'forbidden')
+
+  const forbiddenChanges = result.results.filter(
+    (r) => r.releaseType === 'forbidden',
+  )
   for (const change of forbiddenChanges) {
     console.error(`  - ${change.path}: ${change.explanation}`)
     if (change.matchedRule?.description) {
       console.error(`    Reason: ${change.matchedRule.description}`)
     }
   }
-  
+
   process.exit(1)
 }
 ```
@@ -966,13 +971,15 @@ import {
   analyzeChanges,
   semverDefaultPolicy,
   semverReadOnlyPolicy,
-  semverWriteOnlyPolicy
+  semverWriteOnlyPolicy,
 } from '@api-extractor-tools/change-detector-core'
 
 // Choose based on your API usage pattern
-const policy = isConsumerAPI ? semverReadOnlyPolicy : 
-               isProducerAPI ? semverWriteOnlyPolicy :
-               semverDefaultPolicy // Conservative default
+const policy = isConsumerAPI
+  ? semverReadOnlyPolicy
+  : isProducerAPI
+    ? semverWriteOnlyPolicy
+    : semverDefaultPolicy // Conservative default
 
 const result = analyzeChanges(oldSource, newSource, ts, { policy })
 ```
@@ -984,12 +991,12 @@ Always document which policy you're using and why:
 ```typescript
 /**
  * API Change Detection Policy
- * 
+ *
  * This project uses semverReadOnlyPolicy because:
  * - We only consume data from external APIs
  * - Our frontend reads API responses but doesn't send complex objects
  * - Adding required fields to responses is safe for our use case
- * 
+ *
  * Review date: 2024-01-01
  * Next review: When we start sending complex request objects
  */
@@ -997,7 +1004,7 @@ const API_POLICY = semverReadOnlyPolicy
 
 const result = analyzeChanges(oldTypes, newTypes, ts, {
   policy: API_POLICY,
-  parseOptions: { extractMetadata: true }
+  parseOptions: { extractMetadata: true },
 })
 ```
 
@@ -1024,9 +1031,9 @@ function makeTestChange(descriptor: Partial<ChangeDescriptor>): ApiChange {
     context: {
       isNested: false,
       depth: 0,
-      ancestors: []
+      ancestors: [],
     },
-    explanation: 'Test change'
+    explanation: 'Test change',
   }
 }
 
@@ -1039,9 +1046,9 @@ describe('customDatabasePolicy', () => {
   })
 
   it('allows optional column addition', () => {
-    const change = makeTestChange({ 
+    const change = makeTestChange({
       action: 'added',
-      tags: new Set(['now-optional'])
+      tags: new Set(['now-optional']),
     })
     const result = classifyChange(change, customDatabasePolicy)
     expect(result.releaseType).toBe('minor')
@@ -1057,15 +1064,15 @@ Include rationales in your rules to explain the reasoning:
 const documentedPolicy = createPolicy('well-documented', 'major')
   .addRule(
     rule('internal-symbol-changes')
-      .when(change => change.path.startsWith('Internal'))
+      .when((change) => change.path.startsWith('Internal'))
       .rationale('Internal symbols are not part of public API contract')
-      .returns('patch')
+      .returns('patch'),
   )
   .addRule(
     rule('experimental-api-changes')
-      .when(change => change.path.includes('Experimental'))
+      .when((change) => change.path.includes('Experimental'))
       .rationale('Experimental APIs are exempt from semver guarantees')
-      .returns('minor')
+      .returns('minor'),
   )
   .build()
 ```
@@ -1125,12 +1132,14 @@ const overrideReason = process.env.API_CHANGE_OVERRIDE_REASON
 if (result.releaseType === 'major' && hasOverride) {
   console.warn('⚠️  Manual override applied to breaking changes')
   console.warn(`Reason: ${overrideReason}`)
-  
+
   // Still show the analysis for transparency
   console.log('\nDetected changes:')
-  const report = createASTComparisonReport({ /* ... */ })
+  const report = createASTComparisonReport({
+    /* ... */
+  })
   console.log(formatASTReportAsText(report))
-  
+
   // Log for audit trail
   console.log(`\nOverride applied by: ${process.env.USER}`)
   console.log(`Timestamp: ${new Date().toISOString()}`)
@@ -1153,7 +1162,7 @@ const myProjectPolicy = {
   name: 'my-project-v2.1.0', // Version your policies!
   rules: [...],
   defaultReleaseType: 'major' as const,
-  
+
   // Include metadata about policy evolution
   metadata: {
     version: '2.1.0',
@@ -1176,44 +1185,44 @@ The AST-based system classifies changes using multiple dimensions. Here are exam
 
 ### Export-Level Changes
 
-| Change Pattern | Descriptor | Default | Read-Only | Write-Only | Notes |
-|----------------|------------|---------|-----------|------------|---------|
-| Export removed | `{target: 'export', action: 'removed'}` | major | major | major | Always breaking |
-| Export added | `{target: 'export', action: 'added'}` | minor | minor | minor | Always safe |
-| Export renamed | `{target: 'export', action: 'renamed'}` | major | major | major | Always breaking |
+| Change Pattern | Descriptor                              | Default | Read-Only | Write-Only | Notes           |
+| -------------- | --------------------------------------- | ------- | --------- | ---------- | --------------- |
+| Export removed | `{target: 'export', action: 'removed'}` | major   | major     | major      | Always breaking |
+| Export added   | `{target: 'export', action: 'added'}`   | minor   | minor     | minor      | Always safe     |
+| Export renamed | `{target: 'export', action: 'renamed'}` | major   | major     | major      | Always breaking |
 
 ### Type Modifications
 
-| Change Pattern | Descriptor | Default | Read-Only | Write-Only | Impact |
-|----------------|------------|---------|-----------|------------|---------|
-| Type narrowed | `{action: 'modified', aspect: 'type', impact: 'narrowing'}` | major | major | minor | Readers can't handle, writers benefit |
-| Type widened | `{action: 'modified', aspect: 'type', impact: 'widening'}` | minor | minor | major | Readers benefit, writers must handle more |
-| Type equivalent | `{action: 'modified', aspect: 'type', impact: 'equivalent'}` | none | none | none | Semantically identical |
+| Change Pattern  | Descriptor                                                   | Default | Read-Only | Write-Only | Impact                                    |
+| --------------- | ------------------------------------------------------------ | ------- | --------- | ---------- | ----------------------------------------- |
+| Type narrowed   | `{action: 'modified', aspect: 'type', impact: 'narrowing'}`  | major   | major     | minor      | Readers can't handle, writers benefit     |
+| Type widened    | `{action: 'modified', aspect: 'type', impact: 'widening'}`   | minor   | minor     | major      | Readers benefit, writers must handle more |
+| Type equivalent | `{action: 'modified', aspect: 'type', impact: 'equivalent'}` | none    | none      | none       | Semantically identical                    |
 
 ### Property/Parameter Changes
 
-| Change Pattern | Descriptor | Default | Read-Only | Write-Only | Reasoning |
-|----------------|------------|---------|-----------|------------|-----------|
-| Required param added | `{target: 'parameter', action: 'added', tags: ['now-required']}` | major | minor | major | Writers must provide, readers get more data |
-| Optional param added | `{target: 'parameter', action: 'added', tags: ['now-optional']}` | minor | minor | minor | Safe for everyone |
-| Parameter removed | `{target: 'parameter', action: 'removed'}` | major | major | minor | Readers expect it, writers don't need to provide |
-| Parameter reordered | `{target: 'parameter', action: 'reordered'}` | major | major | major | Semantic change affects positional calls |
+| Change Pattern       | Descriptor                                                       | Default | Read-Only | Write-Only | Reasoning                                        |
+| -------------------- | ---------------------------------------------------------------- | ------- | --------- | ---------- | ------------------------------------------------ |
+| Required param added | `{target: 'parameter', action: 'added', tags: ['now-required']}` | major   | minor     | major      | Writers must provide, readers get more data      |
+| Optional param added | `{target: 'parameter', action: 'added', tags: ['now-optional']}` | minor   | minor     | minor      | Safe for everyone                                |
+| Parameter removed    | `{target: 'parameter', action: 'removed'}`                       | major   | major     | minor      | Readers expect it, writers don't need to provide |
+| Parameter reordered  | `{target: 'parameter', action: 'reordered'}`                     | major   | major     | major      | Semantic change affects positional calls         |
 
 ### Optionality Changes
 
-| Change Pattern | Descriptor | Default | Read-Only | Write-Only | Reasoning |
-|----------------|------------|---------|-----------|------------|-----------|
-| Required → Optional | `{aspect: 'optionality', impact: 'widening', tags: ['was-required', 'now-optional']}` | major | major | minor | Readers may get undefined |
-| Optional → Required | `{aspect: 'optionality', impact: 'narrowing', tags: ['was-optional', 'now-required']}` | major | minor | major | Writers must provide value |
+| Change Pattern      | Descriptor                                                                             | Default | Read-Only | Write-Only | Reasoning                  |
+| ------------------- | -------------------------------------------------------------------------------------- | ------- | --------- | ---------- | -------------------------- |
+| Required → Optional | `{aspect: 'optionality', impact: 'widening', tags: ['was-required', 'now-optional']}`  | major   | major     | minor      | Readers may get undefined  |
+| Optional → Required | `{aspect: 'optionality', impact: 'narrowing', tags: ['was-optional', 'now-required']}` | major   | minor     | major      | Writers must provide value |
 
 ### Metadata Changes
 
-| Change Pattern | Descriptor | Default | Read-Only | Write-Only | Impact |
-|----------------|------------|---------|-----------|------------|---------|
-| Deprecation added | `{aspect: 'deprecation', impact: 'widening'}` | patch | patch | patch | Informational only |
-| Deprecation removed | `{aspect: 'deprecation', impact: 'narrowing'}` | minor | minor | minor | Notable improvement |
-| Default value added | `{aspect: 'default-value', tags: ['has-default']}` | patch | patch | patch | Documentation improvement |
-| Default value removed | `{aspect: 'default-value', tags: ['had-default']}` | minor | minor | major | Writers must be explicit |
+| Change Pattern        | Descriptor                                         | Default | Read-Only | Write-Only | Impact                    |
+| --------------------- | -------------------------------------------------- | ------- | --------- | ---------- | ------------------------- |
+| Deprecation added     | `{aspect: 'deprecation', impact: 'widening'}`      | patch   | patch     | patch      | Informational only        |
+| Deprecation removed   | `{aspect: 'deprecation', impact: 'narrowing'}`     | minor   | minor     | minor      | Notable improvement       |
+| Default value added   | `{aspect: 'default-value', tags: ['has-default']}` | patch   | patch     | patch      | Documentation improvement |
+| Default value removed | `{aspect: 'default-value', tags: ['had-default']}` | minor   | minor     | major      | Writers must be explicit  |
 
 ### Key Insights
 

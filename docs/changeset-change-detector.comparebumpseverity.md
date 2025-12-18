@@ -40,7 +40,7 @@ a
 
 </td><td>
 
-[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| ReleaseType \| null
+[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| [ReleaseType](./change-detector-core.releasetype.md) \| null
 
 
 </td><td>
@@ -56,7 +56,7 @@ b
 
 </td><td>
 
-[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| ReleaseType \| null
+[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| [ReleaseType](./change-detector-core.releasetype.md) \| null
 
 
 </td><td>

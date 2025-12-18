@@ -1,6 +1,5 @@
 /**
  * Re-export parameter analysis functionality from the core package.
- * @packageDocumentation
  */
 
 export {

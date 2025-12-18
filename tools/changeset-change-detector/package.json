@@ -11,7 +11,8 @@
     "clean": "rm -rf dist",
     "build": "tsc",
     "generate:api-report": "api-extractor run --local --verbose",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:types",
+    "test:types": "tsd --files 'test/**/*.test-d.ts' --typings src/index.ts",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
     "check:eslint": "eslint src test",
@@ -35,9 +36,10 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.55.1",
     "@types/node": "^22.10.2",
-    "fixturify-project": "^7.1.3",
-    "typescript": "5.8.3",
     "@vitest/coverage-v8": "^4.0.15",
+    "fixturify-project": "^7.1.3",
+    "tsd": "^0.33.0",
+    "typescript": "5.8.3",
     "vitest": "^4.0.15"
   }
 }

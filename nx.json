@@ -31,6 +31,22 @@
       "inputs": ["source", "tsConfig"],
       "outputs": ["{projectRoot}/dist"]
     },
+    "test:types": {
+      "dependsOn": [
+        "build",
+        "^build",
+        "generate:api-report",
+        "^generate:api-report"
+      ],
+      "cache": true,
+      "inputs": [
+        "source",
+        "tsConfig",
+        "{projectRoot}/test/**/*",
+        "{projectRoot}/vitest.config.mts"
+      ],
+      "outputs": []
+    },
     "test": {
       "dependsOn": [
         "build",

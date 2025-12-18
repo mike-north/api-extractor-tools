@@ -1,6 +1,5 @@
 /**
  * Re-export classifier functionality from the core package.
- * @packageDocumentation
  */
 
 export {

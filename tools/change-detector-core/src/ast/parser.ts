@@ -3,8 +3,6 @@
  *
  * Uses \@typescript-eslint/typescript-estree for parsing and optionally
  * TypeScript's type checker for type resolution.
- *
- * @packageDocumentation
  */
 
 import { parse, AST_NODE_TYPES } from '@typescript-eslint/typescript-estree'
@@ -971,6 +969,8 @@ function processStatement(
  * @param source - The source code to parse
  * @param options - Parse options
  * @returns ModuleAnalysis with all extracted nodes
+ *
+ * @alpha
  */
 export function parseModule(
   source: string,
@@ -1036,6 +1036,8 @@ export function parseModule(
  * @param tsModule - The TypeScript module
  * @param options - Parse options
  * @returns ModuleAnalysisWithTypes with TypeScript program access
+ *
+ * @alpha
  */
 export function parseModuleWithTypes(
   source: string,

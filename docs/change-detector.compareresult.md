@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-ApiChange\[\]
+[ApiChange](./change-detector-core.apichange.md)<!-- -->\[\]
 
 
 </td><td>

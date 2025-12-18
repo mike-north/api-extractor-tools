@@ -16,8 +16,6 @@
  *
  * const results = classifyChanges(changes, myPolicy);
  * ```
- *
- * @packageDocumentation
  */
 
 // Rule builder type exports

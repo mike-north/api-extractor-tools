@@ -2,8 +2,6 @@
  * Built-in policies using the rule-based policy system.
  *
  * These policies provide semantic versioning guidance for API changes.
- *
- * @packageDocumentation
  */
 
 import { rule, createPolicy, type Policy } from './rule-builder'
@@ -24,6 +22,8 @@ import { rule, createPolicy, type Policy } from './rule-builder'
  * - Type widening is non-breaking (minor)
  * - Deprecations are patch-level
  * - Equivalent changes have no impact
+ *
+ * @alpha
  */
 export const semverDefaultPolicy: Policy = createPolicy(
   'semver-default',
@@ -263,6 +263,8 @@ export const semverDefaultPolicy: Policy = createPolicy(
  * - Type narrowing is breaking (might not handle all values)
  * - Adding members is safe (more data available)
  * - Removing members is breaking (expected data missing)
+ *
+ * @alpha
  */
 export const semverReadOnlyPolicy: Policy = createPolicy(
   'semver-read-only',
@@ -363,18 +365,11 @@ export const semverReadOnlyPolicy: Policy = createPolicy(
   )
 
   // Default changes - patch
-  .addRule(
-    rule('default-change')
-      .aspect('default-value')
-      .returns('patch'),
-  )
+  .addRule(rule('default-change').aspect('default-value').returns('patch'))
 
   // Type equivalent - none
   .addRule(
-    rule('type-equivalent')
-      .aspect('type')
-      .impact('equivalent')
-      .returns('none'),
+    rule('type-equivalent').aspect('type').impact('equivalent').returns('none'),
   )
   .build()
 
@@ -390,6 +385,8 @@ export const semverReadOnlyPolicy: Policy = createPolicy(
  * - Type widening is breaking (must handle new value types)
  * - Removing optional members is safe (don't need to provide)
  * - Adding required members is breaking (must provide new values)
+ *
+ * @alpha
  */
 export const semverWriteOnlyPolicy: Policy = createPolicy(
   'semver-write-only',
@@ -538,17 +535,10 @@ export const semverWriteOnlyPolicy: Policy = createPolicy(
   )
 
   // Default changes - patch
-  .addRule(
-    rule('default-change')
-      .aspect('default-value')
-      .returns('patch'),
-  )
+  .addRule(rule('default-change').aspect('default-value').returns('patch'))
 
   // Type equivalent - none
   .addRule(
-    rule('type-equivalent')
-      .aspect('type')
-      .impact('equivalent')
-      .returns('none'),
+    rule('type-equivalent').aspect('type').impact('equivalent').returns('none'),
   )
   .build()

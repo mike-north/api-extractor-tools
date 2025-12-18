@@ -4,8 +4,6 @@
  * @remarks
  * The registry provides a central place to register plugins and look up their
  * capabilities by fully-qualified ID, file extension, or format type.
- *
- * @packageDocumentation
  */
 
 import type {

@@ -11,7 +11,8 @@
     "clean": "rm -rf dist",
     "build": "tsc",
     "generate:api-report": "api-extractor run --local --verbose",
-    "test": "vitest run",
+    "test": "vitest run && pnpm test:types",
+    "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
     "check:eslint": "eslint src test",
@@ -32,6 +33,7 @@
     "@types/node": "^22.10.2",
     "@vitest/coverage-v8": "^4.0.15",
     "fixturify-project": "^7.1.3",
+    "tsd": "^0.33.0",
     "vitest": "^4.0.15",
     "zod": "^4.1.13"
   }
