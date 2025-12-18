@@ -326,6 +326,22 @@ export {
   // Progressive rule builder
   ProgressiveRuleBuilder,
   createProgressivePolicy,
+  // Intent parser functions
+  parseIntent,
+  isValidIntentExpression,
+  suggestIntentCorrections,
+  // Pattern compiler functions
+  compilePattern,
+  isValidPatternTemplate,
+  inferConstraints,
+  // Pattern decompiler functions
+  decompileToPattern,
+  findBestPattern,
+  calculatePatternConfidence,
+  // Intent synthesizer functions
+  synthesizeIntent,
+  detectCommonPattern,
+  generateIntentExpression,
 } from './dsl'
 
 // =============================================================================

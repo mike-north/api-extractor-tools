@@ -20,6 +20,10 @@ import type {
 export interface SerializableRule {
   /** Unique name for the rule */
   name: string
+  /** Intent expression for natural language rules */
+  intentExpression?: string
+  /** Editor mode preference */
+  editorMode?: 'intent' | 'dimensional'
   /** Target types to match (OR logic) */
   targets?: ChangeTarget[]
   /** Actions to match (OR logic) */
