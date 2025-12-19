@@ -726,7 +726,10 @@ describe('DSL Performance Tests', () => {
       console.log('Performance by rule type:', results)
     })
 
-    it('should scale linearly with rule count', () => {
+    // Skipped: Non-deterministic on CI runners due to resource sharing and JIT variance.
+    // See #178 for dedicated performance benchmarking infrastructure.
+    // TODO: Re-enable when dedicated benchmarking is set up.
+    it.skip('should scale linearly with rule count', () => {
       const ruleCounts = [100, 200, 500, 1000]
       const results: Array<{ count: number; duration: number }> = []
 
