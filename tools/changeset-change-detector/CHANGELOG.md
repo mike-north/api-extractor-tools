@@ -1,5 +1,12 @@
 # @api-extractor-tools/changeset-change-detector
 
+## 0.1.0-alpha.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @api-extractor-tools/change-detector@0.1.0-alpha.2
+
 ## 0.1.0-alpha.1
 
 ### Patch Changes
