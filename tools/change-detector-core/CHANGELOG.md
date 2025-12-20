@@ -1,5 +1,100 @@
 # @api-extractor-tools/change-detector-core
 
+## 0.1.0-alpha.2
+
+### Minor Changes
+
+- [#172](https://github.com/mike-north/api-extractor-tools/pull/172) [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd) Thanks [@mike-north](https://github.com/mike-north)! - feat: complete bidirectional transformation pipeline with Pattern Decompiler and Intent Synthesizer
+
+  Implements Package 4 (Pattern Decompiler) and Package 5 (Intent Synthesizer) of the 8-package Progressive DSL System, completing the bidirectional transformation pipeline that enables seamless conversion between all three DSL representation levels.
+
+  **Pattern Decompiler (Package 4)**:
+  - Reverse-compiles dimensional rules back into pattern template representations
+  - Provides confidence scoring for decompilation accuracy and reliability
+  - Handles complex dimensional rule structures with multiple constraints
+  - Enables round-trip transformation validation between pattern and dimensional levels
+
+  **Intent Synthesizer (Package 5)**:
+  - Synthesizes natural language intent expressions from pattern rules
+  - Generates human-readable descriptions of complex rule logic
+  - Supports multiple verbosity levels for different use cases
+  - Maintains semantic accuracy while improving readability
+
+  **Bidirectional Pipeline Completion**:
+  - Full transformation support: Intent ↔ Pattern ↔ Dimensional
+  - Confidence-based validation for transformation reliability
+  - Comprehensive test coverage for all transformation paths
+  - Demo examples showcasing real-world usage scenarios
+
+  This implementation enables users to work at any DSL level while maintaining full interoperability, providing maximum flexibility for rule authoring and system integration.
+
+- [#172](https://github.com/mike-north/api-extractor-tools/pull/172) [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd) Thanks [@mike-north](https://github.com/mike-north)! - feat: complete Progressive DSL System implementation with legacy interface removal
+
+  Introduces a comprehensive three-layer DSL system that revolutionizes API change detection rule authoring through progressive complexity abstraction. This implementation provides a complete solution for expressing change detection rules at multiple levels of sophistication.
+
+  **Three-Layer DSL Architecture**:
+  - **Level 1 (Intent-based)**: Natural language expressions for intuitive rule authoring - handles 80% of common use cases with phrases like "breaking removal" or "deprecated addition"
+  - **Level 2 (Pattern-based)**: Template patterns with placeholders for structured rule definitions - addresses 15% of moderate complexity scenarios with expressions like "removed {target}"
+  - **Level 3 (Dimensional)**: Full multi-dimensional classification system for complex edge cases - provides complete control for the remaining 5% of advanced scenarios
+
+  **Advanced Intelligence Features**:
+  - **Bidirectional Transformations**: Seamless conversion between all three DSL levels with confidence scoring to ensure transformation reliability
+  - **Fuzzy Matching & Suggestions**: Intelligent intent recognition using Levenshtein distance algorithms for typo tolerance and smart suggestions
+  - **Type-Safe Abstractions**: Discriminated unions prevent invalid dimension combinations and eliminate over-specification requirements
+  - **Real-time Validation**: Live rule validation with contextual error messages and correction suggestions
+
+  **Breaking Changes**:
+  - **Legacy Builder Interface Removal**: Completely eliminates deprecated builder patterns in favor of the new fluent DSL API, requiring migration of existing rule definitions
+  - **Simplified API Surface**: Streamlined interface removes complexity while maintaining full feature parity
+
+  **Demo Site Integration**:
+  - **IntentRuleEditor Component**: New natural language rule authoring interface with live preview capabilities
+  - **Bidirectional Mode Switching**: Users can seamlessly toggle between intent-based and dimensional rule editors
+  - **Interactive Examples**: Comprehensive demonstration of rule patterns across all DSL levels
+  - **Real-time Validation Feedback**: Built-in validation with helpful error messages and intelligent suggestions
+
+  **Developer Experience Improvements**:
+  - **Fluent Builder API**: Modern, type-safe API design without legacy dependencies
+  - **Comprehensive Documentation**: Complete examples and migration guides for all DSL levels
+  - **Enhanced IDE Support**: Full TypeScript integration with intelligent autocomplete and error detection
+
+  This implementation delivers a user-friendly yet powerful system that scales from simple natural language expressions to complex multi-dimensional rule classification, enabling developers to work at their preferred level of complexity while maintaining full system interoperability.
+
+- [#172](https://github.com/mike-north/api-extractor-tools/pull/172) [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd) Thanks [@mike-north](https://github.com/mike-north)! - feat: implement Progressive DSL System foundation
+
+  Adds a three-layer DSL system for expressing API change rules with progressive complexity:
+  - **Level 1 (Intent-based)**: Natural language expressions like "breaking removal" for 80% of use cases
+  - **Level 2 (Pattern-based)**: Template patterns with placeholders like "removed {target}" for 15% of use cases
+  - **Level 3 (Dimensional)**: Full multi-dimensional classification for 5% of complex use cases
+
+  Key improvements:
+  - Prevents invalid dimension combinations through discriminated unions
+  - Eliminates over-specification requirements in rule definitions
+  - Provides bidirectional transformation between representation levels
+  - Maintains backward compatibility with existing dimensional system
+
+  This foundation (Package 1 of 8) provides comprehensive type definitions. Subsequent packages will implement parsing, compilation, and transformation capabilities.
+
+### Patch Changes
+
+- [#172](https://github.com/mike-north/api-extractor-tools/pull/172) [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd) Thanks [@mike-north](https://github.com/mike-north)! - feat: implement Intent Parser and Pattern Compiler for Progressive DSL System
+
+  Implements Package 2 (Intent Parser) and Package 3 (Pattern Compiler) of the 8-package Progressive DSL System, adding full functionality to previously stubbed implementations.
+
+  **Intent Parser (Package 2)**:
+  - Parses natural language intent expressions into pattern-based rules
+  - Provides fuzzy matching for user intent with confidence scoring
+  - Suggests corrections for unrecognized or ambiguous intents
+  - Supports bidirectional transformation between intent and pattern representations
+
+  **Pattern Compiler (Package 3)**:
+  - Compiles pattern templates with placeholders into dimensional rules
+  - Validates pattern syntax and parameter substitution
+  - Integrates with the existing classification system for rule evaluation
+  - Maintains compatibility with the current dimensional rule structure
+
+  These implementations enable the DSL system to process user input through the complete transformation pipeline: Intent → Pattern → Dimensional rules, providing a user-friendly interface while maintaining the power of the underlying classification engine.
+
 ## 0.1.0-alpha.1
 
 ### Minor Changes
