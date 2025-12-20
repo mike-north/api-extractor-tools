@@ -1,17 +1,18 @@
 /**
- * Tests for the Progressive Rule Builder Integration
+ * Core API tests for the Progressive Rule Builder.
  *
- * @packageDocumentation
+ * Tests the main methods: intent(), pattern(), dimensional(),
+ * transform(), build(), and helper methods.
  */
 
 import { describe, it, expect } from 'vitest'
 import {
   createProgressivePolicy,
   createStandardPolicy,
-} from '../../src/dsl/rule-builder-v2'
-import type { DSLPolicy } from '../../src/dsl/dsl-types'
+} from '../../../src/dsl/rule-builder-v2'
+import type { DSLPolicy } from '../../../src/dsl/dsl-types'
 
-describe('ProgressiveRuleBuilder', () => {
+describe('ProgressiveRuleBuilder - Core API', () => {
   describe('intent() method', () => {
     it('should add intent-based rules', () => {
       const builder = createProgressivePolicy()
