@@ -160,7 +160,7 @@ console.log(`Would modify ${result.modifiedFiles.length} files`);
 
 ## Integration with Build Pipeline
 
-**Important**: This tool should be integrated into your package's `build` script to run automatically after TypeScript compilation but before API Extractor.
+**Important**: This tool should run **immediately before** generating or checking API reports with API Extractor. This ensures declaration files are normalized right before API Extractor processes them.
 
 ### Recommended Integration
 
@@ -187,6 +187,16 @@ Or if you prefer separate steps:
 }
 ```
 
+For CI validation (checking that API reports haven't changed):
+
+```json
+{
+  "scripts": {
+    "check:api-report": "declaration-file-normalizer dist/index.d.ts && api-extractor run"
+  }
+}
+```
+
 ### Workflow
 
 ```text
@@ -194,10 +204,10 @@ tsc → declaration-file-normalizer → api-extractor
 ```
 
 1. TypeScript emits declaration files (possibly with inconsistent union/intersection ordering)
-2. `declaration-file-normalizer` stabilizes the type ordering in-place
+2. **`declaration-file-normalizer` runs immediately before API Extractor** to stabilize type ordering in-place
 3. API Extractor processes the normalized files, producing stable API reports
 
-This integration ensures that your API reports remain stable across builds, even when TypeScript's internal ordering changes.
+**Key principle**: The normalizer should always run right before API Extractor to ensure consistent inputs, whether you're generating reports (`--local`) or validating them (CI).
 
 ## Testing
 
