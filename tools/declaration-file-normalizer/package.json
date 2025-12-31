@@ -1,0 +1,35 @@
+{
+  "name": "@api-extractor-tools/declaration-file-normalizer",
+  "version": "0.0.1-alpha.0",
+  "description": "Normalizes TypeScript declaration files",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/declaration-file-normalizer-public.d.ts",
+  "bin": {
+    "declaration-file-normalizer": "./dist/cli.js"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc",
+    "generate:api-report": "api-extractor run --local --verbose",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
+    "check:eslint": "eslint src test",
+    "check:typecheck-tests": "tsc -p test/tsconfig.json",
+    "check:api-report": "api-extractor run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.25.0",
+  "dependencies": {
+    "typescript": "5.8.3"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.55.1",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^4.0.15",
+    "vitest": "^4.0.15"
+  }
+}
