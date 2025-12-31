@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
@@ -60,7 +60,9 @@ describe('CLI', () => {
 
     // Verify file was actually modified
     const updatedContent = fs.readFileSync(filePath, 'utf-8')
-    expect(updatedContent).toBe(`export type Status = "apple" | "banana" | "zebra";`)
+    expect(updatedContent).toBe(
+      `export type Status = "apple" | "banana" | "zebra";`,
+    )
   })
 
   it('should respect --dry-run flag', async () => {
@@ -68,7 +70,9 @@ describe('CLI', () => {
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} --dry-run "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --dry-run "${filePath}"`,
+    )
 
     expect(stdout).toContain('dry-run mode - no files were modified')
     expect(stdout).toContain('Files processed: 1')
@@ -94,7 +98,9 @@ describe('CLI', () => {
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} --verbose "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${filePath}"`,
+    )
 
     expect(stdout).toContain('Building file graph')
     expect(stdout).toContain('Found')
@@ -131,7 +137,9 @@ describe('CLI', () => {
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} --dry-run --verbose "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --dry-run --verbose "${filePath}"`,
+    )
 
     expect(stdout).toContain('Building file graph')
     expect(stdout).toContain('dry-run mode')
@@ -214,6 +222,8 @@ export type Status = "z" | "a";`
     expect(stdout).toContain('Types normalized: 1')
 
     const updatedContent = fs.readFileSync(filePath, 'utf-8')
-    expect(updatedContent).toBe(`export type Combined = Apple & Banana & Zebra;`)
+    expect(updatedContent).toBe(
+      `export type Combined = Apple & Banana & Zebra;`,
+    )
   })
 })

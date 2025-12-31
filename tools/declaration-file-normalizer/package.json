@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc",
+    "build": "tsc && node dist/cli.js dist/index.d.ts && api-extractor run --local",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
