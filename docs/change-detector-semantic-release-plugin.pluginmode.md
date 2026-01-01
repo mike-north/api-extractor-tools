@@ -14,5 +14,5 @@ Operating mode for the plugin.
 **Signature:**
 
 ```typescript
-export type PluginMode = 'validate' | 'override' | 'advisory';
+export type PluginMode = 'advisory' | 'override' | 'validate';
 ```

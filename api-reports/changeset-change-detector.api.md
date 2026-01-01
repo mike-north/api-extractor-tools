@@ -27,10 +27,10 @@ export function analyzeWorkspace(options?: AnalyzeOptions): WorkspaceAnalysisRes
 export type ChangesetBumpType = 'major' | 'minor' | 'patch';
 
 // @alpha
-export function compareBumpSeverity(a: ChangesetBumpType | ReleaseType | null, b: ChangesetBumpType | ReleaseType | null): number;
+export function compareBumpSeverity(a: ChangesetBumpType | null | ReleaseType, b: ChangesetBumpType | null | ReleaseType): number;
 
 // @alpha
-export function createChangesetFromAnalysis(analysis: WorkspaceAnalysisResult, customSummary?: string): PendingChangeset | null;
+export function createChangesetFromAnalysis(analysis: WorkspaceAnalysisResult, customSummary?: string): null | PendingChangeset;
 
 // @alpha
 export function determineBaseline(pkg: PackageInfo, cwd: string, explicitRef?: string): string;
@@ -70,7 +70,7 @@ export interface GenerationResult {
 }
 
 // @alpha
-export function getFileAtRef(filePath: string, ref: string, cwd: string): string | null;
+export function getFileAtRef(filePath: string, ref: string, cwd: string): null | string;
 
 // @alpha
 export interface PackageAnalysisResult {
@@ -82,7 +82,7 @@ export interface PackageAnalysisResult {
 
 // @alpha
 export interface PackageInfo {
-    declarationFile: string | null;
+    declarationFile: null | string;
     name: string;
     path: string;
     version: string;

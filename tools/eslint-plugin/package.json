@@ -16,7 +16,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc",
+    "build": "tsc && node ../declaration-file-normalizer/dist/cli.js dist/index.d.ts && api-extractor run --local",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts' --typings src/index.ts",
@@ -44,6 +44,7 @@
     "@microsoft/tsdoc": "^0.15.1"
   },
   "devDependencies": {
+    "@api-extractor-tools/declaration-file-normalizer": "workspace:*",
     "@microsoft/api-extractor": "^7.55.1",
     "@types/node": "^22.10.2",
     "@typescript-eslint/parser": "^8.48.1",

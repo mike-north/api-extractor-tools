@@ -22,22 +22,22 @@ export function analyzeAPIChanges(cwd: string, config: ResolvedPluginConfig, las
 }): AnalysisResult;
 
 // @alpha
-export function analyzeCommits(pluginConfig: PluginConfig, context: SemanticReleaseContext): SemanticReleaseType | null;
+export function analyzeCommits(pluginConfig: PluginConfig, context: SemanticReleaseContext): null | SemanticReleaseType;
 
 // @alpha
 export function clearCache(): void;
 
 // @alpha
-export function compareReleaseSeverity(a: ReleaseType | SemanticReleaseType | null, b: ReleaseType | SemanticReleaseType | null): number;
+export function compareReleaseSeverity(a: null | ReleaseType | SemanticReleaseType, b: null | ReleaseType | SemanticReleaseType): number;
 
 // @alpha
 export function determineBaseline(cwd: string, lastRelease?: {
     gitTag: string;
     version: string;
-}, explicitRef?: string | null): string;
+}, explicitRef?: null | string): string;
 
 // @alpha
-export function findDeclarationFile(cwd: string, config: ResolvedPluginConfig): string | null;
+export function findDeclarationFile(cwd: string, config: ResolvedPluginConfig): null | string;
 
 // @alpha
 export function formatAPIChangesAsMarkdown(report: ASTComparisonReport): string;
@@ -55,7 +55,7 @@ export function generateNotes(pluginConfig: PluginConfig, context: SemanticRelea
 export function getCachedAnalysis(): AnalysisResult | null;
 
 // @alpha
-export function getFileAtRef(filePath: string, ref: string, cwd: string): string | null;
+export function getFileAtRef(filePath: string, ref: string, cwd: string): null | string;
 
 // @alpha
 export interface PluginConfig {
@@ -68,19 +68,19 @@ export interface PluginConfig {
 }
 
 // @alpha
-export type PluginMode = 'validate' | 'override' | 'advisory';
+export type PluginMode = 'advisory' | 'override' | 'validate';
 
 // @alpha
-export function releaseTypeToSemanticType(releaseType: ReleaseType): SemanticReleaseType | null;
+export function releaseTypeToSemanticType(releaseType: ReleaseType): null | SemanticReleaseType;
 
 // @alpha
 export function resolveConfig(config?: PluginConfig): ResolvedPluginConfig;
 
 // @alpha
 export interface ResolvedPluginConfig {
-    apiExtractorConfig: string | null;
-    baseRef: string | null;
-    declarationPath: string | null;
+    apiExtractorConfig: null | string;
+    baseRef: null | string;
+    declarationPath: null | string;
     failOnMismatch: boolean;
     includeAPIChangesInNotes: boolean;
     mode: PluginMode;
@@ -96,7 +96,7 @@ export interface SemanticReleaseContext {
         hash: string;
         message: string;
         subject: string;
-        body: string | null;
+        body: null | string;
     }>;
     cwd: string;
     env: Record<string, string | undefined>;
@@ -123,17 +123,17 @@ export interface SemanticReleaseContext {
 export type SemanticReleaseType = 'major' | 'minor' | 'patch';
 
 // @alpha
-export function semanticTypeToReleaseType(semanticType: SemanticReleaseType | null): ReleaseType;
+export function semanticTypeToReleaseType(semanticType: null | SemanticReleaseType): ReleaseType;
 
 // @alpha
-export function validateVersionBump(proposedBump: SemanticReleaseType | null, analysis: AnalysisResult, mode: 'validate' | 'override' | 'advisory'): ValidationResult;
+export function validateVersionBump(proposedBump: null | SemanticReleaseType, analysis: AnalysisResult, mode: 'advisory' | 'override' | 'validate'): ValidationResult;
 
 // @alpha
 export interface ValidationResult {
     changes?: ASTComparisonReport['byReleaseType'];
     detectedBump: ReleaseType;
     message: string;
-    proposedBump: SemanticReleaseType | null;
+    proposedBump: null | SemanticReleaseType;
     valid: boolean;
 }
 

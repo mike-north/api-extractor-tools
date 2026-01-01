@@ -37,7 +37,7 @@ export interface ApiExtractorEslintPlugin {
 }
 
 // @alpha
-export type ApiExtractorLogLevel = 'error' | 'warning' | 'none';
+export type ApiExtractorLogLevel = 'error' | 'none' | 'warning';
 
 // @alpha
 export interface ApiExtractorMessagesConfig {
@@ -73,7 +73,7 @@ export interface EnumTypeExtraction {
 }
 
 // @alpha
-export type EnumTypeValue = 'open' | 'closed';
+export type EnumTypeValue = 'closed' | 'open';
 
 // @alpha
 export function extractEnumType(commentText: string): EnumTypeExtraction;
@@ -158,7 +158,7 @@ export const recommendedRules: TSESLint.Linter.RulesRecord;
 export const RELEASE_TAGS: readonly ReleaseTag[];
 
 // @alpha
-export type ReleaseTag = 'public' | 'beta' | 'alpha' | 'internal';
+export type ReleaseTag = 'alpha' | 'beta' | 'internal' | 'public';
 
 // @alpha
 export interface ResolvedEntryPoints {
@@ -180,7 +180,7 @@ export const rules: {
     readonly 'extra-release-tag': RuleModule<"extraReleaseTag", [ExtraReleaseTagRuleOptions], unknown, RuleListener>;
     readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>;
     readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>;
-    readonly 'valid-enum-type': RuleModule<"missingValue" | "invalidValue" | "multipleEnumTypes" | "invalidConstruct" | "missingEnumType", [ValidEnumTypeRuleOptions], unknown, RuleListener>;
+    readonly 'valid-enum-type': RuleModule<"invalidConstruct" | "invalidValue" | "missingEnumType" | "missingValue" | "multipleEnumTypes", [ValidEnumTypeRuleOptions], unknown, RuleListener>;
 };
 
 // @alpha
