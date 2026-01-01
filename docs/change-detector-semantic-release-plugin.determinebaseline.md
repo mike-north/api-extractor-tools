@@ -15,7 +15,7 @@ Determines the baseline git ref to compare against.
 export declare function determineBaseline(cwd: string, lastRelease?: {
     gitTag: string;
     version: string;
-}, explicitRef?: string | null): string;
+}, explicitRef?: null | string): string;
 ```
 
 ## Parameters
@@ -75,7 +75,7 @@ explicitRef
 
 </td><td>
 
-string \| null
+null \| string
 
 
 </td><td>

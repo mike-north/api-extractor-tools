@@ -12,5 +12,5 @@ Release tags recognized by API Extractor.
 **Signature:**
 
 ```typescript
-export type ReleaseTag = 'public' | 'beta' | 'alpha' | 'internal';
+export type ReleaseTag = 'alpha' | 'beta' | 'internal' | 'public';
 ```

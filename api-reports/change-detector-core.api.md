@@ -997,15 +997,17 @@ export interface ProcessResult {
     symbols: Map<string, ExportedSymbol>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ProgressiveRuleBuilderInterface" needs to be exported by the entry point index.d.ts
+//
 // @alpha
-export class ProgressiveRuleBuilder {
+export class ProgressiveRuleBuilder implements ProgressiveRuleBuilderInterface {
     addDimensionalRule(rule: DimensionalRule): void;
     addRule(rule: DSLRule): this;
     build(name: string, defaultReleaseType: ReleaseType, description?: string): DSLPolicy;
     clear(): this;
     clone(): ProgressiveRuleBuilder;
     // Warning: (ae-forgotten-export) The symbol "DimensionalRuleBuilder" needs to be exported by the entry point index.d.ts
-    dimensional(name: string): DimensionalRuleBuilder;
+    dimensional(name: string): DimensionalRuleBuilder<this>;
     getRules(): ReadonlyArray<DSLRule>;
     intent(expression: IntentExpression, returns: ReleaseType, description?: string): this;
     pattern(template: PatternTemplate, variables: Record<string, unknown>, returns: ReleaseType, description?: string): this;

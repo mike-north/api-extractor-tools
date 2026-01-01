@@ -63,6 +63,17 @@ A Changesets plugin that uses change-detector to automate version bump determina
 </td></tr>
 <tr><td>
 
+[@api-extractor-tools/declaration-file-normalizer](./declaration-file-normalizer.md)
+
+
+</td><td>
+
+A TypeScript tool that normalizes type ordering in declaration files to ensure stable API reports from Microsoft's API Extractor.
+
+
+</td></tr>
+<tr><td>
+
 [@api-extractor-tools/eslint-plugin](./eslint-plugin.md)
 
 

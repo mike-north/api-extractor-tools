@@ -12,10 +12,5 @@ Commits since the last release
 **Signature:**
 
 ```typescript
-commits?: Array<{
-        hash: string;
-        message: string;
-        subject: string;
-        body: string | null;
-    }>;
+commits?: Array<{ body: string | null; hash: string; message: string; subject: string }>;
 ```
