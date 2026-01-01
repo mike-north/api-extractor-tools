@@ -1,5 +1,11 @@
 # @api-extractor-tools/declaration-file-normalizer
 
+## 0.0.1-alpha.2
+
+### Patch Changes
+
+- [#183](https://github.com/mike-north/api-extractor-tools/pull/183) [`fa4c3f7`](https://github.com/mike-north/api-extractor-tools/commit/fa4c3f7ad29eff14c59c9f63803c5e7b6ed43d31) Thanks [@mike-north](https://github.com/mike-north)! - Update integration guidance: run normalizer as part of build step (after tsc) rather than before API Extractor to ensure proper build caching in monorepos
+
 ## 0.0.1-alpha.1
 
 ### Patch Changes

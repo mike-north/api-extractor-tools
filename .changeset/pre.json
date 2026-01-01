@@ -30,6 +30,7 @@
     "dsl-implementation-p2-p3",
     "fix-angle-bracket-tracking",
     "fix-nested-namespace-detection",
+    "fix-normalizer-docs",
     "fix-utility-type-structural-comparison",
     "integrate-normalizer-and-tests",
     "pluggable-versioning-policy",
