@@ -2,37 +2,46 @@
  * Parser module - AST parsing and import resolution
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as ts from 'typescript';
-import type { AnalyzedFile, CompositeTypeInfo } from './types.js';
+import * as fs from 'fs'
+import * as path from 'path'
+import * as ts from 'typescript'
+import type {
+  AnalyzedFile,
+  CompositeTypeInfo,
+  ObjectTypeInfo,
+} from './types.js'
 
 /**
- * Parses a TypeScript declaration file and extracts all union and intersection types.
+ * Parses a TypeScript declaration file and extracts all union, intersection, and object types.
  *
  * Analyzes the file's AST to identify:
  * - Union types (A | B | C)
  * - Intersection types (A & B & C)
+ * - Object type literals ({ foo: string; bar: number })
  * - Import and export declarations for dependency graph building
  *
  * @param filePath - Path to the .d.ts file to parse (relative or absolute)
  * @param verbose - Whether to output verbose logging
- * @returns Analyzed file containing source AST, composite types, and import dependencies
+ * @returns Analyzed file containing source AST, composite types, object types, and import dependencies
  */
-export function parseDeclarationFile(filePath: string, verbose = false): AnalyzedFile {
-  const absolutePath = path.resolve(filePath);
-  const sourceText = fs.readFileSync(absolutePath, 'utf-8');
+export function parseDeclarationFile(
+  filePath: string,
+  verbose = false,
+): AnalyzedFile {
+  const absolutePath = path.resolve(filePath)
+  const sourceText = fs.readFileSync(absolutePath, 'utf-8')
 
   const sourceFile = ts.createSourceFile(
     absolutePath,
     sourceText,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TS
-  );
+    ts.ScriptKind.TS,
+  )
 
-  const compositeTypes: CompositeTypeInfo[] = [];
-  const importedFiles: string[] = [];
+  const compositeTypes: CompositeTypeInfo[] = []
+  const objectTypes: ObjectTypeInfo[] = []
+  const importedFiles: string[] = []
 
   // Recursive AST visitor that traverses all nodes in the syntax tree.
   // TypeScript's compiler API requires this pattern to explore all
@@ -40,16 +49,15 @@ export function parseDeclarationFile(filePath: string, verbose = false): Analyze
   function visit(node: ts.Node): void {
     // Extract import declarations
     if (ts.isImportDeclaration(node)) {
-      const moduleSpecifier = node.moduleSpecifier;
+      const moduleSpecifier = node.moduleSpecifier
       if (ts.isStringLiteral(moduleSpecifier)) {
-        const importPath = resolveImportPath(
-          moduleSpecifier.text,
-          absolutePath
-        );
+        const importPath = resolveImportPath(moduleSpecifier.text, absolutePath)
         if (importPath) {
-          importedFiles.push(importPath);
+          importedFiles.push(importPath)
         } else if (verbose && moduleSpecifier.text.startsWith('.')) {
-          console.warn(`  ⚠ Could not resolve import: "${moduleSpecifier.text}" from ${absolutePath}`);
+          console.warn(
+            `  ⚠ Could not resolve import: "${moduleSpecifier.text}" from ${absolutePath}`,
+          )
         }
       }
     }
@@ -59,21 +67,23 @@ export function parseDeclarationFile(filePath: string, verbose = false): Analyze
       if (ts.isStringLiteral(node.moduleSpecifier)) {
         const exportPath = resolveImportPath(
           node.moduleSpecifier.text,
-          absolutePath
-        );
+          absolutePath,
+        )
         if (exportPath) {
-          importedFiles.push(exportPath);
+          importedFiles.push(exportPath)
         } else if (verbose && node.moduleSpecifier.text.startsWith('.')) {
-          console.warn(`  ⚠ Could not resolve export: "${node.moduleSpecifier.text}" from ${absolutePath}`);
+          console.warn(
+            `  ⚠ Could not resolve export: "${node.moduleSpecifier.text}" from ${absolutePath}`,
+          )
         }
       }
     }
 
     // Extract union types
     if (ts.isUnionTypeNode(node)) {
-      const originalText = node.getText(sourceFile);
-      const start = node.getStart(sourceFile);
-      const end = node.getEnd();
+      const originalText = node.getText(sourceFile)
+      const start = node.getStart(sourceFile)
+      const end = node.getEnd()
 
       compositeTypes.push({
         filePath: absolutePath,
@@ -83,14 +93,14 @@ export function parseDeclarationFile(filePath: string, verbose = false): Analyze
         normalizedText: '', // Will be filled by normalizer
         node,
         separator: '|',
-      });
+      })
     }
 
     // Extract intersection types
     if (ts.isIntersectionTypeNode(node)) {
-      const originalText = node.getText(sourceFile);
-      const start = node.getStart(sourceFile);
-      const end = node.getEnd();
+      const originalText = node.getText(sourceFile)
+      const start = node.getStart(sourceFile)
+      const end = node.getEnd()
 
       compositeTypes.push({
         filePath: absolutePath,
@@ -100,20 +110,37 @@ export function parseDeclarationFile(filePath: string, verbose = false): Analyze
         normalizedText: '', // Will be filled by normalizer
         node,
         separator: '&',
-      });
+      })
     }
 
-    ts.forEachChild(node, visit);
+    // Extract object type literals (e.g., { foo: string; bar: number })
+    if (ts.isTypeLiteralNode(node)) {
+      const originalText = node.getText(sourceFile)
+      const start = node.getStart(sourceFile)
+      const end = node.getEnd()
+
+      objectTypes.push({
+        filePath: absolutePath,
+        start,
+        end,
+        originalText,
+        normalizedText: '', // Will be filled by normalizer
+        node,
+      })
+    }
+
+    ts.forEachChild(node, visit)
   }
 
-  visit(sourceFile);
+  visit(sourceFile)
 
   return {
     filePath: absolutePath,
     sourceFile,
     compositeTypes,
+    objectTypes,
     importedFiles,
-  };
+  }
 }
 
 /**
@@ -135,41 +162,38 @@ export function parseDeclarationFile(filePath: string, verbose = false): Analyze
  */
 function resolveImportPath(
   importSpecifier: string,
-  fromFile: string
+  fromFile: string,
 ): string | null {
   // Skip non-relative imports (e.g., 'typescript', '@types/node')
   if (!importSpecifier.startsWith('.')) {
-    return null;
+    return null
   }
 
-  const dir = path.dirname(fromFile);
-  let resolved = path.resolve(dir, importSpecifier);
+  const dir = path.dirname(fromFile)
+  let resolved = path.resolve(dir, importSpecifier)
 
   // Strip .js extension if present (declaration files reference .js but exist as .d.ts)
   if (resolved.endsWith('.js')) {
-    resolved = resolved.slice(0, -3);
+    resolved = resolved.slice(0, -3)
   }
 
   // Try adding .d.ts extension if not present
   if (!resolved.endsWith('.d.ts')) {
-    const candidates = [
-      `${resolved}.d.ts`,
-      `${resolved}/index.d.ts`,
-    ];
+    const candidates = [`${resolved}.d.ts`, `${resolved}/index.d.ts`]
 
     for (const candidate of candidates) {
       if (fs.existsSync(candidate)) {
-        return candidate;
+        return candidate
       }
     }
   }
 
   // Check if the exact path exists
   if (fs.existsSync(resolved)) {
-    return resolved;
+    return resolved
   }
 
-  return null;
+  return null
 }
 
 /**
@@ -183,39 +207,42 @@ function resolveImportPath(
  * @param verbose - Whether to output verbose logging
  * @returns Map of absolute file paths to their analyzed content
  */
-export function buildFileGraph(entryPoint: string, verbose = false): Map<string, AnalyzedFile> {
-  const fileMap = new Map<string, AnalyzedFile>();
-  const queue: string[] = [path.resolve(entryPoint)];
-  const visited = new Set<string>();
+export function buildFileGraph(
+  entryPoint: string,
+  verbose = false,
+): Map<string, AnalyzedFile> {
+  const fileMap = new Map<string, AnalyzedFile>()
+  const queue: string[] = [path.resolve(entryPoint)]
+  const visited = new Set<string>()
 
   while (queue.length > 0) {
-    const currentFile = queue.shift();
-    if (!currentFile) break; // Explicit null check instead of non-null assertion
+    const currentFile = queue.shift()
+    if (!currentFile) break // Explicit null check instead of non-null assertion
 
     if (visited.has(currentFile)) {
-      continue;
+      continue
     }
 
-    visited.add(currentFile);
+    visited.add(currentFile)
 
     // Skip if file doesn't exist
     if (!fs.existsSync(currentFile)) {
       if (verbose) {
-        console.warn(`  ⚠ Skipping non-existent file: ${currentFile}`);
+        console.warn(`  ⚠ Skipping non-existent file: ${currentFile}`)
       }
-      continue;
+      continue
     }
 
-    const analyzed = parseDeclarationFile(currentFile, verbose);
-    fileMap.set(currentFile, analyzed);
+    const analyzed = parseDeclarationFile(currentFile, verbose)
+    fileMap.set(currentFile, analyzed)
 
     // Add imported files to the queue
     for (const importedFile of analyzed.importedFiles) {
       if (!visited.has(importedFile)) {
-        queue.push(importedFile);
+        queue.push(importedFile)
       }
     }
   }
 
-  return fileMap;
+  return fileMap
 }

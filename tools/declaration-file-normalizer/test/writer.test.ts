@@ -23,14 +23,14 @@ describe('writeNormalizedFile', () => {
   function createMockAnalyzedFile(
     filePath: string,
     content: string,
-    compositeTypes: Omit<CompositeTypeInfo, 'node'>[]
+    compositeTypes: Omit<CompositeTypeInfo, 'node'>[],
   ): AnalyzedFile {
     const sourceFile = ts.createSourceFile(
       filePath,
       content,
       ts.ScriptTarget.Latest,
       true,
-      ts.ScriptKind.TS
+      ts.ScriptKind.TS,
     )
 
     // Create mock nodes for composite types
@@ -38,13 +38,14 @@ describe('writeNormalizedFile', () => {
       (info) => ({
         ...info,
         node: {} as ts.UnionTypeNode | ts.IntersectionTypeNode,
-      })
+      }),
     )
 
     return {
       filePath,
       sourceFile,
       compositeTypes: fullCompositeTypes,
+      objectTypes: [], // Empty array for object types (not tested in this file)
       importedFiles: [],
     }
   }
@@ -81,7 +82,7 @@ describe('writeNormalizedFile', () => {
       {
         filePath,
         start: 21, // Start of "zebra"
-        end: 49,   // End of "banana"
+        end: 49, // End of "banana"
         originalText: '"zebra" | "apple" | "banana"',
         normalizedText: '"apple" | "banana" | "zebra"',
         separator: '|',
@@ -93,7 +94,7 @@ describe('writeNormalizedFile', () => {
     expect(result).toBe(true)
     const updatedContent = fs.readFileSync(filePath, 'utf-8')
     expect(updatedContent).toBe(
-      `export type Status = "apple" | "banana" | "zebra";`
+      `export type Status = "apple" | "banana" | "zebra";`,
     )
   })
 
@@ -107,7 +108,7 @@ export type Numbers = 9 | 1 | 5;`
       {
         filePath,
         start: 21, // Start of "z"
-        end: 36,   // End of "b"
+        end: 36, // End of "b"
         originalText: '"z" | "a" | "b"',
         normalizedText: '"a" | "b" | "z"',
         separator: '|',
@@ -115,7 +116,7 @@ export type Numbers = 9 | 1 | 5;`
       {
         filePath,
         start: 60, // Start of 9
-        end: 69,   // End of 5
+        end: 69, // End of 5
         originalText: '9 | 1 | 5',
         normalizedText: '1 | 5 | 9',
         separator: '|',
@@ -171,7 +172,7 @@ export const VERSION = "1.0.0";`
       {
         filePath,
         start: 23, // Start of Zebra
-        end: 45,   // End of Banana
+        end: 45, // End of Banana
         originalText: 'Zebra & Apple & Banana',
         normalizedText: 'Apple & Banana & Zebra',
         separator: '&',
@@ -182,7 +183,9 @@ export const VERSION = "1.0.0";`
 
     expect(result).toBe(true)
     const updatedContent = fs.readFileSync(filePath, 'utf-8')
-    expect(updatedContent).toBe(`export type Combined = Apple & Banana & Zebra;`)
+    expect(updatedContent).toBe(
+      `export type Combined = Apple & Banana & Zebra;`,
+    )
   })
 
   it('should use atomic writes to prevent corruption', () => {
@@ -198,7 +201,7 @@ export const VERSION = "1.0.0";`
       {
         filePath,
         start: typeStart, // Start of "z"
-        end: typeEnd,     // Just before semicolon
+        end: typeEnd, // Just before semicolon
         originalText: '"z" | "a"',
         normalizedText: '"a" | "z"',
         separator: '|',
@@ -213,7 +216,7 @@ export const VERSION = "1.0.0";`
 
     // Original file should contain the normalized content
     expect(fs.readFileSync(filePath, 'utf-8')).toBe(
-      `export type Status = "a" | "z";`
+      `export type Status = "a" | "z";`,
     )
   })
 

@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import ts from 'typescript'
-import { normalizeCompositeType } from '../src/normalizer.js'
-import type { CompositeTypeInfo } from '../src/types.js'
+import {
+  normalizeCompositeType,
+  normalizeObjectType,
+} from '../src/normalizer.js'
+import type { CompositeTypeInfo, ObjectTypeInfo } from '../src/types.js'
 
 /**
  * Helper to create a union type node for testing
@@ -11,7 +14,7 @@ function createUnionNode(unionText: string): ts.UnionTypeNode {
     'test.ts',
     `type Test = ${unionText};`,
     ts.ScriptTarget.Latest,
-    true
+    true,
   )
 
   let unionNode: ts.UnionTypeNode | undefined
@@ -36,13 +39,13 @@ function createUnionNode(unionText: string): ts.UnionTypeNode {
  * Helper to create an intersection type node for testing
  */
 function createIntersectionNode(
-  intersectionText: string
+  intersectionText: string,
 ): ts.IntersectionTypeNode {
   const sourceFile = ts.createSourceFile(
     'test.ts',
     `type Test = ${intersectionText};`,
     ts.ScriptTarget.Latest,
-    true
+    true,
   )
 
   let intersectionNode: ts.IntersectionTypeNode | undefined
@@ -63,6 +66,35 @@ function createIntersectionNode(
   return intersectionNode
 }
 
+/**
+ * Helper to create an object type literal node for testing
+ */
+function createObjectTypeNode(objectText: string): ts.TypeLiteralNode {
+  const sourceFile = ts.createSourceFile(
+    'test.ts',
+    `type Test = ${objectText};`,
+    ts.ScriptTarget.Latest,
+    true,
+  )
+
+  let objectNode: ts.TypeLiteralNode | undefined
+
+  function visit(node: ts.Node): void {
+    if (ts.isTypeLiteralNode(node)) {
+      objectNode = node
+    }
+    ts.forEachChild(node, visit)
+  }
+
+  visit(sourceFile)
+
+  if (!objectNode) {
+    throw new Error('Failed to create object type node')
+  }
+
+  return objectNode
+}
+
 describe('normalizeCompositeType - union types', () => {
   it('should sort string literal types alphabetically', () => {
     const unionText = '"zebra" | "apple" | "banana"'
@@ -80,7 +112,9 @@ describe('normalizeCompositeType - union types', () => {
 
     normalizeCompositeType(compositeTypeInfo)
 
-    expect(compositeTypeInfo.normalizedText).toBe('"apple" | "banana" | "zebra"')
+    expect(compositeTypeInfo.normalizedText).toBe(
+      '"apple" | "banana" | "zebra"',
+    )
   })
 
   it('should sort type names alphabetically', () => {
@@ -138,7 +172,7 @@ describe('normalizeCompositeType - union types', () => {
     normalizeCompositeType(compositeTypeInfo)
 
     expect(compositeTypeInfo.normalizedText).toBe(
-      '"literal-a" | "literal-z" | TypeA | TypeB'
+      '"literal-a" | "literal-z" | TypeA | TypeB',
     )
   })
 
@@ -160,7 +194,7 @@ describe('normalizeCompositeType - union types', () => {
 
     // Verify it's sorted alphanumerically (A < R < n in localeCompare)
     expect(compositeTypeInfo.normalizedText).toBe(
-      'Array<string> | number | Record<string, unknown>'
+      'Array<string> | number | Record<string, unknown>',
     )
   })
 
@@ -181,7 +215,9 @@ describe('normalizeCompositeType - union types', () => {
     normalizeCompositeType(compositeTypeInfo)
 
     // Case-sensitive alphanumeric sorting (a < B < Z < z in localeCompare)
-    expect(compositeTypeInfo.normalizedText).toBe('apple | Banana | Zebra | zoo')
+    expect(compositeTypeInfo.normalizedText).toBe(
+      'apple | Banana | Zebra | zoo',
+    )
   })
 })
 
@@ -243,7 +279,208 @@ describe('normalizeCompositeType - intersection types', () => {
 
     // { comes before P and R in ASCII/Unicode
     expect(compositeTypeInfo.normalizedText).toBe(
-      '{ id: string } & Partial<User> & Record<string, unknown>'
+      '{ id: string } & Partial<User> & Record<string, unknown>',
+    )
+  })
+})
+
+describe('normalizeObjectType - object type literals', () => {
+  it('should sort property names alphabetically', () => {
+    const objectText = '{ zebra: string; apple: number; banana: boolean }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ apple: number; banana: boolean; zebra: string }',
+    )
+  })
+
+  it('should handle already sorted object types', () => {
+    const objectText = '{ alpha: string; beta: number; gamma: boolean }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(objectText)
+  })
+
+  it('should handle empty object types', () => {
+    const objectText = '{}'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(objectText)
+  })
+
+  it('should handle single property object types', () => {
+    const objectText = '{ single: string }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(objectText)
+  })
+
+  it('should sort method signatures with properties', () => {
+    const objectText = '{ zebra(): void; apple: string; bar(): number }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ apple: string; bar(): number; zebra(): void }',
+    )
+  })
+
+  it('should use case-sensitive sorting for properties', () => {
+    const objectText = '{ Zoo: string; apple: number; Banana: boolean }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    // Case-sensitive alphanumeric sorting (a < B < Z in localeCompare with variant sensitivity)
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ apple: number; Banana: boolean; Zoo: string }',
+    )
+  })
+
+  it('should handle optional properties', () => {
+    const objectText = '{ zebra?: string; apple: number; banana?: boolean }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ apple: number; banana?: boolean; zebra?: string }',
+    )
+  })
+
+  it('should handle readonly properties', () => {
+    const objectText =
+      '{ readonly zebra: string; apple: number; readonly banana: boolean }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ apple: number; readonly banana: boolean; readonly zebra: string }',
+    )
+  })
+
+  it('should handle complex property types', () => {
+    const objectText =
+      '{ zebra: Array<string>; apple: Record<string, number>; banana: Map<string, boolean> }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ apple: Record<string, number>; banana: Map<string, boolean>; zebra: Array<string> }',
+    )
+  })
+
+  it('should handle index signatures', () => {
+    const objectText =
+      '{ [key: string]: unknown; apple: number; zebra: string }'
+    const node = createObjectTypeNode(objectText)
+
+    const objectTypeInfo: ObjectTypeInfo = {
+      filePath: 'test.ts',
+      start: 0,
+      end: 0,
+      originalText: objectText,
+      normalizedText: '',
+      node,
+    }
+
+    normalizeObjectType(objectTypeInfo)
+
+    // Index signatures are sorted by their text, [ comes before a in ASCII
+    expect(objectTypeInfo.normalizedText).toBe(
+      '{ [key: string]: unknown; apple: number; zebra: string }',
     )
   })
 })

@@ -1,28 +1,30 @@
 /**
- * A TypeScript tool that normalizes union and intersection type ordering in
- * declaration files to ensure stable API reports from Microsoft's API Extractor.
+ * A TypeScript tool that normalizes type ordering in declaration files to ensure
+ * stable API reports from Microsoft's API Extractor.
  *
  * @remarks
  * TypeScript's compiler can produce declaration files with inconsistent ordering
- * of union and intersection type members across builds. This tool parses declaration
- * files, identifies all composite types, and rewrites them with stable alphanumeric
- * ordering to prevent unnecessary API report churn.
+ * of union type members, intersection type members, and object type properties
+ * across builds. This tool parses declaration files, identifies all such types,
+ * and rewrites them with stable alphanumeric ordering to prevent unnecessary
+ * API report churn.
  *
  * @packageDocumentation
  */
 
 import * as fs from 'fs'
 import { buildFileGraph } from './parser.js'
-import { normalizeCompositeTypes } from './normalizer.js'
+import { normalizeCompositeTypes, normalizeObjectTypes } from './normalizer.js'
 import { writeNormalizedFile } from './writer.js'
 import type { NormalizerOptions, NormalizationResult } from './types.js'
 
 /**
- * Normalizes union and intersection type ordering in TypeScript declaration files.
+ * Normalizes type ordering in TypeScript declaration files.
  *
  * Processes the entry point file and all transitively imported declaration files,
- * reordering union (`A | B`) and intersection (`A & B`) type members in stable
- * alphanumeric order to ensure consistent API Extractor reports.
+ * reordering union (`A | B`), intersection (`A & B`), and object type
+ * (`{ foo: T; bar: U }`) members in stable alphanumeric order to ensure
+ * consistent API Extractor reports.
  *
  * @param options - Configuration options for normalization
  * @returns Result object containing processing statistics and any errors encountered
@@ -46,9 +48,9 @@ import type { NormalizerOptions, NormalizationResult } from './types.js'
  * This function does not throw exceptions. All errors are returned in the result object.
  * The function modifies files in-place unless `dryRun: true` is specified.
  *
- * Despite the function name, this normalizes BOTH union types (`A | B`) and
- * intersection types (`A & B`). The name is historical and may be updated in a
- * future major version.
+ * Despite the function name, this normalizes union types (`A | B`),
+ * intersection types (`A & B`), and object type properties. The name is
+ * historical and may be updated in a future major version.
  *
  * @public
  */
@@ -91,17 +93,26 @@ export function normalizeUnionTypes(
 
       if (verbose) {
         console.log(
-          `Processing ${filePath} (${analyzed.compositeTypes.length} types)`,
+          `Processing ${filePath} (${analyzed.compositeTypes.length} composite types, ${analyzed.objectTypes.length} object types)`,
         )
       }
 
-      // Normalize composite types
+      // Normalize composite types (unions and intersections)
       normalizeCompositeTypes(analyzed.compositeTypes)
 
+      // Normalize object types
+      normalizeObjectTypes(analyzed.objectTypes)
+
       // Count normalized types
-      const normalizedCount = analyzed.compositeTypes.filter(
+      const normalizedCompositeCount = analyzed.compositeTypes.filter(
         (type) => type.originalText !== type.normalizedText,
       ).length
+
+      const normalizedObjectCount = analyzed.objectTypes.filter(
+        (type) => type.originalText !== type.normalizedText,
+      ).length
+
+      const normalizedCount = normalizedCompositeCount + normalizedObjectCount
 
       result.typesNormalized += normalizedCount
 
