@@ -12,5 +12,5 @@ Log levels supported by API Extractor message configuration.
 **Signature:**
 
 ```typescript
-export type ApiExtractorLogLevel = 'error' | 'none' | 'warning';
+export type ApiExtractorLogLevel = 'error' | 'warning' | 'none';
 ```
