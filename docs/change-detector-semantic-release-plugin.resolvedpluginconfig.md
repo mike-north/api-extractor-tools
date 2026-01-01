@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-string \| null
+null \| string
 
 
 </td><td>
@@ -67,7 +67,7 @@ string \| null
 
 </td><td>
 
-string \| null
+null \| string
 
 
 </td><td>
@@ -86,7 +86,7 @@ string \| null
 
 </td><td>
 
-string \| null
+null \| string
 
 
 </td><td>

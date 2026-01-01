@@ -67,7 +67,7 @@ Description
 
 </td><td>
 
-Array&lt;{ hash: string; message: string; subject: string; body: string \| null; }&gt;
+Array&lt;{ hash: string; message: string; subject: string; body: null \| string; }&gt;
 
 
 </td><td>

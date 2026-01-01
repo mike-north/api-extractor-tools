@@ -6,7 +6,7 @@
   "types": "dist/change-detector-semantic-release-plugin-public.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc && declaration-file-normalizer dist/index.d.ts && api-extractor run --local",
+    "build": "tsc && node ../declaration-file-normalizer/dist/cli.js dist/index.d.ts && api-extractor run --local",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

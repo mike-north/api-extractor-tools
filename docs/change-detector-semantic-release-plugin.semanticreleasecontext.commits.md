@@ -16,6 +16,6 @@ commits?: Array<{
         hash: string;
         message: string;
         subject: string;
-        body: string | null;
+        body: null | string;
     }>;
 ```

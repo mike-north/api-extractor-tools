@@ -9,7 +9,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc && declaration-file-normalizer dist/index.d.ts && api-extractor run --local",
+    "build": "tsc && node ../declaration-file-normalizer/dist/cli.js dist/index.d.ts && api-extractor run --local",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts' --typings src/index.ts",

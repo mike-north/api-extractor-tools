@@ -21,6 +21,6 @@ rules: {
     readonly 'extra-release-tag': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"extraReleaseTag", [import("./extra-release-tag").ExtraReleaseTagRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
     readonly 'public-on-private-member': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"publicOnPrivateMember", [import("./public-on-private-member").PublicOnPrivateMemberRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
     readonly 'public-on-non-exported': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"publicOnNonExported", [import("./public-on-non-exported").PublicOnNonExportedRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
-    readonly 'valid-enum-type': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"missingValue" | "invalidValue" | "multipleEnumTypes" | "invalidConstruct" | "missingEnumType", [import("..").ValidEnumTypeRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
+    readonly 'valid-enum-type': import("@typescript-eslint/utils/dist/ts-eslint").RuleModule<"invalidConstruct" | "invalidValue" | "missingEnumType" | "missingValue" | "multipleEnumTypes", [import("..").ValidEnumTypeRuleOptions], unknown, import("@typescript-eslint/utils/dist/ts-eslint").RuleListener>;
 }
 ```

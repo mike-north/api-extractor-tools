@@ -12,7 +12,7 @@ Finds the declaration file path for a package.
 **Signature:**
 
 ```typescript
-export declare function findDeclarationFile(cwd: string, config: ResolvedPluginConfig): string | null;
+export declare function findDeclarationFile(cwd: string, config: ResolvedPluginConfig): null | string;
 ```
 
 ## Parameters
@@ -69,7 +69,7 @@ Plugin configuration
 
 **Returns:**
 
-string \| null
+null \| string
 
 The absolute path to the declaration file, or null if not found
 

@@ -41,7 +41,7 @@ export function createResolver(options: ResolverOptions): {
 };
 
 // @alpha
-export type DeclarationKind = 'interface' | 'type' | 'function' | 'variable' | 'class' | 'enum' | 'namespace';
+export type DeclarationKind = 'class' | 'enum' | 'function' | 'interface' | 'namespace' | 'type' | 'variable';
 
 // @alpha
 export interface DocModelAugmentOptions {
@@ -103,7 +103,7 @@ export interface ExtractOptions {
 export { ExtractorLogLevel }
 
 // @alpha
-export function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): string | null;
+export function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): null | string;
 
 // @alpha
 export function getRollupPathsForMaturity(maturityLevel: MaturityLevel, rollupPaths: RollupPaths): string[];
