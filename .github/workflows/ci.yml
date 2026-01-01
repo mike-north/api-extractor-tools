@@ -47,6 +47,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build declaration-file-normalizer first
+        run: pnpm --filter @api-extractor-tools/declaration-file-normalizer build
+
       - name: Build
         run: pnpm build
 
