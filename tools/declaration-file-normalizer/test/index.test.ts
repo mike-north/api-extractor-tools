@@ -312,4 +312,69 @@ export type AlsoSorted = "x" | "y";`
     expect(result.modifiedFiles).toHaveLength(0) // Nothing to modify
     expect(result.errors).toHaveLength(0)
   })
+
+  it('should sort anonymous object types in unions by canonical form', () => {
+    // Object with unsorted properties and another object
+    const content = `export type Mixed = { zebra: string; apple: number } | { bar: number };`
+    const filePath = path.join(tempDir, 'index.d.ts')
+    fs.writeFileSync(filePath, content, 'utf-8')
+
+    const result = normalizeUnionTypes({
+      entryPoint: filePath,
+    })
+
+    expect(result.filesProcessed).toBe(1)
+    expect(result.errors).toHaveLength(0)
+
+    const updatedContent = fs.readFileSync(filePath, 'utf-8')
+    // Object properties should be sorted, and union members sorted by canonical form
+    // Canonical: { apple: number; zebra: string } vs { bar: number }
+    // "{ apple..." < "{ bar..." so first object stays first
+    expect(updatedContent).toBe(
+      `export type Mixed = { apple: number; zebra: string } | { bar: number };`,
+    )
+  })
+
+  it('should produce identical output regardless of original property order', () => {
+    // Two files with same semantic types but different source property orders
+    const content1 = `export type T = { z: string; a: number } | { b: number };`
+    const content2 = `export type T = { a: number; z: string } | { b: number };`
+
+    const filePath1 = path.join(tempDir, 'test1.d.ts')
+    const filePath2 = path.join(tempDir, 'test2.d.ts')
+
+    fs.writeFileSync(filePath1, content1, 'utf-8')
+    fs.writeFileSync(filePath2, content2, 'utf-8')
+
+    normalizeUnionTypes({ entryPoint: filePath1 })
+    normalizeUnionTypes({ entryPoint: filePath2 })
+
+    const result1 = fs.readFileSync(filePath1, 'utf-8')
+    const result2 = fs.readFileSync(filePath2, 'utf-8')
+
+    // Both should produce identical output
+    expect(result1).toBe(result2)
+    expect(result1).toBe(
+      `export type T = { a: number; z: string } | { b: number };`,
+    )
+  })
+
+  it('should handle mixed named and anonymous types in unions', () => {
+    const content = `export type Mixed = { zed: string } | Named | { alpha: number };`
+    const filePath = path.join(tempDir, 'index.d.ts')
+    fs.writeFileSync(filePath, content, 'utf-8')
+
+    const result = normalizeUnionTypes({
+      entryPoint: filePath,
+    })
+
+    expect(result.filesProcessed).toBe(1)
+    expect(result.errors).toHaveLength(0)
+
+    const updatedContent = fs.readFileSync(filePath, 'utf-8')
+    // { alpha... } < { zed... } < Named ("{" < "N" in localeCompare)
+    expect(updatedContent).toBe(
+      `export type Mixed = { alpha: number } | { zed: string } | Named;`,
+    )
+  })
 })

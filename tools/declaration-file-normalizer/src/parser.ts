@@ -5,24 +5,18 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as ts from 'typescript'
-import type {
-  AnalyzedFile,
-  CompositeTypeInfo,
-  ObjectTypeInfo,
-} from './types.js'
+import type { AnalyzedFile, TypeAliasInfo } from './types.js'
 
 /**
- * Parses a TypeScript declaration file and extracts all union, intersection, and object types.
+ * Parses a TypeScript declaration file and extracts top-level type alias declarations.
  *
  * Analyzes the file's AST to identify:
- * - Union types (A | B | C)
- * - Intersection types (A & B & C)
- * - Object type literals ({ foo: string; bar: number })
+ * - Type alias declarations (type Foo = ...)
  * - Import and export declarations for dependency graph building
  *
  * @param filePath - Path to the .d.ts file to parse (relative or absolute)
  * @param verbose - Whether to output verbose logging
- * @returns Analyzed file containing source AST, composite types, object types, and import dependencies
+ * @returns Analyzed file containing source AST, type aliases, and import dependencies
  */
 export function parseDeclarationFile(
   filePath: string,
@@ -39,8 +33,7 @@ export function parseDeclarationFile(
     ts.ScriptKind.TS,
   )
 
-  const compositeTypes: CompositeTypeInfo[] = []
-  const objectTypes: ObjectTypeInfo[] = []
+  const typeAliases: TypeAliasInfo[] = []
   const importedFiles: string[] = []
 
   // Recursive AST visitor that traverses all nodes in the syntax tree.
@@ -79,53 +72,20 @@ export function parseDeclarationFile(
       }
     }
 
-    // Extract union types
-    if (ts.isUnionTypeNode(node)) {
-      const originalText = node.getText(sourceFile)
-      const start = node.getStart(sourceFile)
-      const end = node.getEnd()
+    // Extract type alias declarations: type Foo = ...
+    if (ts.isTypeAliasDeclaration(node)) {
+      const typeNode = node.type
+      const originalText = typeNode.getText(sourceFile)
+      const start = typeNode.getStart(sourceFile)
+      const end = typeNode.getEnd()
 
-      compositeTypes.push({
+      typeAliases.push({
         filePath: absolutePath,
         start,
         end,
         originalText,
         normalizedText: '', // Will be filled by normalizer
-        node,
-        separator: '|',
-      })
-    }
-
-    // Extract intersection types
-    if (ts.isIntersectionTypeNode(node)) {
-      const originalText = node.getText(sourceFile)
-      const start = node.getStart(sourceFile)
-      const end = node.getEnd()
-
-      compositeTypes.push({
-        filePath: absolutePath,
-        start,
-        end,
-        originalText,
-        normalizedText: '', // Will be filled by normalizer
-        node,
-        separator: '&',
-      })
-    }
-
-    // Extract object type literals (e.g., { foo: string; bar: number })
-    if (ts.isTypeLiteralNode(node)) {
-      const originalText = node.getText(sourceFile)
-      const start = node.getStart(sourceFile)
-      const end = node.getEnd()
-
-      objectTypes.push({
-        filePath: absolutePath,
-        start,
-        end,
-        originalText,
-        normalizedText: '', // Will be filled by normalizer
-        node,
+        node: typeNode,
       })
     }
 
@@ -137,8 +97,7 @@ export function parseDeclarationFile(
   return {
     filePath: absolutePath,
     sourceFile,
-    compositeTypes,
-    objectTypes,
+    typeAliases,
     importedFiles,
   }
 }

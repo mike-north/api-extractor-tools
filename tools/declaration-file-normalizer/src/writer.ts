@@ -6,13 +6,13 @@ import * as fs from 'fs'
 import type { AnalyzedFile } from './types.js'
 
 /**
- * Applies composite and object type normalizations to a declaration file.
+ * Applies type alias normalizations to a declaration file.
  *
  * Modifies the file in-place by replacing each changed type's text.
  * Uses a reverse-order replacement strategy to maintain correct character offsets
  * as replacements are applied. Performs atomic writes to prevent data corruption.
  *
- * @param analyzed - The analyzed file containing types to normalize
+ * @param analyzed - The analyzed file containing type aliases to normalize
  * @returns true if any changes were written, false if file was unchanged
  *
  * @remarks
@@ -25,21 +25,10 @@ import type { AnalyzedFile } from './types.js'
  * file integrity even if the process is interrupted.
  */
 export function writeNormalizedFile(analyzed: AnalyzedFile): boolean {
-  // Filter to only types that changed (both composite and object types)
-  const changedCompositeTypes = analyzed.compositeTypes.filter(
+  // Filter to only type aliases that changed
+  const changedTypes = analyzed.typeAliases.filter(
     (type) => type.originalText !== type.normalizedText,
   )
-
-  const changedObjectTypes = analyzed.objectTypes.filter(
-    (type) => type.originalText !== type.normalizedText,
-  )
-
-  // Combine all changed types into a single array with common shape
-  const changedTypes: Array<{
-    start: number
-    end: number
-    normalizedText: string
-  }> = [...changedCompositeTypes, ...changedObjectTypes]
 
   if (changedTypes.length === 0) {
     return false // No changes needed

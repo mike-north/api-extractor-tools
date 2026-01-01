@@ -14,7 +14,7 @@
 
 import * as fs from 'fs'
 import { buildFileGraph } from './parser.js'
-import { normalizeCompositeTypes, normalizeObjectTypes } from './normalizer.js'
+import { normalizeType } from './normalizer.js'
 import { writeNormalizedFile } from './writer.js'
 import type { NormalizerOptions, NormalizationResult } from './types.js'
 
@@ -93,26 +93,19 @@ export function normalizeUnionTypes(
 
       if (verbose) {
         console.log(
-          `Processing ${filePath} (${analyzed.compositeTypes.length} composite types, ${analyzed.objectTypes.length} object types)`,
+          `Processing ${filePath} (${analyzed.typeAliases.length} type aliases)`,
         )
       }
 
-      // Normalize composite types (unions and intersections)
-      normalizeCompositeTypes(analyzed.compositeTypes)
-
-      // Normalize object types
-      normalizeObjectTypes(analyzed.objectTypes)
+      // Normalize each type alias recursively
+      for (const typeAlias of analyzed.typeAliases) {
+        typeAlias.normalizedText = normalizeType(typeAlias.node)
+      }
 
       // Count normalized types
-      const normalizedCompositeCount = analyzed.compositeTypes.filter(
+      const normalizedCount = analyzed.typeAliases.filter(
         (type) => type.originalText !== type.normalizedText,
       ).length
-
-      const normalizedObjectCount = analyzed.objectTypes.filter(
-        (type) => type.originalText !== type.normalizedText,
-      ).length
-
-      const normalizedCount = normalizedCompositeCount + normalizedObjectCount
 
       result.typesNormalized += normalizedCount
 
