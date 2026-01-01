@@ -26,8 +26,10 @@ describe('parseDeclarationFile', () => {
 
     expect(result.filePath).toBe(filePath)
     expect(result.compositeTypes).toHaveLength(1)
-    expect(result.compositeTypes[0].separator).toBe('|')
-    expect(result.compositeTypes[0].originalText).toBe('"active" | "inactive" | "pending"')
+    expect(result.compositeTypes[0]!.separator).toBe('|')
+    expect(result.compositeTypes[0]!.originalText).toBe(
+      '"active" | "inactive" | "pending"',
+    )
   })
 
   it('should parse a declaration file with intersection types', () => {
@@ -39,8 +41,10 @@ describe('parseDeclarationFile', () => {
 
     expect(result.filePath).toBe(filePath)
     expect(result.compositeTypes).toHaveLength(1)
-    expect(result.compositeTypes[0].separator).toBe('&')
-    expect(result.compositeTypes[0].originalText).toBe('BaseType & Mixin & Extension')
+    expect(result.compositeTypes[0]!.separator).toBe('&')
+    expect(result.compositeTypes[0]!.originalText).toBe(
+      'BaseType & Mixin & Extension',
+    )
   })
 
   it('should extract multiple composite types from a file', () => {
@@ -55,9 +59,9 @@ export type Combined = A & B & C;
     const result = parseDeclarationFile(filePath)
 
     expect(result.compositeTypes).toHaveLength(3)
-    expect(result.compositeTypes[0].separator).toBe('|')
-    expect(result.compositeTypes[1].separator).toBe('|')
-    expect(result.compositeTypes[2].separator).toBe('&')
+    expect(result.compositeTypes[0]!.separator).toBe('|')
+    expect(result.compositeTypes[1]!.separator).toBe('|')
+    expect(result.compositeTypes[2]!.separator).toBe('&')
   })
 
   it('should detect relative imports', () => {
@@ -73,7 +77,7 @@ export { SomeType };
     const result = parseDeclarationFile(filePath)
 
     expect(result.importedFiles).toHaveLength(1)
-    expect(result.importedFiles[0]).toBe(typesPath)
+    expect(result.importedFiles[0]!).toBe(typesPath)
   })
 
   it('should detect export declarations', () => {
@@ -86,7 +90,7 @@ export { SomeType };
     const result = parseDeclarationFile(filePath)
 
     expect(result.importedFiles).toHaveLength(1)
-    expect(result.importedFiles[0]).toBe(typesPath)
+    expect(result.importedFiles[0]!).toBe(typesPath)
   })
 
   it('should skip non-relative imports', () => {
@@ -113,7 +117,7 @@ export type Status = "active" | "inactive";
     const result = parseDeclarationFile(filePath)
 
     expect(result.importedFiles).toHaveLength(1)
-    expect(result.importedFiles[0]).toBe(utilsPath)
+    expect(result.importedFiles[0]!).toBe(utilsPath)
   })
 
   it('should resolve index imports', () => {
@@ -128,7 +132,7 @@ export type Status = "active" | "inactive";
     const result = parseDeclarationFile(filePath)
 
     expect(result.importedFiles).toHaveLength(1)
-    expect(result.importedFiles[0]).toBe(libIndexPath)
+    expect(result.importedFiles[0]!).toBe(libIndexPath)
   })
 
   it('should handle nested union types correctly', () => {

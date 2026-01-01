@@ -26,8 +26,8 @@ describe('normalizeUnionTypes', () => {
     expect(result.typesNormalized).toBe(0)
     expect(result.modifiedFiles).toHaveLength(0)
     expect(result.errors).toHaveLength(1)
-    expect(result.errors[0].file).toBe(nonExistentPath)
-    expect(result.errors[0].error).toContain('not found')
+    expect(result.errors[0]!.file).toBe(nonExistentPath)
+    expect(result.errors[0]!.error).toContain('not found')
   })
 
   it('should normalize a single file with union types', () => {
@@ -46,7 +46,9 @@ describe('normalizeUnionTypes', () => {
 
     // Verify file was actually modified
     const updatedContent = fs.readFileSync(filePath, 'utf-8')
-    expect(updatedContent).toBe(`export type Status = "apple" | "banana" | "zebra";`)
+    expect(updatedContent).toBe(
+      `export type Status = "apple" | "banana" | "zebra";`,
+    )
   })
 
   it('should process multiple files transitively', () => {
@@ -126,7 +128,9 @@ export type Status = "z" | "a";`
     expect(result.errors).toHaveLength(0)
 
     const updatedContent = fs.readFileSync(filePath, 'utf-8')
-    expect(updatedContent).toBe(`export type Combined = Apple & Banana & Zebra;`)
+    expect(updatedContent).toBe(
+      `export type Combined = Apple & Banana & Zebra;`,
+    )
   })
 
   it('should handle files with multiple composite types', () => {
@@ -234,7 +238,7 @@ export type A = "y" | "a";`
 
       expect(result.errors).toHaveLength(0)
       expect(logs.length).toBeGreaterThan(0)
-      expect(logs.some(log => log.includes('Building file graph'))).toBe(true)
+      expect(logs.some((log) => log.includes('Building file graph'))).toBe(true)
     } finally {
       console.log = originalLog
     }
@@ -271,9 +275,9 @@ export type B = "y" | "a";`
     })
 
     expect(result.errors).toHaveLength(1)
-    expect(result.errors[0].file).toBe(invalidPath)
-    expect(result.errors[0].error).toBeTruthy()
-    expect(typeof result.errors[0].error).toBe('string')
+    expect(result.errors[0]!.file).toBe(invalidPath)
+    expect(result.errors[0]!.error).toBeTruthy()
+    expect(typeof result.errors[0]!.error).toBe('string')
   })
 
   it('should count types correctly when some need normalization and some do not', () => {
