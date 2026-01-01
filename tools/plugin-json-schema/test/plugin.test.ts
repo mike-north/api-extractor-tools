@@ -7,8 +7,22 @@ import {
   createPluginRegistry,
   isValidPlugin,
 } from '@api-extractor-tools/change-detector-core'
+import { pkgUpSync } from 'pkg-up'
+import fs from 'node:fs'
 
-const EXPECTED_VERSION = '0.1.0-alpha.1'
+// Read the expected version from package.json
+function getExpectedVersion(): string {
+  const pkgPath = pkgUpSync()
+  if (pkgPath) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
+      version: string
+    }
+    return pkg.version
+  }
+  throw new Error('Could not find package.json')
+}
+
+const EXPECTED_VERSION = getExpectedVersion()
 
 describe('JSON Schema Input Processor Plugin', () => {
   describe('unified plugin format', () => {

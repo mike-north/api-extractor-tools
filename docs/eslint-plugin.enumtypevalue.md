@@ -12,5 +12,5 @@ Enum type values for `@enumType` tag.
 **Signature:**
 
 ```typescript
-export type EnumTypeValue = 'closed' | 'open';
+export type EnumTypeValue = 'open' | 'closed';
 ```

@@ -12,7 +12,7 @@ Gets the content that would be appended to a rollup file (for preview/dry-run)
 **Signature:**
 
 ```typescript
-export declare function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): null | string;
+export declare function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): string | null;
 ```
 
 ## Parameters
@@ -93,5 +93,5 @@ string
 
 **Returns:**
 
-null \| string
+string \| null
 

@@ -12,7 +12,7 @@ Gets the declaration file content at a specific git ref.
 **Signature:**
 
 ```typescript
-export declare function getFileAtRef(filePath: string, ref: string, cwd: string): null | string;
+export declare function getFileAtRef(filePath: string, ref: string, cwd: string): string | null;
 ```
 
 ## Parameters
@@ -85,7 +85,7 @@ The workspace root directory
 
 **Returns:**
 
-null \| string
+string \| null
 
 The file content, or null if file doesn't exist at that ref
 
