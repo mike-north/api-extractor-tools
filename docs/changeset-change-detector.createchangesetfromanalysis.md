@@ -12,7 +12,7 @@ Creates a changeset object from analysis results.
 **Signature:**
 
 ```typescript
-export declare function createChangesetFromAnalysis(analysis: WorkspaceAnalysisResult, customSummary?: string): PendingChangeset | null;
+export declare function createChangesetFromAnalysis(analysis: WorkspaceAnalysisResult, customSummary?: string): null | PendingChangeset;
 ```
 
 ## Parameters
@@ -69,7 +69,7 @@ _(Optional)_ Optional custom summary to use instead of auto-generated
 
 **Returns:**
 
-[PendingChangeset](./changeset-change-detector.pendingchangeset.md) \| null
+null \| [PendingChangeset](./changeset-change-detector.pendingchangeset.md)
 
 A pending changeset, or null if no changes detected
 

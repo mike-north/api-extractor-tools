@@ -147,6 +147,46 @@ export type Nested = Array<"a" | "b"> | Record<string, "x" | "y">;
     // Should find 3 union types: the outer one and two nested ones
     expect(result.compositeTypes.length).toBeGreaterThanOrEqual(1)
   })
+
+  it('should parse object type literals', () => {
+    const content = `export type Config = { zebra: string; apple: number; banana: boolean };`
+    const filePath = path.join(tempDir, 'index.d.ts')
+    fs.writeFileSync(filePath, content, 'utf-8')
+
+    const result = parseDeclarationFile(filePath)
+
+    expect(result.objectTypes).toHaveLength(1)
+    expect(result.objectTypes[0]!.originalText).toBe(
+      '{ zebra: string; apple: number; banana: boolean }',
+    )
+  })
+
+  it('should extract multiple object types from a file', () => {
+    const content = `
+export type Config = { foo: string; bar: number };
+export type Options = { enabled: boolean; timeout: number };
+`
+    const filePath = path.join(tempDir, 'index.d.ts')
+    fs.writeFileSync(filePath, content, 'utf-8')
+
+    const result = parseDeclarationFile(filePath)
+
+    expect(result.objectTypes).toHaveLength(2)
+  })
+
+  it('should detect object types in unions and intersections', () => {
+    const content = `
+export type Mixed = { foo: string } | { bar: number };
+export type Combined = { a: string } & { b: number };
+`
+    const filePath = path.join(tempDir, 'index.d.ts')
+    fs.writeFileSync(filePath, content, 'utf-8')
+
+    const result = parseDeclarationFile(filePath)
+
+    expect(result.compositeTypes).toHaveLength(2) // one union, one intersection
+    expect(result.objectTypes).toHaveLength(4) // four object types
+  })
 })
 
 describe('buildFileGraph', () => {

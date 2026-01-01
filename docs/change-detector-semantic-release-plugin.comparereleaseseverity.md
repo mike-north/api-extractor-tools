@@ -12,7 +12,7 @@ Compares two release types and returns which is more severe. Severity order: maj
 **Signature:**
 
 ```typescript
-export declare function compareReleaseSeverity(a: ReleaseType | SemanticReleaseType | null, b: ReleaseType | SemanticReleaseType | null): number;
+export declare function compareReleaseSeverity(a: null | ReleaseType | SemanticReleaseType, b: null | ReleaseType | SemanticReleaseType): number;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ a
 
 </td><td>
 
-[ReleaseType](./change-detector-core.releasetype.md) \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
+null \| [ReleaseType](./change-detector-core.releasetype.md) \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
 
 
 </td><td>
@@ -56,7 +56,7 @@ b
 
 </td><td>
 
-[ReleaseType](./change-detector-core.releasetype.md) \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
+null \| [ReleaseType](./change-detector-core.releasetype.md) \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
 
 
 </td><td>

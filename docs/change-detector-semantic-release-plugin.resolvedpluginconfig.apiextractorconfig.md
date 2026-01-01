@@ -12,5 +12,5 @@ Path to api-extractor.json config file
 **Signature:**
 
 ```typescript
-apiExtractorConfig: string | null;
+apiExtractorConfig: null | string;
 ```

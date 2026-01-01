@@ -4,11 +4,11 @@
 
 ## declaration-file-normalizer package
 
-A TypeScript tool that normalizes union and intersection type ordering in declaration files to ensure stable API reports from Microsoft's API Extractor.
+A TypeScript tool that normalizes type ordering in declaration files to ensure stable API reports from Microsoft's API Extractor.
 
 ## Remarks
 
-TypeScript's compiler can produce declaration files with inconsistent ordering of union and intersection type members across builds. This tool parses declaration files, identifies all composite types, and rewrites them with stable alphanumeric ordering to prevent unnecessary API report churn.
+TypeScript's compiler can produce declaration files with inconsistent ordering of union type members, intersection type members, and object type properties across builds. This tool parses declaration files, identifies all such types, and rewrites them with stable alphanumeric ordering to prevent unnecessary API report churn.
 
 ## Functions
 
@@ -30,9 +30,9 @@ Description
 
 </td><td>
 
-Normalizes union and intersection type ordering in TypeScript declaration files.
+Normalizes type ordering in TypeScript declaration files.
 
-Processes the entry point file and all transitively imported declaration files, reordering union (`A | B`<!-- -->) and intersection (`A & B`<!-- -->) type members in stable alphanumeric order to ensure consistent API Extractor reports.
+Processes the entry point file and all transitively imported declaration files, reordering union (`A | B`<!-- -->), intersection (`A & B`<!-- -->), and object type (`{ foo: T; bar: U }`<!-- -->) members in stable alphanumeric order to ensure consistent API Extractor reports.
 
 
 </td></tr>

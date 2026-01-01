@@ -42,5 +42,7 @@ const agilePolicy = createProgressivePolicy()
 **Signature:**
 
 ```typescript
-export declare class ProgressiveRuleBuilder 
+export declare class ProgressiveRuleBuilder implements ProgressiveRuleBuilderInterface 
 ```
+**Implements:** ProgressiveRuleBuilderInterface
+

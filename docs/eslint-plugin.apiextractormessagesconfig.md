@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-{ default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
+{ \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; default?: [MessageConfig](./eslint-plugin.messageconfig.md) }
 
 
 </td><td>
@@ -67,7 +67,7 @@ Description
 
 </td><td>
 
-{ default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-missing-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-forgotten-export'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-internal-missing-underscore'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-incompatible-release-tags'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-extra-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
+{ 'ae-extra-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-forgotten-export'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-incompatible-release-tags'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-internal-missing-underscore'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; 'ae-missing-release-tag'?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; default?: [MessageConfig](./eslint-plugin.messageconfig.md) }
 
 
 </td><td>
@@ -86,7 +86,7 @@ Description
 
 </td><td>
 
-{ default?: [MessageConfig](./eslint-plugin.messageconfig.md)<!-- -->; \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; }
+{ \[messageId: string\]: [MessageConfig](./eslint-plugin.messageconfig.md) \| undefined; default?: [MessageConfig](./eslint-plugin.messageconfig.md) }
 
 
 </td><td>

@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-{ name: string; main: boolean; }
+{ main: boolean; name: string }
 
 
 </td><td>
@@ -67,7 +67,7 @@ Description
 
 </td><td>
 
-Array&lt;{ hash: string; message: string; subject: string; body: string \| null; }&gt;
+Array&lt;{ body: string \| null; hash: string; message: string; subject: string }&gt;
 
 
 </td><td>
@@ -124,7 +124,7 @@ Record&lt;string, string \| undefined&gt;
 
 </td><td>
 
-{ version: string; gitTag: string; gitHead: string; }
+{ gitHead: string; gitTag: string; version: string }
 
 
 </td><td>
@@ -143,7 +143,7 @@ Record&lt;string, string \| undefined&gt;
 
 </td><td>
 
-{ log: (message: string, ...args: unknown\[\]) =&gt; void; error: (message: string, ...args: unknown\[\]) =&gt; void; warn: (message: string, ...args: unknown\[\]) =&gt; void; success: (message: string, ...args: unknown\[\]) =&gt; void; }
+{ error: (message: string, ...args: unknown\[\]) =&gt; void; log: (message: string, ...args: unknown\[\]) =&gt; void; success: (message: string, ...args: unknown\[\]) =&gt; void; warn: (message: string, ...args: unknown\[\]) =&gt; void }
 
 
 </td><td>
@@ -162,7 +162,7 @@ Record&lt;string, string \| undefined&gt;
 
 </td><td>
 
-{ type: [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)<!-- -->; version: string; gitTag: string; notes: string; }
+{ gitTag: string; notes: string; type: [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)<!-- -->; version: string }
 
 
 </td><td>

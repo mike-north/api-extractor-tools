@@ -2,17 +2,17 @@
  * Writer module - file transformation
  */
 
-import * as fs from 'fs';
-import type { AnalyzedFile } from './types.js';
+import * as fs from 'fs'
+import type { AnalyzedFile } from './types.js'
 
 /**
- * Applies composite type normalizations to a declaration file.
+ * Applies composite and object type normalizations to a declaration file.
  *
- * Modifies the file in-place by replacing each changed composite type's text.
+ * Modifies the file in-place by replacing each changed type's text.
  * Uses a reverse-order replacement strategy to maintain correct character offsets
  * as replacements are applied. Performs atomic writes to prevent data corruption.
  *
- * @param analyzed - The analyzed file containing composite types to normalize
+ * @param analyzed - The analyzed file containing types to normalize
  * @returns true if any changes were written, false if file was unchanged
  *
  * @remarks
@@ -25,52 +25,63 @@ import type { AnalyzedFile } from './types.js';
  * file integrity even if the process is interrupted.
  */
 export function writeNormalizedFile(analyzed: AnalyzedFile): boolean {
-  // Filter to only composite types that changed
-  const changedTypes = analyzed.compositeTypes.filter(
-    (type) => type.originalText !== type.normalizedText
-  );
+  // Filter to only types that changed (both composite and object types)
+  const changedCompositeTypes = analyzed.compositeTypes.filter(
+    (type) => type.originalText !== type.normalizedText,
+  )
+
+  const changedObjectTypes = analyzed.objectTypes.filter(
+    (type) => type.originalText !== type.normalizedText,
+  )
+
+  // Combine all changed types into a single array with common shape
+  const changedTypes: Array<{
+    start: number
+    end: number
+    normalizedText: string
+  }> = [...changedCompositeTypes, ...changedObjectTypes]
 
   if (changedTypes.length === 0) {
-    return false; // No changes needed
+    return false // No changes needed
   }
 
   // Use cached source text instead of re-reading the file
-  const originalContent = analyzed.sourceFile.text;
+  const originalContent = analyzed.sourceFile.text
 
   // Sort types by position (descending) so that modifications to later positions
   // don't affect the offsets of earlier positions in the file
-  const sortedTypes = [...changedTypes].sort((a, b) => b.start - a.start);
+  const sortedTypes = [...changedTypes].sort((a, b) => b.start - a.start)
 
   // Apply transformations from end to beginning
-  let modifiedContent = originalContent;
+  let modifiedContent = originalContent
   for (const type of sortedTypes) {
-    const before = modifiedContent.substring(0, type.start);
-    const after = modifiedContent.substring(type.end);
-    modifiedContent = before + type.normalizedText + after;
+    const before = modifiedContent.substring(0, type.start)
+    const after = modifiedContent.substring(type.end)
+    modifiedContent = before + type.normalizedText + after
   }
 
   // Write atomically using temp file + rename strategy
-  const tempPath = `${analyzed.filePath}.tmp`;
+  const tempPath = `${analyzed.filePath}.tmp`
   try {
     // Write to temporary file
-    fs.writeFileSync(tempPath, modifiedContent, 'utf-8');
+    fs.writeFileSync(tempPath, modifiedContent, 'utf-8')
 
     // Atomically replace original file (atomic on most systems)
-    fs.renameSync(tempPath, analyzed.filePath);
+    fs.renameSync(tempPath, analyzed.filePath)
 
-    return true;
+    return true
   } catch (error) {
     // Clean up temp file if it exists
     if (fs.existsSync(tempPath)) {
       try {
-        fs.unlinkSync(tempPath);
+        fs.unlinkSync(tempPath)
       } catch {
         // Ignore cleanup errors
       }
     }
 
     // Re-throw with context
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to write ${analyzed.filePath}: ${message}`);
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to write ${analyzed.filePath}: ${message}`)
   }
 }

@@ -4,9 +4,9 @@
 
 ## normalizeUnionTypes() function
 
-Normalizes union and intersection type ordering in TypeScript declaration files.
+Normalizes type ordering in TypeScript declaration files.
 
-Processes the entry point file and all transitively imported declaration files, reordering union (`A | B`<!-- -->) and intersection (`A & B`<!-- -->) type members in stable alphanumeric order to ensure consistent API Extractor reports.
+Processes the entry point file and all transitively imported declaration files, reordering union (`A | B`<!-- -->), intersection (`A & B`<!-- -->), and object type (`{ foo: T; bar: U }`<!-- -->) members in stable alphanumeric order to ensure consistent API Extractor reports.
 
 **Signature:**
 
@@ -60,7 +60,7 @@ Result object containing processing statistics and any errors encountered
 
 This function does not throw exceptions. All errors are returned in the result object. The function modifies files in-place unless `dryRun: true` is specified.
 
-Despite the function name, this normalizes BOTH union types (`A | B`<!-- -->) and intersection types (`A & B`<!-- -->). The name is historical and may be updated in a future major version.
+Despite the function name, this normalizes union types (`A | B`<!-- -->), intersection types (`A & B`<!-- -->), and object type properties. The name is historical and may be updated in a future major version.
 
 ## Example
 

@@ -88,35 +88,13 @@ export interface ResolvedPluginConfig {
 
 // @alpha
 export interface SemanticReleaseContext {
-    branch?: {
-        name: string;
-        main: boolean;
-    };
-    commits?: Array<{
-        hash: string;
-        message: string;
-        subject: string;
-        body: null | string;
-    }>;
+    branch?: { main: boolean; name: string };
+    commits?: Array<{ body: string | null; hash: string; message: string; subject: string }>;
     cwd: string;
     env: Record<string, string | undefined>;
-    lastRelease?: {
-        version: string;
-        gitTag: string;
-        gitHead: string;
-    };
-    logger: {
-        log: (message: string, ...args: unknown[]) => void;
-        error: (message: string, ...args: unknown[]) => void;
-        warn: (message: string, ...args: unknown[]) => void;
-        success: (message: string, ...args: unknown[]) => void;
-    };
-    nextRelease?: {
-        type: SemanticReleaseType;
-        version: string;
-        gitTag: string;
-        notes: string;
-    };
+    lastRelease?: { gitHead: string; gitTag: string; version: string };
+    logger: { error: (message: string, ...args: unknown[]) => void; log: (message: string, ...args: unknown[]) => void; success: (message: string, ...args: unknown[]) => void; warn: (message: string, ...args: unknown[]) => void };
+    nextRelease?: { gitTag: string; notes: string; type: SemanticReleaseType; version: string };
 }
 
 // @alpha

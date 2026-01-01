@@ -30,6 +30,29 @@ export interface CompositeTypeInfo {
 }
 
 /**
+ * Represents an object type literal discovered in a declaration file.
+ *
+ * This structure is populated during parsing and updated during normalization:
+ * 1. Parser extracts position, text, and AST node
+ * 2. Normalizer computes sorted `normalizedText` with alphanumerically ordered properties
+ * 3. Writer uses positions to replace text if `originalText !== normalizedText`
+ */
+export interface ObjectTypeInfo {
+  /** Absolute path to the file containing this type */
+  readonly filePath: string
+  /** Character offset where the type begins (relative to file content) */
+  readonly start: number
+  /** Character offset where the type ends (relative to file content) */
+  readonly end: number
+  /** The original unsorted type text as it appears in the file */
+  readonly originalText: string
+  /** The sorted type text (populated by normalizer, initially empty) */
+  normalizedText: string
+  /** The AST node representing this object type */
+  readonly node: ts.TypeLiteralNode
+}
+
+/**
  * Represents a declaration file that has been analyzed for composite types.
  *
  * Contains all information needed to normalize and write back the file,
@@ -42,6 +65,8 @@ export interface AnalyzedFile {
   readonly sourceFile: ts.SourceFile
   /** Composite types (unions and intersections) found in this file */
   compositeTypes: CompositeTypeInfo[]
+  /** Object type literals found in this file */
+  objectTypes: ObjectTypeInfo[]
   /** Absolute paths of files imported by this file */
   readonly importedFiles: string[]
 }
