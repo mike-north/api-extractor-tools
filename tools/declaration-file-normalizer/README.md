@@ -52,26 +52,28 @@ pnpm --filter @api-extractor-tools/declaration-file-normalizer exec declaration-
 ### Programmatic API
 
 ```typescript
-import { normalizeUnionTypes } from '@api-extractor-tools/declaration-file-normalizer';
+import { normalizeUnionTypes } from '@api-extractor-tools/declaration-file-normalizer'
 
 const result = normalizeUnionTypes({
   entryPoint: 'tools/change-detector/dist/index.d.ts',
   dryRun: false,
   verbose: true,
-});
+})
 
 if (result.errors.length > 0) {
-  console.error('Normalization encountered errors:');
+  console.error('Normalization encountered errors:')
   result.errors.forEach(({ file, error }) => {
-    console.error(`  ${file}: ${error}`);
-  });
-  process.exit(1);
+    console.error(`  ${file}: ${error}`)
+  })
+  process.exit(1)
 }
 
-console.log(`✓ Successfully normalized ${result.typesNormalized} types in ${result.filesProcessed} files`);
+console.log(
+  `✓ Successfully normalized ${result.typesNormalized} types in ${result.filesProcessed} files`,
+)
 if (result.modifiedFiles.length > 0) {
-  console.log('  Modified files:');
-  result.modifiedFiles.forEach(file => console.log(`    - ${file}`));
+  console.log('  Modified files:')
+  result.modifiedFiles.forEach((file) => console.log(`    - ${file}`))
 }
 ```
 
@@ -107,25 +109,27 @@ Normalizes union and intersection type ordering in TypeScript declaration files.
 #### Example: Error Handling
 
 ```typescript
-import { normalizeUnionTypes } from '@api-extractor-tools/declaration-file-normalizer';
+import { normalizeUnionTypes } from '@api-extractor-tools/declaration-file-normalizer'
 
 const result = normalizeUnionTypes({
   entryPoint: './dist/index.d.ts',
   dryRun: false,
   verbose: true,
-});
+})
 
 // Check for errors
 if (result.errors.length > 0) {
-  console.error('Normalization failed:');
+  console.error('Normalization failed:')
   for (const { file, error } of result.errors) {
-    console.error(`  ${file}: ${error}`);
+    console.error(`  ${file}: ${error}`)
   }
-  process.exit(1);
+  process.exit(1)
 }
 
 // Report success
-console.log(`Normalized ${result.typesNormalized} types in ${result.filesProcessed} files`);
+console.log(
+  `Normalized ${result.typesNormalized} types in ${result.filesProcessed} files`,
+)
 ```
 
 #### Example: Dry-Run Mode
@@ -136,10 +140,12 @@ const result = normalizeUnionTypes({
   entryPoint: './dist/index.d.ts',
   dryRun: true,
   verbose: true,
-});
+})
 
-console.log(`Would normalize ${result.typesNormalized} types in ${result.filesProcessed} files`);
-console.log(`Would modify ${result.modifiedFiles.length} files`);
+console.log(
+  `Would normalize ${result.typesNormalized} types in ${result.filesProcessed} files`,
+)
+console.log(`Would modify ${result.modifiedFiles.length} files`)
 ```
 
 ## How It Works
@@ -160,16 +166,28 @@ console.log(`Would modify ${result.modifiedFiles.length} files`);
 
 ## Integration with Build Pipeline
 
-**Important**: This tool should run **immediately before** generating or checking API reports with API Extractor. This ensures declaration files are normalized right before API Extractor processes them.
+**Important**: This tool should run **immediately after TypeScript compilation**, as part of your build step. This ensures normalized declaration files are included in your build output cache.
+
+### Why Run After `tsc` (Not Before API Extractor)?
+
+In monorepos with build output caching (e.g., Nx, Turborepo):
+
+1. The build step runs and its output gets cached
+2. Downstream tools (like API Extractor) consume the cached build output
+3. If normalization runs _after_ the build step but _before_ API Extractor, it modifies files outside the cached build, which can cause cache invalidation or inconsistent results
+
+By including normalization in the build step itself, the normalized declaration files become part of what gets cached. Any downstream tool can then consume the build output—whether cached or freshly calculated—and get consistent results.
 
 ### Recommended Integration
 
-Update your package's scripts in `package.json`:
+Update your package's `build` script to include normalization:
 
 ```json
 {
   "scripts": {
-    "build": "tsc && declaration-file-normalizer dist/index.d.ts && api-extractor run --local"
+    "build": "tsc && declaration-file-normalizer dist/index.d.ts",
+    "api-report": "api-extractor run --local",
+    "api-report:check": "api-extractor run"
   }
 }
 ```
@@ -181,18 +199,9 @@ Or if you prefer separate steps:
   "scripts": {
     "build:tsc": "tsc",
     "build:normalize": "declaration-file-normalizer dist/index.d.ts",
-    "build:api-report": "api-extractor run --local",
-    "build": "pnpm build:tsc && pnpm build:normalize && pnpm build:api-report"
-  }
-}
-```
-
-For CI validation (checking that API reports haven't changed):
-
-```json
-{
-  "scripts": {
-    "check:api-report": "declaration-file-normalizer dist/index.d.ts && api-extractor run"
+    "build": "pnpm build:tsc && pnpm build:normalize",
+    "api-report": "api-extractor run --local",
+    "api-report:check": "api-extractor run"
   }
 }
 ```
@@ -200,14 +209,17 @@ For CI validation (checking that API reports haven't changed):
 ### Workflow
 
 ```text
-tsc → declaration-file-normalizer → api-extractor
+build step: tsc → declaration-file-normalizer
+    ↓ (output is cached)
+api-extractor (consumes cached or fresh build output)
 ```
 
 1. TypeScript emits declaration files (possibly with inconsistent union/intersection ordering)
-2. **`declaration-file-normalizer` runs immediately before API Extractor** to stabilize type ordering in-place
-3. API Extractor processes the normalized files, producing stable API reports
+2. **`declaration-file-normalizer` runs immediately after `tsc`** to stabilize type ordering in-place
+3. The build output (including normalized `.d.ts` files) is cached
+4. API Extractor processes the normalized files, producing stable API reports
 
-**Key principle**: The normalizer should always run right before API Extractor to ensure consistent inputs, whether you're generating reports (`--local`) or validating them (CI).
+**Key principle**: Normalization is part of the build step, not a pre-step for API Extractor. This ensures build caching works correctly in monorepos.
 
 ## Testing
 
