@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/eslint-plugin",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "ESLint plugin providing authoring-time feedback for API Extractor",
   "main": "dist/index.js",
   "types": "dist/eslint-plugin-public.d.ts",

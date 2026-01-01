@@ -1,5 +1,12 @@
 # @api-extractor-tools/input-processor-typescript
 
+## 0.1.0-alpha.2
+
+### Patch Changes
+
+- Updated dependencies [[`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd), [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd), [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd), [`c57752d`](https://github.com/mike-north/api-extractor-tools/commit/c57752dfd5c5577909062588ee4b39bd68dc19dd)]:
+  - @api-extractor-tools/change-detector-core@0.1.0-alpha.2
+
 ## 0.1.0-alpha.1
 
 ### Minor Changes
