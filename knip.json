@@ -4,7 +4,9 @@
     ".": {
       "ignoreBinaries": [
         "changeset-change-detector",
-        "declaration-file-normalizer"
+        "declaration-file-normalizer",
+        "tsd",
+        "api-extractor"
       ],
       "ignoreDependencies": ["@vitest/coverage-v8", "@commitlint/types"],
       "paths": {
@@ -21,6 +23,7 @@
         "test/**/*.test-d.ts",
         "test/**/*.test.ts"
       ],
+      "ignoreDependencies": ["@microsoft/api-extractor"],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]
@@ -33,8 +36,38 @@
         "@/*": ["src/*"]
       }
     },
+    "tools/change-detector": {
+      "ignoreDependencies": [
+        "@api-extractor-tools/declaration-file-normalizer"
+      ],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
     "tools/change-detector-semantic-release-plugin": {
-      "ignoreDependencies": ["semantic-release"],
+      "ignoreDependencies": [
+        "semantic-release",
+        "@api-extractor-tools/declaration-file-normalizer"
+      ],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
+    "tools/changeset-change-detector": {
+      "entry": ["src/index.ts", "test/**/*.test-d.ts", "test/**/*.test.ts"],
+      "ignoreDependencies": [
+        "@api-extractor-tools/declaration-file-normalizer",
+        "tsd"
+      ],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
+    "tools/declaration-file-normalizer": {
+      "entry": ["src/index.ts", "test/**/*.test.ts"],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]
@@ -44,6 +77,24 @@
       "entry": ["src/main.tsx", "src/App.tsx"],
       "project": ["src/**/*.{ts,tsx}"],
       "ignoreDependencies": ["path-browserify"],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
+    "tools/eslint-plugin": {
+      "ignoreDependencies": [
+        "@api-extractor-tools/declaration-file-normalizer"
+      ],
+      "paths": {
+        "@": ["src/index.ts"],
+        "@/*": ["src/*"]
+      }
+    },
+    "tools/module-declaration-merger": {
+      "ignoreDependencies": [
+        "@api-extractor-tools/declaration-file-normalizer"
+      ],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]

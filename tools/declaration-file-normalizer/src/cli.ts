@@ -77,7 +77,7 @@ DESCRIPTION:
 `)
 }
 
-function main(): Promise<void> {
+function main(): void {
   const args = parseArgs(process.argv.slice(2))
 
   if (args.help) {
@@ -123,7 +123,4 @@ function main(): Promise<void> {
   process.exit(0)
 }
 
-main().catch((error) => {
-  console.error('Fatal error:', error)
-  process.exit(1)
-})
+main()
