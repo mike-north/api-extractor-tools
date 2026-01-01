@@ -49,7 +49,7 @@ Description
 
 </td><td>
 
-Array&lt;{ error: string; file: string }&gt;
+Array&lt;{ file: string; error: string; }&gt;
 
 
 </td><td>

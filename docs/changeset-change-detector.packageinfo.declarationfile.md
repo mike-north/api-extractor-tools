@@ -12,5 +12,5 @@ Path to the main declaration file, if it exists
 **Signature:**
 
 ```typescript
-declarationFile: null | string;
+declarationFile: string | null;
 ```

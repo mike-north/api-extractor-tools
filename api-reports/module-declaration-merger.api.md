@@ -103,7 +103,7 @@ export interface ExtractOptions {
 export { ExtractorLogLevel }
 
 // @alpha
-export function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): null | string;
+export function getAugmentationPreview(augmentations: ExtractedModuleAugmentation[], rollupPaths: RollupPaths, resolver: Resolver, targetRollup: string): string | null;
 
 // @alpha
 export function getRollupPathsForMaturity(maturityLevel: MaturityLevel, rollupPaths: RollupPaths): string[];

@@ -12,7 +12,7 @@ Maps semantic-release type to change-detector ReleaseType.
 **Signature:**
 
 ```typescript
-export declare function semanticTypeToReleaseType(semanticType: null | SemanticReleaseType): ReleaseType;
+export declare function semanticTypeToReleaseType(semanticType: SemanticReleaseType | null): ReleaseType;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ semanticType
 
 </td><td>
 
-null \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
+[SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 
 </td><td>
