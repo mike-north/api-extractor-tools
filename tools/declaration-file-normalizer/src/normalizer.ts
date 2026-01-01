@@ -192,7 +192,7 @@ function normalizeMethodSignature(member: ts.MethodSignature): string {
   const name = member.name.getText()
   const optional = member.questionToken ? '?' : ''
   const typeParams = member.typeParameters
-    ? `<${member.typeParameters.map((tp) => tp.getText()).join(', ')}>`
+    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
     : ''
   const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
   const returnType = member.type ? normalizeType(member.type) : 'any'
@@ -218,7 +218,7 @@ function normalizeIndexSignature(member: ts.IndexSignatureDeclaration): string {
  */
 function normalizeCallSignature(member: ts.CallSignatureDeclaration): string {
   const typeParams = member.typeParameters
-    ? `<${member.typeParameters.map((tp) => tp.getText()).join(', ')}>`
+    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
     : ''
   const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
   const returnType = member.type ? normalizeType(member.type) : 'any'
@@ -232,7 +232,7 @@ function normalizeConstructSignature(
   member: ts.ConstructSignatureDeclaration,
 ): string {
   const typeParams = member.typeParameters
-    ? `<${member.typeParameters.map((tp) => tp.getText()).join(', ')}>`
+    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
     : ''
   const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
   const returnType = member.type ? normalizeType(member.type) : 'any'
@@ -244,7 +244,7 @@ function normalizeConstructSignature(
  */
 function normalizeFunctionType(node: ts.FunctionTypeNode): string {
   const typeParams = node.typeParameters
-    ? `<${node.typeParameters.map((tp) => tp.getText()).join(', ')}>`
+    ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
     : ''
   const params = node.parameters.map((p) => normalizeParameter(p)).join(', ')
   const returnType = normalizeType(node.type)
@@ -256,7 +256,7 @@ function normalizeFunctionType(node: ts.FunctionTypeNode): string {
  */
 function normalizeConstructorType(node: ts.ConstructorTypeNode): string {
   const typeParams = node.typeParameters
-    ? `<${node.typeParameters.map((tp) => tp.getText()).join(', ')}>`
+    ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
     : ''
   const params = node.parameters.map((p) => normalizeParameter(p)).join(', ')
   const returnType = normalizeType(node.type)
@@ -301,4 +301,22 @@ function normalizeParameter(param: ts.ParameterDeclaration): string {
   const optional = param.questionToken ? '?' : ''
   const type = param.type ? `: ${normalizeType(param.type)}` : ''
   return `${dotDotDot}${name}${optional}${type}`
+}
+
+/**
+ * Normalizes a type parameter declaration, including its constraint and default type.
+ *
+ * Handles cases like:
+ * - `T` - simple type parameter
+ * - `T extends "z" | "a"` - with constraint (normalizes to `T extends "a" | "z"`)
+ * - `T = "z" | "a"` - with default (normalizes to `T = "a" | "z"`)
+ * - `T extends Foo = Bar` - with both constraint and default
+ */
+function normalizeTypeParameter(tp: ts.TypeParameterDeclaration): string {
+  const name = tp.name.getText()
+  const constraint = tp.constraint
+    ? ` extends ${normalizeType(tp.constraint)}`
+    : ''
+  const defaultType = tp.default ? ` = ${normalizeType(tp.default)}` : ''
+  return `${name}${constraint}${defaultType}`
 }

@@ -305,6 +305,80 @@ describe('normalizeType - anonymous object types in unions', () => {
   })
 })
 
+describe('normalizeType - type parameters with constraints and defaults', () => {
+  it('should normalize union constraints in function types', () => {
+    const node = createTypeNode('<T extends "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize intersection constraints in function types', () => {
+    const node = createTypeNode('<T extends Z & A>(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends A & Z>(x: T) => T')
+  })
+
+  it('should normalize default types in function types', () => {
+    const node = createTypeNode('<T = "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T = "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize both constraint and default in function types', () => {
+    const node = createTypeNode('<T extends Base = "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends Base = "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize union constraints in constructor types', () => {
+    const node = createTypeNode('new <T extends "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('new <T extends "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize constraints in method signatures within object types', () => {
+    const node = createTypeNode('{ method<T extends "z" | "a">(x: T): T }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ method<T extends "a" | "z">(x: T): T }')
+  })
+
+  it('should normalize constraints in call signatures within object types', () => {
+    const node = createTypeNode('{ <T extends "z" | "a">(x: T): T }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ <T extends "a" | "z">(x: T): T }')
+  })
+
+  it('should normalize constraints in construct signatures within object types', () => {
+    const node = createTypeNode('{ new <T extends "z" | "a">(x: T): T }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ new <T extends "a" | "z">(x: T): T }')
+  })
+
+  it('should normalize multiple type parameters with constraints', () => {
+    const node = createTypeNode(
+      '<T extends "z" | "a", U extends B & A>(x: T, y: U) => void',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe(
+      '<T extends "a" | "z", U extends A & B>(x: T, y: U) => void',
+    )
+  })
+
+  it('should preserve simple type parameters without constraints', () => {
+    const node = createTypeNode('<T>(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T>(x: T) => T')
+  })
+
+  it('should normalize object type constraints', () => {
+    const node = createTypeNode(
+      '<T extends { z: string; a: number }>(x: T) => T',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends { a: number; z: string }>(x: T) => T')
+  })
+})
+
 describe('normalizeType - edge cases', () => {
   it('should handle parenthesized types', () => {
     const node = createTypeNode('("z" | "a")')
