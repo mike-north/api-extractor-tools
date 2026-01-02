@@ -12,5 +12,5 @@ The bump type proposed by commit analysis
 **Signature:**
 
 ```typescript
-proposedBump: null | SemanticReleaseType;
+proposedBump: SemanticReleaseType | null;
 ```

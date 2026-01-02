@@ -1,486 +1,418 @@
 import { describe, it, expect } from 'vitest'
 import ts from 'typescript'
-import {
-  normalizeCompositeType,
-  normalizeObjectType,
-} from '../src/normalizer.js'
-import type { CompositeTypeInfo, ObjectTypeInfo } from '../src/types.js'
+import { normalizeType } from '../src/normalizer.js'
 
 /**
- * Helper to create a union type node for testing
+ * Helper to create a type node from a type alias declaration for testing
  */
-function createUnionNode(unionText: string): ts.UnionTypeNode {
+function createTypeNode(typeText: string): ts.TypeNode {
   const sourceFile = ts.createSourceFile(
     'test.ts',
-    `type Test = ${unionText};`,
+    `type Test = ${typeText};`,
     ts.ScriptTarget.Latest,
     true,
   )
 
-  let unionNode: ts.UnionTypeNode | undefined
+  let typeNode: ts.TypeNode | undefined
 
   function visit(node: ts.Node): void {
-    if (ts.isUnionTypeNode(node)) {
-      unionNode = node
+    if (ts.isTypeAliasDeclaration(node)) {
+      typeNode = node.type
     }
     ts.forEachChild(node, visit)
   }
 
   visit(sourceFile)
 
-  if (!unionNode) {
-    throw new Error('Failed to create union node')
+  if (!typeNode) {
+    throw new Error('Failed to create type node')
   }
 
-  return unionNode
+  return typeNode
 }
 
-/**
- * Helper to create an intersection type node for testing
- */
-function createIntersectionNode(
-  intersectionText: string,
-): ts.IntersectionTypeNode {
-  const sourceFile = ts.createSourceFile(
-    'test.ts',
-    `type Test = ${intersectionText};`,
-    ts.ScriptTarget.Latest,
-    true,
-  )
-
-  let intersectionNode: ts.IntersectionTypeNode | undefined
-
-  function visit(node: ts.Node): void {
-    if (ts.isIntersectionTypeNode(node)) {
-      intersectionNode = node
-    }
-    ts.forEachChild(node, visit)
-  }
-
-  visit(sourceFile)
-
-  if (!intersectionNode) {
-    throw new Error('Failed to create intersection node')
-  }
-
-  return intersectionNode
-}
-
-/**
- * Helper to create an object type literal node for testing
- */
-function createObjectTypeNode(objectText: string): ts.TypeLiteralNode {
-  const sourceFile = ts.createSourceFile(
-    'test.ts',
-    `type Test = ${objectText};`,
-    ts.ScriptTarget.Latest,
-    true,
-  )
-
-  let objectNode: ts.TypeLiteralNode | undefined
-
-  function visit(node: ts.Node): void {
-    if (ts.isTypeLiteralNode(node)) {
-      objectNode = node
-    }
-    ts.forEachChild(node, visit)
-  }
-
-  visit(sourceFile)
-
-  if (!objectNode) {
-    throw new Error('Failed to create object type node')
-  }
-
-  return objectNode
-}
-
-describe('normalizeCompositeType - union types', () => {
+describe('normalizeType - union types', () => {
   it('should sort string literal types alphabetically', () => {
-    const unionText = '"zebra" | "apple" | "banana"'
-    const node = createUnionNode(unionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: unionText,
-      normalizedText: '',
-      node,
-      separator: '|',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    expect(compositeTypeInfo.normalizedText).toBe(
-      '"apple" | "banana" | "zebra"',
-    )
+    const node = createTypeNode('"zebra" | "apple" | "banana"')
+    const result = normalizeType(node)
+    expect(result).toBe('"apple" | "banana" | "zebra"')
   })
 
   it('should sort type names alphabetically', () => {
-    const unionText = 'Zebra | Apple | Banana'
-    const node = createUnionNode(unionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: unionText,
-      normalizedText: '',
-      node,
-      separator: '|',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    expect(compositeTypeInfo.normalizedText).toBe('Apple | Banana | Zebra')
+    const node = createTypeNode('Zebra | Apple | Banana')
+    const result = normalizeType(node)
+    expect(result).toBe('Apple | Banana | Zebra')
   })
 
   it('should handle already sorted unions', () => {
-    const unionText = '"a" | "b" | "c"'
-    const node = createUnionNode(unionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: unionText,
-      normalizedText: '',
-      node,
-      separator: '|',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    expect(compositeTypeInfo.normalizedText).toBe(unionText)
+    const node = createTypeNode('"a" | "b" | "c"')
+    const result = normalizeType(node)
+    expect(result).toBe('"a" | "b" | "c"')
   })
 
   it('should sort mixed types (string literals and type names)', () => {
-    const unionText = 'TypeB | "literal-a" | TypeA | "literal-z"'
-    const node = createUnionNode(unionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: unionText,
-      normalizedText: '',
-      node,
-      separator: '|',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    expect(compositeTypeInfo.normalizedText).toBe(
-      '"literal-a" | "literal-z" | TypeA | TypeB',
-    )
+    const node = createTypeNode('TypeB | "literal-a" | TypeA | "literal-z"')
+    const result = normalizeType(node)
+    expect(result).toBe('"literal-a" | "literal-z" | TypeA | TypeB')
   })
 
   it('should handle complex types in unions', () => {
-    const unionText = 'Array<string> | number | Record<string, unknown>'
-    const node = createUnionNode(unionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: unionText,
-      normalizedText: '',
-      node,
-      separator: '|',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    // Verify it's sorted alphanumerically (A < R < n in localeCompare)
-    expect(compositeTypeInfo.normalizedText).toBe(
+    const node = createTypeNode(
       'Array<string> | number | Record<string, unknown>',
     )
+    const result = normalizeType(node)
+    // Verify it's sorted alphanumerically (A < R < n in localeCompare)
+    expect(result).toBe('Array<string> | number | Record<string, unknown>')
   })
 
   it('should use case-sensitive sorting', () => {
-    const unionText = 'apple | Zebra | Banana | zoo'
-    const node = createUnionNode(unionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: unionText,
-      normalizedText: '',
-      node,
-      separator: '|',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
+    const node = createTypeNode('apple | Zebra | Banana | zoo')
+    const result = normalizeType(node)
     // Case-sensitive alphanumeric sorting (a < B < Z < z in localeCompare)
-    expect(compositeTypeInfo.normalizedText).toBe(
-      'apple | Banana | Zebra | zoo',
-    )
+    expect(result).toBe('apple | Banana | Zebra | zoo')
   })
 })
 
-describe('normalizeCompositeType - intersection types', () => {
+describe('normalizeType - intersection types', () => {
   it('should sort intersection type members alphabetically', () => {
-    const intersectionText = 'Zebra & Apple & Banana'
-    const node = createIntersectionNode(intersectionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: intersectionText,
-      normalizedText: '',
-      node,
-      separator: '&',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    expect(compositeTypeInfo.normalizedText).toBe('Apple & Banana & Zebra')
+    const node = createTypeNode('Zebra & Apple & Banana')
+    const result = normalizeType(node)
+    expect(result).toBe('Apple & Banana & Zebra')
   })
 
   it('should handle already sorted intersection types', () => {
-    const intersectionText = 'A & B & C'
-    const node = createIntersectionNode(intersectionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: intersectionText,
-      normalizedText: '',
-      node,
-      separator: '&',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
-    expect(compositeTypeInfo.normalizedText).toBe(intersectionText)
+    const node = createTypeNode('A & B & C')
+    const result = normalizeType(node)
+    expect(result).toBe('A & B & C')
   })
 
   it('should sort complex intersection types', () => {
-    const intersectionText =
-      'Record<string, unknown> & Partial<User> & { id: string }'
-    const node = createIntersectionNode(intersectionText)
-
-    const compositeTypeInfo: CompositeTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: intersectionText,
-      normalizedText: '',
-      node,
-      separator: '&',
-    }
-
-    normalizeCompositeType(compositeTypeInfo)
-
+    const node = createTypeNode(
+      'Record<string, unknown> & Partial<User> & { id: string }',
+    )
+    const result = normalizeType(node)
     // { comes before P and R in ASCII/Unicode
-    expect(compositeTypeInfo.normalizedText).toBe(
+    expect(result).toBe(
       '{ id: string } & Partial<User> & Record<string, unknown>',
     )
   })
 })
 
-describe('normalizeObjectType - object type literals', () => {
+describe('normalizeType - object type literals', () => {
   it('should sort property names alphabetically', () => {
-    const objectText = '{ zebra: string; apple: number; banana: boolean }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(
-      '{ apple: number; banana: boolean; zebra: string }',
+    const node = createTypeNode(
+      '{ zebra: string; apple: number; banana: boolean }',
     )
+    const result = normalizeType(node)
+    expect(result).toBe('{ apple: number; banana: boolean; zebra: string }')
   })
 
   it('should handle already sorted object types', () => {
-    const objectText = '{ alpha: string; beta: number; gamma: boolean }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(objectText)
+    const node = createTypeNode(
+      '{ alpha: string; beta: number; gamma: boolean }',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe('{ alpha: string; beta: number; gamma: boolean }')
   })
 
   it('should handle empty object types', () => {
-    const objectText = '{}'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(objectText)
+    const node = createTypeNode('{}')
+    const result = normalizeType(node)
+    expect(result).toBe('{}')
   })
 
   it('should handle single property object types', () => {
-    const objectText = '{ single: string }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(objectText)
+    const node = createTypeNode('{ single: string }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ single: string }')
   })
 
   it('should sort method signatures with properties', () => {
-    const objectText = '{ zebra(): void; apple: string; bar(): number }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(
-      '{ apple: string; bar(): number; zebra(): void }',
+    const node = createTypeNode(
+      '{ zebra(): void; apple: string; bar(): number }',
     )
+    const result = normalizeType(node)
+    expect(result).toBe('{ apple: string; bar(): number; zebra(): void }')
   })
 
   it('should use case-sensitive sorting for properties', () => {
-    const objectText = '{ Zoo: string; apple: number; Banana: boolean }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    // Case-sensitive alphanumeric sorting (a < B < Z in localeCompare with variant sensitivity)
-    expect(objectTypeInfo.normalizedText).toBe(
-      '{ apple: number; Banana: boolean; Zoo: string }',
+    const node = createTypeNode(
+      '{ Zoo: string; apple: number; Banana: boolean }',
     )
+    const result = normalizeType(node)
+    // Case-sensitive alphanumeric sorting (a < B < Z in localeCompare with variant sensitivity)
+    expect(result).toBe('{ apple: number; Banana: boolean; Zoo: string }')
   })
 
   it('should handle optional properties', () => {
-    const objectText = '{ zebra?: string; apple: number; banana?: boolean }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(
-      '{ apple: number; banana?: boolean; zebra?: string }',
+    const node = createTypeNode(
+      '{ zebra?: string; apple: number; banana?: boolean }',
     )
+    const result = normalizeType(node)
+    expect(result).toBe('{ apple: number; banana?: boolean; zebra?: string }')
   })
 
   it('should handle readonly properties', () => {
-    const objectText =
-      '{ readonly zebra: string; apple: number; readonly banana: boolean }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(
+    const node = createTypeNode(
+      '{ readonly zebra: string; apple: number; readonly banana: boolean }',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe(
       '{ apple: number; readonly banana: boolean; readonly zebra: string }',
     )
   })
 
   it('should handle complex property types', () => {
-    const objectText =
-      '{ zebra: Array<string>; apple: Record<string, number>; banana: Map<string, boolean> }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    expect(objectTypeInfo.normalizedText).toBe(
+    const node = createTypeNode(
+      '{ zebra: Array<string>; apple: Record<string, number>; banana: Map<string, boolean> }',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe(
       '{ apple: Record<string, number>; banana: Map<string, boolean>; zebra: Array<string> }',
     )
   })
 
   it('should handle index signatures', () => {
-    const objectText =
-      '{ [key: string]: unknown; apple: number; zebra: string }'
-    const node = createObjectTypeNode(objectText)
-
-    const objectTypeInfo: ObjectTypeInfo = {
-      filePath: 'test.ts',
-      start: 0,
-      end: 0,
-      originalText: objectText,
-      normalizedText: '',
-      node,
-    }
-
-    normalizeObjectType(objectTypeInfo)
-
-    // Index signatures are sorted by their text, [ comes before a in ASCII
-    expect(objectTypeInfo.normalizedText).toBe(
+    const node = createTypeNode(
       '{ [key: string]: unknown; apple: number; zebra: string }',
     )
+    const result = normalizeType(node)
+    // Index signatures are sorted by their text, [ comes before a in ASCII
+    expect(result).toBe(
+      '{ [key: string]: unknown; apple: number; zebra: string }',
+    )
+  })
+})
+
+describe('normalizeType - nested types', () => {
+  it('should normalize unions within object properties', () => {
+    const node = createTypeNode('{ foo: "z" | "a" }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ foo: "a" | "z" }')
+  })
+
+  it('should normalize objects within unions', () => {
+    const node = createTypeNode('{ z: string; a: number } | { b: number }')
+    const result = normalizeType(node)
+    // Objects are sorted, and union members are sorted by their normalized form
+    expect(result).toBe('{ a: number; z: string } | { b: number }')
+  })
+
+  it('should normalize unions within arrays', () => {
+    const node = createTypeNode('Array<"z" | "a" | "b">')
+    const result = normalizeType(node)
+    expect(result).toBe('Array<"a" | "b" | "z">')
+  })
+
+  it('should normalize unions within array syntax', () => {
+    const node = createTypeNode('("z" | "a")[]')
+    const result = normalizeType(node)
+    expect(result).toBe('("a" | "z")[]')
+  })
+
+  it('should normalize unions within tuples', () => {
+    const node = createTypeNode('[("z" | "a"), string]')
+    const result = normalizeType(node)
+    expect(result).toBe('[("a" | "z"), string]')
+  })
+
+  it('should normalize type arguments in generics', () => {
+    const node = createTypeNode('Map<"z" | "a", number>')
+    const result = normalizeType(node)
+    expect(result).toBe('Map<"a" | "z", number>')
+  })
+
+  it('should normalize function parameter types', () => {
+    const node = createTypeNode('(x: "z" | "a") => void')
+    const result = normalizeType(node)
+    expect(result).toBe('(x: "a" | "z") => void')
+  })
+
+  it('should normalize function return types', () => {
+    const node = createTypeNode('() => "z" | "a"')
+    const result = normalizeType(node)
+    expect(result).toBe('() => "a" | "z"')
+  })
+
+  it('should normalize deeply nested types', () => {
+    const node = createTypeNode('{ outer: { inner: "z" | "a" } }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ outer: { inner: "a" | "z" } }')
+  })
+
+  it('should normalize multiple levels of nesting', () => {
+    const node = createTypeNode(
+      'Array<{ z: string; a: number } | { b: boolean }>',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe('Array<{ a: number; z: string } | { b: boolean }>')
+  })
+})
+
+describe('normalizeType - anonymous object types in unions', () => {
+  it('should sort anonymous objects by their normalized form', () => {
+    // Objects with properties in unsorted order should be compared by their normalized form
+    const node = createTypeNode(
+      '{ zebra: string; apple: number } | { bar: number }',
+    )
+    const result = normalizeType(node)
+    // Normalized forms: { apple: number; zebra: string } vs { bar: number }
+    // "{ apple..." < "{ bar..." so first object comes first after normalization
+    expect(result).toBe('{ apple: number; zebra: string } | { bar: number }')
+  })
+
+  it('should produce stable sort regardless of source property order', () => {
+    // Same objects but with properties in different source order
+    const node1 = createTypeNode(
+      '{ zebra: string; apple: number } | { bar: number }',
+    )
+    const node2 = createTypeNode(
+      '{ apple: number; zebra: string } | { bar: number }',
+    )
+
+    const result1 = normalizeType(node1)
+    const result2 = normalizeType(node2)
+
+    // Both should produce the same output
+    expect(result1).toBe(result2)
+    expect(result1).toBe('{ apple: number; zebra: string } | { bar: number }')
+  })
+
+  it('should sort mixed named and anonymous types correctly', () => {
+    const node = createTypeNode('{ zed: string } | Named | { alpha: number }')
+    const result = normalizeType(node)
+    // Sort order: { alpha... } < { zed... } < Named
+    // "{" < "N" in localeCompare, and "{ alpha..." < "{ zed..."
+    expect(result).toBe('{ alpha: number } | { zed: string } | Named')
+  })
+
+  it('should handle anonymous objects with same normalized first property', () => {
+    // Both objects start with "a" when normalized
+    const node = createTypeNode(
+      '{ zebra: string; apple: number } | { apple: string }',
+    )
+    const result = normalizeType(node)
+    // Normalized forms: { apple: number; zebra: string } vs { apple: string }
+    // "{ apple: number..." < "{ apple: string..." because 'n' < 's'
+    expect(result).toBe('{ apple: number; zebra: string } | { apple: string }')
+  })
+
+  it('should handle deeply nested object types', () => {
+    const node = createTypeNode('{ outer: { inner: string } } | { a: number }')
+    const result = normalizeType(node)
+    // "{ a..." < "{ outer..." alphabetically
+    expect(result).toBe('{ a: number } | { outer: { inner: string } }')
+  })
+})
+
+describe('normalizeType - type parameters with constraints and defaults', () => {
+  it('should normalize union constraints in function types', () => {
+    const node = createTypeNode('<T extends "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize intersection constraints in function types', () => {
+    const node = createTypeNode('<T extends Z & A>(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends A & Z>(x: T) => T')
+  })
+
+  it('should normalize default types in function types', () => {
+    const node = createTypeNode('<T = "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T = "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize both constraint and default in function types', () => {
+    const node = createTypeNode('<T extends Base = "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends Base = "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize union constraints in constructor types', () => {
+    const node = createTypeNode('new <T extends "z" | "a">(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('new <T extends "a" | "z">(x: T) => T')
+  })
+
+  it('should normalize constraints in method signatures within object types', () => {
+    const node = createTypeNode('{ method<T extends "z" | "a">(x: T): T }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ method<T extends "a" | "z">(x: T): T }')
+  })
+
+  it('should normalize constraints in call signatures within object types', () => {
+    const node = createTypeNode('{ <T extends "z" | "a">(x: T): T }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ <T extends "a" | "z">(x: T): T }')
+  })
+
+  it('should normalize constraints in construct signatures within object types', () => {
+    const node = createTypeNode('{ new <T extends "z" | "a">(x: T): T }')
+    const result = normalizeType(node)
+    expect(result).toBe('{ new <T extends "a" | "z">(x: T): T }')
+  })
+
+  it('should normalize multiple type parameters with constraints', () => {
+    const node = createTypeNode(
+      '<T extends "z" | "a", U extends B & A>(x: T, y: U) => void',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe(
+      '<T extends "a" | "z", U extends A & B>(x: T, y: U) => void',
+    )
+  })
+
+  it('should preserve simple type parameters without constraints', () => {
+    const node = createTypeNode('<T>(x: T) => T')
+    const result = normalizeType(node)
+    expect(result).toBe('<T>(x: T) => T')
+  })
+
+  it('should normalize object type constraints', () => {
+    const node = createTypeNode(
+      '<T extends { z: string; a: number }>(x: T) => T',
+    )
+    const result = normalizeType(node)
+    expect(result).toBe('<T extends { a: number; z: string }>(x: T) => T')
+  })
+})
+
+describe('normalizeType - edge cases', () => {
+  it('should handle parenthesized types', () => {
+    const node = createTypeNode('("z" | "a")')
+    const result = normalizeType(node)
+    expect(result).toBe('("a" | "z")')
+  })
+
+  it('should preserve simple type references', () => {
+    const node = createTypeNode('string')
+    const result = normalizeType(node)
+    expect(result).toBe('string')
+  })
+
+  it('should preserve generic types without nested unions', () => {
+    const node = createTypeNode('Array<string>')
+    const result = normalizeType(node)
+    expect(result).toBe('Array<string>')
+  })
+
+  it('should handle single-member unions', () => {
+    const node = createTypeNode('"only"')
+    const result = normalizeType(node)
+    expect(result).toBe('"only"')
+  })
+
+  it('should handle conditional types', () => {
+    const node = createTypeNode('T extends ("z" | "a") ? true : false')
+    const result = normalizeType(node)
+    expect(result).toBe('T extends ("a" | "z") ? true : false')
+  })
+
+  it('should handle indexed access types', () => {
+    const node = createTypeNode('T[("z" | "a")]')
+    const result = normalizeType(node)
+    expect(result).toBe('T[("a" | "z")]')
   })
 })

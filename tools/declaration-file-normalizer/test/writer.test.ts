@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as os from 'os'
 import ts from 'typescript'
 import { writeNormalizedFile } from '../src/writer.js'
-import type { AnalyzedFile, CompositeTypeInfo } from '../src/types.js'
+import type { AnalyzedFile, TypeAliasInfo } from '../src/types.js'
 
 describe('writeNormalizedFile', () => {
   let tempDir: string
@@ -23,7 +23,7 @@ describe('writeNormalizedFile', () => {
   function createMockAnalyzedFile(
     filePath: string,
     content: string,
-    compositeTypes: Omit<CompositeTypeInfo, 'node'>[],
+    typeAliases: Omit<TypeAliasInfo, 'node'>[],
   ): AnalyzedFile {
     const sourceFile = ts.createSourceFile(
       filePath,
@@ -33,19 +33,16 @@ describe('writeNormalizedFile', () => {
       ts.ScriptKind.TS,
     )
 
-    // Create mock nodes for composite types
-    const fullCompositeTypes: CompositeTypeInfo[] = compositeTypes.map(
-      (info) => ({
-        ...info,
-        node: {} as ts.UnionTypeNode | ts.IntersectionTypeNode,
-      }),
-    )
+    // Create mock nodes for type aliases
+    const fullTypeAliases: TypeAliasInfo[] = typeAliases.map((info) => ({
+      ...info,
+      node: {} as ts.TypeNode,
+    }))
 
     return {
       filePath,
       sourceFile,
-      compositeTypes: fullCompositeTypes,
-      objectTypes: [], // Empty array for object types (not tested in this file)
+      typeAliases: fullTypeAliases,
       importedFiles: [],
     }
   }
@@ -62,7 +59,6 @@ describe('writeNormalizedFile', () => {
         end: 43,
         originalText: '"active" | "inactive"',
         normalizedText: '"active" | "inactive"', // Already normalized
-        separator: '|',
       },
     ])
 
@@ -85,7 +81,6 @@ describe('writeNormalizedFile', () => {
         end: 49, // End of "banana"
         originalText: '"zebra" | "apple" | "banana"',
         normalizedText: '"apple" | "banana" | "zebra"',
-        separator: '|',
       },
     ])
 
@@ -111,7 +106,6 @@ export type Numbers = 9 | 1 | 5;`
         end: 36, // End of "b"
         originalText: '"z" | "a" | "b"',
         normalizedText: '"a" | "b" | "z"',
-        separator: '|',
       },
       {
         filePath,
@@ -119,7 +113,6 @@ export type Numbers = 9 | 1 | 5;`
         end: 69, // End of 5
         originalText: '9 | 1 | 5',
         normalizedText: '1 | 5 | 9',
-        separator: '|',
       },
     ])
 
@@ -149,7 +142,6 @@ export const VERSION = "1.0.0";`
         end: 75,
         originalText: '"inactive" | "active"',
         normalizedText: '"active" | "inactive"',
-        separator: '|',
       },
     ])
 
@@ -175,7 +167,6 @@ export const VERSION = "1.0.0";`
         end: 45, // End of Banana
         originalText: 'Zebra & Apple & Banana',
         normalizedText: 'Apple & Banana & Zebra',
-        separator: '&',
       },
     ])
 
@@ -204,7 +195,6 @@ export const VERSION = "1.0.0";`
         end: typeEnd, // Just before semicolon
         originalText: '"z" | "a"',
         normalizedText: '"a" | "z"',
-        separator: '|',
       },
     ])
 
@@ -244,7 +234,6 @@ export type Third = "b" | "a";`
         end: firstEnd,
         originalText: '"z" | "a"',
         normalizedText: '"a" | "z"',
-        separator: '|',
       },
       {
         filePath,
@@ -252,7 +241,6 @@ export type Third = "b" | "a";`
         end: secondEnd,
         originalText: '9 | 1',
         normalizedText: '1 | 9',
-        separator: '|',
       },
       {
         filePath,
@@ -260,7 +248,6 @@ export type Third = "b" | "a";`
         end: thirdEnd,
         originalText: '"b" | "a"',
         normalizedText: '"a" | "b"',
-        separator: '|',
       },
     ])
 
@@ -283,25 +270,24 @@ export type Third = "a" | "b";`)
     const filePath = path.join(tempDir, 'large.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    // Create composite types for all 100 unions
-    const compositeTypes: Omit<CompositeTypeInfo, 'node'>[] = []
+    // Create type aliases for all 100 unions
+    const typeAliases: Omit<TypeAliasInfo, 'node'>[] = []
     let offset = 0
     for (let i = 0; i < 100; i++) {
       const line = `export type Type${i} = "z" | "a" | "b";`
       const start = offset + line.indexOf('"z"')
       const end = offset + line.indexOf(';')
-      compositeTypes.push({
+      typeAliases.push({
         filePath,
         start,
         end,
         originalText: '"z" | "a" | "b"',
         normalizedText: '"a" | "b" | "z"',
-        separator: '|',
       })
       offset += line.length + 1 // +1 for newline
     }
 
-    const analyzed = createMockAnalyzedFile(filePath, content, compositeTypes)
+    const analyzed = createMockAnalyzedFile(filePath, content, typeAliases)
 
     const startTime = Date.now()
     const result = writeNormalizedFile(analyzed)
@@ -337,7 +323,6 @@ export type Third = "a" | "b";`)
           end: 31,
           originalText: '"z" | "a"',
           normalizedText: '"a" | "z"',
-          separator: '|',
         },
       ])
 

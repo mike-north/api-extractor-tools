@@ -12,7 +12,7 @@ Compares two bump types and returns which is more severe. Severity order: major,
 **Signature:**
 
 ```typescript
-export declare function compareBumpSeverity(a: ChangesetBumpType | null | ReleaseType, b: ChangesetBumpType | null | ReleaseType): number;
+export declare function compareBumpSeverity(a: ChangesetBumpType | ReleaseType | null, b: ChangesetBumpType | ReleaseType | null): number;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ a
 
 </td><td>
 
-[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| null \| [ReleaseType](./change-detector-core.releasetype.md)
+[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| [ReleaseType](./change-detector-core.releasetype.md) \| null
 
 
 </td><td>
@@ -56,7 +56,7 @@ b
 
 </td><td>
 
-[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| null \| [ReleaseType](./change-detector-core.releasetype.md)
+[ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) \| [ReleaseType](./change-detector-core.releasetype.md) \| null
 
 
 </td><td>

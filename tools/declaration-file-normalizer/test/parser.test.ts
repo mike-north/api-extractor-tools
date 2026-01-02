@@ -25,9 +25,8 @@ describe('parseDeclarationFile', () => {
     const result = parseDeclarationFile(filePath)
 
     expect(result.filePath).toBe(filePath)
-    expect(result.compositeTypes).toHaveLength(1)
-    expect(result.compositeTypes[0]!.separator).toBe('|')
-    expect(result.compositeTypes[0]!.originalText).toBe(
+    expect(result.typeAliases).toHaveLength(1)
+    expect(result.typeAliases[0]!.originalText).toBe(
       '"active" | "inactive" | "pending"',
     )
   })
@@ -40,14 +39,13 @@ describe('parseDeclarationFile', () => {
     const result = parseDeclarationFile(filePath)
 
     expect(result.filePath).toBe(filePath)
-    expect(result.compositeTypes).toHaveLength(1)
-    expect(result.compositeTypes[0]!.separator).toBe('&')
-    expect(result.compositeTypes[0]!.originalText).toBe(
+    expect(result.typeAliases).toHaveLength(1)
+    expect(result.typeAliases[0]!.originalText).toBe(
       'BaseType & Mixin & Extension',
     )
   })
 
-  it('should extract multiple composite types from a file', () => {
+  it('should extract multiple type aliases from a file', () => {
     const content = `
 export type Status = "active" | "inactive";
 export type Numbers = 1 | 2 | 3;
@@ -58,10 +56,10 @@ export type Combined = A & B & C;
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.compositeTypes).toHaveLength(3)
-    expect(result.compositeTypes[0]!.separator).toBe('|')
-    expect(result.compositeTypes[1]!.separator).toBe('|')
-    expect(result.compositeTypes[2]!.separator).toBe('&')
+    expect(result.typeAliases).toHaveLength(3)
+    expect(result.typeAliases[0]!.originalText).toBe('"active" | "inactive"')
+    expect(result.typeAliases[1]!.originalText).toBe('1 | 2 | 3')
+    expect(result.typeAliases[2]!.originalText).toBe('A & B & C')
   })
 
   it('should detect relative imports', () => {
@@ -135,7 +133,7 @@ export type Status = "active" | "inactive";
     expect(result.importedFiles[0]!).toBe(libIndexPath)
   })
 
-  it('should handle nested union types correctly', () => {
+  it('should handle nested types correctly', () => {
     const content = `
 export type Nested = Array<"a" | "b"> | Record<string, "x" | "y">;
 `
@@ -144,8 +142,8 @@ export type Nested = Array<"a" | "b"> | Record<string, "x" | "y">;
 
     const result = parseDeclarationFile(filePath)
 
-    // Should find 3 union types: the outer one and two nested ones
-    expect(result.compositeTypes.length).toBeGreaterThanOrEqual(1)
+    // Should find 1 type alias (the outer one - nested types are part of it)
+    expect(result.typeAliases.length).toBe(1)
   })
 
   it('should parse object type literals', () => {
@@ -155,13 +153,13 @@ export type Nested = Array<"a" | "b"> | Record<string, "x" | "y">;
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.objectTypes).toHaveLength(1)
-    expect(result.objectTypes[0]!.originalText).toBe(
+    expect(result.typeAliases).toHaveLength(1)
+    expect(result.typeAliases[0]!.originalText).toBe(
       '{ zebra: string; apple: number; banana: boolean }',
     )
   })
 
-  it('should extract multiple object types from a file', () => {
+  it('should extract multiple type aliases with object types from a file', () => {
     const content = `
 export type Config = { foo: string; bar: number };
 export type Options = { enabled: boolean; timeout: number };
@@ -171,10 +169,10 @@ export type Options = { enabled: boolean; timeout: number };
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.objectTypes).toHaveLength(2)
+    expect(result.typeAliases).toHaveLength(2)
   })
 
-  it('should detect object types in unions and intersections', () => {
+  it('should detect type aliases with objects in unions and intersections', () => {
     const content = `
 export type Mixed = { foo: string } | { bar: number };
 export type Combined = { a: string } & { b: number };
@@ -184,8 +182,7 @@ export type Combined = { a: string } & { b: number };
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.compositeTypes).toHaveLength(2) // one union, one intersection
-    expect(result.objectTypes).toHaveLength(4) // four object types
+    expect(result.typeAliases).toHaveLength(2) // two type aliases
   })
 })
 

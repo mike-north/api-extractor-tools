@@ -12,5 +12,9 @@ Information about the last release
 **Signature:**
 
 ```typescript
-lastRelease?: { gitHead: string; gitTag: string; version: string };
+lastRelease?: {
+        version: string;
+        gitTag: string;
+        gitHead: string;
+    };
 ```

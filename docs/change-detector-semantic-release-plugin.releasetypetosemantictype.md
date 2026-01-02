@@ -12,7 +12,7 @@ Maps change-detector ReleaseType to semantic-release type. Returns null for 'non
 **Signature:**
 
 ```typescript
-export declare function releaseTypeToSemanticType(releaseType: ReleaseType): null | SemanticReleaseType;
+export declare function releaseTypeToSemanticType(releaseType: ReleaseType): SemanticReleaseType | null;
 ```
 
 ## Parameters
@@ -53,7 +53,7 @@ The release type from change-detector
 
 **Returns:**
 
-null \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
+[SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 The corresponding semantic-release type, or null if no release needed
 

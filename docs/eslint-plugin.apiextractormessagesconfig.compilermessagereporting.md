@@ -10,5 +10,8 @@
 **Signature:**
 
 ```typescript
-compilerMessageReporting?: { [messageId: string]: MessageConfig | undefined; default?: MessageConfig };
+compilerMessageReporting?: {
+        default?: MessageConfig;
+        [messageId: string]: MessageConfig | undefined;
+    };
 ```

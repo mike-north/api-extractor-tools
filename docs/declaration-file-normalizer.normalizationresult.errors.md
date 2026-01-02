@@ -9,5 +9,8 @@ Errors encountered during normalization. Each error includes the file path and e
 **Signature:**
 
 ```typescript
-errors: Array<{ error: string; file: string }>;
+errors: Array<{
+        file: string;
+        error: string;
+    }>;
 ```

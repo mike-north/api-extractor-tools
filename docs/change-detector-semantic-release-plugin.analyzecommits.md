@@ -14,7 +14,7 @@ This hook: 1. Analyzes actual API changes using change-detector 2. Compares agai
 **Signature:**
 
 ```typescript
-export declare function analyzeCommits(pluginConfig: PluginConfig, context: SemanticReleaseContext): null | SemanticReleaseType;
+export declare function analyzeCommits(pluginConfig: PluginConfig, context: SemanticReleaseContext): SemanticReleaseType | null;
 ```
 
 ## Parameters
@@ -71,7 +71,7 @@ semantic-release context
 
 **Returns:**
 
-null \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
+[SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
 
 The release type to use (in override mode) or null
 

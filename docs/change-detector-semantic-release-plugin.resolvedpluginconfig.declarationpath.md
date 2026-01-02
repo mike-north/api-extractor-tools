@@ -12,5 +12,5 @@ Path to the declaration file to analyze
 **Signature:**
 
 ```typescript
-declarationPath: null | string;
+declarationPath: string | null;
 ```

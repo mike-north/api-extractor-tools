@@ -12,5 +12,10 @@ Information about the next release (populated during lifecycle)
 **Signature:**
 
 ```typescript
-nextRelease?: { gitTag: string; notes: string; type: SemanticReleaseType; version: string };
+nextRelease?: {
+        type: SemanticReleaseType;
+        version: string;
+        gitTag: string;
+        notes: string;
+    };
 ```

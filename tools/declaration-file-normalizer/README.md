@@ -12,7 +12,9 @@ TypeScript's compiler can produce declaration files with inconsistent ordering o
 
 ## Solution
 
-This tool parses TypeScript declaration files, identifies all union (`|`) and intersection (`&`) types, and rewrites them with stable alphanumeric (case-sensitive) ordering using `localeCompare`.
+This tool parses TypeScript declaration files, identifies all composite types (unions, intersections, and object type literals), and rewrites them with stable alphanumeric (case-sensitive) ordering using `localeCompare`.
+
+> **Note**: The main function is named `normalizeUnionTypes()` for historical reasons, but it normalizes union types, intersection types, AND object type properties. This naming may be updated in a future major version.
 
 ## Installation
 
@@ -153,15 +155,19 @@ console.log(`Would modify ${result.modifiedFiles.length} files`)
 1. **Entry Point**: Starts with the specified `.d.ts` file
 2. **Graph Building**: Follows all `import` declarations to build a complete file graph
 3. **AST Parsing**: Uses the TypeScript Compiler API to parse each file
-4. **Type Detection**: Identifies all `UnionTypeNode` and `IntersectionTypeNode` instances in the AST
-5. **Sorting**: Extracts text representation of each type member and sorts alphanumerically
-6. **Writing**: Applies transformations in-place (from end to beginning to avoid offset issues)
+4. **Recursive Normalization**: Recursively traverses type nodes from inside-out:
+   - Processes nested types before their parents
+   - Handles union types, intersection types, object types, function signatures, mapped types, conditional types, indexed access types, tuples, and more
+   - Sorts members alphanumerically at each level
+5. **Writing**: Applies transformations in-place (from end to beginning to avoid offset issues)
 
 ## Sorting Behavior
 
 - **Algorithm**: Uses `localeCompare` with `sensitivity: 'variant'` for case-sensitive sorting
 - **Union Example**: `'zebra' | 'apple' | 'Banana'` becomes `'apple' | 'Banana' | 'zebra'`
 - **Intersection Example**: `Zebra & Apple & Banana` becomes `Apple & Banana & Zebra`
+- **Object Type Example**: `{ zebra: string; apple: number }` becomes `{ apple: number; zebra: string }`
+- **Nested Example**: `{ foo: "z" | "a" }` becomes `{ foo: "a" | "z" }` (inside-out normalization)
 - **Stability**: Always produces the same output for the same input
 
 ## Integration with Build Pipeline
@@ -257,7 +263,7 @@ tools/declaration-file-normalizer/
 ### Key Files
 
 - **[parser.ts](src/parser.ts)**: Builds the complete file dependency graph by following imports
-- **[normalizer.ts](src/normalizer.ts)**: Implements the sorting algorithm for composite types
+- **[normalizer.ts](src/normalizer.ts)**: Recursive type normalization using inside-out AST traversal
 - **[writer.ts](src/writer.ts)**: Applies transformations without breaking offsets
 
 ## Troubleshooting
