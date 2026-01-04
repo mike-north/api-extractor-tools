@@ -12,10 +12,7 @@ Analyzes API changes between the baseline and current state.
 **Signature:**
 
 ```typescript
-export declare function analyzeAPIChanges(cwd: string, config: ResolvedPluginConfig, lastRelease?: {
-    gitTag: string;
-    version: string;
-}): AnalysisResult;
+export declare function analyzeAPIChanges(cwd: string, config: ResolvedPluginConfig, lastRelease?: { gitTag: string; version: string }): AnalysisResult;
 ```
 
 ## Parameters
@@ -75,7 +72,7 @@ lastRelease
 
 </td><td>
 
-{ gitTag: string; version: string; }
+{ gitTag: string; version: string }
 
 
 </td><td>

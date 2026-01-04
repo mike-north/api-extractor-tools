@@ -105,7 +105,7 @@ string
 
 </td><td>
 
-[SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
+null \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
 
 
 </td><td>

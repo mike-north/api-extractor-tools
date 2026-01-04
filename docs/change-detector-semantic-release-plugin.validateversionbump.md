@@ -12,7 +12,7 @@ Validates the proposed version bump against detected API changes.
 **Signature:**
 
 ```typescript
-export declare function validateVersionBump(proposedBump: SemanticReleaseType | null, analysis: AnalysisResult, mode: 'validate' | 'override' | 'advisory'): ValidationResult;
+export declare function validateVersionBump(proposedBump: null | SemanticReleaseType, analysis: AnalysisResult, mode: 'advisory' | 'override' | 'validate'): ValidationResult;
 ```
 
 ## Parameters
@@ -40,7 +40,7 @@ proposedBump
 
 </td><td>
 
-[SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md) \| null
+null \| [SemanticReleaseType](./change-detector-semantic-release-plugin.semanticreleasetype.md)
 
 
 </td><td>
@@ -72,7 +72,7 @@ mode
 
 </td><td>
 
-'validate' \| 'override' \| 'advisory'
+'advisory' \| 'override' \| 'validate'
 
 
 </td><td>

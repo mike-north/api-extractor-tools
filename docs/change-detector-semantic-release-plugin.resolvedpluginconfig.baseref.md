@@ -12,5 +12,5 @@ Git ref to use as the baseline for comparison
 **Signature:**
 
 ```typescript
-baseRef: string | null;
+baseRef: null | string;
 ```

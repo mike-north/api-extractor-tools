@@ -6,10 +6,7 @@
 
 // @public
 export interface NormalizationResult {
-    errors: Array<{
-        file: string;
-        error: string;
-    }>;
+    errors: Array<{ error: string; file: string }>;
     filesProcessed: number;
     modifiedFiles: string[];
     typesNormalized: number;

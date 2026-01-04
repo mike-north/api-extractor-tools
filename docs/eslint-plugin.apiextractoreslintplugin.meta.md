@@ -10,8 +10,5 @@
 **Signature:**
 
 ```typescript
-meta: {
-        name: string;
-        version: string;
-    };
+meta: { name: string; version: string };
 ```
