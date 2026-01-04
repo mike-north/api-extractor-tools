@@ -40,6 +40,7 @@
     "plugin-validation",
     "progressive-dsl-system-complete",
     "progressive-dsl-system",
+    "recursive-normalization-architecture",
     "run-changed-tests-and-optional-param",
     "theme-dropdown",
     "typescript-plugin-unified",
