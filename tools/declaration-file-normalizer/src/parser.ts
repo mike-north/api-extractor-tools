@@ -8,15 +8,18 @@ import * as ts from 'typescript'
 import type { AnalyzedFile, TypeAliasInfo } from './types.js'
 
 /**
- * Parses a TypeScript declaration file and extracts top-level type alias declarations.
+ * Parses a TypeScript declaration file and extracts type nodes from various contexts.
  *
- * Analyzes the file's AST to identify:
- * - Type alias declarations (type Foo = ...)
+ * Analyzes the file's AST to identify types that need normalization:
+ * - Type alias declarations (`type Foo = ...`)
+ * - Variable/const declarations with type annotations (`const X: Type`)
+ * - Function parameter and return types
+ * - Property signatures in interfaces and type literals
  * - Import and export declarations for dependency graph building
  *
  * @param filePath - Path to the .d.ts file to parse (relative or absolute)
  * @param verbose - Whether to output verbose logging
- * @returns Analyzed file containing source AST, type aliases, and import dependencies
+ * @returns Analyzed file containing source AST, type nodes, and import dependencies
  */
 export function parseDeclarationFile(
   filePath: string,
@@ -35,6 +38,30 @@ export function parseDeclarationFile(
 
   const typeAliases: TypeAliasInfo[] = []
   const importedFiles: string[] = []
+
+  /**
+   * Helper to add a type node for normalization, avoiding duplicates
+   */
+  function addTypeNode(typeNode: ts.TypeNode): void {
+    const originalText = typeNode.getText(sourceFile)
+    const start = typeNode.getStart(sourceFile)
+    const end = typeNode.getEnd()
+
+    // Skip if we already have a type at this position (avoid duplicates)
+    const isDuplicate = typeAliases.some(
+      (existing) => existing.start === start && existing.end === end,
+    )
+    if (isDuplicate) return
+
+    typeAliases.push({
+      filePath: absolutePath,
+      start,
+      end,
+      originalText,
+      normalizedText: '', // Will be filled by normalizer
+      node: typeNode,
+    })
+  }
 
   // Recursive AST visitor that traverses all nodes in the syntax tree.
   // TypeScript's compiler API requires this pattern to explore all
@@ -73,20 +100,56 @@ export function parseDeclarationFile(
     }
 
     // Extract type alias declarations: type Foo = ...
-    if (ts.isTypeAliasDeclaration(node)) {
-      const typeNode = node.type
-      const originalText = typeNode.getText(sourceFile)
-      const start = typeNode.getStart(sourceFile)
-      const end = typeNode.getEnd()
+    if (ts.isTypeAliasDeclaration(node) && node.type) {
+      addTypeNode(node.type)
+    }
 
-      typeAliases.push({
-        filePath: absolutePath,
-        start,
-        end,
-        originalText,
-        normalizedText: '', // Will be filled by normalizer
-        node: typeNode,
-      })
+    // Extract variable declarations with type annotations: const X: Type = ...
+    if (ts.isVariableDeclaration(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract function declarations with return types
+    if (ts.isFunctionDeclaration(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract method declarations with return types
+    if (ts.isMethodDeclaration(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract method signatures with return types (in interfaces)
+    if (ts.isMethodSignature(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract property signatures with types (in interfaces)
+    if (ts.isPropertySignature(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract property declarations with types (in classes)
+    if (ts.isPropertyDeclaration(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract parameter declarations with types
+    if (ts.isParameter(node) && node.type) {
+      addTypeNode(node.type)
+    }
+
+    // Extract get/set accessors with types
+    if (ts.isGetAccessorDeclaration(node) && node.type) {
+      addTypeNode(node.type)
+    }
+    if (ts.isSetAccessorDeclaration(node)) {
+      // Set accessors have parameters, handled by isParameter above
+    }
+
+    // Extract index signatures: [key: string]: Type
+    if (ts.isIndexSignatureDeclaration(node) && node.type) {
+      addTypeNode(node.type)
     }
 
     ts.forEachChild(node, visit)

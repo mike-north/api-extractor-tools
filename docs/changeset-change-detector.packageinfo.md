@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-string \| null
+null \| string
 
 
 </td><td>

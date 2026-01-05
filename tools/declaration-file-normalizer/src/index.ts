@@ -91,13 +91,28 @@ export function normalizeUnionTypes(
     for (const [filePath, analyzed] of fileGraph.entries()) {
       result.filesProcessed++
 
+      // Filter to only keep outermost types (remove types contained within others)
+      // This is necessary because nested types are handled recursively by normalizeType
+      const outerTypes = analyzed.typeAliases.filter((type) => {
+        // A type is "outer" if no other type fully contains it
+        return !analyzed.typeAliases.some(
+          (other) =>
+            other !== type &&
+            other.start <= type.start &&
+            other.end >= type.end,
+        )
+      })
+
       if (verbose) {
         console.log(
-          `Processing ${filePath} (${analyzed.typeAliases.length} type aliases)`,
+          `Processing ${filePath} (${analyzed.typeAliases.length} types found, ${outerTypes.length} outermost)`,
         )
       }
 
-      // Normalize each type alias recursively
+      // Update analyzed.typeAliases to only include outer types
+      analyzed.typeAliases = outerTypes
+
+      // Normalize each type recursively
       for (const typeAlias of analyzed.typeAliases) {
         typeAlias.normalizedText = normalizeType(typeAlias.node)
       }

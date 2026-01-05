@@ -5,25 +5,31 @@
 import type * as ts from 'typescript'
 
 /**
- * Represents a type alias declaration discovered in a declaration file.
+ * Represents a type node discovered in a declaration file that needs normalization.
+ *
+ * This structure captures types from multiple contexts:
+ * - Type alias declarations (`type Foo = ...`)
+ * - Variable/const declarations with type annotations (`const X: Type`)
+ * - Function parameter and return types
+ * - Interface and class property types
  *
  * This structure is populated during parsing and updated during normalization:
- * 1. Parser extracts top-level type alias declarations and their type nodes
+ * 1. Parser extracts type nodes from various declaration contexts
  * 2. Normalizer recursively processes the type node to produce normalized text
  * 3. Writer uses positions to replace text if `originalText !== normalizedText`
  */
 export interface TypeAliasInfo {
-  /** Absolute path to the file containing this type alias */
+  /** Absolute path to the file containing this type */
   readonly filePath: string
-  /** Character offset where the type begins (after the `=` in `type Foo = ...`) */
+  /** Character offset where the type begins */
   readonly start: number
-  /** Character offset where the type ends (before the `;`) */
+  /** Character offset where the type ends */
   readonly end: number
   /** The original type text as it appears in the file */
   readonly originalText: string
   /** The normalized type text (populated by normalizer, initially empty) */
   normalizedText: string
-  /** The AST node representing the type (right-hand side of type alias) */
+  /** The AST node representing the type */
   readonly node: ts.TypeNode
 }
 

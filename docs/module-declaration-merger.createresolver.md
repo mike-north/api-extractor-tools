@@ -16,9 +16,7 @@ And the main entry point is `src/index.ts`<!-- -->, the resolved module path sho
 **Signature:**
 
 ```typescript
-export declare function createResolver(options: ResolverOptions): {
-    resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) => string;
-};
+export declare function createResolver(options: ResolverOptions): { resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) => string };
 ```
 
 ## Parameters
@@ -57,5 +55,5 @@ options
 
 **Returns:**
 
-{ resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) =&gt; string; }
+{ resolveModulePath: (moduleSpecifier: string, sourceFilePath: string) =&gt; string }
 

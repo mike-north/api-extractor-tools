@@ -153,13 +153,15 @@ export type Nested = Array<"a" | "b"> | Record<string, "x" | "y">;
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.typeAliases).toHaveLength(1)
+    // Finds: 1 type alias RHS + 3 property signature types = 4 total
+    expect(result.typeAliases).toHaveLength(4)
+    // First is the outermost type alias RHS
     expect(result.typeAliases[0]!.originalText).toBe(
       '{ zebra: string; apple: number; banana: boolean }',
     )
   })
 
-  it('should extract multiple type aliases with object types from a file', () => {
+  it('should extract type aliases and nested property types from a file', () => {
     const content = `
 export type Config = { foo: string; bar: number };
 export type Options = { enabled: boolean; timeout: number };
@@ -169,7 +171,13 @@ export type Options = { enabled: boolean; timeout: number };
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.typeAliases).toHaveLength(2)
+    // Finds: 2 type alias RHSs + 4 property signature types = 6 total
+    // Parser visits in tree order: type alias RHS, then its property signatures
+    expect(result.typeAliases).toHaveLength(6)
+    // [0]: first type alias RHS (outermost)
+    expect(result.typeAliases[0]!.originalText).toContain('foo: string')
+    // [3]: second type alias RHS (outermost, after first type's property signatures)
+    expect(result.typeAliases[3]!.originalText).toContain('enabled: boolean')
   })
 
   it('should detect type aliases with objects in unions and intersections', () => {
@@ -182,7 +190,17 @@ export type Combined = { a: string } & { b: number };
 
     const result = parseDeclarationFile(filePath)
 
-    expect(result.typeAliases).toHaveLength(2) // two type aliases
+    // Finds: 2 type alias RHSs + 4 property signature types = 6 total
+    // Parser visits in tree order: type alias RHS, then its property signatures
+    expect(result.typeAliases).toHaveLength(6)
+    // [0]: first type alias RHS (union)
+    expect(result.typeAliases[0]!.originalText).toBe(
+      '{ foo: string } | { bar: number }',
+    )
+    // [3]: second type alias RHS (intersection, after first type's property signatures)
+    expect(result.typeAliases[3]!.originalText).toBe(
+      '{ a: string } & { b: number }',
+    )
   })
 })
 

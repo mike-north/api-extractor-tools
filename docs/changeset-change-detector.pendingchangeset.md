@@ -48,7 +48,7 @@ Description
 
 </td><td>
 
-Array&lt;{ name: string; type: [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md)<!-- -->; }&gt;
+Array&lt;{ name: string; type: [ChangesetBumpType](./changeset-change-detector.changesetbumptype.md) }&gt;
 
 
 </td><td>

@@ -12,12 +12,7 @@ Finds all TSDoc comments in a source file.
 **Signature:**
 
 ```typescript
-export declare function findAllTSDocComments(sourceCode: {
-    getAllComments: () => TSESTree.Comment[];
-}): Array<{
-    comment: TSESTree.Comment;
-    parsed: ParserContext;
-}>;
+export declare function findAllTSDocComments(sourceCode: { getAllComments: () => TSESTree.Comment[] }): Array<{ comment: TSESTree.Comment; parsed: ParserContext }>;
 ```
 
 ## Parameters
@@ -45,7 +40,7 @@ sourceCode
 
 </td><td>
 
-{ getAllComments: () =&gt; TSESTree.Comment\[\]; }
+{ getAllComments: () =&gt; TSESTree.Comment\[\] }
 
 
 </td><td>
@@ -58,7 +53,7 @@ ESLint source code object
 
 **Returns:**
 
-Array&lt;{ comment: TSESTree.Comment; parsed: ParserContext; }&gt;
+Array&lt;{ comment: TSESTree.Comment; parsed: ParserContext }&gt;
 
 Array of comment objects with their parsed content
 

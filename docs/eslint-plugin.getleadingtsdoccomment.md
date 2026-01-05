@@ -12,9 +12,7 @@ Gets the leading comment for a node, if it's a TSDoc comment.
 **Signature:**
 
 ```typescript
-export declare function getLeadingTSDocComment(sourceCode: {
-    getCommentsBefore: (node: TSESTree.Node) => TSESTree.Comment[];
-}, node: TSESTree.Node): string | undefined;
+export declare function getLeadingTSDocComment(sourceCode: { getCommentsBefore: (node: TSESTree.Node) => TSESTree.Comment[] }, node: TSESTree.Node): string | undefined;
 ```
 
 ## Parameters
@@ -42,7 +40,7 @@ sourceCode
 
 </td><td>
 
-{ getCommentsBefore: (node: TSESTree.Node) =&gt; TSESTree.Comment\[\]; }
+{ getCommentsBefore: (node: TSESTree.Node) =&gt; TSESTree.Comment\[\] }
 
 
 </td><td>
