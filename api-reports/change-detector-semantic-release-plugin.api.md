@@ -16,7 +16,10 @@ export interface AnalysisResult {
 }
 
 // @alpha
-export function analyzeAPIChanges(cwd: string, config: ResolvedPluginConfig, lastRelease?: { gitTag: string; version: string }): AnalysisResult;
+export function analyzeAPIChanges(cwd: string, config: ResolvedPluginConfig, lastRelease?: {
+    gitTag: string;
+    version: string;
+}): AnalysisResult;
 
 // @alpha
 export function analyzeCommits(pluginConfig: PluginConfig, context: SemanticReleaseContext): null | SemanticReleaseType;
@@ -28,7 +31,10 @@ export function clearCache(): void;
 export function compareReleaseSeverity(a: null | ReleaseType | SemanticReleaseType, b: null | ReleaseType | SemanticReleaseType): number;
 
 // @alpha
-export function determineBaseline(cwd: string, lastRelease?: { gitTag: string; version: string }, explicitRef?: null | string): string;
+export function determineBaseline(cwd: string, lastRelease?: {
+    gitTag: string;
+    version: string;
+}, explicitRef?: null | string): string;
 
 // @alpha
 export function findDeclarationFile(cwd: string, config: ResolvedPluginConfig): null | string;
@@ -82,13 +88,35 @@ export interface ResolvedPluginConfig {
 
 // @alpha
 export interface SemanticReleaseContext {
-    branch?: { main: boolean; name: string };
-    commits?: Array<{ body: null | string; hash: string; message: string; subject: string }>;
+    branch?: {
+        main: boolean;
+        name: string;
+    };
+    commits?: Array<{
+        body: null | string;
+        hash: string;
+        message: string;
+        subject: string;
+    }>;
     cwd: string;
     env: Record<string, string | undefined>;
-    lastRelease?: { gitHead: string; gitTag: string; version: string };
-    logger: { error: (message: string, ...args: unknown[]) => void; log: (message: string, ...args: unknown[]) => void; success: (message: string, ...args: unknown[]) => void; warn: (message: string, ...args: unknown[]) => void };
-    nextRelease?: { gitTag: string; notes: string; type: SemanticReleaseType; version: string };
+    lastRelease?: {
+        gitHead: string;
+        gitTag: string;
+        version: string;
+    };
+    logger: {
+        error: (message: string, ...args: unknown[]) => void;
+        log: (message: string, ...args: unknown[]) => void;
+        success: (message: string, ...args: unknown[]) => void;
+        warn: (message: string, ...args: unknown[]) => void;
+    };
+    nextRelease?: {
+        gitTag: string;
+        notes: string;
+        type: SemanticReleaseType;
+        version: string;
+    };
 }
 
 // @alpha

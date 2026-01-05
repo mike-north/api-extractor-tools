@@ -90,7 +90,10 @@ export interface PackageInfo {
 
 // @alpha
 export interface PendingChangeset {
-    releases: Array<{ name: string; type: ChangesetBumpType }>;
+    releases: Array<{
+        name: string;
+        type: ChangesetBumpType;
+    }>;
     summary: string;
 }
 

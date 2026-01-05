@@ -12,5 +12,8 @@ Packages affected by this changeset and their bump types
 **Signature:**
 
 ```typescript
-releases: Array<{ name: string; type: ChangesetBumpType }>;
+releases: Array<{
+    name: string;
+    type: ChangesetBumpType;
+}>;
 ```

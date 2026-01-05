@@ -12,7 +12,10 @@ Determines the baseline git ref to compare against.
 **Signature:**
 
 ```typescript
-export declare function determineBaseline(cwd: string, lastRelease?: { gitTag: string; version: string }, explicitRef?: null | string): string;
+export declare function determineBaseline(cwd: string, lastRelease?: {
+     gitTag: string;
+     version: string;
+ }, explicitRef?: null | string): string;
 ```
 
 ## Parameters
@@ -56,7 +59,7 @@ lastRelease
 
 </td><td>
 
-{ gitTag: string; version: string }
+{ gitTag: string; version: string; }
 
 
 </td><td>
