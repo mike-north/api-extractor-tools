@@ -111,6 +111,22 @@ export function normalizeType(node: ts.TypeNode): string {
     return `${normalizeType(node.checkType)} extends ${normalizeType(node.extendsType)} ? ${normalizeType(node.trueType)} : ${normalizeType(node.falseType)}`
   }
 
+  // Type operators (readonly, keyof, unique): recurse into the inner type
+  if (ts.isTypeOperatorNode(node)) {
+    const innerType = normalizeType(node.type)
+    switch (node.operator) {
+      case ts.SyntaxKind.ReadonlyKeyword:
+        return `readonly ${innerType}`
+      case ts.SyntaxKind.KeyOfKeyword:
+        return `keyof ${innerType}`
+      case ts.SyntaxKind.UniqueKeyword:
+        return `unique ${innerType}`
+      default:
+        // Unknown operator, fall back to original text
+        return node.getText()
+    }
+  }
+
   // Type query (typeof): return original text
   if (ts.isTypeQueryNode(node)) {
     return node.getText()
@@ -127,6 +143,7 @@ export function normalizeType(node: ts.TypeNode): string {
 
 /**
  * Normalizes an object type literal by sorting its members.
+ * Preserves multi-line formatting when the original was multi-line.
  */
 function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
   if (node.members.length === 0) {
@@ -141,7 +158,56 @@ function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
     .map((member) => normalizeMember(member))
     .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'variant' }))
 
-  return `{ ${normalized.join('; ')} }`
+  // Check if original was multi-line
+  const originalText = node.getText()
+  const isMultiLine = originalText.includes('\n')
+
+  if (!isMultiLine) {
+    return `{ ${normalized.join('; ')} }`
+  }
+
+  // Extract indentation from original - find the indentation of the first property
+  const baseIndent = extractBaseIndentation(node)
+  const memberIndent = baseIndent + '    ' // 4 spaces for member indentation
+
+  // Format as multi-line with proper indentation
+  const formattedMembers = normalized
+    .map((m) => `${memberIndent}${m};`)
+    .join('\n')
+  return `{\n${formattedMembers}\n${baseIndent}}`
+}
+
+/**
+ * Extracts the base indentation level from a type literal node.
+ * Returns the indentation string (spaces/tabs) for the closing brace level.
+ */
+function extractBaseIndentation(node: ts.TypeLiteralNode): string {
+  const sourceFile = node.getSourceFile()
+  if (!sourceFile) return ''
+
+  // Get the position of the opening brace
+  const startPos = node.getStart()
+  const fullText = sourceFile.getFullText()
+
+  // Find the start of the line containing the opening brace
+  let lineStart = startPos
+  while (lineStart > 0 && fullText[lineStart - 1] !== '\n') {
+    lineStart--
+  }
+
+  // Extract leading whitespace from that line
+  let indent = ''
+  for (let i = lineStart; i < startPos; i++) {
+    const char = fullText[i]
+    if (char === ' ' || char === '\t') {
+      indent += char
+    } else {
+      // Hit non-whitespace, reset (the brace might not be at line start)
+      indent = ''
+    }
+  }
+
+  return indent
 }
 
 /**

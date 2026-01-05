@@ -210,6 +210,18 @@ describe('normalizeType - nested types', () => {
     expect(result).toBe('("a" | "z")[]')
   })
 
+  it('should normalize unions within readonly arrays', () => {
+    const node = createTypeNode('readonly ("z" | "a" | "b")[]')
+    const result = normalizeType(node)
+    expect(result).toBe('readonly ("a" | "b" | "z")[]')
+  })
+
+  it('should handle keyof with union types', () => {
+    const node = createTypeNode('keyof { z: string; a: number }')
+    const result = normalizeType(node)
+    expect(result).toBe('keyof { a: number; z: string }')
+  })
+
   it('should normalize unions within tuples', () => {
     const node = createTypeNode('[("z" | "a"), string]')
     const result = normalizeType(node)
@@ -414,5 +426,180 @@ describe('normalizeType - edge cases', () => {
     const node = createTypeNode('T[("z" | "a")]')
     const result = normalizeType(node)
     expect(result).toBe('T[("a" | "z")]')
+  })
+})
+
+describe('normalizeType - multi-line object types', () => {
+  /**
+   * Helper to create a type node from multi-line source
+   */
+  function createMultiLineTypeNode(typeText: string): ts.TypeNode {
+    const sourceFile = ts.createSourceFile(
+      'test.ts',
+      `type Test = ${typeText};`,
+      ts.ScriptTarget.Latest,
+      true,
+    )
+
+    let typeNode: ts.TypeNode | undefined
+
+    function visit(node: ts.Node): void {
+      if (ts.isTypeAliasDeclaration(node)) {
+        typeNode = node.type
+      }
+      ts.forEachChild(node, visit)
+    }
+
+    visit(sourceFile)
+
+    if (!typeNode) {
+      throw new Error('Failed to create type node')
+    }
+
+    return typeNode
+  }
+
+  /**
+   * Helper to find a nested TypeLiteralNode inside a TypeReferenceNode
+   */
+  function findTypeLiteralInGeneric(
+    typeText: string,
+  ): { outer: ts.TypeReferenceNode; inner: ts.TypeLiteralNode } | undefined {
+    const sourceFile = ts.createSourceFile(
+      'test.ts',
+      `type Test = ${typeText};`,
+      ts.ScriptTarget.Latest,
+      true,
+    )
+
+    let outer: ts.TypeReferenceNode | undefined
+    let inner: ts.TypeLiteralNode | undefined
+
+    function visit(node: ts.Node): void {
+      if (ts.isTypeReferenceNode(node) && node.typeArguments) {
+        outer = node
+        for (const arg of node.typeArguments) {
+          if (ts.isTypeLiteralNode(arg)) {
+            inner = arg
+            break
+          }
+        }
+      }
+      ts.forEachChild(node, visit)
+    }
+
+    visit(sourceFile)
+
+    if (outer && inner) {
+      return { outer, inner }
+    }
+    return undefined
+  }
+
+  it('should detect newlines in type literal inside generic', () => {
+    const multiLineType = `Generic<{
+    zebra: string;
+    apple: number;
+}>`
+    const result = findTypeLiteralInGeneric(multiLineType)
+    expect(result).toBeDefined()
+
+    const { inner } = result!
+    const text = inner.getText()
+    expect(text.includes('\n')).toBe(true)
+  })
+
+  it('should preserve multi-line formatting in generics', () => {
+    const multiLineType = `Generic<{
+    zebra: string;
+    apple: number;
+}>`
+    const node = createMultiLineTypeNode(multiLineType)
+    const result = normalizeType(node)
+
+    // Should preserve multi-line formatting
+    expect(result).toContain('\n')
+    // Should be sorted
+    expect(result.indexOf('apple')).toBeLessThan(result.indexOf('zebra'))
+  })
+
+  it('should preserve multi-line formatting in Zod-style generics', () => {
+    const multiLineType = `z.ZodObject<{
+    linesAdded: z.ZodNumber;
+    linesRemoved: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    sectionsAdded: number;
+    sectionsRemoved: number;
+}>`
+    const node = createMultiLineTypeNode(multiLineType)
+    const result = normalizeType(node)
+
+    // Should preserve multi-line formatting (each object type should be multi-line)
+    expect(result).toContain('\n')
+    // Properties should be sorted within each object
+    expect(result).toMatch(/linesAdded.*linesRemoved/s)
+    expect(result).toMatch(/sectionsAdded.*sectionsRemoved/s)
+  })
+
+  it('should preserve multi-line formatting for object types', () => {
+    const multiLineType = `{
+    zebra: string;
+    apple: number;
+    banana: boolean;
+}`
+    const node = createMultiLineTypeNode(multiLineType)
+    const result = normalizeType(node)
+
+    // Should be multi-line with sorted properties
+    expect(result).toContain('\n')
+    expect(result).toMatch(/apple: number/)
+    expect(result).toMatch(/banana: boolean/)
+    expect(result).toMatch(/zebra: string/)
+
+    // Verify sort order by checking position
+    const applePos = result.indexOf('apple')
+    const bananaPos = result.indexOf('banana')
+    const zebraPos = result.indexOf('zebra')
+    expect(applePos).toBeLessThan(bananaPos)
+    expect(bananaPos).toBeLessThan(zebraPos)
+  })
+
+  it('should keep single-line for already single-line object types', () => {
+    const singleLineType = '{ zebra: string; apple: number }'
+    const node = createMultiLineTypeNode(singleLineType)
+    const result = normalizeType(node)
+
+    // Should remain single-line
+    expect(result).not.toContain('\n')
+    expect(result).toBe('{ apple: number; zebra: string }')
+  })
+
+  it('should handle multi-line object types with complex property types', () => {
+    const multiLineType = `{
+    zebra: Array<string>;
+    apple: Record<string, number>;
+}`
+    const node = createMultiLineTypeNode(multiLineType)
+    const result = normalizeType(node)
+
+    // Should be multi-line with sorted properties
+    expect(result).toContain('\n')
+    expect(result).toMatch(/apple: Record<string, number>/)
+    expect(result).toMatch(/zebra: Array<string>/)
+  })
+
+  it('should handle multi-line object types with union property types', () => {
+    const multiLineType = `{
+    zebra: "z" | "a";
+    apple: string | number;
+}`
+    const node = createMultiLineTypeNode(multiLineType)
+    const result = normalizeType(node)
+
+    // Should be multi-line with sorted properties AND normalized union types
+    expect(result).toContain('\n')
+    // Union types should be sorted too
+    expect(result).toMatch(/zebra: "a" \| "z"/)
+    expect(result).toMatch(/apple: number \| string/)
   })
 })
