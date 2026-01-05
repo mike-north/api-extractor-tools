@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/declaration-file-normalizer",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "Normalizes TypeScript declaration files",
   "type": "module",
   "main": "dist/index.js",

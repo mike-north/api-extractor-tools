@@ -30,6 +30,7 @@
     "dsl-bidirectional-transform",
     "dsl-implementation-p2-p3",
     "fix-angle-bracket-tracking",
+    "fix-multiline-formatting",
     "fix-nested-namespace-detection",
     "fix-normalizer-docs",
     "fix-utility-type-structural-comparison",
