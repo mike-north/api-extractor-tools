@@ -10,5 +10,13 @@
 **Signature:**
 
 ```typescript
-extractorMessageReporting?: { 'ae-extra-release-tag'?: MessageConfig; 'ae-forgotten-export'?: MessageConfig; 'ae-incompatible-release-tags'?: MessageConfig; 'ae-internal-missing-underscore'?: MessageConfig; 'ae-missing-release-tag'?: MessageConfig; [messageId: string]: MessageConfig | undefined; default?: MessageConfig };
+extractorMessageReporting?: {
+     'ae-extra-release-tag'?: MessageConfig;
+     'ae-forgotten-export'?: MessageConfig;
+     'ae-incompatible-release-tags'?: MessageConfig;
+     'ae-internal-missing-underscore'?: MessageConfig;
+     'ae-missing-release-tag'?: MessageConfig;
+     [messageId: string]: MessageConfig | undefined;
+     default?: MessageConfig;
+ };
 ```

@@ -28,7 +28,10 @@ export interface ApiExtractorEslintPlugin {
     // (undocumented)
     configs: PluginConfigs;
     // (undocumented)
-    meta: { name: string; version: string };
+    meta: {
+        name: string;
+        version: string;
+    };
     // (undocumented)
     rules: typeof rules;
 }
@@ -39,11 +42,25 @@ export type ApiExtractorLogLevel = 'error' | 'none' | 'warning';
 // @alpha
 export interface ApiExtractorMessagesConfig {
     // (undocumented)
-    compilerMessageReporting?: { [messageId: string]: MessageConfig | undefined; default?: MessageConfig };
+    compilerMessageReporting?: {
+        [messageId: string]: MessageConfig | undefined;
+        default?: MessageConfig;
+    };
     // (undocumented)
-    extractorMessageReporting?: { 'ae-extra-release-tag'?: MessageConfig; 'ae-forgotten-export'?: MessageConfig; 'ae-incompatible-release-tags'?: MessageConfig; 'ae-internal-missing-underscore'?: MessageConfig; 'ae-missing-release-tag'?: MessageConfig; [messageId: string]: MessageConfig | undefined; default?: MessageConfig };
+    extractorMessageReporting?: {
+        'ae-extra-release-tag'?: MessageConfig;
+        'ae-forgotten-export'?: MessageConfig;
+        'ae-incompatible-release-tags'?: MessageConfig;
+        'ae-internal-missing-underscore'?: MessageConfig;
+        'ae-missing-release-tag'?: MessageConfig;
+        [messageId: string]: MessageConfig | undefined;
+        default?: MessageConfig;
+    };
     // (undocumented)
-    tsdocMessageReporting?: { [messageId: string]: MessageConfig | undefined; default?: MessageConfig };
+    tsdocMessageReporting?: {
+        [messageId: string]: MessageConfig | undefined;
+        default?: MessageConfig;
+    };
 }
 
 // @alpha
@@ -70,7 +87,10 @@ export interface ExtraReleaseTagRuleOptions {
 }
 
 // @alpha
-export function findAllTSDocComments(sourceCode: { getAllComments: () => TSESTree.Comment[] }): Array<{ comment: TSESTree.Comment; parsed: ParserContext }>;
+export function findAllTSDocComments(sourceCode: { getAllComments: () => TSESTree.Comment[] }): Array<{
+    comment: TSESTree.Comment;
+    parsed: ParserContext;
+}>;
 
 // @alpha
 export interface ForgottenExportRuleOptions {
@@ -147,7 +167,17 @@ export interface ResolvedEntryPoints {
 }
 
 // @alpha
-export const rules: { readonly 'extra-release-tag': RuleModule<"extraReleaseTag", [ExtraReleaseTagRuleOptions], unknown, RuleListener>; readonly 'forgotten-export': RuleModule<"forgottenExport", [ForgottenExportRuleOptions], unknown, RuleListener>; readonly 'incompatible-release-tags': RuleModule<"incompatibleReleaseTags", [IncompatibleReleaseTagsRuleOptions], unknown, RuleListener>; readonly 'missing-release-tag': RuleModule<"missingReleaseTag", [MissingReleaseTagRuleOptions], unknown, RuleListener>; readonly 'override-keyword': RuleModule<"missingOverrideKeyword", [OverrideKeywordRuleOptions], unknown, RuleListener>; readonly 'package-documentation': RuleModule<"missingPackageDocumentation", [PackageDocumentationRuleOptions], unknown, RuleListener>; readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>; readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>; readonly 'valid-enum-type': RuleModule<"missingValue" | "invalidValue" | "multipleEnumTypes" | "invalidConstruct" | "missingEnumType", [ValidEnumTypeRuleOptions], unknown, RuleListener> };
+export const rules: {
+    readonly 'extra-release-tag': RuleModule<"extraReleaseTag", [ExtraReleaseTagRuleOptions], unknown, RuleListener>;
+    readonly 'forgotten-export': RuleModule<"forgottenExport", [ForgottenExportRuleOptions], unknown, RuleListener>;
+    readonly 'incompatible-release-tags': RuleModule<"incompatibleReleaseTags", [IncompatibleReleaseTagsRuleOptions], unknown, RuleListener>;
+    readonly 'missing-release-tag': RuleModule<"missingReleaseTag", [MissingReleaseTagRuleOptions], unknown, RuleListener>;
+    readonly 'override-keyword': RuleModule<"missingOverrideKeyword", [OverrideKeywordRuleOptions], unknown, RuleListener>;
+    readonly 'package-documentation': RuleModule<"missingPackageDocumentation", [PackageDocumentationRuleOptions], unknown, RuleListener>;
+    readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>;
+    readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>;
+    readonly 'valid-enum-type': RuleModule<"missingValue" | "invalidValue" | "multipleEnumTypes" | "invalidConstruct" | "missingEnumType", [ValidEnumTypeRuleOptions], unknown, RuleListener>;
+};
 
 // @alpha
 export interface ValidEnumTypeRuleOptions {

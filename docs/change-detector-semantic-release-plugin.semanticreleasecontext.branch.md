@@ -12,5 +12,8 @@ Branch configuration
 **Signature:**
 
 ```typescript
-branch?: { main: boolean; name: string };
+branch?: {
+     main: boolean;
+     name: string;
+ };
 ```
