@@ -1,5 +1,14 @@
 # @api-extractor-tools/declaration-file-normalizer
 
+## 0.1.0-alpha.4
+
+### Patch Changes
+
+- [#192](https://github.com/mike-north/api-extractor-tools/pull/192) [`e45a176`](https://github.com/mike-north/api-extractor-tools/commit/e45a176182efc8464a9602117ad308755575ed05) Thanks [@mike-north](https://github.com/mike-north)! - Regenerate API reports with inline object type formatting
+
+  Updates downstream package API reports to reflect the new inline object type
+  formatting from the recursive normalization architecture.
+
 ## 0.1.0-alpha.3
 
 ### Minor Changes
