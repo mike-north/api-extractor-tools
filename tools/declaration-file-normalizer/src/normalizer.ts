@@ -166,9 +166,8 @@ function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
     return `{ ${normalized.join('; ')} }`
   }
 
-  // Extract indentation from original - find the indentation of the first property
-  const baseIndent = extractBaseIndentation(node)
-  const memberIndent = baseIndent + '    ' // 4 spaces for member indentation
+  // Extract indentation from original
+  const { baseIndent, memberIndent } = extractIndentation(node)
 
   // Format as multi-line with proper indentation
   const formattedMembers = normalized
@@ -178,16 +177,20 @@ function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
 }
 
 /**
- * Extracts the base indentation level from a type literal node.
- * Returns the indentation string (spaces/tabs) for the closing brace level.
+ * Extracts indentation from a type literal node.
+ * Returns both the base indentation (for the closing brace) and the member indentation.
  */
-function extractBaseIndentation(node: ts.TypeLiteralNode): string {
+function extractIndentation(node: ts.TypeLiteralNode): {
+  baseIndent: string
+  memberIndent: string
+} {
   const sourceFile = node.getSourceFile()
-  if (!sourceFile) return ''
+  if (!sourceFile) return { baseIndent: '', memberIndent: '    ' }
+
+  const fullText = sourceFile.getFullText()
 
   // Get the position of the opening brace
   const startPos = node.getStart()
-  const fullText = sourceFile.getFullText()
 
   // Find the start of the line containing the opening brace
   let lineStart = startPos
@@ -195,19 +198,49 @@ function extractBaseIndentation(node: ts.TypeLiteralNode): string {
     lineStart--
   }
 
-  // Extract leading whitespace from that line
-  let indent = ''
-  for (let i = lineStart; i < startPos; i++) {
+  // Extract leading whitespace from that line (from line start to first non-whitespace)
+  let baseIndent = ''
+  for (let i = lineStart; i < fullText.length; i++) {
     const char = fullText[i]
     if (char === ' ' || char === '\t') {
-      indent += char
+      baseIndent += char
     } else {
-      // Hit non-whitespace, reset (the brace might not be at line start)
-      indent = ''
+      // Stop at first non-whitespace character
+      break
     }
   }
 
-  return indent
+  // Try to extract member indentation from the first property
+  if (node.members.length > 0) {
+    const firstMember = node.members[0]!
+    const memberStart = firstMember.getStart()
+
+    // Find the start of the line containing the first member
+    let memberLineStart = memberStart
+    while (memberLineStart > 0 && fullText[memberLineStart - 1] !== '\n') {
+      memberLineStart--
+    }
+
+    // Extract leading whitespace from that line
+    let memberIndent = ''
+    for (let i = memberLineStart; i < fullText.length; i++) {
+      const char = fullText[i]
+      if (char === ' ' || char === '\t') {
+        memberIndent += char
+      } else {
+        // Stop at first non-whitespace character
+        break
+      }
+    }
+
+    // If we found member indentation, use it
+    if (memberIndent.length > baseIndent.length) {
+      return { baseIndent, memberIndent }
+    }
+  }
+
+  // Fallback: use base indent + 4 spaces
+  return { baseIndent, memberIndent: baseIndent + '    ' }
 }
 
 /**

@@ -222,6 +222,12 @@ describe('normalizeType - nested types', () => {
     expect(result).toBe('keyof { a: number; z: string }')
   })
 
+  it('should handle unique symbol types', () => {
+    const node = createTypeNode('unique symbol')
+    const result = normalizeType(node)
+    expect(result).toBe('unique symbol')
+  })
+
   it('should normalize unions within tuples', () => {
     const node = createTypeNode('[("z" | "a"), string]')
     const result = normalizeType(node)
