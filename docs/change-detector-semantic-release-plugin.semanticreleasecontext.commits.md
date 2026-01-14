@@ -13,9 +13,9 @@ Commits since the last release
 
 ```typescript
 commits?: Array<{
-    body: null | string;
-    hash: string;
-    message: string;
-    subject: string;
-}>;
+        body: null | string;
+        hash: string;
+        message: string;
+        subject: string;
+    }>;
 ```

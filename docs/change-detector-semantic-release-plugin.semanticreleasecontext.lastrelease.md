@@ -13,8 +13,8 @@ Information about the last release
 
 ```typescript
 lastRelease?: {
-     gitHead: string;
-     gitTag: string;
-     version: string;
- };
+        gitHead: string;
+        gitTag: string;
+        version: string;
+    };
 ```

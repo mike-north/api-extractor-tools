@@ -13,7 +13,7 @@ Branch configuration
 
 ```typescript
 branch?: {
-     main: boolean;
-     name: string;
- };
+        main: boolean;
+        name: string;
+    };
 ```

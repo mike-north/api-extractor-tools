@@ -11,7 +11,7 @@
 
 ```typescript
 compilerMessageReporting?: {
-     [messageId: string]: MessageConfig | undefined;
-     default?: MessageConfig;
- };
+        [messageId: string]: MessageConfig | undefined;
+        default?: MessageConfig;
+    };
 ```
