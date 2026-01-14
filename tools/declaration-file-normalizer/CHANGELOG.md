@@ -1,5 +1,19 @@
 # @api-extractor-tools/declaration-file-normalizer
 
+## 0.1.0-alpha.6
+
+### Patch Changes
+
+- [#197](https://github.com/mike-north/api-extractor-tools/pull/197) [`2ccc58b`](https://github.com/mike-north/api-extractor-tools/commit/2ccc58b8429a5f442841a65d900a1e63e0fc088a) Thanks [@mike-north](https://github.com/mike-north)! - Suppress normalization summary output by default
+
+  The CLI no longer prints the normalization summary (files processed, types normalized, files modified, time elapsed) by default. This reduces noise in build logs where the diagnostic output is not needed.
+
+  **To see the summary**, use either:
+  - `--verbose` / `-v` flag
+  - Set the `DEBUG` environment variable
+
+  This is a non-breaking change as the normalization behavior itself is unchanged.
+
 ## 0.1.0-alpha.5
 
 ### Patch Changes
