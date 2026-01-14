@@ -42,6 +42,7 @@
     "plugin-validation",
     "progressive-dsl-system-complete",
     "progressive-dsl-system",
+    "quiet-decl-normalizer",
     "recursive-normalization-architecture",
     "run-changed-tests-and-optional-param",
     "theme-dropdown",
