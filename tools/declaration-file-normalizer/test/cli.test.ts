@@ -51,7 +51,9 @@ describe('CLI', () => {
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${filePath}"`,
+    )
 
     expect(stdout).toContain('Normalization Summary')
     expect(stdout).toContain('Files processed: 1')
@@ -71,7 +73,7 @@ describe('CLI', () => {
     fs.writeFileSync(filePath, content, 'utf-8')
 
     const { stdout } = await execAsync(
-      `node ${cliPath} --dry-run "${filePath}"`,
+      `node ${cliPath} --dry-run --verbose "${filePath}"`,
     )
 
     expect(stdout).toContain('dry-run mode - no files were modified')
@@ -117,11 +119,23 @@ describe('CLI', () => {
     expect(stdout).toContain('Building file graph')
   })
 
+  it('should not print summary without --verbose flag', async () => {
+    const content = `export type Status = "z" | "a";`
+    const filePath = path.join(tempDir, 'index.d.ts')
+    fs.writeFileSync(filePath, content, 'utf-8')
+
+    const { stdout } = await execAsync(`node ${cliPath} "${filePath}"`)
+
+    expect(stdout).not.toContain('Normalization Summary')
+    expect(stdout).not.toContain('Files processed')
+    expect(stdout).not.toContain('Time elapsed')
+  })
+
   it('should handle non-existent entry point with error', async () => {
     const nonExistentPath = path.join(tempDir, 'does-not-exist.d.ts')
 
     try {
-      await execAsync(`node ${cliPath} "${nonExistentPath}"`)
+      await execAsync(`node ${cliPath} --verbose "${nonExistentPath}"`)
       expect.fail('Should have exited with error')
     } catch (error: unknown) {
       const err = error as { stdout: string; stderr: string }
@@ -151,7 +165,9 @@ describe('CLI', () => {
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${filePath}"`,
+    )
 
     expect(stdout).toContain('Files processed: 1')
     expect(stdout).toContain('Types normalized: 0')
@@ -163,7 +179,9 @@ describe('CLI', () => {
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${filePath}"`,
+    )
 
     expect(stdout).toMatch(/Time elapsed: \d+ms/)
   })
@@ -179,7 +197,9 @@ export type Status = "z" | "a";`
     fs.writeFileSync(indexPath, indexContent, 'utf-8')
     fs.writeFileSync(utilsPath, utilsContent, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} "${indexPath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${indexPath}"`,
+    )
 
     expect(stdout).toContain('Files processed: 2')
     expect(stdout).toContain('Types normalized: 2')
@@ -194,7 +214,9 @@ export type Status = "z" | "a";`
     const filePath = path.join(dirWithSpaces, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${filePath}"`,
+    )
 
     expect(stdout).toContain('Files processed: 1')
     expect(stdout).toContain('Types normalized: 1')
@@ -217,7 +239,9 @@ export type Status = "z" | "a";`
     const filePath = path.join(tempDir, 'index.d.ts')
     fs.writeFileSync(filePath, content, 'utf-8')
 
-    const { stdout } = await execAsync(`node ${cliPath} "${filePath}"`)
+    const { stdout } = await execAsync(
+      `node ${cliPath} --verbose "${filePath}"`,
+    )
 
     expect(stdout).toContain('Types normalized: 1')
 
