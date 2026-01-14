@@ -101,12 +101,14 @@ function main(): void {
 
   const elapsed = Date.now() - startTime
 
-  // Print summary
-  console.log('\n=== Normalization Summary ===')
-  console.log(`Files processed: ${result.filesProcessed}`)
-  console.log(`Types normalized: ${result.typesNormalized}`)
-  console.log(`Files modified: ${result.modifiedFiles.length}`)
-  console.log(`Time elapsed: ${elapsed}ms`)
+  // Print summary only in verbose/debug mode
+  if (args.verbose || process.env.DEBUG) {
+    console.log('\n=== Normalization Summary ===')
+    console.log(`Files processed: ${result.filesProcessed}`)
+    console.log(`Types normalized: ${result.typesNormalized}`)
+    console.log(`Files modified: ${result.modifiedFiles.length}`)
+    console.log(`Time elapsed: ${elapsed}ms`)
+  }
 
   if (result.errors.length > 0) {
     console.error('\n=== Errors ===')

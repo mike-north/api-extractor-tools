@@ -13,9 +13,9 @@ Determines the baseline git ref to compare against.
 
 ```typescript
 export declare function determineBaseline(cwd: string, lastRelease?: {
-     gitTag: string;
-     version: string;
- }, explicitRef?: null | string): string;
+    gitTag: string;
+    version: string;
+}, explicitRef?: null | string): string;
 ```
 
 ## Parameters

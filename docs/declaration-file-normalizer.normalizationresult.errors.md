@@ -10,7 +10,7 @@ Errors encountered during normalization. Each error includes the file path and e
 
 ```typescript
 errors: Array<{
-    error: string;
-    file: string;
-}>;
+        error: string;
+        file: string;
+    }>;
 ```

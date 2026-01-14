@@ -13,9 +13,9 @@ Information about the next release (populated during lifecycle)
 
 ```typescript
 nextRelease?: {
-     gitTag: string;
-     notes: string;
-     type: SemanticReleaseType;
-     version: string;
- };
+        gitTag: string;
+        notes: string;
+        type: SemanticReleaseType;
+        version: string;
+    };
 ```

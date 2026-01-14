@@ -13,7 +13,7 @@ Packages affected by this changeset and their bump types
 
 ```typescript
 releases: Array<{
-    name: string;
-    type: ChangesetBumpType;
-}>;
+        name: string;
+        type: ChangesetBumpType;
+    }>;
 ```

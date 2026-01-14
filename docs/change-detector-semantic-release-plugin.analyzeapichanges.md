@@ -13,9 +13,9 @@ Analyzes API changes between the baseline and current state.
 
 ```typescript
 export declare function analyzeAPIChanges(cwd: string, config: ResolvedPluginConfig, lastRelease?: {
-     gitTag: string;
-     version: string;
- }): AnalysisResult;
+    gitTag: string;
+    version: string;
+}): AnalysisResult;
 ```
 
 ## Parameters
