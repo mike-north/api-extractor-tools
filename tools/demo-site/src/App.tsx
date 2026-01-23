@@ -17,6 +17,7 @@ import { AppSettingsMenu } from './components/AppSettingsMenu'
 import { DemoSettingsMenu } from './components/DemoSettingsMenu'
 import { CustomPolicyModal } from './components/CustomPolicyModal'
 import { ExportLinkages } from './components/ExportLinkages'
+import { ExtractorDemo } from './components/ExtractorDemo'
 import { DemoProvider, type DemoCapabilities } from './contexts/DemoContext'
 import { examples, type Example } from './examples'
 import { encodeBase64, decodeBase64 } from './utils/encoding'
@@ -28,6 +29,8 @@ import {
   encodePolicyToUrl,
   decodePolicyFromUrl,
 } from './utils/policySerializer'
+
+type DemoTab = 'change-detector' | 'extractor'
 
 type ThemePreference = 'light' | 'dark' | 'auto'
 type ResolvedTheme = 'light' | 'dark'
@@ -85,7 +88,15 @@ function getInitialCustomPolicy(): SerializablePolicy | null {
 
 const initialContent = getInitialContent()
 
+function getInitialDemoTab(): DemoTab {
+  const params = new URLSearchParams(window.location.search)
+  const tabParam = params.get('tab')
+  if (tabParam === 'extractor') return 'extractor'
+  return 'change-detector'
+}
+
 function App() {
+  const [activeTab, setActiveTab] = useState<DemoTab>(getInitialDemoTab())
   const [oldContent, setOldContent] = useState(initialContent.old)
   const [newContent, setNewContent] = useState(initialContent.new)
   const [report, setReport] = useState<ASTComparisonReport | null>(null)
@@ -315,12 +326,14 @@ ${report ? formatASTReportAsText(report) : 'No analysis available'}
             <span>API Extractor Tools</span> Demo
           </h1>
           <div className="controls">
-            <DemoSettingsMenu
-              selectedPolicy={selectedPolicy}
-              onPolicyChange={handlePolicyChange}
-              onExampleSelect={handleExampleSelect}
-              onEditCustomPolicy={handleEditCustomPolicy}
-            />
+            {activeTab === 'change-detector' && (
+              <DemoSettingsMenu
+                selectedPolicy={selectedPolicy}
+                onPolicyChange={handlePolicyChange}
+                onExampleSelect={handleExampleSelect}
+                onEditCustomPolicy={handleEditCustomPolicy}
+              />
+            )}
             <AppSettingsMenu
               themePreference={themePreference}
               onThemeChange={handleThemeChange}
@@ -328,48 +341,69 @@ ${report ? formatASTReportAsText(report) : 'No analysis available'}
           </div>
         </header>
 
-        <main className="main-content">
-          <div className="editors-container" style={{ height: editorHeight }}>
-            <div className="editor-panel">
-              <div className="editor-header">Old API (.d.ts)</div>
-              <div className="editor-wrapper">
-                <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} path="file:///old.d.ts" />
-              </div>
-            </div>
-            <div className="editor-panel">
-              <div className="editor-header">New API (.d.ts)</div>
-              <div className="editor-wrapper">
-                <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} path="file:///new.d.ts" />
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="resize-handle"
-            role="separator"
-            aria-orientation="horizontal"
-            aria-valuenow={editorHeight}
-            aria-valuemin={150}
-            aria-valuemax={800}
-            aria-label="Editor height resize handle"
-            title="Drag to resize or use arrow keys"
-            tabIndex={0}
-            onMouseDown={handleMouseDown}
-            onKeyDown={handleKeyDown}
+        <nav className="demo-tabs">
+          <button
+            className={`demo-tab ${activeTab === 'change-detector' ? 'active' : ''}`}
+            onClick={() => setActiveTab('change-detector')}
           >
-            <div className="resize-handle-grip" />
-          </div>
+            Change Detector
+          </button>
+          <button
+            className={`demo-tab ${activeTab === 'extractor' ? 'active' : ''}`}
+            onClick={() => setActiveTab('extractor')}
+          >
+            API Extractor (Virtual FS)
+          </button>
+        </nav>
 
-          <div className="report-container">
-            <ExportLinkages oldContent={oldContent} newContent={newContent} />
-            {report ? (
-              <ChangeReport report={report} oldContent={oldContent} newContent={newContent} />
-            ) : (
-              <div className="empty-state">
-                Edit the declarations above to see the comparison report
+        <main className="main-content">
+          {activeTab === 'change-detector' ? (
+            <>
+              <div className="editors-container" style={{ height: editorHeight }}>
+                <div className="editor-panel">
+                  <div className="editor-header">Old API (.d.ts)</div>
+                  <div className="editor-wrapper">
+                    <DtsEditor value={oldContent} onChange={setOldContent} theme={resolvedTheme} path="file:///old.d.ts" />
+                  </div>
+                </div>
+                <div className="editor-panel">
+                  <div className="editor-header">New API (.d.ts)</div>
+                  <div className="editor-wrapper">
+                    <DtsEditor value={newContent} onChange={setNewContent} theme={resolvedTheme} path="file:///new.d.ts" />
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+
+              <div
+                className="resize-handle"
+                role="separator"
+                aria-orientation="horizontal"
+                aria-valuenow={editorHeight}
+                aria-valuemin={150}
+                aria-valuemax={800}
+                aria-label="Editor height resize handle"
+                title="Drag to resize or use arrow keys"
+                tabIndex={0}
+                onMouseDown={handleMouseDown}
+                onKeyDown={handleKeyDown}
+              >
+                <div className="resize-handle-grip" />
+              </div>
+
+              <div className="report-container">
+                <ExportLinkages oldContent={oldContent} newContent={newContent} />
+                {report ? (
+                  <ChangeReport report={report} oldContent={oldContent} newContent={newContent} />
+                ) : (
+                  <div className="empty-state">
+                    Edit the declarations above to see the comparison report
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <ExtractorDemo theme={resolvedTheme} />
+          )}
         </main>
 
         {isBugReportOpen && (

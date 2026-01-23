@@ -12,14 +12,47 @@
 
 .header h1 {
   margin: 0;
-  color: #fff;
+  color: var(--text-color);
   font-size: 28px;
 }
 
 .subtitle {
   margin: 8px 0 0;
-  color: #888;
+  color: var(--text-secondary);
   font-size: 14px;
+}
+
+/* Demo Tabs */
+.demo-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  background: var(--surface-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.demo-tab {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.demo-tab:hover {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.demo-tab.active {
+  color: var(--text-color);
+  background: var(--primary-color);
 }
 
 .toolbar {
