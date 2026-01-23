@@ -85,6 +85,17 @@ ESLint plugin providing authoring-time feedback for API Extractor.
 </td></tr>
 <tr><td>
 
+[@api-extractor-tools/extractor-lib](./extractor-lib.md)
+
+
+</td><td>
+
+Main entry point for extractor-lib
+
+
+</td></tr>
+<tr><td>
+
 [@api-extractor-tools/module-declaration-merger](./module-declaration-merger.md)
 
 
