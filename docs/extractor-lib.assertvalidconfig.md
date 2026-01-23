@@ -9,7 +9,7 @@ Validates a configuration and throws an error if invalid.
 **Signature:**
 
 ```typescript
-export declare function assertValidConfig(config: IExtractorLibConfig): void;
+declare function assertValidConfig(config: IExtractorLibConfig): void;
 ```
 
 ## Parameters

@@ -9,7 +9,7 @@ Extracts all required lib files for the given compiler options.
 **Signature:**
 
 ```typescript
-export declare function extractRequiredLibFiles(typescript: typeof ts, compilerOptions: ts.CompilerOptions): Map<string, string>;
+declare function extractRequiredLibFiles(typescript: typeof ts, compilerOptions: ts.CompilerOptions): Map<string, string>;
 ```
 
 ## Parameters

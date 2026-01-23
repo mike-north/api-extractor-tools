@@ -9,7 +9,7 @@ Result of validating a configuration object.
 **Signature:**
 
 ```typescript
-export interface IValidationResult 
+interface IValidationResult 
 ```
 
 ## Properties

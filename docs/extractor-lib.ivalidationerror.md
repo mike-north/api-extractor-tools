@@ -9,7 +9,7 @@ Represents a validation error for a specific field.
 **Signature:**
 
 ```typescript
-export interface IValidationError 
+interface IValidationError 
 ```
 
 ## Properties

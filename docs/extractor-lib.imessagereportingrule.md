@@ -9,7 +9,7 @@ Rule for handling a specific message type.
 **Signature:**
 
 ```typescript
-export interface IMessageReportingRule 
+interface IMessageReportingRule 
 ```
 
 ## Properties

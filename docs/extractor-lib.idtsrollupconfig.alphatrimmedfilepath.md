@@ -4,7 +4,7 @@
 
 ## IDtsRollupConfig.alphaTrimmedFilePath property
 
-Path for alpha-trimmed rollup (virtual path). Includes `\@alpha`<!-- -->, `\@beta`<!-- -->, and `\@public` items.
+Path for alpha-trimmed rollup (virtual path). Includes `@alpha`<!-- -->, `@beta`<!-- -->, and `@public` items.
 
 **Signature:**
 

@@ -9,7 +9,7 @@ Configuration for API report generation.
 **Signature:**
 
 ```typescript
-export interface IApiReportConfig 
+interface IApiReportConfig 
 ```
 
 ## Properties

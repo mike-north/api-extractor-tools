@@ -9,7 +9,7 @@ Join path segments together.
 **Signature:**
 
 ```typescript
-export declare function joinPaths(...segments: string[]): string;
+declare function joinPaths(...segments: string[]): string;
 ```
 
 ## Parameters

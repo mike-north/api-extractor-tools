@@ -4,8 +4,6 @@
 
 ## extractor-lib package
 
-Main entry point for extractor-lib
-
 ## Classes
 
 <table><thead><tr><th>

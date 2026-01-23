@@ -4,7 +4,7 @@
 
 ## IDtsRollupConfig.betaTrimmedFilePath property
 
-Path for beta-trimmed rollup (virtual path). Includes `\@beta` and `\@public` items.
+Path for beta-trimmed rollup (virtual path). Includes `@beta` and `@public` items.
 
 **Signature:**
 

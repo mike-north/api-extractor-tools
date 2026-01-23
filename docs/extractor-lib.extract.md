@@ -9,7 +9,7 @@ Runs API Extractor with a virtual filesystem.
 **Signature:**
 
 ```typescript
-export declare function extract(config: IExtractorLibConfig, fs: IVirtualFileSystem, options?: IExtractOptions): IExtractorLibResult;
+declare function extract(config: IExtractorLibConfig, fs: IVirtualFileSystem, options?: IExtractOptions): IExtractorLibResult;
 ```
 
 ## Parameters

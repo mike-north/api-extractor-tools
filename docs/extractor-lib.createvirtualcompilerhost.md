@@ -9,7 +9,7 @@ Creates a custom TypeScript compiler host that uses a virtual filesystem.
 **Signature:**
 
 ```typescript
-export declare function createVirtualCompilerHost(typescript: typeof ts, options: IVirtualCompilerHostOptions): ts.CompilerHost;
+declare function createVirtualCompilerHost(typescript: typeof ts, options: IVirtualCompilerHostOptions): ts.CompilerHost;
 ```
 
 ## Parameters
