@@ -25,17 +25,24 @@ export interface ICapturedOutputs {
  * Reads a file from the real filesystem if it exists.
  * @param filePath - Path to the file
  * @returns File content or undefined if file doesn't exist
+ * @throws If the file exists but cannot be read (permission denied, I/O error, etc.)
  * @internal
  */
 function readFileIfExists(filePath: string): string | undefined {
   try {
-    if (realFs.existsSync(filePath)) {
-      return realFs.readFileSync(filePath, 'utf-8')
+    return realFs.readFileSync(filePath, 'utf-8')
+  } catch (error) {
+    // Only ignore ENOENT (file not found) errors
+    // Re-throw other errors (permission denied, I/O errors, etc.)
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as NodeJS.ErrnoException).code === 'ENOENT'
+    ) {
+      return undefined
     }
-  } catch {
-    // Ignore read errors - file may not exist or be inaccessible
+    throw error
   }
-  return undefined
 }
 
 /**

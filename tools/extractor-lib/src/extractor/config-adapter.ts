@@ -114,82 +114,46 @@ function createAndPopulateTempDirectory(
 }
 
 /**
- * Maps TypeScript ScriptTarget enum values to their string equivalents.
- * @internal
- */
-const TARGET_MAP: Record<number, string> = {
-  0: 'ES3',
-  1: 'ES5',
-  2: 'ES2015',
-  3: 'ES2016',
-  4: 'ES2017',
-  5: 'ES2018',
-  6: 'ES2019',
-  7: 'ES2020',
-  8: 'ES2021',
-  9: 'ES2022',
-  10: 'ES2023',
-  99: 'ESNext',
-  100: 'JSON',
-}
-
-/**
- * Maps TypeScript ModuleKind enum values to their string equivalents.
- * @internal
- */
-const MODULE_MAP: Record<number, string> = {
-  0: 'None',
-  1: 'CommonJS',
-  2: 'AMD',
-  3: 'UMD',
-  4: 'System',
-  5: 'ES2015',
-  6: 'ES2020',
-  7: 'ES2022',
-  99: 'ESNext',
-  100: 'Node16',
-  199: 'NodeNext',
-}
-
-/**
- * Maps TypeScript ModuleResolutionKind enum values to their string equivalents.
- * @internal
- */
-const MODULE_RESOLUTION_MAP: Record<number, string> = {
-  1: 'Classic',
-  2: 'NodeJs',
-  3: 'Node16',
-  99: 'NodeNext',
-  100: 'Bundler',
-}
-
-/**
  * Converts TypeScript compiler options with enum values to their string equivalents.
  * This is necessary because api-extractor expects string values in the config file format.
+ *
+ * Uses TypeScript's ScriptTarget, ModuleKind, and ModuleResolutionKind enums directly
+ * to convert values, ensuring compatibility with future TypeScript versions.
+ *
  * @internal
  */
 function convertCompilerOptionsToStrings(
   options: Record<string, unknown>,
+  typescript: typeof ts,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...options }
 
-  // Convert target
+  // Convert target using TypeScript's ScriptTarget enum
   if (typeof result['target'] === 'number') {
-    const targetValue = result['target']
-    result['target'] = TARGET_MAP[targetValue] ?? 'ES2020'
+    const targetValue = result['target'] as ts.ScriptTarget
+    const targetName = typescript.ScriptTarget[targetValue]
+    // TypeScript enum names are uppercase (e.g., ES2020, ESNext)
+    result['target'] = targetName ?? 'ES2020'
   }
 
-  // Convert module
+  // Convert module using TypeScript's ModuleKind enum
   if (typeof result['module'] === 'number') {
-    const moduleValue = result['module']
-    result['module'] = MODULE_MAP[moduleValue] ?? 'CommonJS'
+    const moduleValue = result['module'] as ts.ModuleKind
+    const moduleName = typescript.ModuleKind[moduleValue]
+    result['module'] = moduleName ?? 'CommonJS'
   }
 
-  // Convert moduleResolution
+  // Convert moduleResolution using TypeScript's ModuleResolutionKind enum
   if (typeof result['moduleResolution'] === 'number') {
-    const moduleResValue = result['moduleResolution']
-    result['moduleResolution'] =
-      MODULE_RESOLUTION_MAP[moduleResValue] ?? 'NodeJs'
+    const moduleResValue = result['moduleResolution'] as ts.ModuleResolutionKind
+    const moduleResName = typescript.ModuleResolutionKind[moduleResValue]
+    // Map TypeScript names to api-extractor expected names
+    // TypeScript uses 'Node10' but api-extractor expects 'NodeJs'
+    if (moduleResName === 'Node10') {
+      result['moduleResolution'] = 'NodeJs'
+    } else {
+      result['moduleResolution'] = moduleResName ?? 'NodeJs'
+    }
   }
 
   return result
@@ -202,7 +166,7 @@ function convertCompilerOptionsToStrings(
  *
  * @param config - The extractor-lib configuration
  * @param fs - Virtual filesystem containing all source files
- * @param _typescript - TypeScript module (unused but kept for API compatibility)
+ * @param typescript - TypeScript module for enum conversions
  * @returns Adapted configuration with ExtractorConfig, output paths, and cleanup function
  *
  * @remarks
@@ -216,7 +180,7 @@ function convertCompilerOptionsToStrings(
 export function createExtractorConfig(
   config: IExtractorLibConfig,
   fs: IVirtualFileSystem,
-  _typescript: typeof ts,
+  typescript: typeof ts,
 ): IAdaptedConfig {
   // Dynamically import API Extractor types to avoid issues if not available
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -312,6 +276,7 @@ export function createExtractorConfig(
   // because api-extractor expects string values in the config
   const compilerOptionsForConfig = convertCompilerOptionsToStrings(
     config.compilerOptions,
+    typescript,
   )
 
   configObject.compiler = {

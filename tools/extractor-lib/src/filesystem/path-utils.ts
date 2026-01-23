@@ -2,11 +2,8 @@
  * Cross-platform path utilities that work in both Node.js and browser environments.
  * All paths use forward slashes internally.
  *
- * @remarks
  * These utilities are intentionally independent of Node's `path` module
  * to ensure they work in any JavaScript environment.
- *
- * @packageDocumentation
  */
 
 /**

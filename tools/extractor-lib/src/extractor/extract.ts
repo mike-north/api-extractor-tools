@@ -65,8 +65,20 @@ export function extract(
   assertValidConfig(config)
 
   // Get TypeScript module (use provided or default)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const typescript = (options?.typescript ?? require('typescript')) as typeof ts
+  let typescript: typeof ts
+  if (options?.typescript) {
+    typescript = options.typescript
+  } else {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      typescript = require('typescript') as typeof ts
+    } catch {
+      throw new Error(
+        'TypeScript is required but not found. ' +
+          'Either install typescript as a dependency or pass it via options.typescript',
+      )
+    }
+  }
 
   // Create the ExtractorConfig with a real temp directory
   // This populates the temp directory with files from the virtual filesystem
@@ -151,6 +163,11 @@ export function extract(
     }
   } finally {
     // Always clean up the temp directory, even if an error occurred
-    adaptedConfig.cleanup()
+    // Wrap in try-catch to avoid masking extraction errors
+    try {
+      adaptedConfig.cleanup()
+    } catch {
+      // Ignore cleanup errors - temp directory will be cleaned up by OS eventually
+    }
   }
 }

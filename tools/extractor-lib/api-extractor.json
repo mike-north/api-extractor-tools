@@ -2,9 +2,17 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../api-extractor-base.json",
 
-  "mainEntryPointFilePath": "<projectFolder>/dist/esm/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.mts",
 
   "compiler": {
     "tsconfigFilePath": "<projectFolder>/tsconfig.json"
+  },
+
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-internal-missing-underscore": {
+        "logLevel": "none"
+      }
+    }
   }
 }

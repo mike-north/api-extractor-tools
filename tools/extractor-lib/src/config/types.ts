@@ -15,7 +15,7 @@ export interface IExtractorLibConfig {
 
   /**
    * Package name (used in output naming).
-   * This should be the full package name, e.g., `\@api-extractor-tools/my-package`
+   * This should be the full package name, e.g., `@api-extractor-tools/my-package`
    */
   packageName: string
 
@@ -47,7 +47,7 @@ export interface IExtractorLibConfig {
 
   /**
    * Packages to treat as bundled (their types will be inlined).
-   * Array of package names, e.g., `['lodash', '\@types/node']`
+   * Array of package names, e.g., `['lodash', '@types/node']`
    *
    * @remarks
    * When a package is marked as bundled, API Extractor will inline its types
@@ -154,7 +154,7 @@ export interface IDtsRollupConfig {
 
   /**
    * Path for alpha-trimmed rollup (virtual path).
-   * Includes `\@alpha`, `\@beta`, and `\@public` items.
+   * Includes `@alpha`, `@beta`, and `@public` items.
    *
    * @remarks
    * If omitted, the alpha-trimmed rollup will not be generated.
@@ -163,7 +163,7 @@ export interface IDtsRollupConfig {
 
   /**
    * Path for beta-trimmed rollup (virtual path).
-   * Includes `\@beta` and `\@public` items.
+   * Includes `@beta` and `@public` items.
    *
    * @remarks
    * If omitted, the beta-trimmed rollup will not be generated.
@@ -172,7 +172,7 @@ export interface IDtsRollupConfig {
 
   /**
    * Path for public-trimmed rollup (virtual path).
-   * Includes only `\@public` items.
+   * Includes only `@public` items.
    *
    * @remarks
    * If omitted, the public-trimmed rollup will not be generated.
@@ -306,17 +306,17 @@ export interface IExtractorOutputs {
     untrimmed?: string
 
     /**
-     * Alpha-trimmed rollup (`\@alpha` + `\@beta` + `\@public`).
+     * Alpha-trimmed rollup (`@alpha` + `@beta` + `@public`).
      */
     alpha?: string
 
     /**
-     * Beta-trimmed rollup (`\@beta` + `\@public`).
+     * Beta-trimmed rollup (`@beta` + `@public`).
      */
     beta?: string
 
     /**
-     * Public-trimmed rollup (`\@public` only).
+     * Public-trimmed rollup (`@public` only).
      */
     public?: string
   }

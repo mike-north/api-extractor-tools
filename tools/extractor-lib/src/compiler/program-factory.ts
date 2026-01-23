@@ -1,12 +1,9 @@
 /**
  * Factory for creating TypeScript programs from virtual files.
  *
- * @remarks
  * This module provides utilities for creating TypeScript programs that operate
  * on virtual filesystems. It ties together the virtual compiler host and lib
  * file provider to create a complete compilation environment.
- *
- * @packageDocumentation
  */
 
 import type * as ts from 'typescript'

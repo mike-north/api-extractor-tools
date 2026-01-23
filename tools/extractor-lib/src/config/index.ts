@@ -1,7 +1,5 @@
 /**
  * Configuration and validation utilities for extractor-lib.
- *
- * @packageDocumentation
  */
 
 export * from './types.js'

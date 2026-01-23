@@ -1,14 +1,11 @@
 /**
  * API Extractor integration module.
  *
- * @remarks
  * This module provides the main entry point for running API Extractor with
  * a virtual filesystem. The primary export is the {@link extract} function.
  *
  * Internal utilities for filesystem patching, config adaptation, and output
  * capture are also exported for advanced use cases and testing.
- *
- * @packageDocumentation
  */
 
 export { extract } from './extract.js'

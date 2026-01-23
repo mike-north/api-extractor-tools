@@ -85,7 +85,10 @@ export class InMemoryFileSystem implements IVirtualFileSystem {
 
     // Create directories in reverse order (parent to child)
     for (let i = dirsToCreate.length - 1; i >= 0; i--) {
-      this.directories.add(dirsToCreate[i]!)
+      const dir = dirsToCreate[i]
+      if (dir !== undefined) {
+        this.directories.add(dir)
+      }
     }
   }
 

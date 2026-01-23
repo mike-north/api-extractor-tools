@@ -1,12 +1,9 @@
 /**
  * TypeScript lib file utilities.
  *
- * @remarks
  * This module provides utilities for extracting TypeScript lib files from a TypeScript
  * installation. Instead of bundling lib files (which would be large and inflexible),
  * we extract them from the TypeScript module that the caller provides.
- *
- * @packageDocumentation
  */
 
 import * as nodePath from 'node:path'

@@ -4,8 +4,8 @@
 
 ```ts
 
-import type { ExtractorMessage } from '@microsoft/api-extractor';
-import type * as ts from 'typescript';
+import { ExtractorMessage } from '@microsoft/api-extractor';
+import * as ts from 'typescript';
 
 // @public
 export function applyDefaults(config: IExtractorLibConfig): IExtractorLibConfigWithDefaults;
@@ -19,7 +19,7 @@ export function basename(path: string): string;
 // Warning: (ae-internal-missing-underscore) The name "createExtractorConfig" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export function createExtractorConfig(config: IExtractorLibConfig, fs: IVirtualFileSystem, _typescript: typeof ts): IAdaptedConfig;
+export function createExtractorConfig(config: IExtractorLibConfig, fs: IVirtualFileSystem, typescript: typeof ts): IAdaptedConfig;
 
 // @public
 export function createLibFileProvider(typescript: typeof ts): ILibFileProvider;
@@ -295,5 +295,7 @@ export function toExtractorOutputs(captured: ICapturedOutputs): IExtractorOutput
 
 // @public
 export function validateConfig(config: IExtractorLibConfig): IValidationResult;
+
+// (No @packageDocumentation comment for this package)
 
 ```

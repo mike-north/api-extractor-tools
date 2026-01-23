@@ -1,12 +1,9 @@
 /**
  * Virtual TypeScript compiler host implementation.
  *
- * @remarks
  * This module provides a custom ts.CompilerHost that operates on a virtual
  * filesystem rather than the real file system. This is essential for testing
  * and in-memory compilation scenarios.
- *
- * @packageDocumentation
  */
 
 import type * as ts from 'typescript'
