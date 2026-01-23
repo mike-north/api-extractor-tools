@@ -5,6 +5,9 @@ import { InMemoryFileSystem } from '../../src/filesystem/in-memory.js'
 import { extract } from '../../src/extractor/extract.js'
 import type { IExtractorLibConfig } from '../../src/config/types.js'
 
+// API Extractor can take a while to run, especially on CI
+const EXTRACT_TEST_TIMEOUT = 30000
+
 describe('extract', () => {
   let fs: InMemoryFileSystem
 
@@ -12,7 +15,7 @@ describe('extract', () => {
     fs = new InMemoryFileSystem()
   })
 
-  describe('basic extraction', () => {
+  describe('basic extraction', { timeout: EXTRACT_TEST_TIMEOUT }, () => {
     it('should extract a simple declaration file with public rollup', () => {
       // Setup: Create a simple TypeScript declaration file
       const entryPoint = '/project/dist/index.d.ts'
@@ -256,7 +259,7 @@ export declare function internalFn(): string;
     })
   })
 
-  describe('error handling', () => {
+  describe('error handling', { timeout: EXTRACT_TEST_TIMEOUT }, () => {
     it('should throw for unresolved types', () => {
       // API Extractor throws an internal error when encountering unresolved types
       // rather than returning an error count
@@ -300,7 +303,7 @@ export declare function hello(): NonExistentType;
     })
   })
 
-  describe('message callback', () => {
+  describe('message callback', { timeout: EXTRACT_TEST_TIMEOUT }, () => {
     it('should invoke message callback for each message', () => {
       const entryPoint = '/project/dist/index.d.ts'
       fs.writeFile(
@@ -344,7 +347,7 @@ export declare function noTag(): string;
     })
   })
 
-  describe('edge cases', () => {
+  describe('edge cases', { timeout: EXTRACT_TEST_TIMEOUT }, () => {
     it('should handle declaration file with only re-exports', () => {
       // Create a helper file
       fs.writeFile(
