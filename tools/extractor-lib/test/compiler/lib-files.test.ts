@@ -6,7 +6,41 @@ import {
   getDefaultLibFileName,
   getRequiredLibFileNames,
   extractRequiredLibFiles,
+  type ILibFileProvider,
 } from '../../src/compiler/lib-files.js'
+import { createProgram } from '../../src/compiler/program-factory.js'
+import { InMemoryFileSystem } from '../../src/filesystem/in-memory.js'
+import type { IVirtualFileSystem } from '../../src/filesystem/types.js'
+
+/**
+ * Creates a lib file provider that reads from a virtual filesystem.
+ * This is used for testing with custom lib files.
+ */
+function createVirtualLibFileProvider(
+  fs: IVirtualFileSystem,
+  libPath: string,
+): ILibFileProvider {
+  return {
+    getLibFileContent(fileName: string): string | undefined {
+      const fullPath = `${libPath}/${fileName}`
+      if (fs.exists(fullPath)) {
+        return fs.readFile(fullPath)
+      }
+      return undefined
+    },
+    getDefaultLibFileName(options: ts.CompilerOptions): string {
+      return ts.getDefaultLibFileName(options)
+    },
+    getAllLibFileNames(): string[] {
+      if (!fs.exists(libPath) || !fs.isDirectory(libPath)) {
+        return []
+      }
+      return fs
+        .readDirectory(libPath)
+        .filter((f) => f.startsWith('lib.') && f.endsWith('.d.ts'))
+    },
+  }
+}
 
 describe('lib-files', () => {
   describe('createLibFileProvider', () => {
@@ -157,6 +191,485 @@ describe('lib-files', () => {
         k.includes('es2020'),
       )
       expect(hasEs2020).toBe(true)
+    })
+  })
+
+  describe('custom lib files', () => {
+    /**
+     * Minimal lib content with only basic primitives.
+     * Missing: Array methods, Promise, Map, Set, Symbol, etc.
+     */
+    const ULTRA_MINIMAL_LIB = `
+/// <reference no-default-lib="true"/>
+
+interface Boolean {}
+interface Function {}
+interface CallableFunction extends Function {}
+interface NewableFunction extends Function {}
+interface IArguments {}
+interface Number {}
+interface Object {}
+interface RegExp {}
+interface String {}
+interface Array<T> {
+  readonly length: number;
+  [n: number]: T;
+}
+interface ReadonlyArray<T> {
+  readonly length: number;
+  readonly [n: number]: T;
+}
+
+declare var undefined: undefined;
+declare var NaN: number;
+declare var Infinity: number;
+`
+
+    /**
+     * Lib content with Promise but missing other modern features.
+     */
+    const LIB_WITH_PROMISE = `
+/// <reference no-default-lib="true"/>
+
+interface Boolean {}
+interface Function {}
+interface CallableFunction extends Function {}
+interface NewableFunction extends Function {}
+interface IArguments {}
+interface Number {}
+interface Object {}
+interface RegExp {}
+interface String {}
+interface Array<T> {
+  readonly length: number;
+  [n: number]: T;
+  push(...items: T[]): number;
+  pop(): T | undefined;
+  map<U>(callbackfn: (value: T, index: number, array: T[]) => U): U[];
+}
+interface ReadonlyArray<T> {
+  readonly length: number;
+  readonly [n: number]: T;
+}
+
+interface Error {
+  name: string;
+  message: string;
+  stack?: string;
+}
+interface ErrorConstructor {
+  new (message?: string): Error;
+  (message?: string): Error;
+}
+declare var Error: ErrorConstructor;
+
+declare var undefined: undefined;
+declare var NaN: number;
+declare var Infinity: number;
+
+interface PromiseLike<T> {
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ): PromiseLike<TResult1 | TResult2>;
+}
+
+interface Promise<T> {
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2>;
+  catch<TResult = never>(
+    onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null
+  ): Promise<T | TResult>;
+}
+
+interface PromiseConstructor {
+  new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void): Promise<T>;
+  resolve<T>(value: T | PromiseLike<T>): Promise<T>;
+  reject<T = never>(reason?: unknown): Promise<T>;
+}
+declare var Promise: PromiseConstructor;
+`
+
+    it('should compile simple code with ultra-minimal lib', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          export const x: number = 42;
+          export const y: string = "hello";
+          export function add(a: number, b: number): number {
+            return a + b;
+          }
+        `,
+        // Write to multiple lib file names that TypeScript may request
+        '/lib/lib.d.ts': ULTRA_MINIMAL_LIB,
+        '/lib/lib.es2020.d.ts': ULTRA_MINIMAL_LIB,
+        '/lib/lib.es2020.full.d.ts': ULTRA_MINIMAL_LIB,
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5, // Use ES5 which looks for lib.d.ts
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+      expect(errors.length).toBe(0)
+    })
+
+    it('should error when using Array.push with ultra-minimal lib', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          export function addToArray(arr: number[], value: number): void {
+            arr.push(value); // push is not defined in ultra-minimal lib
+          }
+        `,
+        '/lib/lib.d.ts': ULTRA_MINIMAL_LIB,
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5,
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+
+      // Should have an error about 'push' not existing
+      expect(errors.length).toBeGreaterThan(0)
+      const errorMessages = errors.map((d) =>
+        ts.flattenDiagnosticMessageText(d.messageText, '\n'),
+      )
+      expect(
+        errorMessages.some(
+          (msg) => msg.includes('push') || msg.includes('does not exist'),
+        ),
+      ).toBe(true)
+    })
+
+    it('should error when using Promise with ultra-minimal lib', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          export async function fetchData(): Promise<string> {
+            return "data";
+          }
+        `,
+        '/lib/lib.d.ts': ULTRA_MINIMAL_LIB,
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5,
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+
+      // Should have an error about Promise not being found
+      expect(errors.length).toBeGreaterThan(0)
+      const errorMessages = errors.map((d) =>
+        ts.flattenDiagnosticMessageText(d.messageText, '\n'),
+      )
+      expect(
+        errorMessages.some(
+          (msg) =>
+            msg.includes('Promise') ||
+            msg.includes('async') ||
+            msg.includes('cannot find'),
+        ),
+      ).toBe(true)
+    })
+
+    it('should compile Promise code with lib that includes Promise', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          // Note: We don't use async/await here because that requires generator support
+          // which would need additional lib definitions
+          export function fetchData(): Promise<string> {
+            return Promise.resolve("data");
+          }
+
+          export function wrapPromise<T>(value: T): Promise<T> {
+            return Promise.resolve(value);
+          }
+
+          export function handlePromise(p: Promise<number>): Promise<number> {
+            return p.then(value => value * 2);
+          }
+        `,
+        '/lib/lib.d.ts': LIB_WITH_PROMISE,
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5,
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+
+      expect(errors.length).toBe(0)
+    })
+
+    it('should compile Array.push and Array.map with lib that includes them', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          export function addToArray(arr: number[], value: number): number {
+            return arr.push(value);
+          }
+
+          export function doubleArray(arr: number[]): number[] {
+            return arr.map(x => x * 2);
+          }
+        `,
+        '/lib/lib.d.ts': LIB_WITH_PROMISE,
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5,
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+
+      expect(errors.length).toBe(0)
+    })
+
+    it('should generate correct .d.ts output with custom lib', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          /**
+           * A simple greeting function.
+           * @param name - The name to greet
+           * @returns A greeting message
+           */
+          export function greet(name: string): string {
+            return "Hello, " + name;
+          }
+
+          /**
+           * Configuration options.
+           */
+          export interface Config {
+            debug: boolean;
+            timeout: number;
+          }
+        `,
+        '/lib/lib.d.ts': ULTRA_MINIMAL_LIB,
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES2020,
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          emitDeclarationOnly: true,
+          outDir: '/project/dist',
+          rootDir: '/project/src',
+          skipLibCheck: true,
+          noLib: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      // Emit declaration files
+      program.emit()
+
+      // Check that declaration file was generated
+      expect(fs.exists('/project/dist/index.d.ts')).toBe(true)
+
+      const dtsContent = fs.readFile('/project/dist/index.d.ts')
+      expect(dtsContent).toContain('export declare function greet')
+      expect(dtsContent).toContain('name: string')
+      expect(dtsContent).toContain('string')
+      expect(dtsContent).toContain('export interface Config')
+      expect(dtsContent).toContain('debug: boolean')
+      expect(dtsContent).toContain('timeout: number')
+    })
+
+    it('should error when using Map with lib missing Map', () => {
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          export function createMap(): Map<string, number> {
+            return new Map();
+          }
+        `,
+        '/lib/lib.d.ts': LIB_WITH_PROMISE, // Has Promise but not Map
+      })
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5,
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+
+      // Should have an error about Map not being found
+      expect(errors.length).toBeGreaterThan(0)
+      const errorMessages = errors.map((d) =>
+        ts.flattenDiagnosticMessageText(d.messageText, '\n'),
+      )
+      expect(errorMessages.some((msg) => msg.includes('Map'))).toBe(true)
+    })
+
+    it('should work with multiple custom lib files', () => {
+      const coreLib = `
+/// <reference no-default-lib="true"/>
+
+interface Boolean {}
+interface Function {}
+interface CallableFunction extends Function {}
+interface NewableFunction extends Function {}
+interface IArguments {}
+interface Number {}
+interface Object {}
+interface RegExp {}
+interface String {}
+interface Array<T> {
+  readonly length: number;
+  [n: number]: T;
+}
+interface ReadonlyArray<T> {
+  readonly length: number;
+  readonly [n: number]: T;
+}
+
+declare var undefined: undefined;
+declare var NaN: number;
+declare var Infinity: number;
+`
+
+      const extendedLib = `
+interface Array<T> {
+  push(...items: T[]): number;
+  map<U>(callbackfn: (value: T, index: number, array: T[]) => U): U[];
+}
+`
+
+      const fs = new InMemoryFileSystem({
+        '/project/src/index.ts': `
+          export function transform(arr: number[]): number[] {
+            const result: number[] = [];
+            arr.map(x => result.push(x * 2));
+            return result;
+          }
+        `,
+        '/lib/lib.d.ts': coreLib,
+        '/lib/lib.es2015.d.ts': extendedLib,
+      })
+
+      // Combine core and extended lib into one file for ES5 target
+      const combinedLib = coreLib + '\n' + extendedLib
+      fs.writeFile('/lib/lib.d.ts', combinedLib)
+
+      const program = createProgram({
+        typescript: ts,
+        fs,
+        rootDir: '/project',
+        entryPoints: ['src/index.ts'],
+        compilerOptions: {
+          target: ts.ScriptTarget.ES5, // ES5 uses lib.d.ts
+          module: ts.ModuleKind.ESNext,
+          moduleResolution: ts.ModuleResolutionKind.Bundler,
+          strict: true,
+          declaration: true,
+          skipLibCheck: true,
+        },
+        libFileProvider: createVirtualLibFileProvider(fs, '/lib'),
+      })
+
+      const diagnostics = ts.getPreEmitDiagnostics(program)
+      const errors = diagnostics.filter(
+        (d) => d.category === ts.DiagnosticCategory.Error,
+      )
+
+      expect(errors.length).toBe(0)
     })
   })
 })

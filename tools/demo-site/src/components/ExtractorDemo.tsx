@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import * as ts from 'typescript'
 import { DtsEditor } from './DtsEditor'
 import { extractorExamples, type ExtractorExample } from '../examples/extractor-examples'
+import { MINIMAL_LIB_CONTENT } from '../lib/minimal-lib'
 import './ExtractorDemo.css'
 
 interface ExtractorDemoProps {
@@ -61,6 +62,17 @@ export function ExtractorDemo({ theme }: ExtractorDemoProps) {
     return () => clearTimeout(timeoutId)
   }, [sourceCode])
 
+  // Pre-create the lib source file (memoized since it doesn't change)
+  const libSourceFile = useMemo(() => {
+    return ts.createSourceFile(
+      'lib.es2020.d.ts',
+      MINIMAL_LIB_CONTENT,
+      ts.ScriptTarget.ES2020,
+      true,
+      ts.ScriptKind.TS
+    )
+  }, [])
+
   const compileTypeScript = useCallback(() => {
     setIsCompiling(true)
     setError(null)
@@ -80,6 +92,8 @@ export function ExtractorDemo({ theme }: ExtractorDemoProps) {
         emitDeclarationOnly: true,
         strict: true,
         skipLibCheck: true,
+        // Use our minimal lib instead of the full lib
+        noLib: true,
       }
 
       // Create source file
@@ -95,6 +109,10 @@ export function ExtractorDemo({ theme }: ExtractorDemoProps) {
         getSourceFile: (fileName) => {
           if (fileName === '/project/src/index.ts' || fileName.endsWith('index.ts')) {
             return sourceFile
+          }
+          // Return our minimal lib for any lib file request
+          if (fileName.includes('lib.') && fileName.endsWith('.d.ts')) {
+            return libSourceFile
           }
           return undefined
         },
@@ -119,13 +137,17 @@ export function ExtractorDemo({ theme }: ExtractorDemoProps) {
           if (fileName === '/project/src/index.ts') {
             return sourceCode
           }
+          // Return our minimal lib content for any lib file request
+          if (fileName.includes('lib.') && fileName.endsWith('.d.ts')) {
+            return MINIMAL_LIB_CONTENT
+          }
           return fs.readFile(fileName)
         },
         directoryExists: () => true,
         getDirectories: () => [],
       }
 
-      const program = ts.createProgram(['/project/src/index.ts'], compilerOptions, host)
+      const program = ts.createProgram(['/project/src/index.ts', 'lib.es2020.d.ts'], compilerOptions, host)
 
       // Check for compilation errors
       const diagnostics = ts.getPreEmitDiagnostics(program)
@@ -168,7 +190,7 @@ export function ExtractorDemo({ theme }: ExtractorDemoProps) {
     } finally {
       setIsCompiling(false)
     }
-  }, [sourceCode])
+  }, [sourceCode, libSourceFile])
 
   const handleExampleSelect = useCallback((example: ExtractorExample) => {
     setSelectedExample(example)
