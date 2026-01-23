@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/extractor-lib",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Library for running API Extractor with virtual filesystem support",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",

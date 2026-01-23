@@ -1,5 +1,22 @@
 # @api-extractor-tools/extractor-lib
 
+## 0.1.0-alpha.2
+
+### Patch Changes
+
+- [#202](https://github.com/mike-north/api-extractor-tools/pull/202) [`f526ba5`](https://github.com/mike-north/api-extractor-tools/commit/f526ba50e5c1803e72869c807f933978b9d120bc) Thanks [@mike-north](https://github.com/mike-north)! - Add comprehensive README with usage examples
+
+  The README includes:
+  - Quick start guide
+  - Examples for API report and doc model generation
+  - Multiple rollup variants with release tags
+  - Custom lib files for browser environments
+  - Built-in lib file provider for Node.js
+  - Lib file extraction utilities
+  - Message handling and filtering
+  - Multi-file package support
+  - Complete API reference and configuration tables
+
 ## 0.1.0-alpha.1
 
 ### Minor Changes
