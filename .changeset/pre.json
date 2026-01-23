@@ -13,7 +13,8 @@
     "@api-extractor-tools/input-processor-typescript": "0.1.0-alpha.0",
     "@api-extractor-tools/plugin-json-schema": "0.1.0-alpha.0",
     "@api-extractor-tools/plugin-openapi": "0.1.0-alpha.0",
-    "@api-extractor-tools/declaration-file-normalizer": "0.0.1-alpha.0"
+    "@api-extractor-tools/declaration-file-normalizer": "0.0.1-alpha.0",
+    "@api-extractor-tools/extractor-lib": "0.0.1-alpha.0"
   },
   "changesets": [
     "add-change-detector-core",
@@ -35,6 +36,7 @@
     "fix-normalizer-docs",
     "fix-utility-type-structural-comparison",
     "integrate-normalizer-and-tests",
+    "new-extractor-lib",
     "pluggable-versioning-policy",
     "plugin-discovery",
     "plugin-docs-update",
