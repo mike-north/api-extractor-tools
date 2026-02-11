@@ -1,7 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { RuleTester } from '@typescript-eslint/rule-tester'
+import { describe, it, expect, afterAll, afterEach, beforeEach } from 'vitest'
+import * as tseslintParser from '@typescript-eslint/parser'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
+import { packageDocumentation } from '../../src/rules/package-documentation.js'
 import {
   findPackageJson,
   isEntryPoint,
@@ -12,8 +15,48 @@ import {
   parseTSDocComment,
 } from '../../src/utils/tsdoc-parser.js'
 
+// Wire up vitest for RuleTester
+RuleTester.afterAll = afterAll
+RuleTester.describe = describe
+RuleTester.it = it
+
+// Create a temp directory for RuleTester tests (must exist at module eval time)
+const ruleTestDir = fs.mkdtempSync(path.join(os.tmpdir(), 'eslint-pd-rule-'))
+const ruleTestSrcDir = path.join(ruleTestDir, 'src')
+fs.mkdirSync(ruleTestSrcDir, { recursive: true })
+fs.mkdirSync(path.join(ruleTestSrcDir, 'utils'), { recursive: true })
+
+fs.writeFileSync(
+  path.join(ruleTestDir, 'package.json'),
+  JSON.stringify({ name: 'test-package', main: './src/index.ts' }, null, 2),
+)
+
+// Create placeholder files so paths resolve correctly
+fs.writeFileSync(path.join(ruleTestSrcDir, 'index.ts'), '')
+fs.writeFileSync(path.join(ruleTestSrcDir, 'helper.ts'), '')
+fs.writeFileSync(path.join(ruleTestSrcDir, 'utils', 'deep.ts'), '')
+
+const entryFile = path.join(ruleTestSrcDir, 'index.ts')
+const helperFile = path.join(ruleTestSrcDir, 'helper.ts')
+const deepFile = path.join(ruleTestSrcDir, 'utils', 'deep.ts')
+
+const ruleTester = new RuleTester({
+  languageOptions: {
+    parser: tseslintParser,
+    parserOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+    },
+  },
+})
+
 describe('package-documentation', () => {
   let tempDir: string
+
+  afterAll(() => {
+    fs.rmSync(ruleTestDir, { recursive: true, force: true })
+    clearPackageJsonCache()
+  })
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'eslint-plugin-test-'))
@@ -87,68 +130,72 @@ describe('package-documentation', () => {
     })
   })
 
-  describe('rule logic simulation', () => {
-    it('should pass when entry point has @packageDocumentation', () => {
-      createPackageJson('./src/index.ts')
-      const srcDir = createSourceDir()
-      const indexPath = path.join(srcDir, 'index.ts')
-
-      const code = `/**
- * This is the main entry point.
+  ruleTester.run('package-documentation', packageDocumentation, {
+    valid: [
+      // Entry point with @packageDocumentation — should pass
+      {
+        code: `/**
+ * Package entry point.
  * @packageDocumentation
  */
-
-export function foo() {}`
-
-      fs.writeFileSync(indexPath, code)
-
-      const pkgPath = findPackageJson(srcDir)
-      expect(isEntryPoint(indexPath, pkgPath!)).toBe(true)
-
-      // Simulate checking for @packageDocumentation
-      const parsed = parseTSDocComment(`/**
- * This is the main entry point.
- * @packageDocumentation
- */`)
-      expect(hasPackageDocumentation(parsed.docComment)).toBe(true)
-    })
-
-    it('should fail when entry point lacks @packageDocumentation', () => {
-      createPackageJson('./src/index.ts')
-      const srcDir = createSourceDir()
-      const indexPath = path.join(srcDir, 'index.ts')
-
-      const code = `/**
- * This is the main entry point.
+export function foo() {}`,
+        filename: entryFile,
+      },
+      // Non-entry-point without @packageDocumentation — should pass
+      {
+        code: `/**
+ * A helper function.
  */
-
-export function foo() {}`
-
-      fs.writeFileSync(indexPath, code)
-
-      const pkgPath = findPackageJson(srcDir)
-      expect(isEntryPoint(indexPath, pkgPath!)).toBe(true)
-
-      // Simulate checking for @packageDocumentation
-      const parsed = parseTSDocComment(`/**
- * This is the main entry point.
- */`)
-      expect(hasPackageDocumentation(parsed.docComment)).toBe(false)
-    })
-
-    it('should not require @packageDocumentation for non-entry points', () => {
-      createPackageJson('./src/index.ts')
-      const srcDir = createSourceDir()
-
-      const indexPath = path.join(srcDir, 'index.ts')
-      fs.writeFileSync(indexPath, '/** @packageDocumentation */ export {}')
-
-      const helperPath = path.join(srcDir, 'helper.ts')
-      fs.writeFileSync(helperPath, '// No package documentation needed')
-
-      const pkgPath = findPackageJson(srcDir)
-      // Helper is not an entry point, so no check needed
-      expect(isEntryPoint(helperPath, pkgPath!)).toBe(false)
-    })
+export function helper() {}`,
+        filename: helperFile,
+      },
+      // Non-entry-point with no comments at all — should pass
+      {
+        code: `export function helper() {}`,
+        filename: helperFile,
+      },
+      // Deep non-entry-point without @packageDocumentation — should pass
+      {
+        code: `export const x = 1`,
+        filename: deepFile,
+      },
+    ],
+    invalid: [
+      // Entry point without @packageDocumentation — should fail
+      {
+        code: `/**
+ * Missing package documentation.
+ */
+export function foo() {}`,
+        filename: entryFile,
+        errors: [{ messageId: 'missingPackageDocumentation' as const }],
+      },
+      // Entry point with no comments at all — should fail
+      {
+        code: `export function foo() {}`,
+        filename: entryFile,
+        errors: [{ messageId: 'missingPackageDocumentation' as const }],
+      },
+      // Non-entry-point with @packageDocumentation — should fail
+      {
+        code: `/**
+ * This shouldn't be here.
+ * @packageDocumentation
+ */
+export function helper() {}`,
+        filename: helperFile,
+        errors: [{ messageId: 'unexpectedPackageDocumentation' as const }],
+      },
+      // Deep non-entry-point with @packageDocumentation — should fail
+      {
+        code: `/**
+ * Wrong place for package docs.
+ * @packageDocumentation
+ */
+export const x = 1`,
+        filename: deepFile,
+        errors: [{ messageId: 'unexpectedPackageDocumentation' as const }],
+      },
+    ],
   })
 })
