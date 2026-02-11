@@ -30,6 +30,7 @@
     "detect-parameter-order-changes",
     "dsl-bidirectional-transform",
     "dsl-implementation-p2-p3",
+    "enforce-package-documentation-barrel",
     "extractor-lib-readme",
     "fix-angle-bracket-tracking",
     "fix-multiline-formatting",
