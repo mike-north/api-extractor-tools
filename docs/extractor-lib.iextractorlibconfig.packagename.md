@@ -4,7 +4,7 @@
 
 ## IExtractorLibConfig.packageName property
 
-Package name (used in output naming). This should be the full package name, e.g., `\@api-extractor-tools/my-package`
+Package name (used in output naming). This should be the full package name, e.g., `@api-extractor-tools/my-package`
 
 **Signature:**
 

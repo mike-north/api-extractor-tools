@@ -9,7 +9,7 @@ Generated outputs from API Extractor.
 **Signature:**
 
 ```typescript
-export interface IExtractorOutputs 
+interface IExtractorOutputs 
 ```
 
 ## Properties

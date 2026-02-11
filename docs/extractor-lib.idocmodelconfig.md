@@ -9,7 +9,7 @@ Configuration for doc model generation.
 **Signature:**
 
 ```typescript
-export interface IDocModelConfig 
+interface IDocModelConfig 
 ```
 
 ## Properties

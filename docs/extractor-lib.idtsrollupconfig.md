@@ -9,7 +9,7 @@ Configuration for .d.ts rollup generation.
 **Signature:**
 
 ```typescript
-export interface IDtsRollupConfig 
+interface IDtsRollupConfig 
 ```
 
 ## Properties
@@ -50,7 +50,7 @@ string
 
 </td><td>
 
-_(Optional)_ Path for alpha-trimmed rollup (virtual path). Includes `\@alpha`<!-- -->, `\@beta`<!-- -->, and `\@public` items.
+_(Optional)_ Path for alpha-trimmed rollup (virtual path). Includes `@alpha`<!-- -->, `@beta`<!-- -->, and `@public` items.
 
 
 </td></tr>
@@ -69,7 +69,7 @@ string
 
 </td><td>
 
-_(Optional)_ Path for beta-trimmed rollup (virtual path). Includes `\@beta` and `\@public` items.
+_(Optional)_ Path for beta-trimmed rollup (virtual path). Includes `@beta` and `@public` items.
 
 
 </td></tr>
@@ -107,7 +107,7 @@ string
 
 </td><td>
 
-_(Optional)_ Path for public-trimmed rollup (virtual path). Includes only `\@public` items.
+_(Optional)_ Path for public-trimmed rollup (virtual path). Includes only `@public` items.
 
 
 </td></tr>

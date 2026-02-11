@@ -9,7 +9,7 @@ Extracts lib file contents from a TypeScript installation.
 **Signature:**
 
 ```typescript
-export declare function extractLibFiles(_typescript: typeof ts, libNames: string[]): Map<string, string>;
+declare function extractLibFiles(_typescript: typeof ts, libNames: string[]): Map<string, string>;
 ```
 
 ## Parameters

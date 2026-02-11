@@ -9,7 +9,7 @@ Returns the default API report configuration.
 **Signature:**
 
 ```typescript
-export declare function getDefaultApiReportConfig(): Required<IApiReportConfig>;
+declare function getDefaultApiReportConfig(): Required<IApiReportConfig>;
 ```
 **Returns:**
 

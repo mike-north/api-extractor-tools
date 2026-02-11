@@ -4,7 +4,7 @@
 
 ## IDtsRollupConfig.publicTrimmedFilePath property
 
-Path for public-trimmed rollup (virtual path). Includes only `\@public` items.
+Path for public-trimmed rollup (virtual path). Includes only `@public` items.
 
 **Signature:**
 

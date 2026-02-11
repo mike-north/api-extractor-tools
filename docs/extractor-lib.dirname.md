@@ -9,7 +9,7 @@ Get the directory name of a path.
 **Signature:**
 
 ```typescript
-export declare function dirname(path: string): string;
+declare function dirname(path: string): string;
 ```
 
 ## Parameters

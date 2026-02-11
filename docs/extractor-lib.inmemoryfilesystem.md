@@ -9,7 +9,7 @@ An in-memory implementation of [IVirtualFileSystem](./extractor-lib.ivirtualfile
 **Signature:**
 
 ```typescript
-export declare class InMemoryFileSystem implements IVirtualFileSystem 
+declare class InMemoryFileSystem implements IVirtualFileSystem 
 ```
 **Implements:** [IVirtualFileSystem](./extractor-lib.ivirtualfilesystem.md)
 

@@ -108,9 +108,9 @@ export type OverrideKeywordRuleOptions = Record<string, never>
  * Options for the package-documentation rule.
  *
  * @remarks
- * By default, checks all files. Node.js users can use the `/node` entry point
- * utilities to determine if a file is a package entry point and conditionally
- * enable this rule.
+ * Automatically detects whether a file is a package entry point by examining
+ * the nearest package.json. Requires `@packageDocumentation` on barrel files
+ * and reports an error if the tag is found on non-barrel files.
  *
  * @alpha
  */

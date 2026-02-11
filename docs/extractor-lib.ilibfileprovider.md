@@ -9,7 +9,7 @@ Interface for providing TypeScript lib file content.
 **Signature:**
 
 ```typescript
-export interface ILibFileProvider 
+interface ILibFileProvider 
 ```
 
 ## Remarks

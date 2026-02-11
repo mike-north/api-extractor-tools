@@ -97,11 +97,14 @@ Requires the TypeScript `override` keyword when the `@override` TSDoc tag is pre
 
 ### package-documentation
 
-Requires `@packageDocumentation` tag in files.
+Enforces correct usage of the `@packageDocumentation` tag based on whether a file is a package entry point (barrel file). The rule automatically detects entry points by examining the nearest `package.json`.
+
+- **Barrel files** (entry points): Requires `@packageDocumentation` tag to be present.
+- **Non-barrel files**: Reports an error if `@packageDocumentation` tag is found.
 
 **Options:** None
 
-Note: This rule checks all files ESLint runs it on. To only check entry points, configure ESLint's `files` option or use the Node.js utilities to conditionally enable the rule.
+Note: This rule uses `findPackageJson` and `isEntryPoint` from the entry-point utilities to determine barrel file status. If no `package.json` is found, the rule is skipped.
 
 ## Usage Examples
 

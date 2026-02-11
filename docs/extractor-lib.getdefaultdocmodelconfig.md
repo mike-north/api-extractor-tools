@@ -9,7 +9,7 @@ Returns the default doc model configuration.
 **Signature:**
 
 ```typescript
-export declare function getDefaultDocModelConfig(): Required<IDocModelConfig>;
+declare function getDefaultDocModelConfig(): Required<IDocModelConfig>;
 ```
 **Returns:**
 

@@ -173,7 +173,7 @@ export const rules: {
     readonly 'incompatible-release-tags': RuleModule<"incompatibleReleaseTags", [IncompatibleReleaseTagsRuleOptions], unknown, RuleListener>;
     readonly 'missing-release-tag': RuleModule<"missingReleaseTag", [MissingReleaseTagRuleOptions], unknown, RuleListener>;
     readonly 'override-keyword': RuleModule<"missingOverrideKeyword", [OverrideKeywordRuleOptions], unknown, RuleListener>;
-    readonly 'package-documentation': RuleModule<"missingPackageDocumentation", [PackageDocumentationRuleOptions], unknown, RuleListener>;
+    readonly 'package-documentation': RuleModule<"missingPackageDocumentation" | "unexpectedPackageDocumentation", [PackageDocumentationRuleOptions], unknown, RuleListener>;
     readonly 'public-on-non-exported': RuleModule<"publicOnNonExported", [PublicOnNonExportedRuleOptions], unknown, RuleListener>;
     readonly 'public-on-private-member': RuleModule<"publicOnPrivateMember", [PublicOnPrivateMemberRuleOptions], unknown, RuleListener>;
     readonly 'valid-enum-type': RuleModule<"missingValue" | "invalidValue" | "multipleEnumTypes" | "invalidConstruct" | "missingEnumType", [ValidEnumTypeRuleOptions], unknown, RuleListener>;

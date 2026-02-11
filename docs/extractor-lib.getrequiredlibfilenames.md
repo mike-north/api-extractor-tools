@@ -9,7 +9,7 @@ Gets all lib file names needed for a given set of compiler options.
 **Signature:**
 
 ```typescript
-export declare function getRequiredLibFileNames(typescript: typeof ts, compilerOptions: ts.CompilerOptions): string[];
+declare function getRequiredLibFileNames(typescript: typeof ts, compilerOptions: ts.CompilerOptions): string[];
 ```
 
 ## Parameters

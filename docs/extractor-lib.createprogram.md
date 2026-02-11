@@ -9,7 +9,7 @@ Creates a TypeScript program from virtual files.
 **Signature:**
 
 ```typescript
-export declare function createProgram(options: ICreateProgramOptions): ts.Program;
+declare function createProgram(options: ICreateProgramOptions): ts.Program;
 ```
 
 ## Parameters

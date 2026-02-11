@@ -9,7 +9,7 @@ Check if a path is absolute.
 **Signature:**
 
 ```typescript
-export declare function isAbsolute(path: string): boolean;
+declare function isAbsolute(path: string): boolean;
 ```
 
 ## Parameters

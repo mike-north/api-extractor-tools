@@ -9,7 +9,7 @@ Result of running the virtual API Extractor.
 **Signature:**
 
 ```typescript
-export interface IExtractorLibResult 
+interface IExtractorLibResult 
 ```
 
 ## Properties
