@@ -9,7 +9,7 @@ A virtual filesystem interface that abstracts file operations. All paths should 
 **Signature:**
 
 ```typescript
-export interface IVirtualFileSystem 
+interface IVirtualFileSystem 
 ```
 
 ## Remarks

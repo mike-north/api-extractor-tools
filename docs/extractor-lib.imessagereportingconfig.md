@@ -9,7 +9,7 @@ Configuration for message reporting.
 **Signature:**
 
 ```typescript
-export interface IMessageReportingConfig 
+interface IMessageReportingConfig 
 ```
 
 ## Properties

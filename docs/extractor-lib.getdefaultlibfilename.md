@@ -9,7 +9,7 @@ Gets the default lib file name for a given TypeScript target.
 **Signature:**
 
 ```typescript
-export declare function getDefaultLibFileName(typescript: typeof ts, target: ts.ScriptTarget): string;
+declare function getDefaultLibFileName(typescript: typeof ts, target: ts.ScriptTarget): string;
 ```
 
 ## Parameters

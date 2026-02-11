@@ -9,7 +9,7 @@ Configuration for running the virtual API Extractor.
 **Signature:**
 
 ```typescript
-export interface IExtractorLibConfig 
+interface IExtractorLibConfig 
 ```
 
 ## Properties
@@ -69,7 +69,7 @@ string\[\]
 
 </td><td>
 
-_(Optional)_ Packages to treat as bundled (their types will be inlined). Array of package names, e.g., `['lodash', '\@types/node']`
+_(Optional)_ Packages to treat as bundled (their types will be inlined). Array of package names, e.g., `['lodash', '@types/node']`
 
 
 </td></tr>
@@ -183,7 +183,7 @@ string
 
 </td><td>
 
-Package name (used in output naming). This should be the full package name, e.g., `\@api-extractor-tools/my-package`
+Package name (used in output naming). This should be the full package name, e.g., `@api-extractor-tools/my-package`
 
 
 </td></tr>

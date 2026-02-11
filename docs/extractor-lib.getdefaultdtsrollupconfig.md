@@ -9,7 +9,7 @@ Returns the default DTS rollup configuration.
 **Signature:**
 
 ```typescript
-export declare function getDefaultDtsRollupConfig(): Required<IDtsRollupConfig>;
+declare function getDefaultDtsRollupConfig(): Required<IDtsRollupConfig>;
 ```
 **Returns:**
 

@@ -9,7 +9,7 @@ Get the base name of a path (the final segment).
 **Signature:**
 
 ```typescript
-export declare function basename(path: string): string;
+declare function basename(path: string): string;
 ```
 
 ## Parameters

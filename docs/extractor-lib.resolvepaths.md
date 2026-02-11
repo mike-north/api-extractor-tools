@@ -9,7 +9,7 @@ Resolve path segments to an absolute path.
 **Signature:**
 
 ```typescript
-export declare function resolvePaths(base: string, ...segments: string[]): string;
+declare function resolvePaths(base: string, ...segments: string[]): string;
 ```
 
 ## Parameters

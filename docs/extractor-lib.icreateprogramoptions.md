@@ -9,7 +9,7 @@ Options for creating a TypeScript program.
 **Signature:**
 
 ```typescript
-export interface ICreateProgramOptions 
+interface ICreateProgramOptions 
 ```
 
 ## Properties

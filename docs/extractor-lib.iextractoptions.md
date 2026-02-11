@@ -9,7 +9,7 @@ Options for the extract function.
 **Signature:**
 
 ```typescript
-export interface IExtractOptions 
+interface IExtractOptions 
 ```
 
 ## Properties

@@ -9,7 +9,7 @@ Options for creating a virtual compiler host.
 **Signature:**
 
 ```typescript
-export interface IVirtualCompilerHostOptions 
+interface IVirtualCompilerHostOptions 
 ```
 
 ## Properties

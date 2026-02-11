@@ -4,7 +4,7 @@
 
 ## IExtractorLibConfig.bundledPackages property
 
-Packages to treat as bundled (their types will be inlined). Array of package names, e.g., `['lodash', '\@types/node']`
+Packages to treat as bundled (their types will be inlined). Array of package names, e.g., `['lodash', '@types/node']`
 
 **Signature:**
 

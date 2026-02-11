@@ -9,7 +9,7 @@ Applies default values to a configuration object.
 **Signature:**
 
 ```typescript
-export declare function applyDefaults(config: IExtractorLibConfig): IExtractorLibConfigWithDefaults;
+declare function applyDefaults(config: IExtractorLibConfig): IExtractorLibConfigWithDefaults;
 ```
 
 ## Parameters

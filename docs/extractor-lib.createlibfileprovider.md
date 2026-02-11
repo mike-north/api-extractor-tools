@@ -9,7 +9,7 @@ Creates a lib file provider that reads from the TypeScript installation.
 **Signature:**
 
 ```typescript
-export declare function createLibFileProvider(typescript: typeof ts): ILibFileProvider;
+declare function createLibFileProvider(typescript: typeof ts): ILibFileProvider;
 ```
 
 ## Parameters

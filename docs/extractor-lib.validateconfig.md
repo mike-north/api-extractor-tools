@@ -9,7 +9,7 @@ Validates an IExtractorLibConfig object.
 **Signature:**
 
 ```typescript
-export declare function validateConfig(config: IExtractorLibConfig): IValidationResult;
+declare function validateConfig(config: IExtractorLibConfig): IValidationResult;
 ```
 
 ## Parameters

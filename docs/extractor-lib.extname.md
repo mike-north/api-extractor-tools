@@ -9,7 +9,7 @@ Get the file extension (including the dot).
 **Signature:**
 
 ```typescript
-export declare function extname(path: string): string;
+declare function extname(path: string): string;
 ```
 
 ## Parameters

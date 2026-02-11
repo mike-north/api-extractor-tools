@@ -90,8 +90,6 @@ ESLint plugin providing authoring-time feedback for API Extractor.
 
 </td><td>
 
-Main entry point for extractor-lib
-
 
 </td></tr>
 <tr><td>

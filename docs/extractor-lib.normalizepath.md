@@ -9,7 +9,7 @@ Normalize a path by resolving `.` and `..` segments and converting all slashes t
 **Signature:**
 
 ```typescript
-export declare function normalizePath(path: string): string;
+declare function normalizePath(path: string): string;
 ```
 
 ## Parameters

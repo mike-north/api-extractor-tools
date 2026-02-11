@@ -9,7 +9,7 @@ Configuration with all optional fields filled in with defaults. The `program` fi
 **Signature:**
 
 ```typescript
-export type IExtractorLibConfigWithDefaults = Required<Omit<IExtractorLibConfig, 'program'>> & {
+type IExtractorLibConfigWithDefaults = Required<Omit<IExtractorLibConfig, 'program'>> & {
     program?: ts.Program;
 };
 ```
