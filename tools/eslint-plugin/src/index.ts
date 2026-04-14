@@ -116,14 +116,15 @@ export default plugin
 export { rules }
 export { recommendedRules }
 
-// CJS→ESM interop: assign plugin properties directly onto module.exports so that
-// ESM consumers using Node's CJS interop see `plugin.configs` on the default import
-// rather than needing `plugin.default.configs` (the "double-default" problem).
+// CJS→ESM interop: define the plugin's public `meta`, `configs`, and `rules`
+// properties directly on `module.exports` so that ESM consumers using Node's CJS
+// interop see `plugin.configs` on the default import rather than needing
+// `plugin.default.configs` (the "double-default" problem).
 // When TypeScript compiles `export default plugin` it sets `exports.default = plugin`,
 // but ESM interop wraps the whole module.exports object as the namespace — meaning
 // `import p from '...'` gives `module.exports`, not `module.exports.default`.
-// Spreading the plugin shape onto module.exports fixes this for ESM consumers while
-// leaving named CJS consumers unaffected.
+// Defining these plugin properties on `module.exports` fixes this for ESM consumers
+// while leaving named CJS consumers unaffected.
 //
 // We use Object.defineProperty to redefine properties because TypeScript's CJS emit
 // defines named exports with getter-only descriptors, making direct assignment throw.
