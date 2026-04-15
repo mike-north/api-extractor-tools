@@ -1,5 +1,12 @@
 # @api-extractor-tools/eslint-plugin
 
+## 0.1.1
+
+### Patch Changes
+
+- [#209](https://github.com/mike-north/api-extractor-tools/pull/209) [`647e7a1`](https://github.com/mike-north/api-extractor-tools/commit/647e7a12bdf9753ec21256d376efe50706243cd9) Thanks [@mike-north](https://github.com/mike-north)! - Fix the CommonJS-to-ESM interop "double-default" issue so ESM consumers can
+  access `configs`, `rules`, and `meta` directly from the default import.
+
 ## 0.1.0
 
 ### Minor Changes
