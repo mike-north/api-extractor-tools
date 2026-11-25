@@ -8,7 +8,7 @@
     "module-declaration-merger": "./dist/cli.js"
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && node ../../scripts/clean-api-scratch.mjs module-declaration-merger",
     "build": "tsc && node ../declaration-file-normalizer/dist/cli.js dist/index.d.ts",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run && pnpm test:types",

@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && node ../../scripts/clean-api-scratch.mjs eslint-plugin --keep-report",
     "build": "tsc && node ../declaration-file-normalizer/dist/cli.js dist/index.d.ts",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run && pnpm test:types",

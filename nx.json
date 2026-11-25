@@ -1,6 +1,8 @@
 {
   "$schema": "https://nx.dev/nx.schema.json",
   "namedInputs": {
+    // Bump this epoch to retire previous Nx results for every cacheable target.
+    "ciCacheVersion": ["{workspaceRoot}/ci-cache-version.txt"],
     "source": ["{projectRoot}/src/**/*"],
     "tests": ["{projectRoot}/test/**/*"],
     "tsConfig": [
@@ -28,7 +30,7 @@
     "build": {
       "cache": true,
       "dependsOn": ["^build", "^generate:api-report"],
-      "inputs": ["source", "tsConfig"],
+      "inputs": ["source", "tsConfig", "ciCacheVersion"],
       "outputs": ["{projectRoot}/dist"]
     },
     "test:types": {
@@ -40,6 +42,7 @@
       ],
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -56,6 +59,7 @@
       ],
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -72,6 +76,7 @@
       ],
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -81,12 +86,13 @@
     },
     "check:eslint": {
       "cache": true,
-      "inputs": ["source", "tests", "eslintConfig"],
+      "inputs": ["source", "tests", "eslintConfig", "ciCacheVersion"],
       "outputs": []
     },
     "check:typecheck-tests": {
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -96,18 +102,19 @@
       "outputs": []
     },
     "generate:api-report": {
-      "cache": true,
-      "dependsOn": ["build", "^build"],
-      "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
-      "outputs": [
-        "{workspaceRoot}/api-reports/{projectName}.api.md",
-        "{workspaceRoot}/temp/{projectName}.api.json"
-      ]
+      // Generation writes package rollups, shared doc models, and reports maintained in Git.
+      // Execute it after clean so downstream builds receive the actual declaration rollups.
+      "cache": false,
+      "dependsOn": ["build", "^build"]
     },
     "check:api-report": {
       "cache": true,
       "dependsOn": ["build", "^build", "^generate:api-report"],
-      "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
+      "inputs": [
+        "{projectRoot}/dist/**/*.d.ts",
+        "apiExtractorConfig",
+        "ciCacheVersion"
+      ],
       "outputs": [
         "{workspaceRoot}/api-reports/{projectName}.api.md",
         "{workspaceRoot}/temp/{projectName}.api.json"

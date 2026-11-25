@@ -6,9 +6,46 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+# Supersede obsolete PR runs while allowing each main run to trigger release.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  build-and-test:
+  source-checks:
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            ci-cache-version.txt
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # This lane can run on a fresh checkout without waiting for package builds.
+      - name: Check workspace
+        run: pnpm check:workspace
+
+  build-checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - name: Checkout
@@ -35,14 +72,9 @@ jobs:
         with:
           node-version: "20"
           cache: "pnpm"
-
-      - name: Cache NX
-        uses: actions/cache@v4
-        with:
-          path: .nx/cache
-          key: nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json') }}-${{ github.sha }}
-          restore-keys: |
-            nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json') }}-
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            ci-cache-version.txt
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -50,11 +82,13 @@ jobs:
       - name: Build declaration-file-normalizer first
         run: pnpm --filter @api-extractor-tools/declaration-file-normalizer build
 
+      # Nx's local task cache is machine-specific. Sharing results across runners
+      # requires a remote cache backend.
       - name: Build
         run: pnpm build
 
-      - name: Lint
-        run: pnpm check
+      - name: Check built packages
+        run: pnpm check:packages
 
       - name: Test with coverage
         if: steps.changed-files.outputs.non_markdown_any_changed == 'true'
@@ -74,3 +108,20 @@ jobs:
           flags: change-detector,change-detector-core,module-declaration-merger,changeset-change-detector,change-detector-semantic-release-plugin
           fail_ci_if_error: false
           verbose: true
+
+  # Preserve the required check name and report an unsuccessful lane even when
+  # GitHub would normally skip jobs that depend on it.
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: [source-checks, build-checks]
+    if: ${{ always() }}
+
+    steps:
+      - name: Require both CI lanes to succeed
+        env:
+          SOURCE_CHECKS_RESULT: ${{ needs.source-checks.result }}
+          BUILD_CHECKS_RESULT: ${{ needs.build-checks.result }}
+        run: |
+          echo "Source checks: $SOURCE_CHECKS_RESULT"
+          echo "Build and coverage checks: $BUILD_CHECKS_RESULT"
+          test "$SOURCE_CHECKS_RESULT" = success && test "$BUILD_CHECKS_RESULT" = success

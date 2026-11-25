@@ -8,7 +8,7 @@
     "prepare": "husky",
     "lint:staged": "lint-staged",
     "clean:packages": "NX_TUI=false nx run-many -t clean --parallel  --exclude api-extractor-tools",
-    "clean:workspace": "rm -rf temp && rm -rf docs && rm -rf api-reports",
+    "clean:workspace": "node scripts/clean-api-scratch.mjs",
     "clean": "pnpm clean:packages && pnpm clean:workspace",
     "build": "NX_TUI=false nx run-many -t build --exclude api-extractor-tools --parallel",
     "generate:api-report": "NX_TUI=false nx run-many -t generate:api-report --exclude api-extractor-tools --parallel",
@@ -39,6 +39,7 @@
         "cache": true,
         "command": "knip",
         "inputs": [
+          "ciCacheVersion",
           "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
         ]
       },
@@ -46,6 +47,7 @@
         "cache": true,
         "command": "eslint --fix \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
         "inputs": [
+          "ciCacheVersion",
           "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
         ]
       },
@@ -53,6 +55,7 @@
         "cache": true,
         "command": "prettier --write \"**/*.{js,ts,json,md,mts,cts,mjs,cjs}\"",
         "inputs": [
+          "ciCacheVersion",
           "{workspaceRoot}/**/*.{js,ts,json,md,mts,cts,mjs,cjs}"
         ]
       },
@@ -66,6 +69,7 @@
           }
         ],
         "inputs": [
+          "ciCacheVersion",
           "{workspaceRoot}/temp/**/*.api.json"
         ],
         "outputs": [

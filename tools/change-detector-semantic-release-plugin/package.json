@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/change-detector-semantic-release-plugin-public.d.ts",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && node ../../scripts/clean-api-scratch.mjs change-detector-semantic-release-plugin",
     "build": "tsc && node ../declaration-file-normalizer/dist/cli.js dist/index.d.ts",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",

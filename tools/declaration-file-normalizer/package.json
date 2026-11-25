@@ -9,7 +9,7 @@
     "declaration-file-normalizer": "./dist/cli.js"
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist && node ../../scripts/clean-api-scratch.mjs declaration-file-normalizer",
     "build": "tsc && node dist/cli.js dist/index.d.ts && api-extractor run --local",
     "generate:api-report": "api-extractor run --local --verbose",
     "test": "vitest run",
