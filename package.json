@@ -10,10 +10,11 @@
     "clean:packages": "NX_TUI=false nx run-many -t clean --parallel  --exclude api-extractor-tools",
     "clean:workspace": "node scripts/clean-api-scratch.mjs",
     "clean": "pnpm clean:packages && pnpm clean:workspace",
-    "build": "NX_TUI=false nx run-many -t build --exclude api-extractor-tools --parallel",
+    "build": "NX_TUI=false nx run-many -t build,build:api-artifacts --exclude api-extractor-tools --parallel",
     "generate:api-report": "NX_TUI=false nx run-many -t generate:api-report --exclude api-extractor-tools --parallel",
     "generate:docs": "NX_TUI=false nx api-documenter",
-    "test": "NX_TUI=false nx run-many -t test --exclude api-extractor-tools --parallel",
+    "test": "pnpm test:workspace && NX_TUI=false nx run-many -t test --exclude api-extractor-tools --parallel",
+    "test:workspace": "node --test scripts/ci-pilot.test.mjs",
     "test:coverage": "NX_TUI=false nx run-many -t test:coverage --exclude api-extractor-tools --parallel",
     "test:changed": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests",
     "test:uncommitted": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed --passWithNoTests",
@@ -65,7 +66,7 @@
         "dependsOn": [
           {
             "projects": "@api-extractor-tools/*",
-            "target": "generate:api-report"
+            "target": "build:api-artifacts"
           }
         ],
         "inputs": [

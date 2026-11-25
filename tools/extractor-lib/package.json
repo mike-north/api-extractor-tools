@@ -11,11 +11,12 @@
     "test": "vitest run",
     "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
-    "generate:api-report": "api-extractor run --local --verbose",
+    "build:api-artifacts": "node ../../scripts/run-api-extractor.mjs build",
+    "generate:api-report": "node ../../scripts/run-api-extractor.mjs update",
     "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
-    "check:api-report": "api-extractor run"
+    "check:api-report": "node ../../scripts/run-api-extractor.mjs check"
   },
   "keywords": [
     "typescript",

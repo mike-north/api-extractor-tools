@@ -29,7 +29,7 @@
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": ["^build", "^generate:api-report"],
+      "dependsOn": ["^build", "^build:api-artifacts"],
       "inputs": ["source", "tsConfig", "ciCacheVersion"],
       "outputs": ["{projectRoot}/dist"]
     },
@@ -37,8 +37,8 @@
       "dependsOn": [
         "build",
         "^build",
-        "generate:api-report",
-        "^generate:api-report"
+        "build:api-artifacts",
+        "^build:api-artifacts"
       ],
       "cache": true,
       "inputs": [
@@ -54,8 +54,8 @@
       "dependsOn": [
         "build",
         "^build",
-        "generate:api-report",
-        "^generate:api-report"
+        "build:api-artifacts",
+        "^build:api-artifacts"
       ],
       "cache": true,
       "inputs": [
@@ -71,8 +71,8 @@
       "dependsOn": [
         "build",
         "^build",
-        "generate:api-report",
-        "^generate:api-report"
+        "build:api-artifacts",
+        "^build:api-artifacts"
       ],
       "cache": true,
       "inputs": [
@@ -101,24 +101,20 @@
       ],
       "outputs": []
     },
-    "generate:api-report": {
-      // Generation writes package rollups, shared doc models, and reports maintained in Git.
-      // Execute it after clean so downstream builds receive the actual declaration rollups.
+    "build:api-artifacts": {
+      // Rollups share dist with compilation and must be emitted after warm restores.
       "cache": false,
       "dependsOn": ["build", "^build"]
     },
+    "generate:api-report": {
+      // Updating the tracked baseline is an explicit developer action.
+      "cache": false,
+      "dependsOn": ["build:api-artifacts"]
+    },
     "check:api-report": {
-      "cache": true,
-      "dependsOn": ["build", "^build", "^generate:api-report"],
-      "inputs": [
-        "{projectRoot}/dist/**/*.d.ts",
-        "apiExtractorConfig",
-        "ciCacheVersion"
-      ],
-      "outputs": [
-        "{workspaceRoot}/api-reports/{projectName}.api.md",
-        "{workspaceRoot}/temp/{projectName}.api.json"
-      ]
+      // Compare the live declarations and tracked baseline on each invocation.
+      "cache": false,
+      "dependsOn": ["build", "^build", "^build:api-artifacts"]
     }
   }
 }

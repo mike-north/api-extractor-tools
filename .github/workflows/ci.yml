@@ -41,6 +41,9 @@ jobs:
       - name: Check workspace
         run: pnpm check:workspace
 
+      - name: Test workspace scripts
+        run: pnpm test:workspace
+
   build-checks:
     runs-on: ubuntu-latest
     permissions:
