@@ -4,7 +4,11 @@
   "workspaces": {
     ".": {
       "ignoreBinaries": ["changeset-change-detector"],
-      "ignoreDependencies": ["@vitest/coverage-v8", "@commitlint/types"],
+      "ignoreDependencies": [
+        "@microsoft/api-extractor",
+        "@vitest/coverage-v8",
+        "@commitlint/types"
+      ],
       "paths": {
         "@": ["src/index.ts"],
         "@/*": ["src/*"]

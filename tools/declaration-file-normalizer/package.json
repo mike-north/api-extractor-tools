@@ -9,15 +9,34 @@
     "declaration-file-normalizer": "./dist/cli.js"
   },
   "scripts": {
-    "clean": "rm -rf dist",
-    "build": "tsc && node dist/cli.js dist/index.d.ts && api-extractor run --local",
-    "generate:api-report": "api-extractor run --local --verbose",
+    "clean": "rm -rf dist && node ../../scripts/clean-api-scratch.mjs declaration-file-normalizer",
+    "build": "tsc && node dist/cli.js dist/index.d.ts && pnpm build:api-artifacts",
+    "build:api-artifacts": "node ../../scripts/run-api-extractor.mjs build",
+    "generate:api-report": "node ../../scripts/run-api-extractor.mjs update",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
     "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json",
-    "check:api-report": "api-extractor run"
+    "check:api-report": "node ../../scripts/run-api-extractor.mjs check"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "inputs": [
+          "source",
+          "tsConfig",
+          "ciCacheVersion",
+          "apiExtractorConfig",
+          "{workspaceRoot}/scripts/run-api-extractor.mjs",
+          "{workspaceRoot}/tsdoc.json"
+        ],
+        "outputs": [
+          "{projectRoot}/dist",
+          "{workspaceRoot}/temp/declaration-file-normalizer.api.json"
+        ]
+      }
+    }
   },
   "keywords": [],
   "author": "",

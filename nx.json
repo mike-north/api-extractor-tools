@@ -1,6 +1,8 @@
 {
   "$schema": "https://nx.dev/nx.schema.json",
   "namedInputs": {
+    // Bump this epoch to retire previous Nx results for every cacheable target.
+    "ciCacheVersion": ["{workspaceRoot}/ci-cache-version.txt"],
     "source": ["{projectRoot}/src/**/*"],
     "tests": ["{projectRoot}/test/**/*"],
     "tsConfig": [
@@ -27,19 +29,20 @@
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": ["^build", "^generate:api-report"],
-      "inputs": ["source", "tsConfig"],
+      "dependsOn": ["^build", "^build:api-artifacts"],
+      "inputs": ["source", "tsConfig", "ciCacheVersion"],
       "outputs": ["{projectRoot}/dist"]
     },
     "test:types": {
       "dependsOn": [
         "build",
         "^build",
-        "generate:api-report",
-        "^generate:api-report"
+        "build:api-artifacts",
+        "^build:api-artifacts"
       ],
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -51,11 +54,12 @@
       "dependsOn": [
         "build",
         "^build",
-        "generate:api-report",
-        "^generate:api-report"
+        "build:api-artifacts",
+        "^build:api-artifacts"
       ],
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -67,11 +71,12 @@
       "dependsOn": [
         "build",
         "^build",
-        "generate:api-report",
-        "^generate:api-report"
+        "build:api-artifacts",
+        "^build:api-artifacts"
       ],
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -81,12 +86,13 @@
     },
     "check:eslint": {
       "cache": true,
-      "inputs": ["source", "tests", "eslintConfig"],
+      "inputs": ["source", "tests", "eslintConfig", "ciCacheVersion"],
       "outputs": []
     },
     "check:typecheck-tests": {
       "cache": true,
       "inputs": [
+        "ciCacheVersion",
         "source",
         "tsConfig",
         "{projectRoot}/test/**/*",
@@ -95,23 +101,20 @@
       ],
       "outputs": []
     },
+    "build:api-artifacts": {
+      // Rollups share dist with compilation and must be emitted after warm restores.
+      "cache": false,
+      "dependsOn": ["build", "^build"]
+    },
     "generate:api-report": {
-      "cache": true,
-      "dependsOn": ["build", "^build"],
-      "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
-      "outputs": [
-        "{workspaceRoot}/api-reports/{projectName}.api.md",
-        "{workspaceRoot}/temp/{projectName}.api.json"
-      ]
+      // Updating the tracked baseline is an explicit developer action.
+      "cache": false,
+      "dependsOn": ["build:api-artifacts"]
     },
     "check:api-report": {
-      "cache": true,
-      "dependsOn": ["build", "^build", "^generate:api-report"],
-      "inputs": ["{projectRoot}/dist/**/*.d.ts", "apiExtractorConfig"],
-      "outputs": [
-        "{workspaceRoot}/api-reports/{projectName}.api.md",
-        "{workspaceRoot}/temp/{projectName}.api.json"
-      ]
+      // Compare the live declarations and tracked baseline on each invocation.
+      "cache": false,
+      "dependsOn": ["build", "^build", "^build:api-artifacts"]
     }
   }
 }
