@@ -10,15 +10,15 @@ This package is the foundation of `@api-extractor-tools/change-detector`, extrac
 
 - **In-memory TypeScript parsing** - Parse `.d.ts` content from strings without file system access
 - **Symbol comparison** - Detect additions, removals, and modifications of exported symbols
-- **Change classification** - Categorize changes by semantic versioning impact (major/minor/none)
+- **Change classification** - Categorize changes by semantic versioning impact
 - **Report generation** - Format comparison results as text, markdown, or JSON
 
 ## Installation
 
 ```bash
-npm install @api-extractor-tools/change-detector-core
+npm install @api-extractor-tools/change-detector-core typescript@5.8.3
 # or
-pnpm add @api-extractor-tools/change-detector-core
+pnpm add @api-extractor-tools/change-detector-core typescript@5.8.3
 ```
 
 ## Usage
@@ -26,39 +26,45 @@ pnpm add @api-extractor-tools/change-detector-core
 ### Basic Comparison
 
 ```typescript
-import { compareDeclarations } from '@api-extractor-tools/change-detector-core'
+import {
+  analyzeChanges,
+  createASTComparisonReport,
+} from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
 
-const oldContent = `export declare function greet(name: string): string;`
-const newContent = `export declare function greet(name: string, prefix?: string): string;`
+const oldSource = 'export declare function greet(name: string): string;'
+const newSource = `${oldSource}
+export declare function greetWithPrefix(name: string, prefix: string): string;`
 
-const report = compareDeclarations({ oldContent, newContent }, ts)
+const result = analyzeChanges(oldSource, newSource, ts)
+const report = createASTComparisonReport(result.results)
 
 console.log(report.releaseType) // 'minor'
-console.log(report.changes.nonBreaking) // [{ category: 'param-added-optional', ... }]
+console.log(report.byReleaseType.minor.map(({ explanation }) => explanation))
 ```
 
 ### Report Formatting
 
 ```typescript
 import {
-  compareDeclarations,
-  formatReportAsText,
-  formatReportAsMarkdown,
-  reportToJSON,
+  analyzeChanges,
+  createASTComparisonReport,
+  formatASTReportAsText,
+  formatASTReportAsMarkdown,
+  formatASTReportAsJSON,
 } from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
 
-const report = compareDeclarations({ oldContent, newContent }, ts)
+const oldSource = 'export declare function greet(name: string): string;'
+const newSource = `${oldSource}
+export declare function greetWithPrefix(name: string, prefix: string): string;`
+const report = createASTComparisonReport(
+  analyzeChanges(oldSource, newSource, ts).results,
+)
 
-// Plain text format
-console.log(formatReportAsText(report))
-
-// Markdown format (great for PRs and documentation)
-console.log(formatReportAsMarkdown(report))
-
-// JSON format (for programmatic consumption)
-const json = reportToJSON(report)
+console.log(formatASTReportAsText(report))
+console.log(formatASTReportAsMarkdown(report))
+console.log(JSON.stringify(formatASTReportAsJSON(report), null, 2))
 ```
 
 ### Low-Level APIs
@@ -67,67 +73,76 @@ For more control, you can use the lower-level parsing and comparison functions:
 
 ```typescript
 import {
-  parseDeclarationString,
-  compareDeclarationResults,
   classifyChanges,
+  diffModules,
+  parseModuleWithTypes,
+  semverDefaultPolicy,
 } from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
 
-// Parse declarations separately
-const oldResult = parseDeclarationString(oldContent, ts, 'old.d.ts')
-const newResult = parseDeclarationString(newContent, ts, 'new.d.ts')
+const oldSource = 'export declare function greet(name: string): string;'
+const newSource = `${oldSource}
+export declare function greetWithPrefix(name: string, prefix: string): string;`
 
-// Compare parsed results
-const changes = compareDeclarationResults(oldResult, newResult, ts)
+const oldModule = parseModuleWithTypes(oldSource, ts, { filename: 'old.d.ts' })
+const newModule = parseModuleWithTypes(newSource, ts, { filename: 'new.d.ts' })
+const changes = diffModules(oldModule, newModule)
+const classified = classifyChanges(changes, semverDefaultPolicy)
 
-// Classify changes
-const classified = classifyChanges(
-  changes,
-  oldResult.symbols.size,
-  newResult.symbols.size,
-)
+for (const { change, releaseType } of classified) {
+  console.log(`[${releaseType}] ${change.explanation}`)
+}
 ```
 
 ## API
 
 ### Main Functions
 
-| Function                                         | Description                                              |
-| ------------------------------------------------ | -------------------------------------------------------- |
-| `compareDeclarations(options, ts)`               | Compare two declaration strings and return a full report |
-| `parseDeclarationString(content, ts, filename?)` | Parse a declaration string into symbols                  |
-| `compareDeclarationResults(old, new, ts)`        | Compare two parsed declaration results                   |
-| `classifyChanges(changes, oldCount, newCount)`   | Classify changes and compute statistics                  |
+| Function                                             | Description                                                                               |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `analyzeChanges(oldSource, newSource, ts, options?)` | Analyze two declaration strings and return changes, classifications, and the release type |
+| `createASTComparisonReport(results)`                 | Group classified changes by release type and compute summary statistics                   |
+| `parseModuleWithTypes(source, ts, options?)`         | Parse a declaration string with a TypeScript type checker                                 |
+| `diffModules(oldModule, newModule, options?)`        | Compare two parsed modules                                                                |
+| `classifyChanges(changes, policy)`                   | Classify changes using a policy                                                           |
 
 ### Formatting Functions
 
-| Function                         | Description                                  |
-| -------------------------------- | -------------------------------------------- |
-| `formatReportAsText(report)`     | Format report as plain text                  |
-| `formatReportAsMarkdown(report)` | Format report as markdown                    |
-| `reportToJSON(report)`           | Convert report to a JSON-serializable object |
+| Function                            | Description                                    |
+| ----------------------------------- | ---------------------------------------------- |
+| `formatASTReportAsText(report)`     | Format a report as plain text                  |
+| `formatASTReportAsMarkdown(report)` | Format a report as Markdown                    |
+| `formatASTReportAsJSON(report)`     | Convert a report to a JSON-serializable object |
 
 ### Types
 
-| Type               | Description                                                                  |
-| ------------------ | ---------------------------------------------------------------------------- |
-| `ComparisonReport` | Full comparison report with changes and statistics                           |
-| `Change`           | Individual change record with category and explanation                       |
-| `ReleaseType`      | `'major' \| 'minor' \| 'none'`                                               |
-| `ChangeCategory`   | Specific type of change (e.g., `'symbol-removed'`, `'param-added-optional'`) |
+| Type                  | Description                                                         |
+| --------------------- | ------------------------------------------------------------------- |
+| `ASTComparisonReport` | Classified changes grouped by release type, with summary statistics |
+| `ApiChange`           | Individual change with a descriptor and explanation                 |
+| `ReleaseType`         | `'forbidden'\|'major'\|'minor'\|'patch'\|'none'`                    |
+| `ChangeDescriptor`    | Structured description of a change, such as an export being removed |
 
 ## Browser Usage
 
-This package is designed to work in browsers. The key requirement is providing the TypeScript compiler:
+Pass the TypeScript compiler module to `analyzeChanges` in your browser bundle.
 
 ```typescript
-// In a browser environment, you might load TypeScript from a CDN
-import * as ts from 'typescript' // or load from CDN
+import {
+  analyzeChanges,
+  createASTComparisonReport,
+  formatASTReportAsText,
+} from '@api-extractor-tools/change-detector-core'
+import * as ts from 'typescript'
 
-import { compareDeclarations } from '@api-extractor-tools/change-detector-core'
+const oldSource = 'export declare function greet(name: string): string;'
+const newSource = `${oldSource}
+export declare function greetWithPrefix(name: string, prefix: string): string;`
+const report = createASTComparisonReport(
+  analyzeChanges(oldSource, newSource, ts).results,
+)
 
-// Works the same as in Node.js
-const report = compareDeclarations({ oldContent, newContent }, ts)
+console.log(formatASTReportAsText(report))
 ```
 
 ## Plugin System

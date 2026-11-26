@@ -49,17 +49,23 @@ Analyzes a pair of `.d.ts` rollups and classifies the delta according to [Semant
 change-detector old.d.ts new.d.ts
 change-detector old.d.ts new.d.ts --json
 change-detector old.d.ts new.d.ts --markdown
+```
 
-# Library usage
-import { compareDeclarations, formatReportAsText } from '@api-extractor-tools/change-detector';
+This JavaScript example uses the alpha `compareDeclarations` API in Node.js.
 
-const report = compareDeclarations({
+```javascript
+import {
+  compareDeclarations,
+  formatASTReportAsText,
+} from '@api-extractor-tools/change-detector'
+
+const result = compareDeclarations({
   oldFile: './dist/v1/index.d.ts',
   newFile: './dist/v2/index.d.ts',
-});
+})
 
-console.log(report.releaseType);  // "major" | "minor" | "patch" | "none"
-console.log(formatReportAsText(report));
+console.log(result.releaseType)
+console.log(formatASTReportAsText(result.report))
 ```
 
 ### [@api-extractor-tools/change-detector-core](./tools/change-detector-core)
@@ -77,21 +83,21 @@ Isomorphic core library for change detection that works in both Node.js and brow
 
 ```typescript
 import {
-  compareDeclarations,
-  formatReportAsMarkdown,
+  analyzeChanges,
+  createASTComparisonReport,
+  formatASTReportAsMarkdown,
 } from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
 
-const report = compareDeclarations(
-  {
-    oldContent: `export declare function greet(name: string): string;`,
-    newContent: `export declare function greet(name: string, prefix?: string): string;`,
-  },
-  ts,
-)
+const oldSource = 'export declare function greet(name: string): string;'
+const newSource = `${oldSource}
+export declare function greetWithPrefix(name: string, prefix: string): string;`
+
+const result = analyzeChanges(oldSource, newSource, ts)
+const report = createASTComparisonReport(result.results)
 
 console.log(report.releaseType) // 'minor'
-console.log(formatReportAsMarkdown(report))
+console.log(formatASTReportAsMarkdown(report))
 ```
 
 > **When to use which?**
