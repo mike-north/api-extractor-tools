@@ -2,20 +2,27 @@ import * as path from 'path'
 import * as ts from 'typescript'
 import type { ExtractedDeclaration } from './extractor'
 
+interface ModuleReference {
+  modulePath: string
+  mode: ts.ResolutionMode
+}
+
 interface ImportBinding {
   name: string
   kind: 'named' | 'default' | 'namespace' | 'require'
   importedName?: string
-  modulePath: string
+  module: ModuleReference
   typeOnly: boolean
   attributes?: string
 }
 
-interface ImportReference {
-  binding: ImportBinding
+type ImportReference = {
   start: number
   end: number
-}
+} & (
+  | { binding: ImportBinding }
+  | { module: ModuleReference; hasAttributes: boolean }
+)
 
 const declarationImports = new WeakMap<
   ExtractedDeclaration,
@@ -27,29 +34,57 @@ export function createImportCollector(
   config: ts.ParsedCommandLine | undefined,
 ) {
   const projectFiles = new Set(config?.fileNames)
-  const modulePaths = new Map<ts.StringLiteral, string>()
+  const modules = new Map<ts.StringLiteral, ModuleReference>()
   const bindings = new Map<ts.Symbol, ImportBinding | undefined>()
+  const options = program.getCompilerOptions()
+  const optionsWithoutAliases = {
+    ...options,
+    paths: undefined,
+    baseUrl: undefined,
+  }
 
-  function getModulePath(specifier: ts.StringLiteral): string {
-    if (!ts.isExternalModuleNameRelative(specifier.text)) {
+  function getModulePath(
+    specifier: ts.StringLiteral,
+    mode: ts.ResolutionMode,
+  ): string {
+    const sourceFile = specifier.getSourceFile()
+    const text = specifier.text.replace(/\\/g, '/')
+    const relative = ts.isExternalModuleNameRelative(text)
+    // Preserve absolute Windows paths as such even when running on POSIX.
+    if (path.win32.isAbsolute(text) && !path.isAbsolute(text)) return text
+    if (
+      !relative &&
+      (text.startsWith('#') || (!options.paths && !options.baseUrl))
+    ) {
       return specifier.text
     }
-
-    const cached = modulePaths.get(specifier)
-    if (cached !== undefined) return cached
-
-    const sourcePath = path.resolve(
-      path.dirname(specifier.getSourceFile().fileName),
-      specifier.text,
-    )
     const target = program
       .getTypeChecker()
       .getSymbolAtLocation(specifier)
       ?.declarations?.find(ts.isSourceFile)
-    let modulePath = sourcePath
+    const sourcePath = relative
+      ? path.resolve(path.dirname(sourceFile.fileName), text)
+      : specifier.text
+    if (!target) return sourcePath
+    if (!relative) {
+      if (program.isSourceFileFromExternalLibrary(target)) return sourcePath
+      const standardTarget = ts.resolveModuleName(
+        specifier.text,
+        sourceFile.fileName,
+        optionsWithoutAliases,
+        ts.sys,
+        undefined,
+        undefined,
+        mode,
+      ).resolvedModule
+      if (standardTarget?.resolvedFileName === target.fileName)
+        return sourcePath
+    }
+
+    let targetPath = target.fileName
     if (
       config &&
-      target &&
+      !options.outFile &&
       !target.isDeclarationFile &&
       projectFiles.has(target.fileName)
     ) {
@@ -60,16 +95,30 @@ export function createImportCollector(
           !ts.sys.useCaseSensitiveFileNames,
         )
         .find((file) => /\.d\.[cm]?ts$/.test(file) && ts.sys.fileExists(file))
-      if (output) {
-        // Keep the original extension or directory spelling in the emitted layout.
-        modulePath = path.resolve(
-          path.dirname(output),
-          path.relative(path.dirname(target.fileName), sourcePath),
-        )
-      }
+      if (output) targetPath = output
     }
-    modulePaths.set(specifier, modulePath)
-    return modulePath
+
+    const extension = /(?:\.d)?\.([cm]?)tsx?$/.exec(targetPath)
+    if (!extension) return targetPath
+    const stem = targetPath.slice(0, -extension[0].length)
+    // Node's ESM resolver needs a runtime extension, including for aliases.
+    if (mode === ts.ModuleKind.ESNext || /\.[cm]?jsx?$/.test(text)) {
+      return `${stem}.${extension[1]}js`
+    }
+    // Node does not try .cts or .mts when resolving extensionless imports.
+    return extension[1] ? `${stem}.${extension[1]}js` : stem
+  }
+
+  function getModule(specifier: ts.StringLiteral): ModuleReference {
+    const cached = modules.get(specifier)
+    if (cached) return cached
+    const mode = program.getModeForUsageLocation(
+      specifier.getSourceFile(),
+      specifier,
+    )
+    const reference = { modulePath: getModulePath(specifier, mode), mode }
+    modules.set(specifier, reference)
+    return reference
   }
 
   function getBinding(
@@ -92,7 +141,7 @@ export function createImportCollector(
         binding = {
           name: declaration.name.text,
           kind: 'require',
-          modulePath: getModulePath(moduleReference.expression),
+          module: getModule(moduleReference.expression),
           typeOnly: declaration.isTypeOnly,
         }
       }
@@ -125,7 +174,7 @@ export function createImportCollector(
           name: symbol.name,
           kind,
           importedName,
-          modulePath: getModulePath(statement.moduleSpecifier),
+          module: getModule(statement.moduleSpecifier),
           typeOnly: typeOnly || clause.isTypeOnly,
           attributes: statement.attributes?.getText(),
         }
@@ -143,6 +192,23 @@ export function createImportCollector(
       statement.getEnd() - statement.getFullText().trimStart().length
     const references: ImportReference[] = []
     function visit(node: ts.Node): void {
+      if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
+        const specifier = node.argument.literal
+        if (ts.isStringLiteral(specifier)) {
+          const module = getModule(specifier)
+          if (
+            module.modulePath !== specifier.text ||
+            (module.mode && !node.attributes)
+          ) {
+            references.push({
+              module,
+              hasAttributes: node.attributes !== undefined,
+              start: specifier.getStart(sourceFile) - start,
+              end: specifier.getEnd() - start,
+            })
+          }
+        }
+      }
       if (ts.isIdentifier(node)) {
         const symbol = checker.getSymbolAtLocation(node)
         const binding =
@@ -171,7 +237,7 @@ export function createImportCollector(
 
 export function prepareRollupImports(
   rollupPath: string,
-  existingContent: string,
+  readExistingContent: () => string,
   declarations: ExtractedDeclaration[],
 ) {
   const imports = new Map<string, { alias: string; statement: string }>()
@@ -188,18 +254,43 @@ export function prepareRollupImports(
     )
   }
 
+  function getSpecifier(modulePath: string): string {
+    if (!path.isAbsolute(modulePath)) return modulePath
+    const relative = path
+      .relative(path.dirname(rollupPath), modulePath)
+      .replace(/\\/g, '/')
+    return ts.isExternalModuleNameRelative(relative)
+      ? relative
+      : './' + relative
+  }
+
+  let rollupMode: ts.ResolutionMode
+  function getResolutionOverride(mode: ts.ResolutionMode): string | undefined {
+    if (!mode) return undefined
+    rollupMode ??= ts.getImpliedNodeFormatForFile(
+      path.resolve(rollupPath).replace(/\\/g, '/'),
+      undefined,
+      ts.sys,
+      { module: ts.ModuleKind.NodeNext },
+    )
+    return mode === rollupMode
+      ? undefined
+      : mode === ts.ModuleKind.ESNext
+        ? 'import'
+        : 'require'
+  }
+
   function getAlias(binding: ImportBinding): string {
-    const { modulePath, name, kind, importedName, typeOnly, attributes } =
-      binding
-    let specifier = modulePath
-    if (path.isAbsolute(modulePath)) {
-      specifier = path
-        .relative(path.dirname(rollupPath), modulePath)
-        .split(path.sep)
-        .join('/')
-      if (!ts.isExternalModuleNameRelative(specifier))
-        specifier = './' + specifier
-    }
+    const { module, name, kind, importedName } = binding
+    const specifier = getSpecifier(module.modulePath)
+    const override =
+      kind === 'require' || binding.attributes
+        ? undefined
+        : getResolutionOverride(module.mode)
+    const attributes = override
+      ? `with { "resolution-mode": "${override}" }`
+      : binding.attributes
+    const typeOnly = binding.typeOnly || override !== undefined
 
     const key = JSON.stringify([
       specifier,
@@ -211,6 +302,11 @@ export function prepareRollupImports(
     const existing = imports.get(key)
     if (existing) return existing.alias
 
+    if (imports.size === 0) {
+      // An alias must leave every existing reference and nested scope intact.
+      reserveNames(readExistingContent())
+      for (const declaration of declarations) reserveNames(declaration.text)
+    }
     let alias = name
     for (let suffix = 1; names.has(alias); suffix++) {
       alias = `${name}_${suffix}`
@@ -233,22 +329,26 @@ export function prepareRollupImports(
     return alias
   }
 
-  if (declarations.some((declaration) => declarationImports.has(declaration))) {
-    // An alias must leave every existing reference and nested scope intact.
-    reserveNames(existingContent)
-    for (const declaration of declarations) reserveNames(declaration.text)
-
-    for (const declaration of declarations) {
-      const metadata = declarationImports.get(declaration)
-      if (!metadata || metadata.text !== declaration.text) continue
-      let text = ''
-      let offset = 0
-      for (const { binding, start, end } of metadata.references) {
-        text += declaration.text.slice(offset, start) + getAlias(binding)
-        offset = end
+  for (const declaration of declarations) {
+    const metadata = declarationImports.get(declaration)
+    if (!metadata || metadata.text !== declaration.text) continue
+    let text = ''
+    let offset = 0
+    for (const reference of metadata.references) {
+      text += declaration.text.slice(offset, reference.start)
+      if ('binding' in reference) {
+        text += getAlias(reference.binding)
+      } else {
+        const { module, hasAttributes } = reference
+        text += JSON.stringify(getSpecifier(module.modulePath))
+        const override = hasAttributes
+          ? undefined
+          : getResolutionOverride(module.mode)
+        if (override) text += `, { with: { "resolution-mode": "${override}" } }`
       }
-      rewritten.set(declaration, text + declaration.text.slice(offset))
+      offset = reference.end
     }
+    rewritten.set(declaration, text + declaration.text.slice(offset))
   }
 
   return {

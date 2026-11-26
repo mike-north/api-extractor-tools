@@ -120,7 +120,7 @@ function generateSourceFileBlock(
 function generateAugmentationSection(
   moduleMap: Map<string, Map<string, GroupedDeclaration[]>>,
   rollupPath: string,
-  existingContent: string,
+  readExistingContent: () => string,
 ): string {
   const sections: string[] = []
 
@@ -137,7 +137,7 @@ function generateAugmentationSection(
   )
   const { statements, rewritten } = prepareRollupImports(
     rollupPath,
-    existingContent,
+    readExistingContent,
     declarations,
   )
   if (statements.length > 0) sections.push(...statements, '')
@@ -316,7 +316,7 @@ export function augmentRollups(options: AugmentOptions): AugmentResult {
       const augmentationSection = generateAugmentationSection(
         moduleMap,
         rollupPath,
-        existingContent,
+        () => existingContent,
       )
 
       // Combine existing content with warnings and new augmentations
@@ -366,8 +366,7 @@ export function getAugmentationPreview(
     return null
   }
 
-  const existingContent = fs.existsSync(targetRollup)
-    ? fs.readFileSync(targetRollup, 'utf-8')
-    : ''
-  return generateAugmentationSection(moduleMap, targetRollup, existingContent)
+  return generateAugmentationSection(moduleMap, targetRollup, () =>
+    fs.existsSync(targetRollup) ? fs.readFileSync(targetRollup, 'utf-8') : '',
+  )
 }

@@ -328,9 +328,9 @@ function extractFromSourceFile(
 export interface ExtractOptions {
   /** The project folder to search for source files */
   projectFolder: string
-  /** Glob patterns for source files to include (default: ['**\/*.ts', '**\/*.tsx']) */
+  /** Glob patterns for source files to include. Defaults to .ts, .tsx, .cts, and .mts files. */
   include?: string[]
-  /** Glob patterns for files to exclude (default: ['**\/node_modules\/**', '**\/*.d.ts']) */
+  /** Glob patterns for files to exclude. Defaults to declaration files and files under node_modules and dist. */
   exclude?: string[]
 }
 
@@ -347,8 +347,8 @@ export async function extractModuleAugmentations(
 ): Promise<ExtractionResult> {
   const {
     projectFolder,
-    include = ['**/*.ts', '**/*.tsx'],
-    exclude = ['**/node_modules/**', '**/*.d.ts', '**/dist/**'],
+    include = ['**/*.{ts,tsx,cts,mts}'],
+    exclude = ['**/node_modules/**', '**/*.d.{ts,cts,mts}', '**/dist/**'],
   } = options
 
   const augmentations: ExtractedModuleAugmentation[] = []
