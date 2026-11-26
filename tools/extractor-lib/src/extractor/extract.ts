@@ -1,3 +1,6 @@
+import { createRequire } from 'node:module'
+import * as nodePath from 'node:path'
+import type { ExtractorMessage } from '@microsoft/api-extractor'
 import type * as ts from 'typescript'
 import type { IVirtualFileSystem } from '../filesystem/types.js'
 import type {
@@ -26,9 +29,9 @@ import { extractOutputs, toExtractorOutputs } from './output-capture.js'
  * 5. Reads outputs from the temporary directory
  * 6. Cleans up the temporary directory (even if an error occurs)
  *
- * The function uses a temporary directory on the real filesystem because API Extractor
- * validates that paths exist before processing. The temporary directory is always
- * cleaned up after extraction completes.
+ * Extraction requires Node.js and a writable temporary directory. Declaration files
+ * are staged with their relative paths, and unresolved relative modules are reported
+ * as errors. The temporary directory is cleaned up after extraction.
  *
  * Example:
  * ```typescript
@@ -85,60 +88,72 @@ export function extract(
   const adaptedConfig = createExtractorConfig(config, fs, typescript)
 
   try {
-    // Import API Extractor dynamically
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { Extractor } = require('@microsoft/api-extractor') as {
-      Extractor: {
-        invoke: (
-          extractorConfig: unknown,
-          options?: {
-            localBuild?: boolean
-            showVerboseMessages?: boolean
-            showDiagnostics?: boolean
-            messageCallback?: (message: {
-              category: string
-              messageId: string
-              text: string
-              logLevel: string
-              sourceFilePath?: string
-              sourceFileLine?: number
-              sourceFileColumn?: number
-            }) => void
-          },
-        ) => {
-          succeeded: boolean
-          errorCount: number
-          warningCount: number
-        }
-      }
+    const {
+      CompilerState,
+      Extractor,
+      ExtractorMessage,
+      ExtractorMessageCategory,
+      ExtractorLogLevel,
+    } =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('@microsoft/api-extractor') as typeof import('@microsoft/api-extractor')
+
+    const messages: ExtractorMessage[] = []
+    const messageCallback = (message: ExtractorMessage): void => {
+      messages.push(message)
+      options?.messageCallback?.(message)
     }
 
-    // Collect messages if callback provided
-    const messages: Array<{
-      category: string
-      messageId: string
-      text: string
-      logLevel: string
-      sourceFilePath?: string
-      sourceFileLine?: number
-      sourceFileColumn?: number
-    }> = []
+    const compilerState = CompilerState.create(adaptedConfig.extractorConfig)
+    // Inspect the same program that API Extractor will use, including when
+    // skipLibCheck suppresses diagnostics for declaration files.
+    const compiler = createRequire(require.resolve('@microsoft/api-extractor'))(
+      'typescript',
+    ) as typeof ts
+    const program = compilerState.program as ts.Program
+    const checker = program.getTypeChecker()
+    for (const file of program.getSourceFiles()) {
+      const virtualPath = adaptedConfig.stagedFiles.get(
+        nodePath.normalize(file.fileName),
+      )
+      if (!virtualPath) {
+        continue
+      }
 
-    const messageCallback = (message: {
-      category: string
-      messageId: string
-      text: string
-      logLevel: string
-      sourceFilePath?: string
-      sourceFileLine?: number
-      sourceFileColumn?: number
-    }): void => {
-      messages.push(message)
-      // Also call user's callback if provided
-      if (options?.messageCallback) {
-        // Convert to ExtractorMessage-like object
-        const extractorMessage = message as never // Type assertion for compatibility
-        options.messageCallback(extractorMessage)
+      const visit = (node: ts.Node): void => {
+        if (
+          compiler.isStringLiteralLike(node) &&
+          compiler.isExternalModuleNameRelative(node.text) &&
+          isModuleSpecifier(compiler, node) &&
+          !checker.getSymbolAtLocation(node)
+        ) {
+          const { line, character } = file.getLineAndCharacterOfPosition(
+            node.getStart(file),
+          )
+          messageCallback(
+            new ExtractorMessage({
+              category: ExtractorMessageCategory.Compiler,
+              messageId: 'TS2307',
+              text: `Cannot find module '${node.text}' or its corresponding type declarations.`,
+              logLevel: ExtractorLogLevel.Error,
+              sourceFilePath: virtualPath,
+              sourceFileLine: line + 1,
+              sourceFileColumn: character + 1,
+            }),
+          )
+        }
+        compiler.forEachChild(node, visit)
+      }
+      visit(file)
+    }
+
+    if (messages.length > 0) {
+      return {
+        succeeded: false,
+        errorCount: messages.length,
+        warningCount: 0,
+        messages,
+        outputs: {},
       }
     }
 
@@ -147,6 +162,7 @@ export function extract(
       localBuild: true, // Use local build mode to avoid API report comparison
       showVerboseMessages: options?.verbose ?? false,
       showDiagnostics: options?.verbose ?? false,
+      compilerState,
       messageCallback,
     })
 
@@ -158,16 +174,31 @@ export function extract(
       succeeded: result.succeeded,
       errorCount: result.errorCount,
       warningCount: result.warningCount,
-      messages: messages as never[], // Type assertion for compatibility
+      messages,
       outputs: toExtractorOutputs(capturedOutputs),
     }
   } finally {
-    // Always clean up the temp directory, even if an error occurred
-    // Wrap in try-catch to avoid masking extraction errors
-    try {
-      adaptedConfig.cleanup()
-    } catch {
-      // Ignore cleanup errors - temp directory will be cleaned up by OS eventually
-    }
+    adaptedConfig.cleanup()
   }
+}
+
+function isModuleSpecifier(
+  typescript: typeof ts,
+  node: ts.StringLiteralLike,
+): boolean {
+  const { parent } = node
+  if (
+    typescript.isImportDeclaration(parent) ||
+    typescript.isExportDeclaration(parent)
+  ) {
+    return parent.moduleSpecifier === node
+  }
+  if (typescript.isExternalModuleReference(parent)) {
+    return parent.expression === node
+  }
+  return (
+    typescript.isLiteralTypeNode(parent) &&
+    typescript.isImportTypeNode(parent.parent) &&
+    parent.parent.argument === parent
+  )
 }

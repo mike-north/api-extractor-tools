@@ -260,6 +260,43 @@ export declare function internalFn(): string;
   })
 
   describe('error handling', { timeout: EXTRACT_TEST_TIMEOUT }, () => {
+    it.each([false, true])(
+      'should fail for a missing relative module with skipLibCheck set to %s',
+      (skipLibCheck) => {
+        const entryPoint = '/project/dist/index.d.ts'
+        fs.writeFile(entryPoint, `export { Model } from './missing/model.js';`)
+
+        const result = extract(
+          {
+            mainEntryPointFilePath: entryPoint,
+            packageName: 'test-package',
+            compilerOptions: {
+              module: ts.ModuleKind.ESNext,
+              moduleResolution: ts.ModuleResolutionKind.Bundler,
+              skipLibCheck,
+            },
+            dtsRollup: {
+              enabled: true,
+              publicTrimmedFilePath: '/project/dist/rollup.d.ts',
+            },
+          },
+          fs,
+          { typescript: ts },
+        )
+
+        expect(result.succeeded).toBe(false)
+        expect(result.errorCount).toBeGreaterThan(0)
+        expect(result.outputs).toEqual({})
+        expect(result.messages).toContainEqual(
+          expect.objectContaining({
+            logLevel: 'error',
+            text: expect.stringContaining("'./missing/model.js'"),
+            sourceFilePath: entryPoint,
+          }),
+        )
+      },
+    )
+
     it('should throw for unresolved types', () => {
       // API Extractor throws an internal error when encountering unresolved types
       // rather than returning an error count
@@ -348,6 +385,49 @@ export declare function noTag(): string;
   })
 
   describe('edge cases', { timeout: EXTRACT_TEST_TIMEOUT }, () => {
+    it('should inline nested declarations and their relative dependencies', () => {
+      const entryPoint = '/project/dist/index.d.ts'
+      fs.writeFile(entryPoint, `export { Model } from './nested/model.js';`)
+      fs.writeFile(
+        '/project/dist/nested/model.d.ts',
+        `
+import { ModelId } from '../types/id.mjs';
+
+/** @public */
+export interface Model { id: ModelId }
+`.trim(),
+      )
+      fs.writeFile(
+        '/project/dist/types/id.d.mts',
+        `/** @public */\nexport type ModelId = string;`,
+      )
+
+      const result = extract(
+        {
+          mainEntryPointFilePath: entryPoint,
+          packageName: 'test-package',
+          compilerOptions: {
+            module: ts.ModuleKind.ESNext,
+            moduleResolution: ts.ModuleResolutionKind.Bundler,
+          },
+          dtsRollup: {
+            enabled: true,
+            publicTrimmedFilePath: '/project/dist/rollup.d.ts',
+          },
+        },
+        fs,
+        { typescript: ts },
+      )
+
+      expect(result.succeeded).toBe(true)
+      expect(result.errorCount).toBe(0)
+      expect(result.outputs.dtsRollup?.public).toContain('interface Model')
+      expect(result.outputs.dtsRollup?.public).toContain(
+        'type ModelId = string',
+      )
+      expect(result.outputs.dtsRollup?.public).not.toContain(' from ')
+    })
+
     it('should handle declaration file with only re-exports', () => {
       // Create a helper file
       fs.writeFile(

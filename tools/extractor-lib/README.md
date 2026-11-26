@@ -1,10 +1,15 @@
 # @api-extractor-tools/extractor-lib
 
-Run [API Extractor](https://api-extractor.com/) with a virtual filesystem - no real files required.
+Run [API Extractor](https://api-extractor.com/) on declaration files supplied through a virtual filesystem.
+
+Extraction requires Node.js and a writable temporary directory. `extract` copies
+declarations from `projectFolder` (the entry point's directory by default) while
+preserving their relative paths. It reads the generated outputs and removes the
+temporary project after extraction. Unresolved relative imports produce errors.
 
 ## Features
 
-- **Virtual Filesystem**: Run API Extractor entirely in memory, without touching the disk
+- **Virtual Filesystem**: Supply declaration inputs through an in-memory or custom filesystem
 - **Custom TypeScript Lib Files**: Provide your own lib files for browser environments or custom setups
 - **Programmatic API**: Full control over extraction with a clean, typed API
 - **Multiple Output Formats**: Generate .d.ts rollups, API reports (.api.md), and doc models (.api.json)

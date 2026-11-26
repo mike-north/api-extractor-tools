@@ -90,7 +90,7 @@ Result containing outputs and diagnostic information
 
 This function orchestrates the entire extraction process: 1. Validates the configuration 2. Creates a temporary directory populated with files from the virtual filesystem 3. Creates an ExtractorConfig adapted from the provided config 4. Invokes API Extractor against the temporary directory 5. Reads outputs from the temporary directory 6. Cleans up the temporary directory (even if an error occurs)
 
-The function uses a temporary directory on the real filesystem because API Extractor validates that paths exist before processing. The temporary directory is always cleaned up after extraction completes.
+Extraction requires Node.js and a writable temporary directory. Declaration files are staged with their relative paths, and unresolved relative modules are reported as errors. The temporary directory is cleaned up after extraction.
 
 Example:
 
