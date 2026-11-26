@@ -516,7 +516,7 @@ if (analysis.report) {
 
 The plugin uses `baseRef` when configured and otherwise uses the last release tag supplied by semantic-release. Without either, it selects the highest reachable package version tag by SemVer precedence, then tries `v`-prefixed tags and branch baselines.
 
-If the package manifest is absent at the baseline, override mode recommends a minor release. For an existing package, the baseline ref must contain its historical declaration. In validate mode with `failOnMismatch`, a missing declaration or failed Git lookup stops release analysis.
+If the package name is absent at the baseline, override mode recommends a minor release. For an existing package, the baseline ref must contain its historical declaration, including when the package moved within the repository. In validate mode with `failOnMismatch`, a missing declaration, parse error, or failed Git lookup stops release analysis.
 
 ### Plugin Not Running During Release
 

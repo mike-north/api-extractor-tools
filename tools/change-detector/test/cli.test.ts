@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { runCli as runCompiledCli } from '../../../scripts/test-cli.mjs'
 import { z } from 'zod'
 
 /**
@@ -33,45 +33,11 @@ function parseCliOutput(stdout: string) {
   return CliOutputSchema.parse(JSON.parse(stdout))
 }
 
-/**
- * Runs the CLI and returns its output.
- * Uses the compiled CLI from dist.
- */
-function runCli(
+const cliPath = path.join(__dirname, '../dist/cli.js')
+const runCli = (
   args: string[],
-  options: { cwd?: string; env?: Record<string, string> } = {},
-): { stdout: string; stderr: string; exitCode: number } {
-  const cliPath = path.join(__dirname, '../dist/cli.js')
-  const cmd = `node ${cliPath} ${args.join(' ')}`
-
-  try {
-    const stdout = execSync(cmd, {
-      cwd: options.cwd,
-      encoding: 'utf-8',
-      env: { ...process.env, ...options.env },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return { stdout, stderr: '', exitCode: 0 }
-  } catch (error: unknown) {
-    function isExecError(err: unknown): err is {
-      stdout?: string | Buffer
-      stderr?: string | Buffer
-      status?: number
-    } {
-      return (
-        typeof err === 'object' &&
-        err !== null &&
-        ('stdout' in err || 'stderr' in err || 'status' in err)
-      )
-    }
-    const e = isExecError(error) ? error : {}
-    return {
-      stdout: e.stdout?.toString() || '',
-      stderr: e.stderr?.toString() || '',
-      exitCode: e.status ?? 1,
-    }
-  }
-}
+  options?: Parameters<typeof runCompiledCli>[2],
+) => runCompiledCli(cliPath, args, options)
 
 describe('CLI', () => {
   let project: Project

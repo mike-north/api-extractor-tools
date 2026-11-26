@@ -7,7 +7,14 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { compareDeclarations } from '@api-extractor-tools/change-detector'
-import { findReleaseTag, readFileAtRef, readPackageBaseline } from './baseline'
+import { globSync } from 'fast-glob'
+import { parse } from 'yaml'
+import {
+  declarationPathFromMain,
+  findReleaseTag,
+  readFileAtRef,
+  readPackageBaseline,
+} from './baseline'
 import type {
   AnalyzeOptions,
   PackageAnalysisResult,
@@ -26,81 +33,53 @@ import type {
 export function discoverPackages(cwd: string): PackageInfo[] {
   const packages: PackageInfo[] = []
 
-  // Read pnpm-workspace.yaml to find package globs
   const workspaceYamlPath = path.join(cwd, 'pnpm-workspace.yaml')
   if (!fs.existsSync(workspaceYamlPath)) {
     throw new Error(`Not a pnpm workspace: ${workspaceYamlPath} not found`)
   }
-
-  const workspaceContent = fs.readFileSync(workspaceYamlPath, 'utf-8')
-  // Simple parsing - look for packages: section
-  const packagesMatch = workspaceContent.match(
-    /packages:\s*\n((?:\s+-\s+.+\n?)+)/,
-  )
-  if (!packagesMatch) {
+  const workspace = parse(fs.readFileSync(workspaceYamlPath, 'utf8')) as {
+    packages?: unknown
+  } | null
+  const globs = workspace?.packages
+  if (
+    !Array.isArray(globs) ||
+    !globs.every((entry) => typeof entry === 'string')
+  ) {
     throw new Error('Could not parse packages from pnpm-workspace.yaml')
   }
 
-  const matchContent = packagesMatch[1]
-  if (!matchContent) {
-    throw new Error('Could not parse packages from pnpm-workspace.yaml')
-  }
-  const packageGlobs = matchContent
-    .split('\n')
-    .map((line) => line.replace(/^\s*-\s*/, '').trim())
-    .filter((glob) => glob.length > 0)
+  const directories = globSync(globs, {
+    cwd,
+    absolute: true,
+    onlyDirectories: true,
+    followSymbolicLinks: false,
+    ignore: ['**/node_modules/**'],
+  }).sort()
+  for (const pkgDir of directories) {
+    const pkgJsonPath = path.join(pkgDir, 'package.json')
+    if (!fs.existsSync(pkgJsonPath)) continue
 
-  // Expand globs to find package directories
-  for (const glob of packageGlobs) {
-    // Remove wildcard and look for directories
-    const baseDir = glob.replace('/*', '').replace('/**', '')
-    const fullBaseDir = path.join(cwd, baseDir)
-
-    if (!fs.existsSync(fullBaseDir)) {
-      continue
+    const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8')) as {
+      name?: string
+      version?: string
+      types?: string
+      typings?: string
+      main?: string
     }
+    if (!pkgJson.name) continue
 
-    const entries = fs.readdirSync(fullBaseDir, { withFileTypes: true })
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue
+    const entry =
+      pkgJson.types ?? pkgJson.typings ?? declarationPathFromMain(pkgJson.main)
+    const typesPath = entry ? path.resolve(pkgDir, entry) : null
+    const declarationFile =
+      typesPath && fs.existsSync(typesPath) ? typesPath : null
 
-      const pkgDir = path.join(fullBaseDir, entry.name)
-      const pkgJsonPath = path.join(pkgDir, 'package.json')
-
-      if (!fs.existsSync(pkgJsonPath)) continue
-
-      const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8')) as {
-        name?: string
-        version?: string
-        types?: string
-        main?: string
-      }
-
-      if (!pkgJson.name) continue
-
-      // Find declaration file
-      let declarationFile: string | null = null
-      if (pkgJson.types) {
-        const typesPath = path.join(pkgDir, pkgJson.types)
-        if (fs.existsSync(typesPath)) {
-          declarationFile = typesPath
-        }
-      } else if (pkgJson.main) {
-        // Try to find .d.ts next to main
-        const mainDts = pkgJson.main.replace(/\.js$/, '.d.ts')
-        const mainDtsPath = path.join(pkgDir, mainDts)
-        if (fs.existsSync(mainDtsPath)) {
-          declarationFile = mainDtsPath
-        }
-      }
-
-      packages.push({
-        name: pkgJson.name,
-        path: pkgDir,
-        version: pkgJson.version ?? '0.0.0',
-        declarationFile,
-      })
-    }
+    packages.push({
+      name: pkgJson.name,
+      path: path.normalize(pkgDir),
+      version: pkgJson.version ?? '0.0.0',
+      declarationFile,
+    })
   }
 
   return packages
@@ -121,7 +100,19 @@ export function determineBaseline(
   cwd: string,
   explicitRef?: string,
 ): string {
-  return explicitRef ?? findReleaseTag(cwd, `${pkg.name}@`) ?? 'main'
+  return selectBaseline(pkg, cwd, explicitRef).name
+}
+
+function selectBaseline(
+  pkg: PackageInfo,
+  cwd: string,
+  explicitRef?: string,
+): { name: string; ref: string } {
+  if (explicitRef !== undefined) return { name: explicitRef, ref: explicitRef }
+  const tag = findReleaseTag(cwd, `${pkg.name}@`)
+  return tag
+    ? { name: tag, ref: `refs/tags/${tag}` }
+    : { name: 'main', ref: 'refs/heads/main' }
 }
 
 /**
@@ -191,6 +182,7 @@ export function analyzePackage(
       pkg.declarationFile,
       baseRef,
       cwd,
+      pkg.name,
     )
     if (baseline.kind === 'absent') {
       return { package: pkg, report: null, recommendedBump: 'minor' }
@@ -202,6 +194,7 @@ export function analyzePackage(
     const result = compareDeclarations({
       oldFile: baselineFile,
       newFile: pkg.declarationFile,
+      throwOnError: true,
     })
 
     return {
@@ -247,8 +240,8 @@ export function analyzeWorkspace(
   const baselines = new Set<string>()
   const results = packages.map((pkg) => {
     try {
-      const ref = determineBaseline(pkg, cwd, options.baseRef)
-      baselines.add(ref)
+      const { name, ref } = selectBaseline(pkg, cwd, options.baseRef)
+      baselines.add(name)
       return analyzePackage(pkg, ref, cwd)
     } catch (error) {
       return analysisError(pkg, error)

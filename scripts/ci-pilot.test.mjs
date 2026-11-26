@@ -1,6 +1,6 @@
 // These tests exercise the workspace commands in disposable project directories.
 import assert from 'node:assert/strict'
-import { execFileSync, spawnSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import {
   existsSync,
   mkdirSync,
@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { runCli, runCommand } from './test-cli.mjs'
 
 // Use the real tool versions while keeping every generated file in the fixture.
 const workspace = fileURLToPath(new URL('../', import.meta.url))
@@ -54,13 +55,15 @@ test('workspace clean removes untracked generator output and keeps tracked and h
   symlinkSync(outside, linkedDoc)
   const scriptPath = 'scripts/clean-api-scratch.mjs'
   put(root, scriptPath, readFileSync(join(workspace, scriptPath)))
-  execFileSync('git', ['init', '--quiet'], { cwd: root })
+  execFileSync('git', ['init', '--quiet'], { cwd: root, stdio: 'ignore' })
   execFileSync('git', ['add', 'docs/index.md', 'api-reports/kept.api.md'], {
     cwd: root,
+    stdio: 'ignore',
   })
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    execFileSync(process.execPath, [scriptPath], { cwd: root })
+    const clean = runCli(join(root, scriptPath), [], { cwd: root })
+    assert.equal(clean.exitCode, 0, clean.stderr)
   }
 
   assert.equal(existsSync(obsoleteDoc), false)
@@ -133,12 +136,9 @@ test('API artifact generation preserves a stale baseline for the strict check', 
     PATH: `${join(normalizerModules, '.bin')}:${process.env.PATH}`,
   }
 
-  execFileSync(artifactScript, {
-    cwd: project,
-    env,
-    shell: true,
-    stdio: 'pipe',
-  })
+  const commandOptions = { cwd: project, env, shell: true }
+  const build = runCommand(artifactScript, [], commandOptions)
+  assert.equal(build.exitCode, 0, build.stdout + build.stderr)
 
   assert.equal(readFileSync(reportPath, 'utf8'), baseline)
   const model = join(root, 'temp/example.api.json')
@@ -149,13 +149,12 @@ test('API artifact generation preserves a stale baseline for the strict check', 
   // A validation task can run alongside consumers of the already-built artifacts.
   writeFileSync(model, 'existing doc model')
   writeFileSync(rollup, 'existing declaration rollup')
-  const check = spawnSync(packageJson.scripts['check:api-report'], {
-    cwd: project,
-    env,
-    encoding: 'utf8',
-    shell: true,
-  })
-  assert.equal(check.status, 1, check.stderr)
+  const check = runCommand(
+    packageJson.scripts['check:api-report'],
+    [],
+    commandOptions,
+  )
+  assert.equal(check.exitCode, 1, check.stderr)
   assert.match(check.stdout + check.stderr, /changed the API signature/)
   assert.equal(readFileSync(reportPath, 'utf8'), baseline)
   assert.equal(readFileSync(model, 'utf8'), 'existing doc model')
@@ -163,12 +162,12 @@ test('API artifact generation preserves a stale baseline for the strict check', 
 
   // Only explicit report generation can replace the baseline. Artifact writers
   // remain separate even when Nx runs generation for several packages at once.
-  execFileSync(packageJson.scripts['generate:api-report'], {
-    cwd: project,
-    env,
-    shell: true,
-    stdio: 'pipe',
-  })
+  const update = runCommand(
+    packageJson.scripts['generate:api-report'],
+    [],
+    commandOptions,
+  )
+  assert.equal(update.exitCode, 0, update.stdout + update.stderr)
   assert.match(readFileSync(reportPath, 'utf8'), /export interface Current/)
   assert.equal(readFileSync(model, 'utf8') === 'existing doc model', true)
   assert.equal(

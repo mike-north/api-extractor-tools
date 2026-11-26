@@ -152,11 +152,25 @@ export interface CompareDeclarationsResult extends ComparisonResult {
 export function compareDeclarations(
   options: CompareOptions,
 ): CompareDeclarationsResult {
-  const { oldFile, newFile, policy = semverDefaultPolicy } = options
+  const {
+    oldFile,
+    newFile,
+    policy = semverDefaultPolicy,
+    throwOnError,
+  } = options
 
   // Parse both files with type information
   const oldParsed = parseDeclarationFile(oldFile)
   const newParsed = parseDeclarationFile(newFile)
+
+  if (throwOnError) {
+    for (const parsed of [oldParsed, newParsed]) {
+      if (parsed.errors.length) {
+        const file = parsed === oldParsed ? oldFile : newFile
+        throw new Error(`${file}: ${parsed.errors.join('; ')}`)
+      }
+    }
+  }
 
   // Compare the files
   const { changes, errors } = compareDeclarationFiles(oldParsed, newParsed)

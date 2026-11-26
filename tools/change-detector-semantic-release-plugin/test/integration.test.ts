@@ -70,6 +70,31 @@ describe('Integration: Complete Plugin Lifecycle', () => {
     project.dispose()
   })
 
+  it('keeps explicit baselines separate across hook calls in one process', async () => {
+    project.pkg.types = 'index.d.ts'
+    project.files = {
+      'index.d.ts': 'export declare function previous(): void;',
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    createGitTag(project.baseDir, 'v1.0.0')
+    fs.writeFileSync(path.join(project.baseDir, 'index.d.ts'), 'export {};')
+    execSync('git add . && git commit -m "Remove export"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    const context = createMockContext(project.baseDir)
+    const previous = { baseRef: 'v1.0.0' }
+    const current = { baseRef: 'HEAD' }
+
+    verifyConditions(previous, context)
+    analyzeCommits(previous, context)
+    expect(generateNotes(current, context)).toBe('')
+    expect(() => analyzeCommits({ baseRef: 'unknown-ref' }, context)).toThrow(
+      /unknown-ref/,
+    )
+  })
+
   describe('validate mode', () => {
     it('completes full lifecycle with matching version bump', async () => {
       // Setup: Initial version with a function

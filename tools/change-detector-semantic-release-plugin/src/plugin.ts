@@ -6,7 +6,6 @@
 
 import type {
   PluginConfig,
-  ResolvedPluginConfig,
   SemanticReleaseContext,
   SemanticReleaseType,
   ValidationResult,
@@ -25,8 +24,33 @@ import {
 } from './analyzer'
 
 // Store analysis result for use across lifecycle hooks
-let cachedAnalysis: AnalysisResult | null = null
-let cachedConfig: ResolvedPluginConfig | null = null
+let cachedAnalysis: { key: string; result: AnalysisResult } | null = null
+
+function analysisKey(
+  config: PluginConfig,
+  context: SemanticReleaseContext,
+): string {
+  return JSON.stringify([
+    context.cwd,
+    config.baseRef ?? null,
+    config.declarationPath ?? null,
+    context.lastRelease?.gitTag,
+    context.lastRelease?.gitHead,
+  ])
+}
+
+export function getAnalysisForRelease(
+  config: PluginConfig,
+  context: SemanticReleaseContext,
+): AnalysisResult {
+  if (cachedAnalysis?.key === analysisKey(config, context))
+    return cachedAnalysis.result
+  return analyzeAPIChanges(
+    context.cwd,
+    resolveConfig(config),
+    context.lastRelease,
+  )
+}
 
 /**
  * Verifies that the plugin can run successfully.
@@ -47,7 +71,6 @@ export function verifyConditions(
 ): void {
   const { cwd, logger } = context
   const config = resolveConfig(pluginConfig)
-  cachedConfig = config
 
   logger.log('Verifying change-detector plugin conditions...')
 
@@ -106,13 +129,13 @@ export function analyzeCommits(
   context: SemanticReleaseContext,
 ): SemanticReleaseType | null {
   const { cwd, logger, lastRelease } = context
-  const config = cachedConfig ?? resolveConfig(pluginConfig)
+  const config = resolveConfig(pluginConfig)
 
   logger.log('Analyzing API changes...')
 
   // Run API analysis
   const analysis = analyzeAPIChanges(cwd, config, lastRelease)
-  cachedAnalysis = analysis
+  cachedAnalysis = { key: analysisKey(pluginConfig, context), result: analysis }
 
   if (analysis.error) {
     if (config.mode === 'advisory') {
@@ -170,18 +193,17 @@ export function verifyRelease(
   context: SemanticReleaseContext,
 ): void {
   const { logger, nextRelease } = context
-  const config = cachedConfig ?? resolveConfig(pluginConfig)
-  const analysis = cachedAnalysis
+  const config = resolveConfig(pluginConfig)
+  if (!nextRelease) return
 
-  // Skip if no analysis available
-  if (!analysis || analysis.error || analysis.isNewPackage) {
+  const analysis = getAnalysisForRelease(pluginConfig, context)
+  if (analysis.error) {
+    if (config.mode === 'validate' && config.failOnMismatch) {
+      throw new Error(`API analysis failed: ${analysis.error}`)
+    }
     return
   }
-
-  // Skip if no next release determined
-  if (!nextRelease) {
-    return
-  }
+  if (analysis.isNewPackage) return
 
   const validation = validateVersionBump(
     nextRelease.type,
@@ -377,7 +399,7 @@ function logChanges(
  * @alpha
  */
 export function getCachedAnalysis(): AnalysisResult | null {
-  return cachedAnalysis
+  return cachedAnalysis?.result ?? null
 }
 
 /**
@@ -388,5 +410,4 @@ export function getCachedAnalysis(): AnalysisResult | null {
  */
 export function clearCache(): void {
   cachedAnalysis = null
-  cachedConfig = null
 }

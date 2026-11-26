@@ -5,7 +5,7 @@
  * TypeScript's type checker for type resolution.
  */
 
-import { parse } from '@typescript-eslint/typescript-estree'
+import { AST_NODE_TYPES, parse } from '@typescript-eslint/typescript-estree'
 import type * as ts from 'typescript'
 import type {
   AnalyzableNode,
@@ -65,6 +65,30 @@ export function parseModule(
       }
     }
 
+    // Local export lists can expose declarations under a different public name.
+    for (const statement of ast.body) {
+      if (
+        statement.type !== AST_NODE_TYPES.ExportNamedDeclaration ||
+        statement.source
+      ) {
+        continue
+      }
+      for (const { local, exported } of statement.specifiers) {
+        const node = nodes.get(local.name)
+        if (!node) continue
+        const name =
+          exported.type === AST_NODE_TYPES.Identifier
+            ? exported.name
+            : exported.value
+        if (name === node.name) {
+          node.modifiers.add('exported')
+          exports.set(name, node)
+        } else {
+          exports.set(name, asExport(node, name, name))
+        }
+      }
+    }
+
     // Also recursively add nested nodes to the flat map
     function addNestedNodes(node: AnalyzableNode): void {
       for (const [, child] of node.children) {
@@ -80,6 +104,29 @@ export function parseModule(
   }
 
   return { filename, source, nodes, exports, errors }
+}
+
+function asExport(
+  node: AnalyzableNode,
+  name: string,
+  path: string,
+  parent = node.parent,
+): AnalyzableNode {
+  const children = new Map<string, AnalyzableNode>()
+  for (const [key, child] of node.children) {
+    children.set(key, asExport(child, child.name, `${path}.${key}`, path))
+  }
+  const modifiers = new Set(node.modifiers)
+  if (parent === undefined) modifiers.add('exported')
+  return {
+    ...node,
+    name,
+    path,
+    parent,
+    children,
+    modifiers,
+    typeInfo: { ...node.typeInfo },
+  }
 }
 
 /**
@@ -164,7 +211,8 @@ export function parseModuleWithTypes(
         symbols.set(name, resolvedSymbol)
 
         // Update type info with resolved types
-        const node = basicAnalysis.nodes.get(name)
+        const node =
+          basicAnalysis.exports.get(name) ?? basicAnalysis.nodes.get(name)
         if (node) {
           const decl = resolvedSymbol.getDeclarations()?.[0]
           if (decl) {

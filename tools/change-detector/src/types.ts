@@ -59,6 +59,8 @@ export interface CompareOptions {
   oldFile: string
   /** Path to the new declaration file to compare against */
   newFile: string
+  /** Throw on declaration parse errors instead of returning a partial comparison. */
+  throwOnError?: boolean
   /** Optional policy for classification (defaults to semverDefaultPolicy) */
   policy?: import('@api-extractor-tools/change-detector-core').Policy
 }

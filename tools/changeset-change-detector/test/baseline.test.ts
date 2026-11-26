@@ -8,6 +8,7 @@ import {
   analyzeWorkspace,
   determineBaseline,
   discoverPackages,
+  generateChangeset,
   getFileAtRef,
   validateChangesets,
 } from '../src'
@@ -109,14 +110,14 @@ describe('release baselines', () => {
   })
 
   it('reads a tracked declaration whose filename contains spaces', async () => {
-    project.files = { 'public api.d.ts': initialDeclaration }
+    project.files = { 'public api [v1].d.ts': initialDeclaration }
     await project.write()
     git('init', '-b', 'main')
     commit()
 
     expect(
       getFileAtRef(
-        path.join(project.baseDir, 'public api.d.ts'),
+        path.join(project.baseDir, 'public api [v1].d.ts'),
         'HEAD',
         project.baseDir,
       ),
@@ -225,6 +226,206 @@ describe('release baselines', () => {
     const result = analyzePackage(pkg!, 'HEAD', project.baseDir)
     expect(result.error).toBeUndefined()
     expect(result.recommendedBump).toBe('major')
+  })
+
+  it('looks up a relocated package by its historical name', async () => {
+    project.files = {
+      'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+      tools: {
+        first: {
+          'package.json': JSON.stringify({
+            name: 'first',
+            types: 'index.d.ts',
+          }),
+          'index.d.ts': initialDeclaration,
+        },
+        occupied: {
+          'package.json': JSON.stringify({
+            name: 'other',
+            types: 'index.d.ts',
+          }),
+          'index.d.ts': 'export {};',
+        },
+      },
+    }
+    await project.write()
+    git('init', '-b', 'main')
+    commit()
+    git('tag', 'first@1.0.0')
+    fs.rmSync(path.join(project.baseDir, 'tools/occupied'), { recursive: true })
+    fs.renameSync(
+      path.join(project.baseDir, 'tools/first'),
+      path.join(project.baseDir, 'tools/occupied'),
+    )
+    fs.writeFileSync(
+      path.join(project.baseDir, 'tools/occupied/index.d.ts'),
+      'export {};',
+    )
+
+    const result = analyzeWorkspace({ cwd: project.baseDir })
+    expect(result.packagesWithErrors).toEqual([])
+    expect(result.packagesWithChanges[0]?.recommendedBump).toBe('major')
+  })
+
+  it.each([
+    ['cjs', 'cts'],
+    ['mjs', 'mts'],
+  ])(
+    'uses the declaration beside a .%s entry point',
+    async (extension, declarationExtension) => {
+      const declaration = `index.d.${declarationExtension}`
+      project.files = {
+        'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+        tools: {
+          first: {
+            'package.json': JSON.stringify({
+              name: 'first',
+              main: `index.${extension}`,
+            }),
+            [`index.${extension}`]: '/* runtime code */',
+            [declaration]: initialDeclaration,
+          },
+        },
+      }
+      await project.write()
+      git('init', '-b', 'main')
+      commit()
+      fs.writeFileSync(
+        path.join(project.baseDir, 'tools/first', declaration),
+        'export {};',
+      )
+
+      const result = analyzeWorkspace({ cwd: project.baseDir, baseRef: 'HEAD' })
+      expect(result.packagesWithErrors).toEqual([])
+      expect(result.packages[0]?.package.declarationFile).toBe(
+        path.join(project.baseDir, 'tools/first', declaration),
+      )
+      expect(result.packagesWithChanges[0]?.recommendedBump).toBe('major')
+    },
+  )
+
+  it('rejects a corrupt historical declaration during strict validation and generation', async () => {
+    project.files = {
+      'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+      '.changeset': { 'README.md': 'Changesets' },
+      tools: {
+        first: {
+          'package.json': JSON.stringify({
+            name: 'first',
+            types: 'index.d.ts',
+          }),
+          'index.d.ts': 'export declare function broken(:',
+        },
+      },
+    }
+    await project.write()
+    git('init', '-b', 'main')
+    commit()
+    fs.writeFileSync(
+      path.join(project.baseDir, 'tools/first/index.d.ts'),
+      initialDeclaration,
+    )
+
+    const options = { cwd: project.baseDir, baseRef: 'HEAD' }
+    const validation = await validateChangesets({ ...options, strict: true })
+    expect(validation.valid).toBe(false)
+    expect(validation.issues).toHaveLength(1)
+    expect(validation.issues[0]).toMatchObject({
+      packageName: 'first',
+      severity: 'error',
+    })
+    expect(validation.issues[0]?.message).toMatch(/parse error/i)
+    const advisory = await validateChangesets(options)
+    expect(advisory.valid).toBe(true)
+    expect(advisory.warningCount).toBe(1)
+
+    const generated = await generateChangeset({ ...options, yes: true })
+    expect(generated.success).toBe(false)
+    expect(generated.error).toMatch(/first.*parse error/i)
+    expect(fs.readdirSync(path.join(project.baseDir, '.changeset'))).toEqual([
+      'README.md',
+    ])
+  })
+
+  it('reports the removal of a renamed export from the baseline', async () => {
+    project.files = {
+      'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+      tools: {
+        first: {
+          'package.json': JSON.stringify({
+            name: 'first',
+            types: 'index.d.ts',
+          }),
+          'index.d.ts':
+            'declare function internal(): void; export { internal as publicApi };',
+        },
+      },
+    }
+    await project.write()
+    git('init', '-b', 'main')
+    commit()
+    fs.writeFileSync(
+      path.join(project.baseDir, 'tools/first/index.d.ts'),
+      'export {};',
+    )
+
+    const result = analyzeWorkspace({ cwd: project.baseDir, baseRef: 'HEAD' })
+    expect(result.packagesWithChanges[0]?.recommendedBump).toBe('major')
+    expect(
+      result.packagesWithChanges[0]?.report?.byReleaseType.major[0]?.path,
+    ).toBe('publicApi')
+  })
+
+  it('reads a tracked declaration larger than the default child process buffer', async () => {
+    const declaration = ' '.repeat(1024 * 1024) + initialDeclaration
+    project.files = { 'large.d.ts': declaration }
+    await project.write()
+    git('init', '-b', 'main')
+    commit()
+
+    const content = getFileAtRef(
+      path.join(project.baseDir, 'large.d.ts'),
+      'HEAD',
+      project.baseDir,
+    )
+    expect(content?.length).toBe(declaration.length)
+    expect(content?.endsWith(initialDeclaration)).toBe(true)
+  })
+
+  it('includes nested packages matched by quoted workspace globs in strict validation', async () => {
+    project.files = {
+      'pnpm-workspace.yaml':
+        'packages:\n  - "tools/**"\n  - "!tools/excluded"\n',
+      tools: {
+        group: {
+          included: {
+            'package.json': JSON.stringify({
+              name: 'included',
+              types: 'dist/index.d.ts',
+            }),
+          },
+        },
+        excluded: {
+          'package.json': JSON.stringify({
+            name: 'excluded',
+            types: 'dist/index.d.ts',
+          }),
+        },
+      },
+    }
+    await project.write()
+    git('init', '-b', 'main')
+    commit()
+
+    const result = await validateChangesets({
+      cwd: project.baseDir,
+      baseRef: 'HEAD',
+      strict: true,
+    })
+    expect(result.valid).toBe(false)
+    expect(result.issues.map((issue) => issue.packageName)).toEqual([
+      'included',
+    ])
   })
 
   it('fails strict validation when a publishable package is missing its build', async () => {

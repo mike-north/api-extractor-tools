@@ -294,9 +294,9 @@ Ensure your packages have:
 
 By default, each package uses its highest reachable version tag by SemVer precedence, falling back to `main` when no package tag exists. Use `--base <ref>` to compare all packages against the same commit.
 
-An existing package needs its historical declaration tracked at the baseline ref. If the declaration is unavailable, choose a ref containing the declaration for the historical version. The package is treated as new when its manifest is absent at the baseline.
+An existing package needs its historical declaration tracked at the baseline ref. If the declaration is unavailable, choose a ref containing the declaration for the historical version. A package that moved is matched by its published name. The package is treated as new when that name is absent at the baseline.
 
-Validation reports package analysis errors as warnings and fails on them with `--strict`. Add packages that intentionally have no declarations to `ignore` in `.changeset/config.json` to exclude them from validation.
+Validation reports package analysis errors as warnings and fails on them with `--strict`. Changeset generation fails on analysis errors. Add packages that intentionally have no declarations to `ignore` in `.changeset/config.json` to exclude them from validation and generation.
 
 ### Changes not detected
 

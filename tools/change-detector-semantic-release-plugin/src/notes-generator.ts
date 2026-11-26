@@ -14,8 +14,7 @@ import type {
   AnalysisResult,
 } from './types'
 import { resolveConfig } from './types'
-import { getCachedAnalysis } from './plugin'
-import { analyzeAPIChanges } from './analyzer'
+import { getAnalysisForRelease } from './plugin'
 
 /**
  * Generates release notes with API change details.
@@ -33,7 +32,7 @@ export function generateNotes(
   pluginConfig: PluginConfig,
   context: SemanticReleaseContext,
 ): string {
-  const { cwd, logger, lastRelease } = context
+  const { logger } = context
   const config = resolveConfig(pluginConfig)
 
   // Skip if disabled
@@ -42,10 +41,7 @@ export function generateNotes(
   }
 
   // Get analysis from cache or run fresh
-  let analysis = getCachedAnalysis()
-  if (!analysis) {
-    analysis = analyzeAPIChanges(cwd, config, lastRelease)
-  }
+  const analysis = getAnalysisForRelease(pluginConfig, context)
 
   // Skip if analysis failed or no changes
   if (analysis.error || analysis.recommendedBump === 'none') {

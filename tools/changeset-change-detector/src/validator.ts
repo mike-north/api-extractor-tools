@@ -77,6 +77,13 @@ export function aggregateChangesetBumps(
   return bumps
 }
 
+export async function getIgnoredPackages(cwd: string): Promise<Set<string>> {
+  if (!fs.existsSync(path.join(cwd, '.changeset', 'config.json')))
+    return new Set()
+  const config = await readChangesetConfig(cwd)
+  return new Set(config.ignore)
+}
+
 /**
  * Validates changesets against detected API changes.
  *
@@ -112,12 +119,9 @@ export async function validateChangesets(
 
   // Analyze workspace
   let analysis: WorkspaceAnalysisResult
-  const ignoredPackages = new Set<string>()
+  let ignoredPackages: Set<string>
   try {
-    if (fs.existsSync(path.join(cwd, '.changeset', 'config.json'))) {
-      const config = await readChangesetConfig(cwd)
-      for (const name of config.ignore) ignoredPackages.add(name)
-    }
+    ignoredPackages = await getIgnoredPackages(cwd)
     analysis = analyzeWorkspace({
       cwd,
       baseRef: options.baseRef,

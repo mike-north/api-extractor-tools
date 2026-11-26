@@ -1,54 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { execFileSync, execSync } from 'child_process'
+import { execFileSync } from 'node:child_process'
+import { runCli as runCompiledCli } from '../../../scripts/test-cli.mjs'
 
-/**
- * Type guard for exec sync errors that have stdout/stderr/status properties.
- */
-interface ExecSyncError extends Error {
-  stdout: Buffer | string | null
-  stderr: Buffer | string | null
-  status: number | null
-}
-
-function isExecSyncError(error: unknown): error is ExecSyncError {
-  return (
-    error instanceof Error &&
-    ('stdout' in error || 'stderr' in error || 'status' in error)
-  )
-}
-
-/**
- * Runs the CLI and returns its output.
- * Uses the compiled CLI from dist.
- */
-function runCli(
+const cliPath = path.join(__dirname, '../dist/cli.js')
+const runCli = (
   args: string[],
-  options: { cwd?: string; env?: Record<string, string> } = {},
-): { stdout: string; stderr: string; exitCode: number } {
-  const cliPath = path.join(__dirname, '../dist/cli.js')
-  const cmd = `node ${cliPath} ${args.join(' ')}`
-
-  try {
-    const stdout = execSync(cmd, {
-      cwd: options.cwd,
-      encoding: 'utf-8',
-      env: { ...process.env, ...options.env },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return { stdout, stderr: '', exitCode: 0 }
-  } catch (error) {
-    if (isExecSyncError(error)) {
-      return {
-        stdout: error.stdout?.toString() ?? '',
-        stderr: error.stderr?.toString() ?? '',
-        exitCode: error.status ?? 1,
-      }
-    }
-    return { stdout: '', stderr: String(error), exitCode: 1 }
-  }
-}
+  options?: Parameters<typeof runCompiledCli>[2],
+) => runCompiledCli(cliPath, args, options)
 
 describe('CLI', () => {
   let project: Project
@@ -232,6 +192,14 @@ describe('CLI', () => {
 
       expect(result.stdout).toContain('Analyzing')
     })
+  })
+
+  it('rejects --base without a ref instead of using automatic selection', () => {
+    const result = runCli(['validate', '--strict', '--base'], {
+      cwd: project.baseDir,
+    })
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toMatch(/--base.*requires a Git ref/i)
   })
 
   describe('validate command', () => {
