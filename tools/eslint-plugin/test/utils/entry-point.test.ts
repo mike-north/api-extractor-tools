@@ -164,6 +164,55 @@ describe('entry-point', () => {
       expect(isEntryPoint(filePath, pkgPath)).toBe(true)
     })
 
+    it('should map wildcard exports with renamed subpaths and honor overrides', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(
+        pkgPath,
+        JSON.stringify({
+          exports: {
+            './renamed/*': './dist/feature/*/entry.js',
+            './renamed/beta': './dist/special.js',
+            './renamed/private/*': null,
+          },
+        }),
+      )
+
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/feature/alpha/entry.ts'), pkgPath),
+      ).toBe(true)
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/feature/beta/entry.ts'), pkgPath),
+      ).toBe(false)
+      expect(
+        isEntryPoint(
+          path.join(tempDir, 'src/feature/private/alpha/entry.ts'),
+          pkgPath,
+        ),
+      ).toBe(false)
+      expect(isEntryPoint(path.join(tempDir, 'src/special.ts'), pkgPath)).toBe(
+        true,
+      )
+    })
+
+    it('should use the primary configuration for an external emitter', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './output/entry.js' }))
+      fs.writeFileSync(
+        path.join(tempDir, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            noEmit: true,
+            outDir: 'output',
+            rootDir: 'source',
+          },
+        }),
+      )
+
+      expect(isEntryPoint(path.join(tempDir, 'source/entry.ts'), pkgPath)).toBe(
+        true,
+      )
+    })
+
     it.each([
       ['main', { main: './dist/index.js' }, 'src/index.ts'],
       ['main with JSX', { main: './lib/index.jsx' }, 'src/index.tsx'],
@@ -212,6 +261,224 @@ describe('entry-point', () => {
       expect(isEntryPoint(path.join(tempDir, 'source/index.ts'), pkgPath)).toBe(
         false,
       )
+    })
+
+    it('should use the most specific build directories for conditional exports', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(
+        pkgPath,
+        JSON.stringify({
+          exports: {
+            './renamed': {
+              types: './dist/esm/models/index.d.mts',
+              import: './dist/esm/models/index.mjs',
+              require: './dist/cjs/models/index.cjs',
+            },
+          },
+        }),
+      )
+      fs.writeFileSync(
+        path.join(tempDir, 'tsconfig.json'),
+        JSON.stringify({ compilerOptions: { rootDir: 'src', outDir: 'dist' } }),
+      )
+      for (const [format, rootDir] of [
+        ['cjs', '.\\src\\legacy'],
+        ['esm', './src/modern'],
+      ]) {
+        fs.writeFileSync(
+          path.join(tempDir, `tsconfig.${format}.json`),
+          JSON.stringify({
+            extends:
+              format === 'cjs' ? './tsconfig.json' : './tsconfig.cjs.json',
+            compilerOptions: { rootDir, outDir: `./dist/${format}` },
+          }),
+        )
+      }
+
+      expect(
+        isEntryPoint(
+          path.join(tempDir, 'src/modern/models/index.mts'),
+          pkgPath,
+        ),
+      ).toBe(true)
+      expect(
+        isEntryPoint(
+          path.join(tempDir, 'src/legacy/models/index.cts'),
+          pkgPath,
+        ),
+      ).toBe(true)
+      expect(isEntryPoint(path.join(tempDir, 'src/renamed.ts'), pkgPath)).toBe(
+        false,
+      )
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/esm/models/index.mts'), pkgPath),
+      ).toBe(false)
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/cjs/models/index.cts'), pkgPath),
+      ).toBe(false)
+    })
+
+    it('should map declarations emitted to a separate directory', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(pkgPath, JSON.stringify({ types: './types/entry.d.ts' }))
+      fs.writeFileSync(
+        path.join(tempDir, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            rootDir: 'source',
+            outDir: 'output',
+            declaration: true,
+            declarationDir: 'types',
+          },
+        }),
+      )
+
+      expect(isEntryPoint(path.join(tempDir, 'source/entry.ts'), pkgPath)).toBe(
+        true,
+      )
+      expect(isEntryPoint(path.join(tempDir, 'src/entry.ts'), pkgPath)).toBe(
+        false,
+      )
+    })
+
+    it.each([false, true])(
+      'should use the TypeScript source root when rootDir is omitted (composite: %s)',
+      (composite) => {
+        const pkgPath = path.join(tempDir, 'package.json')
+        fs.writeFileSync(
+          pkgPath,
+          JSON.stringify({ main: './output/source/entry.js' }),
+        )
+        fs.writeFileSync(
+          path.join(tempDir, 'tsconfig.json'),
+          JSON.stringify({
+            compilerOptions: { composite, outDir: 'output' },
+            include: ['source', 'helper.ts'],
+          }),
+        )
+        fs.mkdirSync(path.join(tempDir, 'source'))
+        const sourceFile = path.join(tempDir, 'source/entry.ts')
+        fs.writeFileSync(sourceFile, 'export {}')
+        if (!composite) {
+          fs.writeFileSync(path.join(tempDir, 'helper.ts'), 'export {}')
+        }
+
+        expect(isEntryPoint(sourceFile, pkgPath)).toBe(true)
+        expect(
+          isEntryPoint(path.join(tempDir, 'src/source/entry.ts'), pkgPath),
+        ).toBe(false)
+      },
+    )
+
+    it('should distinguish a source file from a same-named directory index', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(
+        pkgPath,
+        JSON.stringify({ main: './src/feature/index.ts' }),
+      )
+
+      expect(isEntryPoint(path.join(tempDir, 'src/feature.ts'), pkgPath)).toBe(
+        false,
+      )
+      expect(isEntryPoint(path.join(tempDir, 'dist/feature.js'), pkgPath)).toBe(
+        false,
+      )
+      expect(
+        isEntryPoint(path.join(tempDir, 'dist/feature/index.js'), pkgPath),
+      ).toBe(true)
+    })
+
+    it('should keep an ESM source distinct from a same-named CommonJS entry', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './dist/entry.cjs' }))
+
+      expect(isEntryPoint(path.join(tempDir, 'src/entry.cts'), pkgPath)).toBe(
+        true,
+      )
+      expect(isEntryPoint(path.join(tempDir, 'src/entry.mts'), pkgPath)).toBe(
+        false,
+      )
+    })
+
+    it('should fall back to conventional directories if tsconfig.json cannot be read', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './dist/entry.js' }))
+      fs.mkdirSync(path.join(tempDir, 'tsconfig.json'))
+
+      expect(isEntryPoint(path.join(tempDir, 'src/entry.ts'), pkgPath)).toBe(
+        true,
+      )
+      expect(isEntryPoint(path.join(tempDir, 'src/helper.ts'), pkgPath)).toBe(
+        false,
+      )
+    })
+
+    it('should map a directory main to its source index', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './dist/feature/' }))
+
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/feature/index.ts'), pkgPath),
+      ).toBe(true)
+      expect(isEntryPoint(path.join(tempDir, 'src/feature.ts'), pkgPath)).toBe(
+        false,
+      )
+    })
+
+    it('should recognize conventional sibling output and source directories in a nested package layout', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(
+        pkgPath,
+        JSON.stringify({ main: './feature/src/entry.ts' }),
+      )
+
+      expect(
+        isEntryPoint(path.join(tempDir, 'feature/dist/entry.js'), pkgPath),
+      ).toBe(true)
+    })
+
+    it('should keep a source entry under a nested dist directory distinct', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './src/dist/entry.ts' }))
+
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/src/entry.ts'), pkgPath),
+      ).toBe(false)
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/dist/entry.ts'), pkgPath),
+      ).toBe(true)
+    })
+
+    it('should refresh the manifest and inherited build settings when clearing a warm cache', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      const configPath = path.join(tempDir, 'tsconfig.base.json')
+      fs.writeFileSync(
+        path.join(tempDir, 'tsconfig.json'),
+        JSON.stringify({ extends: './tsconfig.base.json' }),
+      )
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './output/entry.js' }))
+      fs.writeFileSync(
+        configPath,
+        JSON.stringify({
+          compilerOptions: { rootDir: 'old', outDir: 'output' },
+        }),
+      )
+      const oldEntry = path.join(tempDir, 'old/entry.ts')
+      const newEntry = path.join(tempDir, 'new/renamed.ts')
+      expect(isEntryPoint(oldEntry, pkgPath)).toBe(true)
+      expect(isEntryPoint(newEntry, pkgPath)).toBe(false)
+
+      fs.writeFileSync(pkgPath, JSON.stringify({ main: './output/renamed.js' }))
+      fs.writeFileSync(
+        configPath,
+        JSON.stringify({
+          compilerOptions: { rootDir: 'new', outDir: 'output' },
+        }),
+      )
+      clearPackageJsonCache()
+
+      expect(isEntryPoint(newEntry, pkgPath)).toBe(true)
+      expect(isEntryPoint(oldEntry, pkgPath)).toBe(false)
     })
 
     it('should not identify non-entry point files', () => {
