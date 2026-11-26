@@ -492,7 +492,29 @@ export function classifyChanges(
   changes: ApiChange[],
   policy: Policy,
 ): ClassificationResult[] {
-  return changes.map((change) => classifyChange(change, policy))
+  return changes.map((change) => ({
+    ...classifyChange(change, policy),
+    nestedChanges: classifyChanges(change.nestedChanges, policy),
+  }))
+}
+
+type ReleaseResult = Pick<ClassifiedChange, 'releaseType'> &
+  Partial<Pick<ApiChange, 'nestedChanges'>>
+
+/** Iterates over classified roots and descendants in tree order. */
+export function* walkClassifiedChanges<T extends ReleaseResult>(
+  changes: readonly T[],
+): Generator<T | ClassifiedChange> {
+  for (const change of changes) {
+    yield change
+    if (change.nestedChanges?.length) {
+      yield* walkClassifiedChanges(
+        change.nestedChanges.filter(
+          (nested): nested is ClassifiedChange => 'releaseType' in nested,
+        ),
+      )
+    }
+  }
 }
 
 /**
@@ -518,7 +540,7 @@ export function determineOverallRelease(
   let highest: ReleaseType = 'none'
   let highestPriority = 1
 
-  for (const result of results) {
+  for (const result of walkClassifiedChanges(results)) {
     const priority = priorities[result.releaseType]
     if (priority > highestPriority) {
       highest = result.releaseType

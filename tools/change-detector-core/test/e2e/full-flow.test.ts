@@ -102,6 +102,20 @@ describe('E2E: Full Flow Integration', () => {
       expect(['minor', 'none']).toContain(result.releaseType)
     })
 
+    it('recommends a major release when an exported interface loses a method', () => {
+      const result = analyzeChanges(
+        'export interface API { run(): void }',
+        'export interface API {}',
+        ts,
+      )
+
+      expect(result.changes[0]?.nestedChanges[0]).toMatchObject({
+        path: 'API.run',
+        descriptor: { action: 'removed' },
+      })
+      expect(result.releaseType).toBe('major')
+    })
+
     it('should detect no changes when source is identical', () => {
       const source = `
         export function greet(name: string): string {

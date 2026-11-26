@@ -6,9 +6,10 @@
  */
 
 import type { ReleaseType } from '../../types'
+import { determineOverallRelease } from '../rule-builder'
 import type { ClassifiedChange } from '../types'
 import type { ASTReporterOptions, ASTComparisonReport } from './types'
-import { formatReleaseType } from './types'
+import { formatReleaseType, groupChangesForDisplay } from './types'
 
 /**
  * Gets an emoji for a release type.
@@ -90,8 +91,8 @@ function formatChangeAsMarkdown(
             (nested as Partial<ClassifiedChange>).releaseType ?? 'none',
         }
         if (
-          nestedWithRelease.releaseType !== 'none' ||
-          options.includeUnchanged !== false
+          options.includeUnchanged !== false ||
+          determineOverallRelease([nestedWithRelease]) !== 'none'
         ) {
           lines.push(
             formatChangeAsMarkdown(nestedWithRelease, options, depth + 1),
@@ -114,6 +115,7 @@ export function formatASTReportAsMarkdown(
   options: ASTReporterOptions = {},
 ): string {
   const lines: string[] = []
+  const groups = groupChangesForDisplay(report, options)
 
   // Header
   lines.push('## API Change Report')
@@ -126,64 +128,54 @@ export function formatASTReportAsMarkdown(
   lines.push('')
 
   // Forbidden changes
-  if (report.byReleaseType.forbidden.length > 0) {
-    lines.push(
-      `### :no_entry: Forbidden Changes (${report.byReleaseType.forbidden.length})`,
-    )
+  if (groups.forbidden.length > 0) {
+    lines.push(`### :no_entry: Forbidden Changes (${groups.forbidden.length})`)
     lines.push('')
     lines.push(
       '> **These changes are not allowed and must be addressed before release.**',
     )
     lines.push('')
-    for (const change of report.byReleaseType.forbidden) {
+    for (const change of groups.forbidden) {
       lines.push(formatChangeAsMarkdown(change, options))
     }
     lines.push('')
   }
 
   // Breaking changes
-  if (report.byReleaseType.major.length > 0) {
-    lines.push(
-      `### :boom: Breaking Changes (${report.byReleaseType.major.length})`,
-    )
+  if (groups.major.length > 0) {
+    lines.push(`### :boom: Breaking Changes (${groups.major.length})`)
     lines.push('')
-    for (const change of report.byReleaseType.major) {
+    for (const change of groups.major) {
       lines.push(formatChangeAsMarkdown(change, options))
     }
     lines.push('')
   }
 
   // Minor changes
-  if (report.byReleaseType.minor.length > 0) {
-    lines.push(
-      `### :sparkles: Minor Changes (${report.byReleaseType.minor.length})`,
-    )
+  if (groups.minor.length > 0) {
+    lines.push(`### :sparkles: Minor Changes (${groups.minor.length})`)
     lines.push('')
-    for (const change of report.byReleaseType.minor) {
+    for (const change of groups.minor) {
       lines.push(formatChangeAsMarkdown(change, options))
     }
     lines.push('')
   }
 
   // Patch changes
-  if (report.byReleaseType.patch.length > 0) {
-    lines.push(
-      `### :wrench: Patch Changes (${report.byReleaseType.patch.length})`,
-    )
+  if (groups.patch.length > 0) {
+    lines.push(`### :wrench: Patch Changes (${groups.patch.length})`)
     lines.push('')
-    for (const change of report.byReleaseType.patch) {
+    for (const change of groups.patch) {
       lines.push(formatChangeAsMarkdown(change, options))
     }
     lines.push('')
   }
 
   // No-impact changes
-  if (options.includeUnchanged && report.byReleaseType.none.length > 0) {
-    lines.push(
-      `### :white_circle: No Impact (${report.byReleaseType.none.length})`,
-    )
+  if (options.includeUnchanged && groups.none.length > 0) {
+    lines.push(`### :white_circle: No Impact (${groups.none.length})`)
     lines.push('')
-    for (const change of report.byReleaseType.none) {
+    for (const change of groups.none) {
       lines.push(formatChangeAsMarkdown(change, options))
     }
     lines.push('')

@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { compareDeclarations } from '@'
+import { compareDeclarations, formatASTReportAsText } from '@'
 
 describe('compareDeclarations (file-based API)', () => {
   let project: Project
@@ -88,6 +88,29 @@ describe('compareDeclarations (file-based API)', () => {
     expect(result.releaseType).toBe('minor')
     expect(result.changes).toHaveLength(1)
     expect(result.changes[0]?.descriptor.action).toBe('added')
+  })
+
+  it('recommends a major release for a removed interface method and reports it once', async () => {
+    project.files = {
+      'old.d.ts': 'export interface API { run(): void }',
+      'new.d.ts': 'export interface API {}',
+    }
+    await project.write()
+
+    const result = compareDeclarations({
+      oldFile: path.join(project.baseDir, 'old.d.ts'),
+      newFile: path.join(project.baseDir, 'new.d.ts'),
+    })
+
+    expect(result.releaseType).toBe('major')
+    expect(result.report.releaseType).toBe('major')
+    expect(result.report.stats).toMatchObject({ total: 2, major: 1, none: 1 })
+    expect(result.report.byReleaseType.major.map(({ path }) => path)).toEqual([
+      'API.run',
+    ])
+    expect(
+      formatASTReportAsText(result.report).match(/\[MAJOR\] method: API\.run/g),
+    ).toHaveLength(1)
   })
 
   it('provides accurate statistics from file comparison', async () => {

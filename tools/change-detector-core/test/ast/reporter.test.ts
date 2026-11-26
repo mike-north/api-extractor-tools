@@ -43,14 +43,7 @@ function createClassifiedChanges(
     includeNestedChanges: true,
   })
 
-  // Use the new rule-based policy system
-  const results = classifyChanges(changes, semverDefaultPolicy)
-
-  // Convert ClassificationResult[] to ClassifiedChange[]
-  return results.map((result) => ({
-    ...result.change,
-    releaseType: result.releaseType,
-  }))
+  return classifyChanges(changes, semverDefaultPolicy)
 }
 
 describe('AST Reporter', () => {
@@ -332,25 +325,26 @@ export interface Product { sku: string; }`,
       expect(hasSignatures).toBe(true)
     })
 
-    it('includes nested changes when not flattened', () => {
+    it('formats each nested change once in both hierarchical and flat JSON', () => {
       const classified = createClassifiedChanges(
-        `export interface User { id: number; name: string; }`,
-        `export interface User { id: string; email: string; }`,
+        `export interface API { run(): void }`,
+        `export interface API {}`,
       )
 
       const report = createASTComparisonReport(classified)
-      const json = formatASTReportAsJSON(report, { flattenNested: false })
+      const json = formatASTReportAsJSON(report)
+      expect(Object.values(json.changes).flat()).toMatchObject([
+        {
+          path: 'API',
+          releaseType: 'none',
+          nestedChanges: [{ path: 'API.run', releaseType: 'major' }],
+        },
+      ])
 
-      // Check if any change has nested changes
-      const allChanges = [
-        ...json.changes.major,
-        ...json.changes.minor,
-        ...json.changes.patch,
-        ...json.changes.none,
-      ]
-
-      // At least verify the structure is correct
-      expect(allChanges.length).toBeGreaterThan(0)
+      const flatJson = formatASTReportAsJSON(report, { flattenNested: true })
+      expect(flatJson.changes.major).toMatchObject([{ path: 'API.run' }])
+      expect(flatJson.changes.none).toMatchObject([{ path: 'API' }])
+      expect(flatJson.changes.none[0]?.nestedChanges).toBeUndefined()
     })
 
     it('omits locations when disabled', () => {
