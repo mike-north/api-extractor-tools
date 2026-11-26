@@ -8,10 +8,10 @@
   "types": "dist/esm/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "pnpm inject-version && pnpm build:esm && pnpm build:cjs",
+    "build": "pnpm build:esm && pnpm build:cjs",
     "inject-version": "node scripts/inject-version.mjs",
-    "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json && node ../../scripts/mark-commonjs.mjs",
+    "build:esm": "node scripts/inject-version.mjs && tsc -p tsconfig.esm.json",
+    "build:cjs": "node scripts/inject-version.mjs && tsc -p tsconfig.cjs.json && node ../../scripts/mark-commonjs.mjs",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
@@ -60,5 +60,15 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/src/version.ts"
+        ]
+      }
+    }
+  }
 }
