@@ -53,7 +53,7 @@ Description
 
 </td><td>
 
-**_(ALPHA)_** All detected API changes
+**_(ALPHA)_** All detected API changes, or an empty array if parsing failed
 
 
 </td></tr>

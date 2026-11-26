@@ -142,7 +142,7 @@ describe('CLI', () => {
       )
     })
 
-    it('handles missing old file gracefully', async () => {
+    it('fails when the old file is missing', async () => {
       project.files = {
         'new.d.ts': 'export declare const foo: string;',
       }
@@ -154,13 +154,13 @@ describe('CLI', () => {
         '--json',
       ])
 
-      // CLI handles missing files gracefully
-      expect(result.exitCode).toBe(0)
-      const parsed = parseCliOutput(result.stdout)
-      expect(parsed).toBeDefined()
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain('File not found:')
+      expect(result.stderr).toContain('old.d.ts')
     })
 
-    it('handles missing new file gracefully', async () => {
+    it('fails when the new file is missing', async () => {
       project.files = {
         'old.d.ts': 'export declare const foo: string;',
       }
@@ -172,10 +172,41 @@ describe('CLI', () => {
         '--json',
       ])
 
-      // CLI handles missing files gracefully
-      expect(result.exitCode).toBe(0)
-      const parsed = parseCliOutput(result.stdout)
-      expect(parsed).toBeDefined()
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain('File not found:')
+      expect(result.stderr).toContain('new.d.ts')
+    })
+
+    it('fails and reports both paths when both files are missing', () => {
+      const oldFile = path.join(project.baseDir, 'old.d.ts')
+      const newFile = path.join(project.baseDir, 'new.d.ts')
+
+      const result = runCli([oldFile, newFile, '--json'])
+
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain(`File not found: ${oldFile}`)
+      expect(result.stderr).toContain(`File not found: ${newFile}`)
+    })
+
+    it('fails when a declaration file cannot be parsed', async () => {
+      project.files = {
+        'old.d.ts': 'export declare const foo: ;',
+        'new.d.ts': 'export declare const foo: string;',
+      }
+      await project.write()
+
+      const oldFile = path.join(project.baseDir, 'old.d.ts')
+      const result = runCli([
+        oldFile,
+        path.join(project.baseDir, 'new.d.ts'),
+        '--json',
+      ])
+
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain(`${oldFile}: Parse error:`)
     })
   })
 

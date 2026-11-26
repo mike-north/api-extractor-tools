@@ -33,5 +33,10 @@ export function parseDeclarationFile(
 
   const content = fs.readFileSync(filePath, 'utf-8')
   // Note: filePath takes precedence over options.filename
-  return parseModuleWithTypes(content, ts, { ...options, filename: filePath })
+  const result = parseModuleWithTypes(content, ts, {
+    ...options,
+    filename: filePath,
+  })
+  result.errors = result.errors.map((error) => `${filePath}: ${error}`)
+  return result
 }

@@ -12,7 +12,7 @@ import { parseDeclarationFile } from './parser'
  * @alpha
  */
 export interface CompareResult {
-  /** All detected API changes */
+  /** All detected API changes, or an empty array if parsing failed */
   changes: ApiChange[]
   /** Any errors from parsing */
   errors: string[]
@@ -28,9 +28,12 @@ export function compareDeclarationFiles(
   newParsed: ModuleAnalysisWithTypes,
   options?: DiffOptions,
 ): CompareResult {
-  const changes = diffModules(oldParsed, newParsed, options)
   const errors = [...oldParsed.errors, ...newParsed.errors]
-  return { changes, errors }
+  if (errors.length > 0) {
+    return { changes: [], errors }
+  }
+
+  return { changes: diffModules(oldParsed, newParsed, options), errors }
 }
 
 /**
