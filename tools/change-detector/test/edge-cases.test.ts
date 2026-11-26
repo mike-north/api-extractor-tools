@@ -7,6 +7,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
+import { writeFile } from 'node:fs/promises'
 import * as path from 'path'
 import { compareDeclarations, compareFiles, parseDeclarationFile } from '@'
 
@@ -82,6 +83,44 @@ describe('file-based edge cases', () => {
 
       expect(result.errors).toEqual([`File not found: ${newFile}`])
       expect(result.changes).toHaveLength(0)
+    })
+
+    it('returns diagnostics for both inputs when one is a directory', async () => {
+      project.files = {
+        'new.d.ts': { '.gitkeep': '' },
+      }
+      await project.write()
+
+      const oldFile = path.join(project.baseDir, 'missing.d.ts')
+      const newFile = path.join(project.baseDir, 'new.d.ts')
+
+      expect(compareFiles(oldFile, newFile)).toEqual({
+        changes: [],
+        errors: [
+          `File not found: ${oldFile}`,
+          expect.stringContaining(`Cannot read declaration file: ${newFile}`),
+        ],
+      })
+    })
+
+    it('rejects malformed UTF-8 in both declaration files', async () => {
+      const oldFile = path.join(project.baseDir, 'old.d.ts')
+      const newFile = path.join(project.baseDir, 'new.d.ts')
+      const prefix = Buffer.from('export type Greeting = "')
+      const suffix = Buffer.from('";')
+      await writeFile(
+        oldFile,
+        Buffer.concat([prefix, Buffer.from([0xc0]), suffix]),
+      )
+      await writeFile(
+        newFile,
+        Buffer.concat([prefix, Buffer.from([0xc1]), suffix]),
+      )
+
+      expect(() => compareDeclarations({ oldFile, newFile })).toThrow(
+        `Cannot read declaration file: ${oldFile} (invalid UTF-8)\n` +
+          `Cannot read declaration file: ${newFile} (invalid UTF-8)`,
+      )
     })
   })
 

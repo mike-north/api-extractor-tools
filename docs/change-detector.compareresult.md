@@ -53,7 +53,7 @@ Description
 
 </td><td>
 
-**_(ALPHA)_** All detected API changes, or an empty array if parsing failed
+**_(ALPHA)_** All detected API changes, or an empty array if either input failed
 
 
 </td></tr>
@@ -72,7 +72,7 @@ string\[\]
 
 </td><td>
 
-**_(ALPHA)_** Any errors from parsing
+**_(ALPHA)_** Diagnostics for input read and parse failures
 
 
 </td></tr>

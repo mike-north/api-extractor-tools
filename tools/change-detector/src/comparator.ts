@@ -12,9 +12,9 @@ import { parseDeclarationFile } from './parser'
  * @alpha
  */
 export interface CompareResult {
-  /** All detected API changes, or an empty array if parsing failed */
+  /** All detected API changes, or an empty array if either input failed */
   changes: ApiChange[]
-  /** Any errors from parsing */
+  /** Diagnostics for input read and parse failures */
   errors: string[]
 }
 
