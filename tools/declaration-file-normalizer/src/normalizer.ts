@@ -142,7 +142,7 @@ export function normalizeType(node: ts.TypeNode): string {
 }
 
 /**
- * Normalizes an object type literal by sorting its members.
+ * Normalizes an object type literal by sorting its members while preserving overload order.
  * Preserves multi-line formatting when the original was multi-line.
  */
 function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
@@ -154,9 +154,7 @@ function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
     return `{ ${normalizeMember(node.members[0]!)} }`
   }
 
-  const normalized = node.members
-    .map((member) => normalizeMember(member))
-    .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'variant' }))
+  const normalized = normalizeObjectMembers(node.members)
 
   // Check if original was multi-line
   const originalText = node.getText()
@@ -174,6 +172,58 @@ function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
     .map((m) => `${memberIndent}${m};`)
     .join('\n')
   return `{\n${formattedMembers}\n${baseIndent}}`
+}
+
+/**
+ * Sorts independent members and keeps signatures in each overload group in source order.
+ */
+function normalizeObjectMembers(members: readonly ts.TypeElement[]): string[] {
+  const callSignatures = Symbol()
+  const constructSignatures = Symbol()
+  const methodsInSourceOrder = Symbol()
+  // Computed names may refer to the same key through different expressions.
+  const preserveMethodOrder = members.some(
+    (member) =>
+      ts.isMethodSignature(member) &&
+      getStaticMethodName(member.name) === undefined,
+  )
+  const groups = new Map<ts.TypeElement | string | symbol, string[]>()
+
+  for (const member of members) {
+    let key: ts.TypeElement | string | symbol = member
+    if (ts.isCallSignatureDeclaration(member)) {
+      key = callSignatures
+    } else if (ts.isConstructSignatureDeclaration(member)) {
+      key = constructSignatures
+    } else if (ts.isMethodSignature(member)) {
+      key = preserveMethodOrder
+        ? methodsInSourceOrder
+        : (getStaticMethodName(member.name) ?? methodsInSourceOrder)
+    }
+
+    const normalized = normalizeMember(member)
+    const group = groups.get(key)
+    if (group) {
+      group.push(normalized)
+    } else {
+      groups.set(key, [normalized])
+    }
+  }
+
+  return [...groups.values()]
+    .sort((a, b) =>
+      a[0]!.localeCompare(b[0]!, 'en', { sensitivity: 'variant' }),
+    )
+    .flat()
+}
+
+function getStaticMethodName(name: ts.PropertyName): string | undefined {
+  if (ts.isIdentifier(name)) return name.text
+
+  const key = ts.isComputedPropertyName(name) ? name.expression : name
+  if (ts.isStringLiteralLike(key) || ts.isNumericLiteral(key)) return key.text
+
+  return undefined
 }
 
 /**
@@ -354,12 +404,14 @@ function normalizeFunctionType(node: ts.FunctionTypeNode): string {
  * Normalizes a constructor type
  */
 function normalizeConstructorType(node: ts.ConstructorTypeNode): string {
+  const modifiers =
+    node.modifiers?.map((modifier) => `${modifier.getText()} `).join('') ?? ''
   const typeParams = node.typeParameters
     ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
     : ''
   const params = node.parameters.map((p) => normalizeParameter(p)).join(', ')
   const returnType = normalizeType(node.type)
-  return `new ${typeParams}(${params}) => ${returnType}`
+  return `${modifiers}new ${typeParams}(${params}) => ${returnType}`
 }
 
 /**
@@ -388,7 +440,7 @@ function normalizeMappedType(node: ts.MappedTypeNode): string {
   const nameType = node.nameType ? ` as ${normalizeType(node.nameType)}` : ''
   const type = node.type ? normalizeType(node.type) : 'any'
 
-  return `{ ${readonly}[${typeParam} in ${constraint}]${nameType}${optional}: ${type} }`
+  return `{ ${readonly}[${typeParam} in ${constraint}${nameType}]${optional}: ${type} }`
 }
 
 /**

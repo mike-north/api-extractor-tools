@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
+import ts from 'typescript'
 import { normalizeUnionTypes } from '../src/index.js'
 
 describe('normalizeUnionTypes', () => {
@@ -13,6 +14,119 @@ describe('normalizeUnionTypes', () => {
 
   afterEach(() => {
     fs.rmSync(tempDir, { recursive: true, force: true })
+  })
+
+  it.each([
+    {
+      name: 'call overloads with identical parameters',
+      declaration: `export declare const pick: {
+        (x: string): 2;
+        (x: string): 1;
+        order: "z" | "a";
+      };`,
+      consumer: `import { pick } from './index.js';
+        const result: 2 = pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'call overloads with overlapping parameters',
+      declaration: `export declare const pick: {
+        (x: string): "specific";
+        (x: any): "general";
+        order: "z" | "a";
+      };`,
+      consumer: `import { pick } from './index.js';
+        const result: "specific" = pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'construct overloads',
+      declaration: `export declare const Factory: {
+        new (x: string): { value: 2 };
+        new (x: string): { value: 1 };
+        order: "z" | "a";
+      };`,
+      consumer: `import { Factory } from './index.js';
+        const result: 2 = new Factory('a').value;`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'same-name method overloads with different spellings',
+      declaration: `export declare const api: {
+        pick(x: string): 2;
+        other(): void;
+        "pick"(x: string): 1;
+        order: "z" | "a";
+      };`,
+      consumer: `import { api } from './index.js';
+        const result: 2 = api.pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'method overloads named by aliases of the same unique symbol',
+      declaration: `declare const key: unique symbol;
+      declare const alias: typeof key;
+      export { key };
+      export declare const api: {
+        [key](x: string): 2;
+        [alias](x: string): 1;
+        order: "z" | "a";
+      };`,
+      consumer: `import { api, key } from './index.js';
+        const result: 2 = api[key]('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'mapped type key remapping',
+      declaration: `export type Visible<T> = {
+        [K in keyof T as Exclude<K, "private" | "hidden">]: T[K];
+      };`,
+      consumer: `import type { Visible } from './index.js';
+        const value: Visible<{ shown: number; hidden: string }> = { shown: 1 };
+        // @ts-expect-error The mapped type removes this property.
+        value.hidden;`,
+      normalized: 'as Exclude<K, "hidden" | "private">]',
+    },
+    {
+      name: 'abstract constructor types',
+      declaration:
+        'export type Factory = abstract new (value: "z" | "a") => object;',
+      consumer: `import type { Factory } from './index.js';
+        abstract class Base { constructor(value: "a" | "z") {} }
+        const factory: Factory = Base;
+        // @ts-expect-error An abstract constructor cannot be instantiated.
+        new factory('a');`,
+      normalized: 'abstract new (value: "a" | "z")',
+    },
+  ])('should preserve $name for downstream consumers', (fixture) => {
+    const entryPoint = path.join(tempDir, 'index.d.ts')
+    const consumerPath = path.join(tempDir, 'consumer.ts')
+    fs.writeFileSync(entryPoint, fixture.declaration, 'utf-8')
+    fs.writeFileSync(consumerPath, fixture.consumer, 'utf-8')
+
+    function compileConsumer(): string {
+      const program = ts.createProgram([consumerPath], {
+        module: ts.ModuleKind.NodeNext,
+        strict: true,
+        noEmit: true,
+        types: [],
+        lib: ['lib.es5.d.ts'],
+      })
+      return ts.formatDiagnostics(ts.getPreEmitDiagnostics(program), {
+        getCanonicalFileName: (fileName) => fileName,
+        getCurrentDirectory: () => tempDir,
+        getNewLine: () => '\n',
+      })
+    }
+
+    expect(compileConsumer(), 'before normalization').toBe('')
+
+    const result = normalizeUnionTypes({ entryPoint })
+    expect(result.errors).toEqual([])
+    expect(result.modifiedFiles).toEqual([entryPoint])
+
+    expect(compileConsumer(), 'after normalization').toBe('')
+    expect(fs.readFileSync(entryPoint, 'utf-8')).toContain(fixture.normalized)
   })
 
   it('should return error when entry point does not exist', () => {
