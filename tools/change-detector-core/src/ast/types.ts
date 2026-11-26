@@ -77,6 +77,7 @@ export type NodeKind =
 export type Modifier =
   | 'exported'
   | 'default-export'
+  | 'type-only-export'
   | 'readonly'
   | 'optional'
   | 'abstract'

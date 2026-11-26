@@ -105,6 +105,77 @@ describe('E2E: Full Flow Integration', () => {
       expect(result.changes).toEqual([])
     })
 
+    it.each([
+      'C:\\work\\api.d.ts',
+      '\\\\server\\share\\api.d.ts',
+      './dist/../api.d.ts',
+      'dist/api.d.cts',
+      'dist/api.d.mts',
+    ])('resolves a local export list in %s', (filename) => {
+      const result = analyzeChanges(
+        'declare function run(): void; export { run as greet };',
+        'export {};',
+        ts,
+        { parseOptions: { filename } },
+      )
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'greet', descriptor: { action: 'removed' } },
+      ])
+    })
+
+    it.each([
+      [
+        'export default class Widget { id: string; }',
+        'declare class Widget { id: string; } export { Widget as default };',
+      ],
+      [
+        'export default Widget; declare class Widget { id: string; }',
+        'declare class Widget { id: string; } export { Widget as default };',
+      ],
+      [
+        'declare class Local { id: string; } export { Local as Widget };',
+        'declare class Renamed { id: string; } export { Renamed as Widget };',
+      ],
+    ])(
+      'compares classes by their public export name in %s',
+      (before, after) => {
+        const result = analyzeChanges(before, after, ts)
+
+        expect(result.releaseType).toBe('none')
+        expect(result.changes).toEqual([])
+      },
+    )
+
+    it('retains both public names when an inline default is also named', () => {
+      const result = analyzeChanges(
+        'export { Widget }; export default class Widget {}',
+        'declare class Widget {} export { Widget, Widget as default };',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('none')
+      expect(result.changes).toEqual([])
+    })
+
+    it.each([
+      'export type { Local as Widget };',
+      'export { type Local as Widget };',
+    ])('detects removing a value export with %s', (exportList) => {
+      const declaration = 'declare class Local { id: string; }'
+      const result = analyzeChanges(
+        `${declaration} export { Local as Widget };`,
+        `${declaration} ${exportList}`,
+        ts,
+      )
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'Widget', descriptor: { aspect: 'type', impact: 'narrowing' } },
+      ])
+    })
+
     it('should detect export addition as minor change', () => {
       const oldSource = `
         export function greet(name: string): string {
@@ -598,6 +669,117 @@ describe('E2E: Edge Cases', () => {
         { path: 'ID', descriptor: { action: 'modified', impact: 'widening' } },
       ])
     })
+
+    it.each([
+      ['string[]', 'number[]'],
+      ['{ values: readonly string[] }', '{ values: readonly number[] }'],
+      ['"a  b"', '"a b"'],
+      ['"a   b" | "a  b"', '"a b" | "a  b"'],
+    ])('reports incompatible alias types %s and %s', (before, after) => {
+      const result = analyzeChanges(
+        `type Local = ${before}; export type { Local as Public };`,
+        `type Local = ${after}; export type { Local as Public };`,
+        ts,
+      )
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'Public', descriptor: { aspect: 'type', impact: 'unrelated' } },
+      ])
+    })
+
+    it('reports widening when a named object type gains a union member', () => {
+      const result = analyzeChanges(
+        'type Internal = { value: string }; export type Result = Internal;',
+        'type Internal = { value: string }; export type Result = Internal | number;',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('minor')
+      expect(result.changes).toMatchObject([
+        { path: 'Result', descriptor: { impact: 'widening' } },
+      ])
+    })
+
+    it('detects a changed union member behind an unchanged name', () => {
+      const result = analyzeChanges(
+        'type Internal = { value: string }; export type Result = Internal | number;',
+        'type Internal = { value: number }; export type Result = Internal | number;',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'Result', descriptor: { impact: 'unrelated' } },
+      ])
+    })
+
+    it('detects an alias change inside an exported object type', () => {
+      const result = analyzeChanges(
+        'type Internal = { value: string }; export type Result = { inner: Internal };',
+        'type Internal = { value: number }; export type Result = { inner: Internal };',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'Result', descriptor: { impact: 'unrelated' } },
+      ])
+    })
+
+    it('compares recursive generic aliases whose type arguments grow', () => {
+      const result = analyzeChanges(
+        'export type Recursive<T> = { child: Recursive<T[]>; value: T };',
+        'export type Recursive<T> = { child: Recursive<T[]>; value: string };',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'Recursive', descriptor: { impact: 'unrelated' } },
+      ])
+    })
+
+    it.each([
+      [
+        'export type Result = { key: string; size: number };',
+        'export type Result = { size: number; key: string };',
+      ],
+      [
+        'type Before = { next: Before }; export { Before as Result };',
+        'type After = { next: After }; export { After as Result };',
+      ],
+    ])(
+      'keeps equivalent object aliases unchanged when comparing %s',
+      (before, after) => {
+        const result = analyzeChanges(before, after, ts)
+
+        expect(result.releaseType).toBe('none')
+        expect(result.changes).toEqual([])
+      },
+    )
+
+    it.each([
+      ['export type Id = string;', 'export declare const Id: string;'],
+      ['export declare const Id: string;', 'export type Id = string;'],
+      ['export type Run = () => void;', 'export declare function Run(): void;'],
+    ])(
+      'reports losing an export in a different namespace for %s',
+      (before, after) => {
+        const result = analyzeChanges(before, after, ts)
+
+        expect(result.releaseType).toBe('major')
+        expect(result.changes).toMatchObject([
+          {
+            descriptor: {
+              action: 'modified',
+              aspect: 'type',
+              impact: 'unrelated',
+            },
+          },
+        ])
+      },
+    )
   })
 
   describe('Real-world API patterns', () => {

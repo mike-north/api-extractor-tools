@@ -2,7 +2,6 @@
  * Change classification and type impact determination.
  */
 
-import type * as ts from 'typescript'
 import type {
   AnalyzableNode,
   ChangeDescriptor,
@@ -98,6 +97,26 @@ export function classifyChange(
 } {
   const target = nodeKindToTarget(oldNode.kind)
 
+  const kinds = [oldNode.kind, newNode.kind]
+  if (
+    kinds.includes('type-alias') &&
+    (kinds.includes('variable') || kinds.includes('function'))
+  ) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'type', 'unrelated'),
+      explanation: `Changed '${oldNode.path}' from a ${oldNode.kind} to a ${newNode.kind}`,
+    }
+  }
+
+  const wasTypeOnly = oldNode.modifiers.has('type-only-export')
+  const isTypeOnly = newNode.modifiers.has('type-only-export')
+  if (isTypeOnly && !wasTypeOnly) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'type', 'narrowing'),
+      explanation: `Removed the value export of '${oldNode.path}'`,
+    }
+  }
+
   // Check for parameter reordering (for functions/methods)
   // This check happens even when signatures are identical because
   // parameter reordering preserves types but changes names
@@ -138,35 +157,20 @@ export function classifyChange(
   }
 
   // Check for type changes
-  if (oldNode.typeInfo.signature !== newNode.typeInfo.signature) {
-    // Look up TypeScript types from symbols if context available
-    const oldSymbol = context?.oldSymbols?.get(oldNode.path)
-    const newSymbol = context?.newSymbols?.get(newNode.path)
-    let oldTsType: ts.Type | undefined
-    let newTsType: ts.Type | undefined
-
-    if (context && oldSymbol && newSymbol) {
-      const oldDecl = oldSymbol.getDeclarations()?.[0]
-      const newDecl = newSymbol.getDeclarations()?.[0]
-      if (oldDecl && newDecl) {
-        oldTsType =
-          oldNode.kind === 'type-alias'
-            ? context.oldChecker.getDeclaredTypeOfSymbol(oldSymbol)
-            : context.oldChecker.getTypeOfSymbolAtLocation(oldSymbol, oldDecl)
-        newTsType =
-          newNode.kind === 'type-alias'
-            ? context.newChecker.getDeclaredTypeOfSymbol(newSymbol)
-            : context.newChecker.getTypeOfSymbolAtLocation(newSymbol, newDecl)
-      }
-    }
-
-    const impact = determineTypeImpact(
-      oldNode.typeInfo.signature,
-      newNode.typeInfo.signature,
-      context && oldTsType && newTsType
-        ? { ...context, oldTsType, newTsType }
-        : undefined,
-    )
+  const oldSignature = oldNode.typeInfo.signature
+  const newSignature = newNode.typeInfo.signature
+  const aliasImpact =
+    oldNode.kind === 'type-alias' && newNode.kind === 'type-alias'
+      ? compareTypeMembers(
+          oldNode.typeInfo.unionMembers ?? [oldSignature],
+          newNode.typeInfo.unionMembers ?? [newSignature],
+        )
+      : undefined
+  if (
+    oldSignature !== newSignature ||
+    (aliasImpact && aliasImpact !== 'equivalent')
+  ) {
+    const impact = aliasImpact ?? determineTypeImpact(oldNode, newNode, context)
 
     const explanation =
       impact === 'equivalent'
@@ -175,11 +179,20 @@ export function classifyChange(
           ? `Widened type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
           : impact === 'narrowing'
             ? `Narrowed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
-            : `Changed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
+            : oldSignature === newSignature
+              ? `Changed a constituent of type '${oldNode.path}'`
+              : `Changed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
 
     return {
       descriptor: createModifiedDescriptor(target, 'type', impact),
       explanation,
+    }
+  }
+
+  if (wasTypeOnly && !isTypeOnly) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'type', 'widening'),
+      explanation: `Added a value export for '${oldNode.path}'`,
     }
   }
 
@@ -358,37 +371,48 @@ export function classifyChange(
  * Falls back to string-based heuristics when TypeChecker info is unavailable.
  */
 function determineTypeImpact(
-  oldType: string,
-  newType: string,
-  context?: Pick<DiffContext, 'oldChecker' | 'newChecker'> & {
-    oldTsType: ts.Type
-    newTsType: ts.Type
-  },
+  oldNode: AnalyzableNode,
+  newNode: AnalyzableNode,
+  context?: DiffContext,
 ): ChangeImpact {
-  const oldNorm = normalizeSignature(oldType)
-  const newNorm = normalizeSignature(newType)
+  const oldNorm = normalizeSignature(oldNode.typeInfo.signature)
+  const newNorm = normalizeSignature(newNode.typeInfo.signature)
 
   if (oldNorm === newNorm) {
     return 'equivalent'
   }
 
-  if (!context) return determineTypeImpactFromStrings(oldNorm, newNorm)
+  const oldSymbol = context?.oldSymbols?.get(oldNode.path)
+  const newSymbol = context?.newSymbols?.get(newNode.path)
+  const oldDecl = oldSymbol?.getDeclarations()?.[0]
+  const newDecl = newSymbol?.getDeclarations()?.[0]
+  if (!context || !oldSymbol || !newSymbol || !oldDecl || !newDecl) {
+    return determineTypeImpactFromStrings(oldNorm, newNorm)
+  }
 
-  const { oldTsType, newTsType, oldChecker, newChecker } = context
-  const oldMembers = new Set(
+  const { oldChecker, newChecker } = context
+  const oldTsType = oldChecker.getTypeOfSymbolAtLocation(oldSymbol, oldDecl)
+  const newTsType = newChecker.getTypeOfSymbolAtLocation(newSymbol, newDecl)
+  return compareTypeMembers(
     oldTsType.isUnion()
       ? oldTsType.types.map((type) =>
           normalizeSignature(oldChecker.typeToString(type)),
         )
       : [oldNorm],
-  )
-  const newMembers = new Set(
     newTsType.isUnion()
       ? newTsType.types.map((type) =>
           normalizeSignature(newChecker.typeToString(type)),
         )
       : [newNorm],
   )
+}
+
+function compareTypeMembers(
+  oldTypes: string[],
+  newTypes: string[],
+): ChangeImpact {
+  const oldMembers = new Set(oldTypes)
+  const newMembers = new Set(newTypes)
   const oldSubsetOfNew = [...oldMembers].every((member) =>
     newMembers.has(member),
   )

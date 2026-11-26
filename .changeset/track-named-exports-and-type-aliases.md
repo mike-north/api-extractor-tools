@@ -6,3 +6,5 @@
 ---
 
 Detect removals from local export lists, including exports with a different public name, and report incompatible changes to exported type aliases as breaking.
+
+Recognize local default and type-only exports, resolve export lists in Windows-style declaration paths, and preserve array elements, union members, and object properties when comparing aliases.
