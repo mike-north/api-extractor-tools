@@ -4,10 +4,10 @@
  * @packageDocumentation
  */
 
-import { execSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { compareDeclarations } from '@api-extractor-tools/change-detector'
+import { findReleaseTag, readFileAtRef, readPackageBaseline } from './baseline'
 import type {
   AnalyzeOptions,
   PackageAnalysisResult,
@@ -121,37 +121,7 @@ export function determineBaseline(
   cwd: string,
   explicitRef?: string,
 ): string {
-  // If explicit ref provided, use it
-  if (explicitRef) {
-    return explicitRef
-  }
-
-  // Try to find a published version tag
-  try {
-    // Look for tags like @api-extractor-tools/change-detector@0.0.1
-    const tagPattern = `${pkg.name}@*`
-    const tags = execSync(`git tag -l "${tagPattern}"`, {
-      cwd,
-      encoding: 'utf-8',
-    })
-      .trim()
-      .split('\n')
-      .filter((t) => t.length > 0)
-
-    if (tags.length > 0) {
-      // Sort tags by version (simple string sort works for semver with same prefix)
-      tags.sort()
-      const latestTag = tags[tags.length - 1]
-      if (latestTag) {
-        return latestTag
-      }
-    }
-  } catch {
-    // Git command failed, continue to fallback
-  }
-
-  // Fallback to main branch
-  return 'main'
+  return explicitRef ?? findReleaseTag(cwd, `${pkg.name}@`) ?? 'main'
 }
 
 /**
@@ -161,6 +131,7 @@ export function determineBaseline(
  * @param ref - Git ref to get the file from
  * @param cwd - The workspace root directory
  * @returns The file content, or null if file doesn't exist at that ref
+ * @throws Error if the ref or file lookup fails
  *
  * @alpha
  */
@@ -169,19 +140,18 @@ export function getFileAtRef(
   ref: string,
   cwd: string,
 ): string | null {
-  // Convert absolute path to relative path from cwd
-  const relativePath = path.relative(cwd, filePath)
+  return readFileAtRef(filePath, ref, cwd)
+}
 
-  try {
-    const content = execSync(`git show ${ref}:${relativePath}`, {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return content
-  } catch {
-    // File doesn't exist at that ref
-    return null
+function analysisError(
+  pkg: PackageInfo,
+  error: unknown,
+): PackageAnalysisResult {
+  return {
+    package: pkg,
+    report: null,
+    recommendedBump: 'none',
+    error: error instanceof Error ? error.message : String(error),
   }
 }
 
@@ -200,46 +170,35 @@ export function analyzePackage(
   baseRef: string,
   cwd: string,
 ): PackageAnalysisResult {
-  // If no declaration file, skip
   if (!pkg.declarationFile) {
-    return {
-      package: pkg,
-      report: null,
-      recommendedBump: 'none',
-      error: 'No declaration file found',
-    }
+    return analysisError(
+      pkg,
+      'No declaration file found. Build the package before analyzing its API.',
+    )
   }
 
-  // Check if current declaration file exists
   if (!fs.existsSync(pkg.declarationFile)) {
-    return {
-      package: pkg,
-      report: null,
-      recommendedBump: 'none',
-      error: `Declaration file not found: ${pkg.declarationFile}`,
-    }
+    return analysisError(
+      pkg,
+      `Declaration file not found: ${pkg.declarationFile}`,
+    )
   }
 
-  // Get baseline content
-  const baselineContent = getFileAtRef(pkg.declarationFile, baseRef, cwd)
-
-  // If no baseline exists, this is a new package (minor bump for new feature)
-  if (baselineContent === null) {
-    return {
-      package: pkg,
-      report: null,
-      recommendedBump: 'minor',
-    }
-  }
-
-  // Write baseline to temp file for comparison
-  const tempDir = fs.mkdtempSync(path.join(cwd, '.changeset-temp-'))
-  const baselineFile = path.join(tempDir, 'baseline.d.ts')
-
+  let tempDir: string | undefined
   try {
-    fs.writeFileSync(baselineFile, baselineContent)
+    const baseline = readPackageBaseline(
+      pkg.path,
+      pkg.declarationFile,
+      baseRef,
+      cwd,
+    )
+    if (baseline.kind === 'absent') {
+      return { package: pkg, report: null, recommendedBump: 'minor' }
+    }
 
-    // Run change-detector comparison
+    tempDir = fs.mkdtempSync(path.join(cwd, '.changeset-temp-'))
+    const baselineFile = path.join(tempDir, 'baseline.d.ts')
+    fs.writeFileSync(baselineFile, baseline.content)
     const result = compareDeclarations({
       oldFile: baselineFile,
       newFile: pkg.declarationFile,
@@ -251,16 +210,10 @@ export function analyzePackage(
       recommendedBump: result.releaseType,
     }
   } catch (err) {
-    return {
-      package: pkg,
-      report: null,
-      recommendedBump: 'none',
-      error: err instanceof Error ? err.message : String(err),
-    }
+    return analysisError(pkg, err)
   } finally {
-    // Clean up temp files
     try {
-      fs.rmSync(tempDir, { recursive: true, force: true })
+      if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true })
     } catch {
       // Ignore cleanup errors
     }
@@ -291,25 +244,21 @@ export function analyzeWorkspace(
   // Discover all packages
   const packages = discoverPackages(cwd)
 
-  // We need to determine the baseline for each package
-  // For simplicity, use the same baseline for all packages initially
-  const firstPackage = packages[0]
+  const baselines = new Set<string>()
+  const results = packages.map((pkg) => {
+    try {
+      const ref = determineBaseline(pkg, cwd, options.baseRef)
+      baselines.add(ref)
+      return analyzePackage(pkg, ref, cwd)
+    } catch (error) {
+      return analysisError(pkg, error)
+    }
+  })
   const baselineRef =
     options.baseRef ??
-    determineBaseline(
-      firstPackage ?? {
-        name: '',
-        path: '',
-        version: '',
-        declarationFile: null,
-      },
-      cwd,
-    )
-
-  // Analyze each package
-  const results: PackageAnalysisResult[] = packages.map((pkg) =>
-    analyzePackage(pkg, baselineRef, cwd),
-  )
+    (baselines.size > 1
+      ? 'per-package'
+      : (baselines.values().next().value ?? 'main'))
 
   // Filter results
   const packagesWithChanges = results.filter(

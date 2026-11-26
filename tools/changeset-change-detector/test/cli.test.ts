@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { execFileSync, execSync } from 'child_process'
 
 /**
  * Type guard for exec sync errors that have stdout/stderr/status properties.
@@ -235,6 +235,43 @@ describe('CLI', () => {
   })
 
   describe('validate command', () => {
+    it('exits nonzero in strict mode when a package declaration has not been built', async () => {
+      project.files = {
+        'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+        tools: {
+          example: {
+            'package.json': JSON.stringify({
+              name: 'example',
+              types: 'dist/index.d.ts',
+            }),
+          },
+        },
+      }
+      await project.write()
+      const gitOptions = { cwd: project.baseDir, stdio: 'ignore' } as const
+      execFileSync('git', ['init'], gitOptions)
+      execFileSync('git', ['add', '.'], gitOptions)
+      execFileSync(
+        'git',
+        [
+          '-c',
+          'user.name=Test',
+          '-c',
+          'user.email=test@example.com',
+          'commit',
+          '-m',
+          'Initial',
+        ],
+        gitOptions,
+      )
+
+      const result = runCli(['validate', '--strict', '--base', 'HEAD'], {
+        cwd: project.baseDir,
+      })
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toMatch(/example: .*declaration file/i)
+    })
+
     it('accepts the validate command', async () => {
       project.files = {
         'package.json': JSON.stringify({

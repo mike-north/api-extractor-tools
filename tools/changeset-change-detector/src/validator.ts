@@ -6,6 +6,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { read as readChangesetConfig } from '@changesets/config'
 import readChangesets from '@changesets/read'
 import type { NewChangeset, VersionType } from '@changesets/types'
 import { analyzeWorkspace } from './analyzer'
@@ -111,7 +112,12 @@ export async function validateChangesets(
 
   // Analyze workspace
   let analysis: WorkspaceAnalysisResult
+  const ignoredPackages = new Set<string>()
   try {
+    if (fs.existsSync(path.join(cwd, '.changeset', 'config.json'))) {
+      const config = await readChangesetConfig(cwd)
+      for (const name of config.ignore) ignoredPackages.add(name)
+    }
     analysis = analyzeWorkspace({
       cwd,
       baseRef: options.baseRef,
@@ -136,6 +142,15 @@ export async function validateChangesets(
   // Build map of detected changes per package
   const detectedChanges = new Map<string, { bump: ChangesetBumpType | null }>()
   for (const result of analysis.packages) {
+    if (ignoredPackages.has(result.package.name)) continue
+    if (result.error !== undefined) {
+      issues.push({
+        severity: options.strict ? 'error' : 'warning',
+        packageName: result.package.name,
+        message: `Analysis failed: ${result.error}`,
+      })
+      continue
+    }
     const bump = releaseTypeToBumpType(result.recommendedBump)
     detectedChanges.set(result.package.name, { bump })
   }
@@ -143,6 +158,7 @@ export async function validateChangesets(
   // Check for packages with changes but no changesets
   const packagesMissingChangesets: string[] = []
   for (const result of analysis.packagesWithChanges) {
+    if (ignoredPackages.has(result.package.name)) continue
     const bump = releaseTypeToBumpType(result.recommendedBump)
     if (bump && !changesetBumps.has(result.package.name)) {
       packagesMissingChangesets.push(result.package.name)

@@ -272,7 +272,28 @@ describe('Edge Cases: Git Baseline Detection', () => {
     expect(baseline).toBe('custom-ref')
   })
 
-  it('verifies lastRelease tag exists before using it', async () => {
+  it('selects the stable package tag ahead of its prerelease', async () => {
+    project.pkg.name = '@test/pkg'
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git tag @test/pkg@1.0.0', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git tag @test/pkg@1.0.0-rc.1', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+
+    expect(determineBaseline(project.baseDir)).toBe('@test/pkg@1.0.0')
+  })
+
+  it('prefers the lastRelease tag over automatically discovered versions', async () => {
     project.files = {
       'package.json': JSON.stringify({
         name: '@test/pkg',
@@ -287,16 +308,14 @@ describe('Edge Cases: Git Baseline Detection', () => {
       stdio: 'ignore',
     })
     execSync('git tag v1.0.0', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git tag v2.0.0', { cwd: project.baseDir, stdio: 'ignore' })
 
-    // Try to use non-existent tag
     const baseline = determineBaseline(project.baseDir, {
-      gitTag: 'v9.9.9',
-      version: '9.9.9',
+      gitTag: 'v1.0.0',
+      version: '1.0.0',
     })
 
-    // Should fall back to finding tags
-    expect(baseline).toBeTruthy()
-    expect(baseline).not.toBe('v9.9.9')
+    expect(baseline).toBe('v1.0.0')
   })
 })
 
@@ -309,6 +328,26 @@ describe('Edge Cases: Git File Retrieval', () => {
 
   afterEach(() => {
     project.dispose()
+  })
+
+  it('reads a declaration with spaces from the package directory', async () => {
+    const declaration = 'export declare const nested: boolean;'
+    project.files = {
+      'public api.d.ts': 'export declare const root: boolean;',
+      packages: { nested: { 'public api.d.ts': declaration } },
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    const cwd = path.join(project.baseDir, 'packages/nested')
+
+    expect(getFileAtRef(path.join(cwd, 'public api.d.ts'), 'HEAD', cwd)).toBe(
+      declaration,
+    )
   })
 
   it('returns null when file does not exist at ref', async () => {
@@ -392,6 +431,82 @@ describe('Edge Cases: API Analysis', () => {
     project.dispose()
   })
 
+  it('reports an unavailable baseline declaration for an existing package', async () => {
+    project.files = {
+      'package.json': JSON.stringify({
+        name: '@test/pkg',
+        types: 'dist/index.d.ts',
+      }),
+      '.gitignore': 'dist/\n',
+      dist: { 'index.d.ts': 'export declare const current: boolean;' },
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+
+    const result = analyzeAPIChanges(
+      project.baseDir,
+      resolveConfig({ baseRef: 'HEAD' }),
+    )
+    expect(result.isNewPackage).toBe(false)
+    expect(result.recommendedBump).toBe('none')
+    expect(result.error).toMatch(/baseline declaration.*dist\/index\.d\.ts/i)
+  })
+
+  it('reports an invalid explicit baseline despite a reachable release tag', async () => {
+    project.files = {
+      'package.json': JSON.stringify({
+        name: '@test/pkg',
+        types: 'index.d.ts',
+      }),
+      'index.d.ts': 'export declare const value: boolean;',
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git tag v1.0.0', { cwd: project.baseDir, stdio: 'ignore' })
+
+    const result = analyzeAPIChanges(
+      project.baseDir,
+      resolveConfig({ baseRef: 'missing-ref' }),
+    )
+    expect(result.isNewPackage).toBe(false)
+    expect(result.error).toContain('missing-ref')
+  })
+
+  it('reports a missing last release tag as a lookup error', async () => {
+    project.files = {
+      'package.json': JSON.stringify({
+        name: '@test/pkg',
+        types: 'index.d.ts',
+      }),
+      'index.d.ts': 'export declare const value: boolean;',
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git branch -M main', { cwd: project.baseDir, stdio: 'ignore' })
+
+    const result = analyzeAPIChanges(project.baseDir, resolveConfig(), {
+      gitTag: 'v9.9.9',
+      version: '9.9.9',
+    })
+    expect(result.isNewPackage).toBe(false)
+    expect(result.error).toContain('v9.9.9')
+  })
+
   it('handles missing declaration file', async () => {
     project.files = {
       'package.json': JSON.stringify({
@@ -419,13 +534,15 @@ describe('Edge Cases: API Analysis', () => {
       },
     }
     await project.write()
-    // Initialize git but don't commit the declaration file
     initGitRepo(project.baseDir)
+    execSync('git commit --allow-empty -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
 
-    const config = resolveConfig()
+    const config = resolveConfig({ baseRef: 'HEAD' })
     const result = analyzeAPIChanges(project.baseDir, config)
 
-    // When there's no baseline (file doesn't exist in git history), it's a new package
     expect(result.isNewPackage).toBe(true)
     expect(result.recommendedBump).toBe('minor')
     expect(result.report).toBeNull()

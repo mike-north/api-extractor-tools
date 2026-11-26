@@ -40,12 +40,15 @@ function createMockContext(
 /**
  * Initializes a git repository for testing.
  */
-function initGitRepo(cwd: string): void {
+function initGitRepo(cwd: string, stageFiles = true): void {
   execSync('git init', { cwd, stdio: 'ignore' })
   execSync('git config user.email "test@example.com"', { cwd, stdio: 'ignore' })
   execSync('git config user.name "Test User"', { cwd, stdio: 'ignore' })
-  execSync('git add .', { cwd, stdio: 'ignore' })
-  execSync('git commit -m "Initial commit"', { cwd, stdio: 'ignore' })
+  if (stageFiles) execSync('git add .', { cwd, stdio: 'ignore' })
+  execSync('git commit --allow-empty -m "Initial commit"', {
+    cwd,
+    stdio: 'ignore',
+  })
 }
 
 /**
@@ -370,7 +373,6 @@ describe('Integration: Complete Plugin Lifecycle', () => {
     })
 
     it('returns minor for new package', async () => {
-      // Setup: New package (no git history for declaration file)
       project.files = {
         'package.json': JSON.stringify({
           name: '@test/pkg',
@@ -379,7 +381,7 @@ describe('Integration: Complete Plugin Lifecycle', () => {
         }),
       }
       await project.write()
-      initGitRepo(project.baseDir)
+      initGitRepo(project.baseDir, false)
 
       // Now add the dist folder after git init (so it won't be in history)
       fs.mkdirSync(path.join(project.baseDir, 'dist'))
@@ -390,8 +392,9 @@ describe('Integration: Complete Plugin Lifecycle', () => {
 
       const context = createMockContext(project.baseDir)
 
-      verifyConditions({ mode: 'override' }, context)
-      const bump = analyzeCommits({ mode: 'override' }, context)
+      const config = { mode: 'override' as const, baseRef: 'HEAD' }
+      verifyConditions(config, context)
+      const bump = analyzeCommits(config, context)
       expect(bump).toBe('minor')
     })
   })
@@ -469,7 +472,7 @@ describe('Integration: Complete Plugin Lifecycle', () => {
         }),
       }
       await project.write()
-      initGitRepo(project.baseDir)
+      initGitRepo(project.baseDir, false)
 
       // Now add the dist folder after git init
       fs.mkdirSync(path.join(project.baseDir, 'dist'))
@@ -480,14 +483,15 @@ describe('Integration: Complete Plugin Lifecycle', () => {
 
       const context = createMockContext(project.baseDir)
 
-      verifyConditions({}, context)
-      const bump = analyzeCommits({}, context)
+      const config = { baseRef: 'HEAD' }
+      verifyConditions(config, context)
+      const bump = analyzeCommits(config, context)
 
       // In validate mode, new package returns null
       expect(bump).toBeNull()
 
       // Generate notes should indicate new package
-      const notes = generateNotes({}, context)
+      const notes = generateNotes(config, context)
       expect(notes).toContain('This is the initial release')
     })
 

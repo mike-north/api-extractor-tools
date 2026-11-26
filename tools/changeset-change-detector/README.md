@@ -290,12 +290,13 @@ Ensure your packages have:
 }
 ```
 
-### "Could not determine baseline"
+### Baseline lookup
 
-The tool couldn't find a git ref to compare against. Either:
+By default, each package uses its highest reachable version tag by SemVer precedence, falling back to `main` when no package tag exists. Use `--base <ref>` to compare all packages against the same commit.
 
-- Ensure you have git tags for published versions
-- Use `--base main` or another explicit ref
+An existing package needs its historical declaration tracked at the baseline ref. If the declaration is unavailable, choose a ref containing the declaration for the historical version. The package is treated as new when its manifest is absent at the baseline.
+
+Validation reports package analysis errors as warnings and fails on them with `--strict`. Add packages that intentionally have no declarations to `ignore` in `.changeset/config.json` to exclude them from validation.
 
 ### Changes not detected
 
