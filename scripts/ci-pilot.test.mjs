@@ -176,3 +176,77 @@ test('API artifact generation preserves a stale baseline for the strict check', 
     true,
   )
 })
+
+test('a warm declaration build reruns when the normalizer changes', (t) => {
+  const root = fixture(t)
+  const normalizer = 'tools/declaration-file-normalizer'
+  const merger = 'tools/module-declaration-merger'
+  const readWorkspace = (path) => readFileSync(join(workspace, path), 'utf8')
+  const normalizerName = JSON.parse(
+    readWorkspace(`${normalizer}/package.json`),
+  ).name
+  const mergerPackage = JSON.parse(readWorkspace(`${merger}/package.json`))
+
+  put(root, 'nx.json', readWorkspace('nx.json'))
+  put(
+    root,
+    'package.json',
+    JSON.stringify({ name: 'workspace', private: true }),
+  )
+  put(root, 'pnpm-workspace.yaml', "packages: ['tools/*']\n")
+  put(
+    root,
+    `${normalizer}/package.json`,
+    JSON.stringify({
+      name: normalizerName,
+      scripts: { build: 'node --version' },
+    }),
+  )
+  put(
+    root,
+    `${merger}/package.json`,
+    JSON.stringify({
+      name: mergerPackage.name,
+      nx: mergerPackage.nx,
+      devDependencies: { [normalizerName]: 'workspace:*' },
+      scripts: {
+        build: 'node build.cjs',
+      },
+    }),
+  )
+  put(
+    root,
+    `${merger}/build.cjs`,
+    `const fs = require('node:fs');
+    fs.mkdirSync('dist', { recursive: true });
+    fs.copyFileSync('../declaration-file-normalizer/src/marker.txt', 'dist/index.d.ts');`,
+  )
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'dir',
+  )
+  const input = `${normalizer}/src/marker.txt`
+  const output = join(root, merger, 'dist/index.d.ts')
+  const nx = join(workspace, 'node_modules/nx/bin/nx.js')
+  const build = () =>
+    execFileSync(process.execPath, [nx, 'run', `${mergerPackage.name}:build`], {
+      cwd: root,
+      env: {
+        ...process.env,
+        NX_DAEMON: 'false',
+        NX_DISABLE_NX_CACHE: 'false',
+        NX_ISOLATE_PLUGINS: 'false',
+        NX_SKIP_NX_CACHE: 'false',
+        NX_TUI: 'false',
+      },
+    })
+
+  put(root, input, 'before')
+  build()
+  assert.equal(readFileSync(output, 'utf8'), 'before')
+
+  put(root, input, 'after')
+  build()
+  assert.equal(readFileSync(output, 'utf8'), 'after')
+})

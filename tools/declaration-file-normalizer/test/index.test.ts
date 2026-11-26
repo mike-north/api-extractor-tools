@@ -98,6 +98,62 @@ describe('normalizeUnionTypes', () => {
         new factory('a');`,
       normalized: 'abstract new (value: "a" | "z")',
     },
+    {
+      name: 'const type parameters in generic constructor types',
+      declaration: `export declare const Factory:
+        new <const T extends readonly string[]>(values: T) => { values: T; order: "z" | "a" };`,
+      consumer: `import { Factory } from './index.js';
+        const values = new Factory(['hi']).values;
+        const result: readonly ['hi'] = values;`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'const type parameters in generic method overloads',
+      declaration: `export declare const api: {
+        pick<const T extends readonly string[]>(values: T): T;
+        pick(values: unknown): unknown;
+        order: "z" | "a";
+      };`,
+      consumer: `import { api } from './index.js';
+        const values = api.pick(['hi']);
+        const result: readonly ['hi'] = values;`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'call overloads contributed by intersection operands',
+      declaration: `export declare const pick:
+        { (x: string): 2; order: "z" | "a" } & { (x: string): 1 };`,
+      consumer: `import { pick } from './index.js';
+        const result: 2 = pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'method overloads contributed by named intersection operands',
+      declaration: `interface Z { pick(x: string): 2 }
+        interface A { pick(x: string): 1 }
+        declare const api: Z & A & { order: "z" | "a" };
+        export { api as renamed };`,
+      consumer: `import { renamed } from './index.js';
+        const result: 2 = renamed.pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'overload order after generic intersection instantiation',
+      declaration: `type Both<Z, A> = Z & A & { order: "z" | "a" };
+        export declare const pick: Both<(x: string) => 2, (x: string) => 1>;`,
+      consumer: `import { pick } from './index.js';
+        const result: 2 = pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
+    {
+      name: 'overload order after mapped intersection instantiation',
+      declaration: `type Both<T> =
+        { pick(x: string): 2; order: "z" | "a" } & { [K in keyof T]: T[K] };
+        export declare const api: Both<{ pick(x: string): 1 }>;`,
+      consumer: `import { api } from './index.js';
+        const result: 2 = api.pick('a');`,
+      normalized: 'order: "a" | "z"',
+    },
   ])('should preserve $name for downstream consumers', (fixture) => {
     const entryPoint = path.join(tempDir, 'index.d.ts')
     const consumerPath = path.join(tempDir, 'consumer.ts')
@@ -127,6 +183,68 @@ describe('normalizeUnionTypes', () => {
 
     expect(compileConsumer(), 'after normalization').toBe('')
     expect(fs.readFileSync(entryPoint, 'utf-8')).toContain(fixture.normalized)
+    expect(normalizeUnionTypes({ entryPoint }).modifiedFiles).toEqual([])
+  })
+
+  it.each(['m', 'c'])(
+    'should normalize declarations reached through .%sjs re-exports',
+    (format) => {
+      const entryPoint = path.join(tempDir, `index.d.${format}ts`)
+      const dependency = path.join(tempDir, `dependency.d.${format}ts`)
+      fs.writeFileSync(
+        entryPoint,
+        `export { pick as renamed } from './dependency.${format}js';`,
+      )
+      fs.writeFileSync(
+        dependency,
+        'export declare const pick: { (x: string): 2; (x: string): 1; order: "z" | "a" };',
+      )
+
+      const result = normalizeUnionTypes({ entryPoint })
+      expect(result.errors).toEqual([])
+      expect(result.filesProcessed).toBe(2)
+      expect(result.modifiedFiles).toEqual([dependency])
+      expect(fs.readFileSync(dependency, 'utf-8')).toContain(
+        '(x: string): 2; (x: string): 1; order: "a" | "z"',
+      )
+    },
+  )
+
+  it('should follow re-exports with Windows-style relative specifiers', () => {
+    const entryPoint = path.join(tempDir, 'index.d.ts')
+    const folder = path.join(tempDir, 'nested folder')
+    const dependency = path.join(folder, 'types.d.ts')
+    fs.mkdirSync(folder)
+    fs.writeFileSync(
+      entryPoint,
+      String.raw`export { Status } from '.\\nested folder\\types.js';`,
+    )
+    fs.writeFileSync(dependency, 'export type Status = "z" | "a";')
+
+    expect(normalizeUnionTypes({ entryPoint }).modifiedFiles).toEqual([
+      dependency,
+    ])
+    expect(fs.readFileSync(dependency, 'utf-8')).toContain('"a" | "z"')
+  })
+
+  it('should normalize declarations reached through CommonJS import assignments', () => {
+    const entryPoint = path.join(tempDir, 'index.d.cts')
+    const dependency = path.join(tempDir, 'dependency.d.cts')
+    fs.writeFileSync(
+      entryPoint,
+      `import API = require('./dependency.cjs'); export = API;`,
+    )
+    fs.writeFileSync(
+      dependency,
+      'declare const API: { (x: string): 2; (x: string): 1; order: "z" | "a" }; export = API;',
+    )
+
+    expect(normalizeUnionTypes({ entryPoint }).modifiedFiles).toEqual([
+      dependency,
+    ])
+    expect(fs.readFileSync(dependency, 'utf-8')).toContain(
+      '(x: string): 2; (x: string): 1; order: "a" | "z"',
+    )
   })
 
   it('should return error when entry point does not exist', () => {

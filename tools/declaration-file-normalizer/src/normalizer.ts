@@ -19,6 +19,8 @@
 
 import * as ts from 'typescript'
 
+type TypeNormalizer = (node: ts.TypeNode) => string
+
 /**
  * Recursively normalizes a TypeScript type node.
  *
@@ -26,38 +28,52 @@ import * as ts from 'typescript'
  * Handles sorting of union members, intersection members, and object type properties.
  *
  * @param node - The type node to normalize
+ * @param getChecker - Supplies the checker for resolving intersection operands
  * @returns The normalized type string
  */
-export function normalizeType(node: ts.TypeNode): string {
+export function normalizeType(
+  node: ts.TypeNode,
+  getChecker?: () => ts.TypeChecker,
+): string {
+  const normalize: TypeNormalizer = (child) => normalizeType(child, getChecker)
+
   // Union types: sort members, recurse into each
   if (ts.isUnionTypeNode(node)) {
     const normalized = node.types
-      .map((member) => normalizeType(member))
+      .map(normalize)
       .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'variant' }))
     return normalized.join(' | ')
   }
 
-  // Intersection types: sort members, recurse into each
+  // Intersections can combine signatures from their operands into overload sets.
   if (ts.isIntersectionTypeNode(node)) {
-    const normalized = node.types
-      .map((member) => normalizeType(member))
-      .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'variant' }))
-    return normalized.join(' & ')
+    const normalized = node.types.map(normalize)
+    const sorted = [...normalized].sort((a, b) =>
+      a.localeCompare(b, 'en', { sensitivity: 'variant' }),
+    )
+    if (
+      getChecker &&
+      normalized.some((text, index) => text !== sorted[index]) &&
+      hasOrderedIntersectionMembers(node, getChecker())
+    ) {
+      return normalized.join(' & ')
+    }
+    return sorted.join(' & ')
   }
 
   // Object type literals: sort properties, recurse into property types
   if (ts.isTypeLiteralNode(node)) {
-    return normalizeObjectLiteral(node)
+    return normalizeObjectLiteral(node, normalize)
   }
 
   // Parenthesized types: preserve parens, recurse into inner type
   if (ts.isParenthesizedTypeNode(node)) {
-    return `(${normalizeType(node.type)})`
+    return `(${normalize(node.type)})`
   }
 
   // Array types: recurse into element type
   if (ts.isArrayTypeNode(node)) {
-    return `${normalizeType(node.elementType)}[]`
+    return `${normalize(node.elementType)}[]`
   }
 
   // Tuple types: recurse into each element (preserve order!)
@@ -66,15 +82,15 @@ export function normalizeType(node: ts.TypeNode): string {
       if (ts.isNamedTupleMember(el)) {
         const optional = el.questionToken ? '?' : ''
         const dotDotDot = el.dotDotDotToken ? '...' : ''
-        return `${dotDotDot}${el.name.getText()}${optional}: ${normalizeType(el.type)}`
+        return `${dotDotDot}${el.name.getText()}${optional}: ${normalize(el.type)}`
       }
       if (ts.isRestTypeNode(el)) {
-        return `...${normalizeType(el.type)}`
+        return `...${normalize(el.type)}`
       }
       if (ts.isOptionalTypeNode(el)) {
-        return `${normalizeType(el.type)}?`
+        return `${normalize(el.type)}?`
       }
-      return normalizeType(el)
+      return normalize(el)
     })
     return `[${elements.join(', ')}]`
   }
@@ -82,38 +98,38 @@ export function normalizeType(node: ts.TypeNode): string {
   // Type references with type arguments: recurse into type arguments
   if (ts.isTypeReferenceNode(node) && node.typeArguments) {
     const typeName = node.typeName.getText()
-    const args = node.typeArguments.map((arg) => normalizeType(arg))
+    const args = node.typeArguments.map(normalize)
     return `${typeName}<${args.join(', ')}>`
   }
 
   // Function types: recurse into parameter types and return type
   if (ts.isFunctionTypeNode(node)) {
-    return normalizeFunctionType(node)
+    return normalizeFunctionType(node, normalize)
   }
 
   // Constructor types: recurse into parameter types and return type
   if (ts.isConstructorTypeNode(node)) {
-    return normalizeConstructorType(node)
+    return normalizeConstructorType(node, normalize)
   }
 
   // Indexed access types: recurse into object and index types
   if (ts.isIndexedAccessTypeNode(node)) {
-    return `${normalizeType(node.objectType)}[${normalizeType(node.indexType)}]`
+    return `${normalize(node.objectType)}[${normalize(node.indexType)}]`
   }
 
   // Mapped types: recurse into constraint and type
   if (ts.isMappedTypeNode(node)) {
-    return normalizeMappedType(node)
+    return normalizeMappedType(node, normalize)
   }
 
   // Conditional types: recurse into check, extends, true, and false types
   if (ts.isConditionalTypeNode(node)) {
-    return `${normalizeType(node.checkType)} extends ${normalizeType(node.extendsType)} ? ${normalizeType(node.trueType)} : ${normalizeType(node.falseType)}`
+    return `${normalize(node.checkType)} extends ${normalize(node.extendsType)} ? ${normalize(node.trueType)} : ${normalize(node.falseType)}`
   }
 
   // Type operators (readonly, keyof, unique): recurse into the inner type
   if (ts.isTypeOperatorNode(node)) {
-    const innerType = normalizeType(node.type)
+    const innerType = normalize(node.type)
     switch (node.operator) {
       case ts.SyntaxKind.ReadonlyKeyword:
         return `readonly ${innerType}`
@@ -141,20 +157,71 @@ export function normalizeType(node: ts.TypeNode): string {
   return node.getText()
 }
 
+function hasOrderedIntersectionMembers(
+  node: ts.IntersectionTypeNode,
+  checker: ts.TypeChecker,
+): boolean {
+  const calls = Symbol()
+  const constructors = Symbol()
+  const index = Symbol()
+  const seen = new Set<ts.__String | symbol>()
+
+  for (const operand of node.types) {
+    const type = checker.getTypeFromTypeNode(operand)
+    const variants = type.isUnion() ? type.types : [type]
+    const memberKeys = new Set<ts.__String | symbol>()
+
+    for (const variant of variants) {
+      // Generic operands may acquire overlapping members when instantiated.
+      if (
+        variant.flags &
+        (ts.TypeFlags.TypeVariable |
+          ts.TypeFlags.Conditional |
+          ts.TypeFlags.Substitution)
+      ) {
+        return true
+      }
+      if (
+        variant.flags & ts.TypeFlags.Object &&
+        (variant as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped
+      ) {
+        return true
+      }
+
+      if (variant.getCallSignatures().length) memberKeys.add(calls)
+      if (variant.getConstructSignatures().length) memberKeys.add(constructors)
+      if (checker.getIndexInfosOfType(variant).length) memberKeys.add(index)
+      for (const property of variant.getProperties()) {
+        memberKeys.add(property.escapedName)
+      }
+    }
+
+    for (const key of memberKeys) {
+      if (seen.has(key)) return true
+      seen.add(key)
+    }
+  }
+
+  return false
+}
+
 /**
  * Normalizes an object type literal by sorting its members while preserving overload order.
  * Preserves multi-line formatting when the original was multi-line.
  */
-function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
+function normalizeObjectLiteral(
+  node: ts.TypeLiteralNode,
+  normalize: TypeNormalizer,
+): string {
   if (node.members.length === 0) {
     return '{}'
   }
 
   if (node.members.length === 1) {
-    return `{ ${normalizeMember(node.members[0]!)} }`
+    return `{ ${normalizeMember(node.members[0]!, normalize)} }`
   }
 
-  const normalized = normalizeObjectMembers(node.members)
+  const normalized = normalizeObjectMembers(node.members, normalize)
 
   // Check if original was multi-line
   const originalText = node.getText()
@@ -177,7 +244,10 @@ function normalizeObjectLiteral(node: ts.TypeLiteralNode): string {
 /**
  * Sorts independent members and keeps signatures in each overload group in source order.
  */
-function normalizeObjectMembers(members: readonly ts.TypeElement[]): string[] {
+function normalizeObjectMembers(
+  members: readonly ts.TypeElement[],
+  normalize: TypeNormalizer,
+): string[] {
   const callSignatures = Symbol()
   const constructSignatures = Symbol()
   const methodsInSourceOrder = Symbol()
@@ -201,7 +271,7 @@ function normalizeObjectMembers(members: readonly ts.TypeElement[]): string[] {
         : (getStaticMethodName(member.name) ?? methodsInSourceOrder)
     }
 
-    const normalized = normalizeMember(member)
+    const normalized = normalizeMember(member, normalize)
     const group = groups.get(key)
     if (group) {
       group.push(normalized)
@@ -296,7 +366,10 @@ function extractIndentation(node: ts.TypeLiteralNode): {
 /**
  * Normalizes a type element (property, method, index signature, etc.)
  */
-function normalizeMember(member: ts.TypeElement): string {
+function normalizeMember(
+  member: ts.TypeElement,
+  normalize: TypeNormalizer,
+): string {
   // Property signatures
   if (ts.isPropertySignature(member)) {
     const readonly = member.modifiers?.some(
@@ -306,28 +379,28 @@ function normalizeMember(member: ts.TypeElement): string {
       : ''
     const name = member.name?.getText() ?? ''
     const optional = member.questionToken ? '?' : ''
-    const type = member.type ? normalizeType(member.type) : 'any'
+    const type = member.type ? normalize(member.type) : 'any'
     return `${readonly}${name}${optional}: ${type}`
   }
 
   // Method signatures
   if (ts.isMethodSignature(member)) {
-    return normalizeMethodSignature(member)
+    return normalizeMethodSignature(member, normalize)
   }
 
   // Index signatures
   if (ts.isIndexSignatureDeclaration(member)) {
-    return normalizeIndexSignature(member)
+    return normalizeIndexSignature(member, normalize)
   }
 
   // Call signatures
   if (ts.isCallSignatureDeclaration(member)) {
-    return normalizeCallSignature(member)
+    return normalizeCallSignature(member, normalize)
   }
 
   // Construct signatures
   if (ts.isConstructSignatureDeclaration(member)) {
-    return normalizeConstructSignature(member)
+    return normalizeConstructSignature(member, normalize)
   }
 
   // Fallback: return original text with trailing separators removed
@@ -337,40 +410,55 @@ function normalizeMember(member: ts.TypeElement): string {
 /**
  * Normalizes a method signature
  */
-function normalizeMethodSignature(member: ts.MethodSignature): string {
+function normalizeMethodSignature(
+  member: ts.MethodSignature,
+  normalize: TypeNormalizer,
+): string {
   const name = member.name.getText()
   const optional = member.questionToken ? '?' : ''
   const typeParams = member.typeParameters
-    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
+    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp, normalize)).join(', ')}>`
     : ''
-  const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
-  const returnType = member.type ? normalizeType(member.type) : 'any'
+  const params = member.parameters
+    .map((p) => normalizeParameter(p, normalize))
+    .join(', ')
+  const returnType = member.type ? normalize(member.type) : 'any'
   return `${name}${optional}${typeParams}(${params}): ${returnType}`
 }
 
 /**
  * Normalizes an index signature
  */
-function normalizeIndexSignature(member: ts.IndexSignatureDeclaration): string {
+function normalizeIndexSignature(
+  member: ts.IndexSignatureDeclaration,
+  normalize: TypeNormalizer,
+): string {
   const readonly = member.modifiers?.some(
     (m) => m.kind === ts.SyntaxKind.ReadonlyKeyword,
   )
     ? 'readonly '
     : ''
-  const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
-  const returnType = member.type ? normalizeType(member.type) : 'any'
+  const params = member.parameters
+    .map((p) => normalizeParameter(p, normalize))
+    .join(', ')
+  const returnType = member.type ? normalize(member.type) : 'any'
   return `${readonly}[${params}]: ${returnType}`
 }
 
 /**
  * Normalizes a call signature
  */
-function normalizeCallSignature(member: ts.CallSignatureDeclaration): string {
+function normalizeCallSignature(
+  member: ts.CallSignatureDeclaration,
+  normalize: TypeNormalizer,
+): string {
   const typeParams = member.typeParameters
-    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
+    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp, normalize)).join(', ')}>`
     : ''
-  const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
-  const returnType = member.type ? normalizeType(member.type) : 'any'
+  const params = member.parameters
+    .map((p) => normalizeParameter(p, normalize))
+    .join(', ')
+  const returnType = member.type ? normalize(member.type) : 'any'
   return `${typeParams}(${params}): ${returnType}`
 }
 
@@ -379,45 +467,61 @@ function normalizeCallSignature(member: ts.CallSignatureDeclaration): string {
  */
 function normalizeConstructSignature(
   member: ts.ConstructSignatureDeclaration,
+  normalize: TypeNormalizer,
 ): string {
   const typeParams = member.typeParameters
-    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
+    ? `<${member.typeParameters.map((tp) => normalizeTypeParameter(tp, normalize)).join(', ')}>`
     : ''
-  const params = member.parameters.map((p) => normalizeParameter(p)).join(', ')
-  const returnType = member.type ? normalizeType(member.type) : 'any'
+  const params = member.parameters
+    .map((p) => normalizeParameter(p, normalize))
+    .join(', ')
+  const returnType = member.type ? normalize(member.type) : 'any'
   return `new ${typeParams}(${params}): ${returnType}`
 }
 
 /**
  * Normalizes a function type
  */
-function normalizeFunctionType(node: ts.FunctionTypeNode): string {
+function normalizeFunctionType(
+  node: ts.FunctionTypeNode,
+  normalize: TypeNormalizer,
+): string {
   const typeParams = node.typeParameters
-    ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
+    ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp, normalize)).join(', ')}>`
     : ''
-  const params = node.parameters.map((p) => normalizeParameter(p)).join(', ')
-  const returnType = normalizeType(node.type)
+  const params = node.parameters
+    .map((p) => normalizeParameter(p, normalize))
+    .join(', ')
+  const returnType = normalize(node.type)
   return `${typeParams}(${params}) => ${returnType}`
 }
 
 /**
  * Normalizes a constructor type
  */
-function normalizeConstructorType(node: ts.ConstructorTypeNode): string {
+function normalizeConstructorType(
+  node: ts.ConstructorTypeNode,
+  normalize: TypeNormalizer,
+): string {
   const modifiers =
     node.modifiers?.map((modifier) => `${modifier.getText()} `).join('') ?? ''
   const typeParams = node.typeParameters
-    ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp)).join(', ')}>`
+    ? `<${node.typeParameters.map((tp) => normalizeTypeParameter(tp, normalize)).join(', ')}>`
     : ''
-  const params = node.parameters.map((p) => normalizeParameter(p)).join(', ')
-  const returnType = normalizeType(node.type)
+  const params = node.parameters
+    .map((p) => normalizeParameter(p, normalize))
+    .join(', ')
+  const returnType = normalize(node.type)
   return `${modifiers}new ${typeParams}(${params}) => ${returnType}`
 }
 
 /**
  * Normalizes a mapped type
  */
-function normalizeMappedType(node: ts.MappedTypeNode): string {
+function normalizeMappedType(
+  node: ts.MappedTypeNode,
+  normalize: TypeNormalizer,
+): string {
   const readonly = node.readonlyToken
     ? node.readonlyToken.kind === ts.SyntaxKind.ReadonlyKeyword
       ? 'readonly '
@@ -435,10 +539,10 @@ function normalizeMappedType(node: ts.MappedTypeNode): string {
 
   const typeParam = node.typeParameter.name.getText()
   const constraint = node.typeParameter.constraint
-    ? normalizeType(node.typeParameter.constraint)
+    ? normalize(node.typeParameter.constraint)
     : 'unknown'
-  const nameType = node.nameType ? ` as ${normalizeType(node.nameType)}` : ''
-  const type = node.type ? normalizeType(node.type) : 'any'
+  const nameType = node.nameType ? ` as ${normalize(node.nameType)}` : ''
+  const type = node.type ? normalize(node.type) : 'any'
 
   return `{ ${readonly}[${typeParam} in ${constraint}${nameType}]${optional}: ${type} }`
 }
@@ -446,11 +550,14 @@ function normalizeMappedType(node: ts.MappedTypeNode): string {
 /**
  * Normalizes a parameter declaration
  */
-function normalizeParameter(param: ts.ParameterDeclaration): string {
+function normalizeParameter(
+  param: ts.ParameterDeclaration,
+  normalize: TypeNormalizer,
+): string {
   const dotDotDot = param.dotDotDotToken ? '...' : ''
   const name = param.name.getText()
   const optional = param.questionToken ? '?' : ''
-  const type = param.type ? `: ${normalizeType(param.type)}` : ''
+  const type = param.type ? `: ${normalize(param.type)}` : ''
   return `${dotDotDot}${name}${optional}${type}`
 }
 
@@ -463,11 +570,14 @@ function normalizeParameter(param: ts.ParameterDeclaration): string {
  * - `T = "z" | "a"` - with default (normalizes to `T = "a" | "z"`)
  * - `T extends Foo = Bar` - with both constraint and default
  */
-function normalizeTypeParameter(tp: ts.TypeParameterDeclaration): string {
+function normalizeTypeParameter(
+  tp: ts.TypeParameterDeclaration,
+  normalize: TypeNormalizer,
+): string {
+  const modifiers =
+    tp.modifiers?.map((modifier) => `${modifier.getText()} `).join('') ?? ''
   const name = tp.name.getText()
-  const constraint = tp.constraint
-    ? ` extends ${normalizeType(tp.constraint)}`
-    : ''
-  const defaultType = tp.default ? ` = ${normalizeType(tp.default)}` : ''
-  return `${name}${constraint}${defaultType}`
+  const constraint = tp.constraint ? ` extends ${normalize(tp.constraint)}` : ''
+  const defaultType = tp.default ? ` = ${normalize(tp.default)}` : ''
+  return `${modifiers}${name}${constraint}${defaultType}`
 }
