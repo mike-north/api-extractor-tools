@@ -176,3 +176,81 @@ test('API artifact generation preserves a stale baseline for the strict check', 
     true,
   )
 })
+
+test('warm plugin builds restore the version from the package manifest', (t) => {
+  const root = fixture(t)
+  const packages = [
+    'input-processor-protobuf',
+    'plugin-json-schema',
+    'plugin-openapi',
+  ]
+  const staleVersion = "export const VERSION = '1.2.3-alpha.2'\n"
+  const currentVersion = '1.2.3'
+  for (const path of ['nx.json', 'pnpm-workspace.yaml']) {
+    put(root, path, readFileSync(join(workspace, path)))
+  }
+  put(root, 'package.json', JSON.stringify({ name: 'fixture', private: true }))
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'junction',
+  )
+
+  const sources = packages.map((name) => {
+    const path = `tools/${name}`
+    const original = JSON.parse(
+      readFileSync(join(workspace, path, 'package.json'), 'utf8'),
+    )
+    put(
+      root,
+      `${path}/package.json`,
+      JSON.stringify({
+        name: original.name,
+        version: currentVersion,
+        scripts: { build: original.scripts['inject-version'] },
+        nx: original.nx,
+      }),
+    )
+    put(
+      root,
+      `${path}/scripts/inject-version.mjs`,
+      readFileSync(join(workspace, path, 'scripts/inject-version.mjs')),
+    )
+    return put(root, `${path}/src/version.ts`, staleVersion)
+  })
+  const build = () =>
+    execFileSync(
+      process.execPath,
+      [
+        join(workspace, 'node_modules/nx/bin/nx.js'),
+        'run-many',
+        '-t',
+        'build',
+        '--exclude',
+        'fixture',
+      ],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          NX_CACHE_DIRECTORY: join(root, '.nx/cache'),
+          NX_DAEMON: 'false',
+          NX_DISABLE_NX_CACHE: 'false',
+          NX_ISOLATE_PLUGINS: 'false',
+          NX_SKIP_NX_CACHE: 'false',
+          NX_WORKSPACE_DATA_DIRECTORY: join(root, '.nx/workspace-data'),
+        },
+      },
+    )
+
+  build()
+  for (const source of sources) {
+    assert.match(readFileSync(source, 'utf8'), /VERSION = '1\.2\.3'/)
+    writeFileSync(source, staleVersion)
+  }
+  assert.match(build(), /from the cache .*3 out of 3 tasks/)
+  for (const source of sources) {
+    assert.match(readFileSync(source, 'utf8'), /VERSION = '1\.2\.3'/)
+  }
+})

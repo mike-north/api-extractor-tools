@@ -51,7 +51,8 @@ change-detector old.d.ts new.d.ts --json
 change-detector old.d.ts new.d.ts --markdown
 ```
 
-This JavaScript example uses the alpha `compareDeclarations` API in Node.js.
+Save this example as `compare.mjs` and run `node compare.mjs` after generating
+both declaration files. It uses the alpha `compareDeclarations` API in JavaScript.
 
 ```javascript
 import {
@@ -81,23 +82,22 @@ Isomorphic core library for change detection that works in both Node.js and brow
 - Works in browsers (used by the [demo site](./tools/demo-site))
 - Suitable for building custom tooling
 
+Save this Node.js example as `compare.cts`. Compile it with
+`npx tsc --module node16 compare.cts`, then run `node compare.cjs`.
+
 ```typescript
-import {
-  analyzeChanges,
-  createASTComparisonReport,
-  formatASTReportAsMarkdown,
-} from '@api-extractor-tools/change-detector-core'
-import * as ts from 'typescript'
+import detector = require('@api-extractor-tools/change-detector-core')
+import ts = require('typescript')
 
 const oldSource = 'export declare function greet(name: string): string;'
 const newSource = `${oldSource}
 export declare function greetWithPrefix(name: string, prefix: string): string;`
 
-const result = analyzeChanges(oldSource, newSource, ts)
-const report = createASTComparisonReport(result.results)
+const result = detector.analyzeChanges(oldSource, newSource, ts)
+const report = detector.createASTComparisonReport(result.results)
 
 console.log(report.releaseType) // 'minor'
-console.log(formatASTReportAsMarkdown(report))
+console.log(detector.formatASTReportAsMarkdown(report))
 ```
 
 > **When to use which?**

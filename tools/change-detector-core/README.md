@@ -23,21 +23,21 @@ pnpm add @api-extractor-tools/change-detector-core typescript@5.8.3
 
 ## Usage
 
+The Node.js examples use CommonJS. Save a snippet as `compare.cts`, compile it
+with `npx tsc --module node16 compare.cts`, and run `node compare.cjs`.
+
 ### Basic Comparison
 
 ```typescript
-import {
-  analyzeChanges,
-  createASTComparisonReport,
-} from '@api-extractor-tools/change-detector-core'
-import * as ts from 'typescript'
+import detector = require('@api-extractor-tools/change-detector-core')
+import ts = require('typescript')
 
 const oldSource = 'export declare function greet(name: string): string;'
 const newSource = `${oldSource}
 export declare function greetWithPrefix(name: string, prefix: string): string;`
 
-const result = analyzeChanges(oldSource, newSource, ts)
-const report = createASTComparisonReport(result.results)
+const result = detector.analyzeChanges(oldSource, newSource, ts)
+const report = detector.createASTComparisonReport(result.results)
 
 console.log(report.releaseType) // 'minor'
 console.log(report.byReleaseType.minor.map(({ explanation }) => explanation))
@@ -46,25 +46,19 @@ console.log(report.byReleaseType.minor.map(({ explanation }) => explanation))
 ### Report Formatting
 
 ```typescript
-import {
-  analyzeChanges,
-  createASTComparisonReport,
-  formatASTReportAsText,
-  formatASTReportAsMarkdown,
-  formatASTReportAsJSON,
-} from '@api-extractor-tools/change-detector-core'
-import * as ts from 'typescript'
+import detector = require('@api-extractor-tools/change-detector-core')
+import ts = require('typescript')
 
 const oldSource = 'export declare function greet(name: string): string;'
 const newSource = `${oldSource}
 export declare function greetWithPrefix(name: string, prefix: string): string;`
-const report = createASTComparisonReport(
-  analyzeChanges(oldSource, newSource, ts).results,
+const report = detector.createASTComparisonReport(
+  detector.analyzeChanges(oldSource, newSource, ts).results,
 )
 
-console.log(formatASTReportAsText(report))
-console.log(formatASTReportAsMarkdown(report))
-console.log(JSON.stringify(formatASTReportAsJSON(report), null, 2))
+console.log(detector.formatASTReportAsText(report))
+console.log(detector.formatASTReportAsMarkdown(report))
+console.log(JSON.stringify(detector.formatASTReportAsJSON(report), null, 2))
 ```
 
 ### Low-Level APIs
@@ -72,22 +66,24 @@ console.log(JSON.stringify(formatASTReportAsJSON(report), null, 2))
 For more control, you can use the lower-level parsing and comparison functions:
 
 ```typescript
-import {
-  classifyChanges,
-  diffModules,
-  parseModuleWithTypes,
-  semverDefaultPolicy,
-} from '@api-extractor-tools/change-detector-core'
-import * as ts from 'typescript'
+import detector = require('@api-extractor-tools/change-detector-core')
+import ts = require('typescript')
 
 const oldSource = 'export declare function greet(name: string): string;'
 const newSource = `${oldSource}
 export declare function greetWithPrefix(name: string, prefix: string): string;`
 
-const oldModule = parseModuleWithTypes(oldSource, ts, { filename: 'old.d.ts' })
-const newModule = parseModuleWithTypes(newSource, ts, { filename: 'new.d.ts' })
-const changes = diffModules(oldModule, newModule)
-const classified = classifyChanges(changes, semverDefaultPolicy)
+const oldModule = detector.parseModuleWithTypes(oldSource, ts, {
+  filename: 'old.d.ts',
+})
+const newModule = detector.parseModuleWithTypes(newSource, ts, {
+  filename: 'new.d.ts',
+})
+const changes = detector.diffModules(oldModule, newModule)
+const classified = detector.classifyChanges(
+  changes,
+  detector.semverDefaultPolicy,
+)
 
 for (const { change, releaseType } of classified) {
   console.log(`[${releaseType}] ${change.explanation}`)
@@ -126,6 +122,25 @@ for (const { change, releaseType } of classified) {
 ## Browser Usage
 
 Pass the TypeScript compiler module to `analyzeChanges` in your browser bundle.
+For a Vite production build, install `path-browserify` as a dev dependency and
+add this configuration to `vite.config.mjs`. It provides the path and process
+APIs used by the TypeScript parser.
+
+```javascript
+export default {
+  resolve: {
+    alias: { 'node:path': 'path-browserify', path: 'path-browserify' },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        intro:
+          "const process = { env: {}, argv: [], cwd: () => '/', versions: {} };",
+      },
+    },
+  },
+}
+```
 
 ```typescript
 import {
