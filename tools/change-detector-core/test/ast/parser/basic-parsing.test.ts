@@ -220,6 +220,64 @@ export interface Container<T> {
   })
 
   describe('parseModuleWithTypes', () => {
+    it('includes declarations from local export lists under their public names', () => {
+      const result = parseModuleWithTypes(
+        'declare function run(): void; export { run };',
+        ts,
+      )
+
+      expect([...result.exports.keys()]).toEqual(['run'])
+      expect(result.exports.get('run')).toMatchObject({
+        name: 'run',
+        path: 'run',
+        kind: 'function',
+      })
+    })
+
+    it('keeps each alias of a declaration under a distinct public path', () => {
+      const result = parseModuleWithTypes(
+        `
+interface Local { id: string }
+interface First { unrelated: number }
+export { Local as First, Local as Second };
+`,
+        ts,
+      )
+
+      expect([...result.exports.keys()]).toEqual(['First', 'Second'])
+      for (const name of ['First', 'Second']) {
+        const node = result.exports.get(name)
+        expect(node).toMatchObject({ name, path: name, kind: 'interface' })
+        expect(node?.children.get('id')).toMatchObject({
+          path: `${name}.id`,
+          parent: name,
+        })
+      }
+      expect(result.nodes.get('Local')?.children.get('id')?.path).toBe(
+        'Local.id',
+      )
+    })
+
+    it('preserves the declared types of exported aliases', () => {
+      const result = parseModuleWithTypes(
+        'export type Id = string; export type Count = number;',
+        ts,
+      )
+
+      expect(result.exports.get('Id')?.typeInfo.signature).toBe('string')
+      expect(result.exports.get('Count')?.typeInfo.signature).toBe('number')
+    })
+
+    it('keeps unexported declarations out of the export map', () => {
+      const result = parseModuleWithTypes(
+        'type InternalId = string; export type Id = InternalId;',
+        ts,
+      )
+
+      expect([...result.exports.keys()]).toEqual(['Id'])
+      expect(result.exports.get('Id')?.typeInfo.signature).toBe('string')
+    })
+
     it('resolves types using TypeScript checker', () => {
       const source = `export declare function greet(name: string): string;`
       const result = parseModuleWithTypes(source, ts)

@@ -82,6 +82,21 @@ export function parseModule(
   return { filename, source, nodes, exports, errors }
 }
 
+/** Copies a declaration under its public path, including its nested members. */
+function rebaseExport(
+  node: AnalyzableNode,
+  name: string,
+  parent?: string,
+): AnalyzableNode {
+  const path = parent === undefined ? name : `${parent}.${name}`
+  const children = new Map<string, AnalyzableNode>()
+  for (const [key, child] of node.children) {
+    children.set(key, rebaseExport(child, child.name, path))
+  }
+
+  return { ...node, name, path, parent, children }
+}
+
 /**
  * Parses a TypeScript declaration string with type resolution.
  *
@@ -163,18 +178,36 @@ export function parseModuleWithTypes(
             : exportSymbol
         symbols.set(name, resolvedSymbol)
 
-        // Update type info with resolved types
-        const node = basicAnalysis.nodes.get(name)
-        if (node) {
-          const decl = resolvedSymbol.getDeclarations()?.[0]
-          if (decl) {
-            const type = checker.getTypeOfSymbolAtLocation(resolvedSymbol, decl)
-            node.typeInfo.signature = checker.typeToString(
-              type,
-              undefined,
-              tsModule.TypeFormatFlags.NoTruncation,
-            )
-          }
+        const decl = resolvedSymbol.getDeclarations()?.[0]
+        if (!decl || decl.getSourceFile() !== sourceFile) continue
+
+        const fromExportList = exportSymbol
+          .getDeclarations()
+          ?.some(tsModule.isExportSpecifier)
+        const localName = tsModule.getNameOfDeclaration(decl)
+        // The checker can also include implicit ambient exports in .d.ts files.
+        const localNode =
+          fromExportList && localName && tsModule.isIdentifier(localName)
+            ? basicAnalysis.nodes.get(localName.text)
+            : basicAnalysis.exports.get(name)
+        if (!localNode) continue
+
+        const node =
+          localNode.name === name ? localNode : rebaseExport(localNode, name)
+        const isTypeAlias = node.kind === 'type-alias'
+        const type = isTypeAlias
+          ? checker.getDeclaredTypeOfSymbol(resolvedSymbol)
+          : checker.getTypeOfSymbolAtLocation(resolvedSymbol, decl)
+        const flags = isTypeAlias
+          ? tsModule.TypeFormatFlags.NoTruncation |
+            tsModule.TypeFormatFlags.InTypeAlias
+          : tsModule.TypeFormatFlags.NoTruncation
+        const signature = checker.typeToString(type, undefined, flags)
+        node.typeInfo = { ...node.typeInfo, signature }
+
+        if (fromExportList) {
+          node.modifiers = new Set([...node.modifiers, 'exported'])
+          basicAnalysis.exports.set(name, node)
         }
       }
     }

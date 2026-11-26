@@ -81,6 +81,30 @@ describe('E2E: Full Flow Integration', () => {
       expect(majors.length).toBeGreaterThan(0)
     })
 
+    it.each([
+      ['export declare function greet(): void;', 'greet'],
+      ['declare function greet(): void; export { greet };', 'greet'],
+      ['declare function greet(): void; export { greet as hello };', 'hello'],
+    ])('reports a major removal from %s', (oldSource, name) => {
+      const result = analyzeChanges(oldSource, 'export {};', ts)
+
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: name, descriptor: { target: 'export', action: 'removed' } },
+      ])
+    })
+
+    it('treats equivalent inline and export-list declarations alike', () => {
+      const result = analyzeChanges(
+        'export declare function greet(): void;',
+        'declare function greet(): void; export { greet };',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('none')
+      expect(result.changes).toEqual([])
+    })
+
     it('should detect export addition as minor change', () => {
       const oldSource = `
         export function greet(name: string): string {
@@ -546,18 +570,33 @@ describe('E2E: Edge Cases', () => {
       expect(['minor', 'none']).toContain(result.releaseType)
     })
 
-    it('should handle type alias changes', () => {
+    it('reports an incompatible type alias change as major', () => {
       const oldSource = `
         export type ID = string;
       `
       const newSource = `
-        export type ID = string | number;
+        export type ID = number;
       `
 
       const result = analyzeChanges(oldSource, newSource, ts)
 
-      // Type widening - may be breaking or minor depending on context
-      expect(['major', 'minor', 'none']).toContain(result.releaseType)
+      expect(result.releaseType).toBe('major')
+      expect(result.changes).toMatchObject([
+        { path: 'ID', descriptor: { action: 'modified', aspect: 'type' } },
+      ])
+    })
+
+    it('reports a widened type alias as minor', () => {
+      const result = analyzeChanges(
+        'export type ID = string;',
+        'export type ID = string | number;',
+        ts,
+      )
+
+      expect(result.releaseType).toBe('minor')
+      expect(result.changes).toMatchObject([
+        { path: 'ID', descriptor: { action: 'modified', impact: 'widening' } },
+      ])
     })
   })
 
