@@ -2,10 +2,11 @@
 
 Run [API Extractor](https://api-extractor.com/) on declaration files supplied through a virtual filesystem.
 
-Extraction requires Node.js and a writable temporary directory. `extract` copies
-declarations from `projectFolder` (the entry point's directory by default) while
-preserving their relative paths. It reads the generated outputs and removes the
-temporary project after extraction. Unresolved relative imports produce errors.
+Extraction requires Node.js and a writable temporary directory. `extract` stages
+the entry point and its declaration dependencies while preserving their relative
+paths, including dependencies in parent directories. It reads the generated
+outputs and removes the temporary project after extraction. Unresolved relative
+modules and missing triple-slash path references produce errors.
 
 ## Features
 

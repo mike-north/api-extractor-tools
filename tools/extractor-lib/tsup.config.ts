@@ -21,5 +21,6 @@ export default defineConfig([
     target: 'node18',
     external: ['typescript'],
     outExtension: () => ({ js: '.cjs' }),
+    shims: true,
   },
 ])

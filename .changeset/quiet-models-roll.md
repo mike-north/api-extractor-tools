@@ -2,4 +2,4 @@
 '@api-extractor-tools/extractor-lib': patch
 ---
 
-Preserve relative paths when staging nested declarations for API Extractor and fail extraction when a relative module cannot be resolved. Register Windows drive roots when writing files to the in-memory filesystem.
+Preserve relative paths when staging declarations for API Extractor, including dependencies in parent directories. Report unresolved relative modules and missing triple-slash path references as extraction errors. Support extraction from both CommonJS and ESM, and handle Windows drive roots in the in-memory filesystem.

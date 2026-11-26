@@ -172,6 +172,14 @@ describe('InMemoryFileSystem', () => {
       expect(fs.readFile('/empty.txt')).toBe('')
     })
 
+    it('should reject a file at an unregistered drive root', () => {
+      expect(() => fs.writeFile('C:\\', 'content')).toThrow(
+        'path is a directory',
+      )
+      fs.writeFile('C:\\file.txt', 'content')
+      expect(fs.readDirectory('C:/')).toEqual(['file.txt'])
+    })
+
     it('should throw when writing to a directory', () => {
       fs.writeFile('/dir/file.txt', 'content')
       expect(() => fs.writeFile('/dir', 'content')).toThrow(

@@ -119,7 +119,10 @@ export class InMemoryFileSystem implements IVirtualFileSystem {
   writeFile(path: string, content: string): void {
     const absolutePath = this.toAbsolutePath(path)
 
-    if (this.directories.has(absolutePath)) {
+    if (
+      this.directories.has(absolutePath) ||
+      dirname(absolutePath) === absolutePath
+    ) {
       throw new Error(`Cannot write file: path is a directory: ${absolutePath}`)
     }
 

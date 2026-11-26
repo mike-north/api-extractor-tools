@@ -9,6 +9,11 @@ import type {
 import type * as ts from 'typescript'
 import type { IVirtualFileSystem } from '../filesystem/types.js'
 import type { IExtractorLibConfig } from '../config/types.js'
+import { getExtractorCompiler, requireFromLibrary } from './dependencies.js'
+import {
+  forEachModuleSpecifier,
+  resolveDeclarationPathReference,
+} from './module-specifiers.js'
 
 /**
  * Adapted configuration containing both the ExtractorConfig and output path information.
@@ -65,49 +70,171 @@ export interface IAdaptedConfig {
 function stageDeclarations(
   fs: IVirtualFileSystem,
   config: IExtractorLibConfig,
-  inputDir: string,
-): { entryPointRealPath: string; stagedFiles: ReadonlyMap<string, string> } {
+  tempDir: string,
+  compiler: typeof ts,
+  compilerOptionsForConfig: Record<string, unknown>,
+): {
+  entryPointRealPath: string
+  projectFolder: string
+  stagedFiles: ReadonlyMap<string, string>
+  roots: string[]
+} {
+  const { ExtractorConfig } = requireFromLibrary(
+    '@microsoft/api-extractor',
+  ) as typeof import('@microsoft/api-extractor')
   const entryPoint = fs.resolvePath(config.mainEntryPointFilePath)
-  const projectFolder = config.projectFolder
-    ? fs.resolvePath(config.projectFolder)
-    : fs.dirname(entryPoint)
-  const projectPrefix = projectFolder.endsWith('/')
-    ? projectFolder
-    : `${projectFolder}/`
-  const virtualDir = entryPoint.startsWith(projectPrefix)
-    ? projectFolder
-    : fs.dirname(entryPoint)
-  const virtualPrefix = virtualDir.endsWith('/') ? virtualDir : `${virtualDir}/`
-  const entryPointRealPath = nodePath.join(
-    inputDir,
-    entryPoint.slice(virtualPrefix.length),
-  )
+  const entryPointDir = fs.dirname(entryPoint)
+  let virtualRoot = entryPointDir
+  while (fs.dirname(virtualRoot) !== virtualRoot) {
+    virtualRoot = fs.dirname(virtualRoot)
+  }
+  const rootPrefix = virtualRoot.endsWith('/') ? virtualRoot : `${virtualRoot}/`
+  const inputDir = nodePath.join(tempDir, 'input')
+  const toRealPath = (path: string): string =>
+    nodePath.join(inputDir, path.slice(rootPrefix.length))
   const stagedFiles = new Map<string, string>()
+  const virtualProjectFolder = config.projectFolder
+    ? fs.resolvePath(config.projectFolder)
+    : undefined
+  const projectFolder =
+    virtualProjectFolder &&
+    (virtualProjectFolder === virtualRoot ||
+      entryPoint.startsWith(`${virtualProjectFolder}/`))
+      ? toRealPath(virtualProjectFolder)
+      : tempDir
+  const { options: compilerOptions } = compiler.convertCompilerOptionsFromJson(
+    compilerOptionsForConfig,
+    projectFolder,
+  )
+  // CompilerState uses declaration outputs directly instead of redirecting
+  // package self-imports through their build directories.
+  delete compilerOptions.outDir
+  delete compilerOptions.declarationDir
 
-  function copyFile(virtualPath: string, realPath: string): void {
+  function toVirtualPath(realPath: string): string | undefined {
+    const relative = nodePath.relative(inputDir, realPath)
+    if (
+      nodePath.isAbsolute(relative) ||
+      relative === '..' ||
+      relative.startsWith(`..${nodePath.sep}`)
+    ) {
+      return undefined
+    }
+    return relative
+      ? fs.join(virtualRoot, relative.split(nodePath.sep).join('/'))
+      : virtualRoot
+  }
+
+  function copyFile(virtualPath: string, realPath: string): string {
     const content = fs.readFile(virtualPath)
     realFs.mkdirSync(nodePath.dirname(realPath), { recursive: true })
     realFs.writeFileSync(realPath, content, 'utf8')
     stagedFiles.set(realPath, virtualPath)
+    return content
   }
 
-  function copyDirectory(virtualPath: string, realPath: string): void {
-    for (const entry of fs.readDirectory(virtualPath)) {
-      const virtualChild = fs.join(virtualPath, entry)
-      const realChild = nodePath.join(realPath, entry)
-      if (fs.isDirectory(virtualChild)) {
-        copyDirectory(virtualChild, realChild)
-      } else if (/\.d\.[cm]?ts$/.test(entry) && virtualChild !== entryPoint) {
-        copyFile(virtualChild, realChild)
+  // Resolve against the staged layout while consulting the VFS for files the
+  // compiler has not seen yet. Package metadata preserves NodeNext resolution.
+  const host: ts.ModuleResolutionHost = {
+    directoryExists(realPath) {
+      const virtualPath = toVirtualPath(realPath)
+      return virtualPath === undefined
+        ? compiler.sys.directoryExists(realPath)
+        : fs.isDirectory(virtualPath)
+    },
+    fileExists(realPath) {
+      const virtualPath = toVirtualPath(realPath)
+      return virtualPath === undefined
+        ? compiler.sys.fileExists(realPath)
+        : (ExtractorConfig.hasDtsFileExtension(realPath) ||
+            nodePath.basename(realPath) === 'package.json') &&
+            fs.isFile(virtualPath)
+    },
+    readFile(realPath) {
+      realPath = nodePath.normalize(realPath)
+      const virtualPath = toVirtualPath(realPath)
+      if (
+        virtualPath !== undefined &&
+        !stagedFiles.has(realPath) &&
+        nodePath.basename(realPath) === 'package.json' &&
+        fs.isFile(virtualPath)
+      ) {
+        return copyFile(virtualPath, realPath)
       }
+      return compiler.sys.readFile(realPath)
+    },
+  }
+
+  function stageFile(realPath: string, virtualPath: string): void {
+    realPath = nodePath.normalize(realPath)
+    if (stagedFiles.has(realPath)) {
+      return
+    }
+    const content = copyFile(virtualPath, realPath)
+    const file = compiler.createSourceFile(
+      realPath,
+      content,
+      {
+        languageVersion: compiler.ScriptTarget.Latest,
+        impliedNodeFormat: compiler.getImpliedNodeFormatForFile(
+          realPath,
+          undefined,
+          host,
+          compilerOptions,
+        ),
+      },
+      true,
+    )
+    for (const reference of file.referencedFiles) {
+      stageDependency(
+        resolveDeclarationPathReference(compiler, file, reference),
+      )
+    }
+    forEachModuleSpecifier(compiler, file, (specifier) => {
+      const { resolvedModule } = compiler.resolveModuleName(
+        specifier.text,
+        realPath,
+        compilerOptions,
+        host,
+        undefined,
+        undefined,
+        compiler.getModeForUsageLocation(file, specifier, compilerOptions),
+      )
+      if (resolvedModule) {
+        stageDependency(resolvedModule.resolvedFileName)
+      }
+    })
+  }
+
+  function stageDependency(realPath: string): void {
+    const virtualPath = toVirtualPath(realPath)
+    if (
+      virtualPath !== undefined &&
+      ExtractorConfig.hasDtsFileExtension(realPath) &&
+      fs.isFile(virtualPath)
+    ) {
+      stageFile(realPath, virtualPath)
     }
   }
 
-  copyFile(entryPoint, entryPointRealPath)
-  if (fs.isDirectory(virtualDir)) {
-    copyDirectory(virtualDir, inputDir)
+  // Keep adjacent declaration roots for ambient types and augmentations.
+  const entryPointRealPath = toRealPath(entryPoint)
+  stageFile(entryPointRealPath, entryPoint)
+  const roots = [entryPointRealPath]
+  if (fs.isDirectory(entryPointDir)) {
+    for (const entry of fs.readDirectory(entryPointDir)) {
+      if (!entry.endsWith('.d.ts')) {
+        continue
+      }
+      const sibling = fs.join(entryPointDir, entry)
+      if (sibling !== entryPoint && fs.isFile(sibling)) {
+        const realPath = toRealPath(sibling)
+        stageFile(realPath, sibling)
+        roots.push(realPath)
+      }
+    }
   }
-  return { entryPointRealPath, stagedFiles }
+  return { entryPointRealPath, projectFolder, stagedFiles, roots }
 }
 
 /**
@@ -207,15 +334,16 @@ function prepareExtractorConfig(
   typescript: typeof ts,
   tempDir: string,
 ): Omit<IAdaptedConfig, 'cleanup'> {
-  const { ExtractorConfig } =
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('@microsoft/api-extractor') as typeof import('@microsoft/api-extractor')
-
-  const { entryPointRealPath, stagedFiles } = stageDeclarations(
-    fs,
-    config,
-    nodePath.join(tempDir, 'input'),
+  const { ExtractorConfig } = requireFromLibrary(
+    '@microsoft/api-extractor',
+  ) as typeof import('@microsoft/api-extractor')
+  const compiler = getExtractorCompiler()
+  const compilerOptionsForConfig = convertCompilerOptionsToStrings(
+    config.compilerOptions,
+    typescript,
   )
+  const { entryPointRealPath, projectFolder, stagedFiles, roots } =
+    stageDeclarations(fs, config, tempDir, compiler, compilerOptionsForConfig)
 
   // Create package.json content and write to temp dir
   const packageJson = {
@@ -238,7 +366,7 @@ function prepareExtractorConfig(
 
   // Build the api-extractor config object using real paths
   const configObject: IConfigFile = {
-    projectFolder: tempDir,
+    projectFolder,
     mainEntryPointFilePath: entryPointRealPath,
   }
 
@@ -247,24 +375,9 @@ function prepareExtractorConfig(
     configObject.bundledPackages = config.bundledPackages
   }
 
-  // Configure compiler - use overrideTsconfig to provide options directly
-  // We need to convert TypeScript enum values to their string equivalents
-  // because api-extractor expects string values in the config
-  const compilerOptionsForConfig = convertCompilerOptionsToStrings(
-    config.compilerOptions,
-    typescript,
-  )
-
-  const entryPointDir = nodePath.dirname(entryPointRealPath)
   configObject.compiler = {
     overrideTsconfig: {
-      // Retain adjacent declaration roots (including ambient declarations).
-      // TypeScript follows imports and references to the rest of the tree.
-      files: [...stagedFiles.keys()].filter(
-        (file) =>
-          file === entryPointRealPath ||
-          (file.endsWith('.d.ts') && nodePath.dirname(file) === entryPointDir),
-      ),
+      files: roots,
       compilerOptions: {
         ...compilerOptionsForConfig,
         declaration: true,
