@@ -116,6 +116,98 @@ describe('E2E: Full Flow Integration', () => {
       expect(result.releaseType).toBe('major')
     })
 
+    it.each([
+      ['named export', 'API', 'API', ''],
+      ['aliased export', 'Before as API', 'After as API', ''],
+      [
+        'aliased export with Windows paths',
+        'Before as API',
+        'After as API',
+        'C:\\api folder\\index.d.ts',
+      ],
+    ])(
+      'detects nested removals through a %s',
+      (_, oldExport, newExport, filename) => {
+        const oldName = oldExport.split(' ')[0]
+        const newName = newExport.split(' ')[0]
+        const result = analyzeChanges(
+          `interface ${oldName} { run(): void } export { ${oldExport} }`,
+          `interface ${newName} {} export { ${newExport} }`,
+          ts,
+          { parseOptions: { filename: filename || 'input.d.ts' } },
+        )
+
+        expect(result.releaseType).toBe('major')
+        expect(result.results[0]?.nestedChanges[0]).toMatchObject({
+          path: 'API.run',
+          context: { ancestors: ['API'] },
+          descriptor: { action: 'removed', target: 'method' },
+          releaseType: 'major',
+        })
+      },
+    )
+
+    it('compares inline and aliased declarations using the public name', () => {
+      const result = analyzeChanges(
+        'export interface API { run(): void }',
+        'interface Implementation { run(): void } export { Implementation as API }',
+        ts,
+      )
+
+      expect(result.changes).toEqual([])
+      expect(result.releaseType).toBe('none')
+    })
+
+    it('ignores changes to unexported members of a namespace', () => {
+      const result = analyzeChanges(
+        'export namespace API { interface Hidden { run(): void } export interface Public {} }',
+        'export namespace API { interface Hidden {} export interface Public {} }',
+        ts,
+        { parseOptions: { filename: 'index.ts' } },
+      )
+
+      expect(result.releaseType).toBe('none')
+      expect(result.changes).toEqual([])
+    })
+
+    it.each(['private hidden', '#hidden'])(
+      'assigns no impact to removing %s while still classifying protected removals as major',
+      (member) => {
+        const baseline = `export declare class API { private brand; ${member}; protected run(): void }`
+        const result = analyzeChanges(
+          baseline,
+          'export declare class API { private brand; protected run(): void }',
+          ts,
+        )
+        expect(result.releaseType).toBe('none')
+        expect(result.results[0]?.nestedChanges).toMatchObject([
+          { descriptor: { action: 'removed' }, releaseType: 'none' },
+        ])
+
+        const protectedRemoval = analyzeChanges(
+          baseline,
+          `export declare class API { private brand; ${member}; }`,
+          ts,
+        )
+        expect(protectedRemoval.releaseType).toBe('major')
+        expect(protectedRemoval.results[0]?.nestedChanges).toMatchObject([
+          { path: 'API.run', releaseType: 'major' },
+        ])
+      },
+    )
+
+    it.each(['run(): void', 'count: number'])(
+      'requires a major release when an interface adds the required member %s',
+      (member) => {
+        const result = analyzeChanges(
+          'export interface API {}',
+          `export interface API { ${member} }`,
+          ts,
+        )
+        expect(result.releaseType).toBe('major')
+      },
+    )
+
     it('should detect no changes when source is identical', () => {
       const source = `
         export function greet(name: string): string {

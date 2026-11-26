@@ -105,16 +105,16 @@ export function parseModuleWithTypes(
   // First, get the basic AST analysis
   const basicAnalysis = parseModule(source, options)
 
-  // Create a TypeScript program for type resolution
-  const files = new Map<string, string>()
-  files.set(filename, source)
+  const entry = tsModule.createSourceFile(
+    filename,
+    source,
+    tsModule.ScriptTarget.Latest,
+  )
+  const isEntry = (fileName: string) => fileName === entry.fileName
 
   const compilerHost: ts.CompilerHost = {
     getSourceFile: (fileName, languageVersion) => {
-      const content = files.get(fileName)
-      if (content !== undefined) {
-        return tsModule.createSourceFile(fileName, content, languageVersion)
-      }
+      if (isEntry(fileName)) return entry
       // Return empty source for lib files
       if (fileName.includes('lib.') && fileName.endsWith('.d.ts')) {
         return tsModule.createSourceFile(fileName, '', languageVersion)
@@ -127,14 +127,14 @@ export function parseModuleWithTypes(
     getCanonicalFileName: (fileName) => fileName,
     useCaseSensitiveFileNames: () => true,
     getNewLine: () => '\n',
-    fileExists: (fileName) => files.has(fileName),
-    readFile: (fileName) => files.get(fileName),
+    fileExists: isEntry,
+    readFile: (fileName) => (isEntry(fileName) ? source : undefined),
     directoryExists: () => true,
     getDirectories: () => [],
   }
 
   const program = tsModule.createProgram(
-    [filename],
+    [entry.fileName],
     {
       target: tsModule.ScriptTarget.Latest,
       module: tsModule.ModuleKind.ESNext,
@@ -147,15 +147,15 @@ export function parseModuleWithTypes(
   )
 
   const checker = program.getTypeChecker()
-  const sourceFile = program.getSourceFile(filename)
+  const sourceFile = program.getSourceFile(entry.fileName)
   const symbols = new Map<string, ts.Symbol>()
 
   // Map AST nodes to TypeScript symbols
   if (sourceFile) {
     const moduleSymbol = checker.getSymbolAtLocation(sourceFile)
     if (moduleSymbol) {
-      const moduleExports = checker.getExportsOfModule(moduleSymbol)
-      for (const exportSymbol of moduleExports) {
+      const exports = new Map<string, AnalyzableNode>()
+      for (const exportSymbol of checker.getExportsOfModule(moduleSymbol)) {
         const name = exportSymbol.getName()
         const resolvedSymbol =
           exportSymbol.flags & tsModule.SymbolFlags.Alias
@@ -163,20 +163,37 @@ export function parseModuleWithTypes(
             : exportSymbol
         symbols.set(name, resolvedSymbol)
 
-        // Update type info with resolved types
-        const node = basicAnalysis.nodes.get(name)
-        if (node) {
-          const decl = resolvedSymbol.getDeclarations()?.[0]
-          if (decl) {
-            const type = checker.getTypeOfSymbolAtLocation(resolvedSymbol, decl)
-            node.typeInfo.signature = checker.typeToString(
-              type,
-              undefined,
-              tsModule.TypeFormatFlags.NoTruncation,
-            )
-          }
-        }
+        const decl = resolvedSymbol.getDeclarations()?.[0]
+        if (decl?.getSourceFile() !== sourceFile) continue
+
+        const node =
+          name === 'default' && resolvedSymbol.getName() === 'default'
+            ? [...basicAnalysis.exports.values()].find((candidate) =>
+                candidate.modifiers.has('default-export'),
+              )
+            : basicAnalysis.nodes.get(resolvedSymbol.getName())
+        if (!node) continue
+
+        const type = checker.getTypeOfSymbolAtLocation(resolvedSymbol, decl)
+        node.typeInfo.signature = checker.typeToString(
+          type,
+          undefined,
+          tsModule.TypeFormatFlags.NoTruncation,
+        )
+        const exportedNode = withPublicPath(
+          node,
+          name,
+          undefined,
+          checker,
+          resolvedSymbol,
+        )
+        const modifiers = new Set(exportedNode.modifiers)
+        modifiers.add('exported')
+        if (name === 'default') modifiers.add('default-export')
+        else modifiers.delete('default-export')
+        exports.set(name, { ...exportedNode, modifiers })
       }
+      basicAnalysis.exports = exports
     }
   }
 
@@ -186,4 +203,34 @@ export function parseModuleWithTypes(
     checker,
     symbols,
   }
+}
+
+function withPublicPath(
+  node: AnalyzableNode,
+  name: string,
+  parent: string | undefined,
+  checker: ts.TypeChecker,
+  symbol?: ts.Symbol,
+): AnalyzableNode {
+  const path = parent ? `${parent}.${name}` : name
+  if (node.kind !== 'namespace' && path === node.path) return node
+
+  const namespaceExports =
+    node.kind === 'namespace' && symbol
+      ? new Map(
+          checker
+            .getExportsOfModule(symbol)
+            .map((child) => [child.getName(), child]),
+        )
+      : undefined
+  const children = new Map<string, AnalyzableNode>()
+  for (const [childName, child] of node.children) {
+    const childSymbol = namespaceExports?.get(childName)
+    if (namespaceExports && !childSymbol) continue
+    children.set(
+      childName,
+      withPublicPath(child, childName, path, checker, childSymbol),
+    )
+  }
+  return { ...node, name, path, parent, children }
 }

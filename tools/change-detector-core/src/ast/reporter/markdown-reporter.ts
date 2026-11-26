@@ -81,7 +81,7 @@ function formatChangeAsMarkdown(
 
   // Nested changes
   if (change.nestedChanges.length > 0 && !options.flattenNested) {
-    const maxDepth = options.maxDepth ?? 3
+    const maxDepth = options.maxDepth ?? Infinity
     if (depth < maxDepth) {
       for (const nested of change.nestedChanges) {
         // Nested changes may not have releaseType - treat as 'none' if missing

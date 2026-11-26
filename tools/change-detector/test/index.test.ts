@@ -113,6 +113,26 @@ describe('compareDeclarations (file-based API)', () => {
     ).toHaveLength(1)
   })
 
+  it('reports a method removed from an aliased prerelease interface', async () => {
+    project.files = {
+      'old entry.d.mts':
+        '/** @alpha */\ninterface Before { run(): void } export { Before as API }',
+      'new entry.d.cts':
+        '/** @alpha */\ninterface After {} export { After as API }',
+    }
+    await project.write()
+
+    const result = compareDeclarations({
+      oldFile: path.join(project.baseDir, 'old entry.d.mts'),
+      newFile: path.join(project.baseDir, 'new entry.d.cts'),
+    })
+
+    expect(result.releaseType).toBe('major')
+    expect(result.report.byReleaseType.major).toMatchObject([
+      { path: 'API.run', releaseType: 'major' },
+    ])
+  })
+
   it('provides accurate statistics from file comparison', async () => {
     project.files = {
       'old.d.ts': `

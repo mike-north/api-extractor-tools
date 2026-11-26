@@ -68,6 +68,40 @@ describe('Integration: Complete Plugin Lifecycle', () => {
   })
 
   describe('validate mode', () => {
+    it('reports nested additions as members after comparing with a prerelease tag', async () => {
+      project.files = {
+        'package.json': JSON.stringify({
+          name: '@test/pkg',
+          types: 'index.d.ts',
+        }),
+        'index.d.ts': 'export interface API { run(): void }',
+      }
+      await project.write()
+      initGitRepo(project.baseDir)
+      createGitTag(project.baseDir, 'v2.0.0-beta.2')
+      fs.writeFileSync(
+        path.join(project.baseDir, 'index.d.ts'),
+        'export interface API { stop?(): void }',
+      )
+
+      const config = { mode: 'override' } as const
+      const context = createMockContext(project.baseDir, {
+        lastRelease: {
+          version: '2.0.0-beta.2',
+          gitTag: 'v2.0.0-beta.2',
+          gitHead: 'abc123',
+        },
+      })
+
+      expect(analyzeCommits(config, context)).toBe('major')
+      const notes = generateNotes(config, context)
+      expect(notes).toContain('### Breaking Changes')
+      expect(notes.match(/`API\.run`/g)).toHaveLength(1)
+      expect(notes).toContain('### Added Members')
+      expect(notes).toContain('`API.stop`')
+      expect(notes).not.toContain('### Added Exports')
+    })
+
     it('completes full lifecycle with matching version bump', async () => {
       // Setup: Initial version with a function
       project.files = {

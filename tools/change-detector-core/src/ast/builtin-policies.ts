@@ -14,8 +14,9 @@ import { rule, createPolicy, type Policy } from './rule-builder'
  * Standard semver policy for general API compatibility.
  *
  * Rules:
- * - Removals are always breaking (major)
+ * - Removing exports or accessible members is breaking (major)
  * - Required parameter additions are breaking (major)
+ * - Required interface member additions are breaking (major)
  * - Type narrowing is breaking (major)
  * - Optionality changes are breaking (major)
  * - Optional additions are non-breaking (minor)
@@ -36,6 +37,14 @@ export const semverDefaultPolicy: Policy = createPolicy(
       .action('removed')
       .rationale('Removing an export breaks consumers who depend on it')
       .returns('major'),
+  )
+  .addRule(
+    rule('private-member-removal')
+      .action('removed')
+      .nested(true)
+      .when(({ oldNode }) => oldNode?.modifiers.has('private') ?? false)
+      .rationale('Removing a private member preserves external member access')
+      .returns('none'),
   )
   .addRule(
     rule('member-removal')
@@ -81,13 +90,15 @@ export const semverDefaultPolicy: Policy = createPolicy(
       .returns('major'),
   )
 
-  // Required property addition - breaking for implementers
+  // Required property or method addition - breaking for implementers
   .addRule(
     rule('required-property-addition')
-      .target('property')
+      .target('property', 'method')
       .action('added')
       .hasTag('now-required')
-      .rationale('Adding required properties breaks existing implementers')
+      .rationale(
+        'Adding required properties or methods breaks existing implementers',
+      )
       .returns('major'),
   )
 

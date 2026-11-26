@@ -5,6 +5,7 @@
 import type {
   AnalyzableNode,
   ApiChange,
+  ChangeTag,
   DiffOptions,
   DiffContext,
 } from '../types'
@@ -68,8 +69,17 @@ export function detectNestedChanges(
   // Process added members
   for (const child of added) {
     const target = nodeKindToTarget(child.kind)
+    const tags: ChangeTag[] = []
+    if (child.modifiers.has('optional')) {
+      tags.push('now-optional')
+    } else if (
+      newNode.kind === 'interface' &&
+      (target === 'property' || target === 'method')
+    ) {
+      tags.push('now-required')
+    }
     changes.push({
-      descriptor: createSimpleDescriptor(target, 'added'),
+      descriptor: createSimpleDescriptor(target, 'added', tags),
       path: child.path,
       nodeKind: child.kind,
       newLocation: child.location,

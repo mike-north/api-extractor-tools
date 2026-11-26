@@ -501,6 +501,17 @@ export function classifyChanges(
 type ReleaseResult = Pick<ClassifiedChange, 'releaseType'> &
   Partial<Pick<ApiChange, 'nestedChanges'>>
 
+function* walkClassifiedDescendants(
+  changes: readonly ApiChange[],
+): Generator<ClassifiedChange> {
+  for (const change of changes) {
+    if ('releaseType' in change && change.releaseType !== undefined) {
+      yield change as ClassifiedChange
+    }
+    yield* walkClassifiedDescendants(change.nestedChanges)
+  }
+}
+
 /** Iterates over classified roots and descendants in tree order. */
 export function* walkClassifiedChanges<T extends ReleaseResult>(
   changes: readonly T[],
@@ -508,11 +519,7 @@ export function* walkClassifiedChanges<T extends ReleaseResult>(
   for (const change of changes) {
     yield change
     if (change.nestedChanges?.length) {
-      yield* walkClassifiedChanges(
-        change.nestedChanges.filter(
-          (nested): nested is ClassifiedChange => 'releaseType' in nested,
-        ),
-      )
+      yield* walkClassifiedDescendants(change.nestedChanges)
     }
   }
 }

@@ -51,10 +51,10 @@ export interface ASTComparisonReport {
   /** The overall release type */
   releaseType: ReleaseType
 
-  /** All classified changes */
+  /** Root changes with their nested changes */
   changes: ClassifiedChange[]
 
-  /** Changes grouped by release type */
+  /** All classified changes, including descendants, grouped by release type */
   byReleaseType: Record<ReleaseType, ClassifiedChange[]>
 
   /** Summary statistics */
@@ -98,7 +98,7 @@ export function createASTComparisonReport(
   }
 }
 
-function groupChangesByReleaseType(
+export function groupChangesByReleaseType(
   changes: readonly ClassifiedChange[],
   getReleaseType = (change: ClassifiedChange): ReleaseType =>
     change.releaseType,
@@ -121,7 +121,7 @@ export function groupChangesForDisplay(
   report: ASTComparisonReport,
   options: ASTReporterOptions,
 ): ASTComparisonReport['byReleaseType'] {
-  return options.flattenNested
+  return options.flattenNested || report.changes.length === 0
     ? report.byReleaseType
     : groupChangesByReleaseType(report.changes, (change) =>
         determineOverallRelease([change]),

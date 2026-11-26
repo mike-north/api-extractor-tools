@@ -5,4 +5,4 @@
 '@api-extractor-tools/changeset-change-detector': patch
 ---
 
-Include nested API changes in release recommendations and report counts. Removing a method from an exported interface now recommends a major release under the default policy.
+Include nested API changes in release recommendations and reports. Under the default policy, removing a public interface method or adding a required interface member recommends a major release, including when the interface is exported through a named export list. Release notes identify changes to members separately from changes to exports.
