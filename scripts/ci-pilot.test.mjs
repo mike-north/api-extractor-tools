@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
+import ts from 'typescript'
 
 // Use the real tool versions while keeping every generated file in the fixture.
 const workspace = fileURLToPath(new URL('../', import.meta.url))
@@ -31,6 +32,66 @@ function put(root, relativePath, contents) {
   mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, contents)
   return path
+}
+
+function copy(root, relativePath) {
+  return put(root, relativePath, readFileSync(join(workspace, relativePath)))
+}
+
+function nxFixture(t) {
+  const root = fixture(t)
+  for (const path of [
+    'nx.json',
+    'pnpm-workspace.yaml',
+    'ci-cache-version.txt',
+  ]) {
+    copy(root, path)
+  }
+  put(root, 'package.json', JSON.stringify({ name: 'fixture', private: true }))
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'dir',
+  )
+  execFileSync('git', ['init', '--quiet'], { cwd: root })
+  return root
+}
+
+function runNx(root, target) {
+  return execFileSync(
+    process.execPath,
+    [join(workspace, 'node_modules/nx/bin/nx.js'), 'run', target],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        NX_DAEMON: 'false',
+        NX_TUI: 'false',
+        NX_NO_CLOUD: 'true',
+      },
+    },
+  )
+}
+
+function commitFixture(root, message) {
+  execFileSync(
+    'git',
+    [
+      '-c',
+      'user.name=Fixture',
+      '-c',
+      'user.email=fixture@example.com',
+      'commit',
+      '--quiet',
+      '--no-gpg-sign',
+      '--allow-empty',
+      '-m',
+      message,
+    ],
+    { cwd: root },
+  )
 }
 
 test('workspace clean removes untracked generator output and keeps tracked and handwritten files', (t) => {
@@ -174,5 +235,180 @@ test('API artifact generation preserves a stale baseline for the strict check', 
   assert.equal(
     readFileSync(rollup, 'utf8') === 'existing declaration rollup',
     true,
+  )
+})
+
+test('demo builds invalidate the cache when Vite inputs change', (t) => {
+  const root = nxFixture(t)
+  const projectPath = 'tools/demo-site'
+  const project = join(root, projectPath)
+  const manifest = JSON.parse(
+    readFileSync(copy(root, `${projectPath}/package.json`), 'utf8'),
+  )
+  const config = copy(root, `${projectPath}/vite.config.ts`)
+  symlinkSync(
+    join(workspace, projectPath, 'node_modules'),
+    join(project, 'node_modules'),
+    'dir',
+  )
+  put(
+    project,
+    'tsconfig.json',
+    JSON.stringify({
+      compilerOptions: { noEmit: true, types: [] },
+      include: ['src'],
+    }),
+  )
+  put(
+    project,
+    'src/index.ts',
+    'declare const __BUILD_ID__: string; document.body.dataset.build = __BUILD_ID__\n',
+  )
+  const html =
+    '<title>Demo</title><script type="module" src="/src/index.ts"></script>\n'
+  put(project, 'index.html', html)
+  commitFixture(root, 'Initial commit')
+
+  const build = `${manifest.name}:build`
+  runNx(root, build)
+  assert.match(runNx(root, build), /\[local cache\]/)
+
+  const marker = 'New public asset\n'
+  put(project, 'public/nested/marker.txt', marker)
+  runNx(root, build)
+  assert.equal(
+    readFileSync(join(project, 'dist/nested/marker.txt'), 'utf8'),
+    marker,
+  )
+
+  const outputHtml = join(project, 'dist/index.html')
+  put(project, 'index.html', html.replace('Demo', 'Updated demo'))
+  runNx(root, build)
+  assert.match(readFileSync(outputHtml, 'utf8'), /<title>Updated demo<\/title>/)
+
+  writeFileSync(
+    config,
+    readFileSync(config, 'utf8').replace(
+      "base: '/api-extractor-tools/'",
+      "base: '/updated-base/'",
+    ),
+  )
+  runNx(root, build)
+  assert.match(
+    readFileSync(outputHtml, 'utf8'),
+    /src="\/updated-base\/assets\//,
+  )
+
+  commitFixture(root, 'Update revision')
+  const revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+    cwd: root,
+    encoding: 'utf8',
+  }).trim()
+  runNx(root, build)
+  const bundle = readFileSync(outputHtml, 'utf8').match(
+    /src="\/updated-base\/(assets\/[^" ]+\.js)"/,
+  )?.[1]
+  assert.ok(bundle, 'expected a JavaScript bundle in the compiled HTML')
+  assert.ok(
+    readFileSync(join(project, 'dist', bundle), 'utf8').includes(revision),
+  )
+})
+
+test('a warm API report check preserves the declared package types', (t) => {
+  const root = nxFixture(t)
+  const project = join(root, 'tools/example')
+  copy(root, 'scripts/run-api-extractor.mjs')
+  copy(root, 'api-extractor-base.json')
+  mkdirSync(join(root, 'api-reports'))
+  const { scripts } = JSON.parse(
+    readFileSync(
+      join(workspace, 'tools/module-declaration-merger/package.json'),
+      'utf8',
+    ),
+  )
+  const types = 'dist/example-public.d.ts'
+  put(
+    project,
+    'package.json',
+    JSON.stringify({
+      name: 'example',
+      version: '0.0.0',
+      types,
+      scripts: {
+        build: 'tsc',
+        'build:api-artifacts': scripts['build:api-artifacts'],
+        'check:api-report': scripts['check:api-report'],
+        'generate:api-report': scripts['generate:api-report'],
+      },
+    }),
+  )
+  put(
+    project,
+    'src/index.ts',
+    '/** The public interface. @public */\nexport interface Example { value: string }\n',
+  )
+  put(
+    project,
+    'tsconfig.json',
+    JSON.stringify({
+      compilerOptions: {
+        declaration: true,
+        outDir: 'dist',
+        skipLibCheck: true,
+        types: [],
+      },
+      include: ['src'],
+    }),
+  )
+  put(
+    project,
+    'api-extractor.json',
+    JSON.stringify({
+      extends: '../../api-extractor-base.json',
+      mainEntryPointFilePath: '<projectFolder>/dist/index.d.ts',
+    }),
+  )
+  symlinkSync(
+    join(workspace, 'tools/module-declaration-merger/node_modules'),
+    join(project, 'node_modules'),
+    'dir',
+  )
+  mkdirSync(join(root, 'consumer/node_modules'), { recursive: true })
+  symlinkSync(project, join(root, 'consumer/node_modules/example'), 'dir')
+  const consumerFile = put(
+    root,
+    'consumer/index.ts',
+    "import type { Example } from 'example'\n",
+  )
+  const resolveTypes = () =>
+    ts.resolveModuleName(
+      'example',
+      consumerFile,
+      { moduleResolution: ts.ModuleResolutionKind.Node10 },
+      ts.sys,
+    ).resolvedModule?.resolvedFileName
+
+  runNx(root, 'example:generate:api-report')
+  assert.equal(resolveTypes(), join(project, types))
+
+  const check = runNx(root, 'example:check:api-report')
+  assert.match(check, /example:build\s+\[local cache\]/)
+  assert.equal(resolveTypes(), join(project, types))
+})
+
+test('the required CI build lane runs standalone type assertions', () => {
+  const ci = readFileSync(join(workspace, '.github/workflows/ci.yml'), 'utf8')
+  const buildChecks = ci
+    .split(/^  build-checks:\n/m)[1]
+    ?.split(/^  build-and-test:\n/m)[0]
+  assert.ok(
+    /^      - name: [^\n]+\n        run: pnpm test:types$/m.test(buildChecks),
+    'expected an unconditional pnpm test:types step in build-checks',
+  )
+  assert.ok(
+    /^  build-and-test:\n[\s\S]*?^    needs: \[[^\n]*\bbuild-checks\b[^\n]*\]/m.test(
+      ci,
+    ),
+    'expected build-and-test to require build-checks',
   )
 })

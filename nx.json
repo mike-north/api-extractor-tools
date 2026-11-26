@@ -114,7 +114,7 @@
     "check:api-report": {
       // Compare the live declarations and tracked baseline on each invocation.
       "cache": false,
-      "dependsOn": ["build", "^build", "^build:api-artifacts"]
+      "dependsOn": ["build:api-artifacts", "^build:api-artifacts"]
     }
   }
 }

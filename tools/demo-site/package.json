@@ -12,6 +12,25 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"
   },
+  "nx": {
+    "targets": {
+      "build": {
+        "inputs": [
+          "source",
+          "tsConfig",
+          "ciCacheVersion",
+          "^default",
+          "{projectRoot}/public/**/*",
+          "{projectRoot}/index.html",
+          "{projectRoot}/vite.config.ts",
+          "{projectRoot}/vitest.config.ts",
+          {
+            "runtime": "git rev-parse --short HEAD 2>/dev/null || echo unknown"
+          }
+        ]
+      }
+    }
+  },
   "dependencies": {
     "@api-extractor-tools/change-detector-core": "workspace:*",
     "@monaco-editor/react": "^4.6.0",
