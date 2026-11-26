@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { describe, it, expect } from 'vitest'
 import jsonSchemaPlugin, {
   JsonSchemaProcessor,
@@ -25,13 +26,59 @@ function getExpectedVersion(): string {
 const EXPECTED_VERSION = getExpectedVersion()
 
 describe('JSON Schema Input Processor Plugin', () => {
+  it('processes input through the CommonJS and ESM package exports', () => {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        `
+        import assert from 'node:assert/strict'
+        import { createRequire } from 'node:module'
+        import * as esm from '@api-extractor-tools/plugin-json-schema'
+        const require = createRequire(import.meta.url)
+        const cjs = require('@api-extractor-tools/plugin-json-schema')
+        const content = JSON.stringify({"title": "Ping", "type": "object"})
+        for (const entry of [esm, cjs]) {
+          const result = new entry.JsonSchemaProcessor().process(content)
+          assert.deepEqual(result.errors, [])
+          assert.ok(result.symbols.has('Ping'))
+          assert.equal(entry.default.metadata.version, ${JSON.stringify(EXPECTED_VERSION)})
+          assert.equal(entry.legacyJsonSchemaPlugin.version, entry.default.metadata.version)
+        }
+      `,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+  })
+
+  it('resolves declarations in the same module format as the entry point', () => {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--conditions=types',
+        '--eval',
+        `
+          import assert from 'node:assert/strict'
+          import { createRequire } from 'node:module'
+          import { pathToFileURL } from 'node:url'
+          const require = createRequire(import.meta.url)
+          const name = '@api-extractor-tools/plugin-json-schema'
+          assert.ok(import.meta.resolve(name).endsWith('/dist/esm/index.d.ts'))
+          assert.ok(pathToFileURL(require.resolve(name)).pathname.endsWith('/dist/cjs/index.d.ts'))
+        `,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+  })
+
   describe('unified plugin format', () => {
     it('should have correct plugin metadata', () => {
       expect(jsonSchemaPlugin.metadata.id).toBe('json-schema')
       expect(jsonSchemaPlugin.metadata.name).toBe(
         'JSON Schema Input Processor Plugin',
       )
-      expect(jsonSchemaPlugin.metadata.version).toBe(EXPECTED_VERSION)
       expect(jsonSchemaPlugin.metadata.description).toBeDefined()
     })
 
@@ -79,7 +126,9 @@ describe('JSON Schema Input Processor Plugin', () => {
     it('should have correct legacy plugin metadata', () => {
       expect(legacyJsonSchemaPlugin.id).toBe('json-schema')
       expect(legacyJsonSchemaPlugin.name).toBe('JSON Schema Processor')
-      expect(legacyJsonSchemaPlugin.version).toBe(EXPECTED_VERSION)
+      expect(legacyJsonSchemaPlugin.version).toBe(
+        jsonSchemaPlugin.metadata.version,
+      )
       expect(legacyJsonSchemaPlugin.extensions).toContain('.schema.json')
     })
 
@@ -142,6 +191,37 @@ describe('JSON Schema Input Processor Plugin', () => {
       )
       expect(after.symbols.get('Model')?.signature).toContain(
         'child?: { id: number; label?: string }',
+      )
+    })
+
+    it('renders structural object members inside nullable array items', () => {
+      const processor = new JsonSchemaProcessor()
+      const processWithIdType = (type: string) =>
+        processor.process(
+          JSON.stringify({
+            title: 'Model',
+            properties: {
+              children: {
+                type: 'array',
+                items: {
+                  type: ['object', 'null'],
+                  properties: { id: { type } },
+                  required: ['id'],
+                },
+              },
+            },
+          }),
+        )
+
+      const before = processWithIdType('string')
+      const after = processWithIdType('number')
+      expect(before.errors).toEqual([])
+      expect(after.errors).toEqual([])
+      expect(before.symbols.get('Model')?.signature).toContain(
+        'children?: ({ id: string } | null)[]',
+      )
+      expect(after.symbols.get('Model')?.signature).toContain(
+        'children?: ({ id: number } | null)[]',
       )
     })
 

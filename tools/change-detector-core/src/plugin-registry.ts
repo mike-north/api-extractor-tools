@@ -299,63 +299,73 @@ export function createPluginRegistry(
     ResolvedCapability<ReporterDefinition>[]
   >()
 
-  /**
-   * Indexes a capability into its respective index.
-   */
-  function indexCapability<T extends { id: string }>(
-    index: CapabilityIndex<T>,
-    pluginId: string,
-    definition: T,
-    force: boolean,
-  ): ResolvedCapability<T> | null {
-    const qualifiedId = qualifyId(pluginId, definition.id)
-
-    // Check for conflicts
-    const existing = index.byQualifiedId.get(qualifiedId)
-    if (existing && !force) {
-      logger.warn(
-        `Capability "${qualifiedId}" is already registered by plugin "${existing.pluginId}". ` +
-          `Use force option to override.`,
-      )
-      return null
-    }
-
-    const resolved: ResolvedCapability<T> = {
-      pluginId,
-      definition,
-      qualifiedId,
-    }
-
-    index.byQualifiedId.set(qualifiedId, resolved)
-
-    // Update byPluginId index
-    const pluginCapabilities = index.byPluginId.get(pluginId) ?? []
-    // Remove old entry if force
-    const existingIndex = pluginCapabilities.findIndex(
-      (c) => c.qualifiedId === qualifiedId,
-    )
-    if (existingIndex >= 0) {
-      pluginCapabilities.splice(existingIndex, 1)
-    }
-    pluginCapabilities.push(resolved)
-    index.byPluginId.set(pluginId, pluginCapabilities)
-
-    return resolved
+  function mapEntries<T, U>(
+    items: readonly T[] | undefined,
+    map: (item: T) => U,
+  ): U[] {
+    // Validation reads array entries by index, independently of the iterator.
+    return items
+      ? Array.from({ length: items.length }, (_, index) => map(items[index]!))
+      : []
   }
 
-  /**
-   * Removes all capabilities for a plugin from an index.
-   */
+  function indexCapabilities<T>(
+    index: CapabilityIndex<T>,
+    pluginId: string,
+    capabilities: ResolvedCapability<T>[],
+  ): void {
+    for (const capability of capabilities) {
+      index.byQualifiedId.set(capability.qualifiedId, capability)
+    }
+    index.byPluginId.set(pluginId, capabilities)
+  }
+
+  function indexByKey<T>(
+    index: Map<string, ResolvedCapability<T>[]>,
+    key: string,
+    capability: ResolvedCapability<T>,
+  ): void {
+    const existing = index.get(key) ?? []
+    existing.push(capability)
+    index.set(key, existing)
+  }
+
   function removeFromIndex<T>(
     index: CapabilityIndex<T>,
     pluginId: string,
-  ): ResolvedCapability<T>[] {
-    const capabilities = index.byPluginId.get(pluginId) ?? []
-    for (const cap of capabilities) {
-      index.byQualifiedId.delete(cap.qualifiedId)
+  ): void {
+    for (const capability of index.byPluginId.get(pluginId) ?? []) {
+      index.byQualifiedId.delete(capability.qualifiedId)
     }
     index.byPluginId.delete(pluginId)
-    return capabilities
+  }
+
+  function removeFromSecondaryIndex<T>(
+    index: Map<string, ResolvedCapability<T>[]>,
+    pluginId: string,
+  ): void {
+    for (const [key, capabilities] of index) {
+      if (capabilities.some((capability) => capability.pluginId === pluginId)) {
+        const remaining = capabilities.filter(
+          (capability) => capability.pluginId !== pluginId,
+        )
+        if (remaining.length === 0) {
+          index.delete(key)
+        } else {
+          index.set(key, remaining)
+        }
+      }
+    }
+  }
+
+  function removeRegistration(pluginId: string): void {
+    removeFromIndex(inputProcessors, pluginId)
+    removeFromIndex(policies, pluginId)
+    removeFromIndex(reporters, pluginId)
+    removeFromIndex(validators, pluginId)
+    removeFromSecondaryIndex(processorsByExtension, pluginId)
+    removeFromSecondaryIndex(reportersByFormat, pluginId)
+    plugins.delete(pluginId)
   }
 
   /**
@@ -391,7 +401,7 @@ export function createPluginRegistry(
 
     // Multiple capabilities - look for 'default'
     const defaultCapability = pluginCapabilities.find(
-      (c) => c.definition.id === 'default',
+      (c) => c.qualifiedId === qualifyId(pluginId, 'default'),
     )
     if (defaultCapability) {
       return defaultCapability
@@ -415,125 +425,81 @@ export function createPluginRegistry(
         allowEmptyCapabilities: true,
       })
       if (!validation.valid) {
-        throw new Error(
-          formatValidationErrors(validation, plugin?.metadata?.id),
-        )
+        const pluginId = validation.errors.find(
+          (error) => error.pluginId,
+        )?.pluginId
+        throw new Error(formatValidationErrors(validation, pluginId))
       }
 
-      const force = registerOptions?.force ?? false
       const pluginId = plugin.metadata.id
-
-      // Check if plugin is already registered
-      if (plugins.has(pluginId) && !force) {
+      const replacing = plugins.has(pluginId)
+      if (replacing && !registerOptions?.force) {
         logger.warn(
           `Plugin "${pluginId}" is already registered. Use force option to override.`,
         )
         return
       }
 
-      // Remove old registration if forcing
-      if (plugins.has(pluginId)) {
-        registry.unregister(pluginId)
-      }
-
-      plugins.set(pluginId, plugin)
-
-      // Index input processors
-      for (const processor of plugin.inputProcessors ?? []) {
-        const resolved = indexCapability(
-          inputProcessors,
+      // Read every index key before removing an existing registration.
+      function resolve<T extends { id: string }>(
+        definition: T,
+      ): ResolvedCapability<T> {
+        return {
           pluginId,
-          processor,
-          force,
-        )
-        if (resolved) {
-          // Index by extension
-          for (const ext of processor.extensions) {
-            const extLower = ext.toLowerCase()
-            const existing = processorsByExtension.get(extLower) ?? []
-            existing.push(resolved)
-            processorsByExtension.set(extLower, existing)
-          }
+          definition,
+          qualifiedId: qualifyId(pluginId, definition.id),
         }
       }
+      const processors = mapEntries(plugin.inputProcessors, (definition) => ({
+        capability: resolve(definition),
+        extensions: mapEntries(definition.extensions, (ext) =>
+          ext.toLowerCase(),
+        ),
+      }))
+      const pluginPolicies = mapEntries(plugin.policies, resolve)
+      const pluginReporters = mapEntries(plugin.reporters, (definition) => ({
+        capability: resolve(definition),
+        format: definition.format.toLowerCase(),
+      }))
+      const pluginValidators = mapEntries(plugin.validators, resolve)
 
-      // Index policies
-      for (const policy of plugin.policies ?? []) {
-        indexCapability(policies, pluginId, policy, force)
+      if (replacing) {
+        removeRegistration(pluginId)
       }
-
-      // Index reporters
-      for (const reporter of plugin.reporters ?? []) {
-        const resolved = indexCapability(reporters, pluginId, reporter, force)
-        if (resolved) {
-          // Index by format
-          const formatLower = reporter.format.toLowerCase()
-          const existing = reportersByFormat.get(formatLower) ?? []
-          existing.push(resolved)
-          reportersByFormat.set(formatLower, existing)
+      plugins.set(pluginId, plugin)
+      indexCapabilities(
+        inputProcessors,
+        pluginId,
+        processors.map(({ capability }) => capability),
+      )
+      indexCapabilities(policies, pluginId, pluginPolicies)
+      indexCapabilities(
+        reporters,
+        pluginId,
+        pluginReporters.map(({ capability }) => capability),
+      )
+      indexCapabilities(validators, pluginId, pluginValidators)
+      for (const { capability, extensions } of processors) {
+        for (const extension of extensions) {
+          indexByKey(processorsByExtension, extension, capability)
         }
       }
-
-      // Index validators
-      for (const validator of plugin.validators ?? []) {
-        indexCapability(validators, pluginId, validator, force)
+      for (const { capability, format } of pluginReporters) {
+        indexByKey(reportersByFormat, format, capability)
       }
 
+      if (replacing) {
+        logger.debug?.(`Unregistered plugin: ${pluginId}`)
+      }
       logger.debug?.(`Registered plugin: ${pluginId}`)
     },
 
     unregister(pluginId: string): boolean {
-      const plugin = plugins.get(pluginId)
-      if (!plugin) {
+      if (!plugins.has(pluginId)) {
         return false
       }
-
-      // Remove from input processors index and extension index
-      const removedProcessors = removeFromIndex(inputProcessors, pluginId)
-      for (const proc of removedProcessors) {
-        for (const ext of proc.definition.extensions) {
-          const extLower = ext.toLowerCase()
-          const existing = processorsByExtension.get(extLower)
-          if (existing) {
-            const filtered = existing.filter(
-              (p) => p.qualifiedId !== proc.qualifiedId,
-            )
-            if (filtered.length === 0) {
-              processorsByExtension.delete(extLower)
-            } else {
-              processorsByExtension.set(extLower, filtered)
-            }
-          }
-        }
-      }
-
-      // Remove from policies index
-      removeFromIndex(policies, pluginId)
-
-      // Remove from reporters index and format index
-      const removedReporters = removeFromIndex(reporters, pluginId)
-      for (const rep of removedReporters) {
-        const formatLower = rep.definition.format.toLowerCase()
-        const existing = reportersByFormat.get(formatLower)
-        if (existing) {
-          const filtered = existing.filter(
-            (r) => r.qualifiedId !== rep.qualifiedId,
-          )
-          if (filtered.length === 0) {
-            reportersByFormat.delete(formatLower)
-          } else {
-            reportersByFormat.set(formatLower, filtered)
-          }
-        }
-      }
-
-      // Remove from validators index
-      removeFromIndex(validators, pluginId)
-
-      // Remove plugin
-      plugins.delete(pluginId)
+      removeRegistration(pluginId)
       logger.debug?.(`Unregistered plugin: ${pluginId}`)
-
       return true
     },
 

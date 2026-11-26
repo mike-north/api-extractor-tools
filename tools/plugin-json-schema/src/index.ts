@@ -19,7 +19,7 @@ import type {
   ProcessResult,
   ExportedSymbol,
 } from '@api-extractor-tools/change-detector-core'
-import { VERSION } from './version'
+import { VERSION } from './version.js'
 
 /**
  * JSON Schema type definition.
@@ -150,10 +150,7 @@ function generateSchemaSignature(name: string, schema: JSONSchema): string {
 
   // Handle array type
   if (schema.type === 'array') {
-    const itemType = schema.items
-      ? getTypeString(schema.items as JSONSchema)
-      : 'unknown'
-    return `type ${name} = ${itemType}[]`
+    return `type ${name} = ${getArrayTypeString(schema.items)}`
   }
 
   // Handle primitive types
@@ -201,13 +198,21 @@ function mapJsonTypeToTs(jsonType: string): string {
 /**
  * Extracts type string from a schema for inline use.
  */
-function getTypeString(schema: JSONSchema): string {
+function getTypeString(schema: JSONSchema, asArrayItem = false): string {
+  function joinTypes(types: string[], separator: string): string {
+    const combined = types.join(separator)
+    return asArrayItem && types.length > 1 ? `(${combined})` : combined
+  }
+
   if (schema.$ref !== undefined) {
     return extractRefName(schema.$ref)
   }
 
   if (schema.enum !== undefined) {
-    return schema.enum.map((v) => JSON.stringify(v)).join(' | ')
+    return joinTypes(
+      schema.enum.map((v) => JSON.stringify(v)),
+      ' | ',
+    )
   }
 
   if (schema.const !== undefined) {
@@ -215,7 +220,10 @@ function getTypeString(schema: JSONSchema): string {
   }
 
   if (schema.allOf !== undefined) {
-    return schema.allOf.map((s) => getTypeString(s)).join(' & ')
+    return joinTypes(
+      schema.allOf.map((s) => getTypeString(s)),
+      ' & ',
+    )
   }
 
   if (schema.anyOf !== undefined) {
@@ -227,31 +235,32 @@ function getTypeString(schema: JSONSchema): string {
   }
 
   if (schema.type === 'array') {
-    const itemType = schema.items
-      ? getTypeString(schema.items as JSONSchema)
-      : 'unknown'
-    return `${itemType}[]`
+    return getArrayTypeString(schema.items)
   }
 
-  if (
-    schema.properties !== undefined &&
-    (schema.type === undefined || schema.type === 'object')
-  ) {
-    const props = Object.entries(schema.properties).map(([name, prop]) => {
-      const required = schema.required?.includes(name) ? '' : '?'
-      return `${name}${required}: ${getTypeString(prop)}`
-    })
-    return `{ ${props.join('; ')} }`
-  }
-
-  if (schema.type !== undefined) {
-    if (Array.isArray(schema.type)) {
-      return schema.type.map(mapJsonTypeToTs).join(' | ')
+  function renderType(type: string | undefined): string {
+    if (
+      schema.properties !== undefined &&
+      (type === undefined || type === 'object')
+    ) {
+      const props = Object.entries(schema.properties).map(([name, prop]) => {
+        const required = schema.required?.includes(name) ? '' : '?'
+        return `${name}${required}: ${getTypeString(prop)}`
+      })
+      return `{ ${props.join('; ')} }`
     }
-    return mapJsonTypeToTs(schema.type)
+    return type === undefined ? 'unknown' : mapJsonTypeToTs(type)
   }
 
-  return 'unknown'
+  return Array.isArray(schema.type)
+    ? joinTypes(schema.type.map(renderType), ' | ')
+    : renderType(schema.type)
+}
+
+function getArrayTypeString(items: JSONSchema['items']): string {
+  const type =
+    items && !Array.isArray(items) ? getTypeString(items, true) : 'unknown'
+  return `${type}[]`
 }
 
 /**

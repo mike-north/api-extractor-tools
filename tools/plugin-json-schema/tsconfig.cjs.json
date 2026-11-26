@@ -6,7 +6,7 @@
     "moduleResolution": "node",
     "outDir": "./dist/cjs",
     "rootDir": "./src",
-    "declaration": false,
+    "declaration": true,
     "declarationMap": false
   },
   "include": ["src/**/*.ts"],

@@ -241,6 +241,66 @@ describe('createPluginRegistry', () => {
       expect(registry.findInputProcessorsForExtension('.new')).toHaveLength(0)
     })
 
+    it('indexes the capability entries that were validated', () => {
+      const original = createTestPlugin('test-plugin', {
+        inputProcessors: [{ id: 'original', extensions: ['.old'] }],
+      })
+      registry.register(original)
+      const replacement = createTestPlugin('test-plugin', {
+        inputProcessors: [{ id: 'replacement', extensions: ['.NEW'] }],
+      })
+      const processor = replacement.inputProcessors![0]!
+      const inputProcessors = [processor]
+      inputProcessors[Symbol.iterator] = function* () {
+        yield { ...processor, extensions: [null as unknown as string] }
+      }
+
+      registry.register(
+        {
+          ...replacement,
+          metadata: { ...replacement.metadata, version: '1.0.0-rc.1+build' },
+          inputProcessors,
+        },
+        { force: true },
+      )
+      expect(registry.getInputProcessor('test-plugin')?.definition).toBe(
+        processor,
+      )
+      expect(registry.findInputProcessorsForExtension('.new')).toHaveLength(1)
+      expect(registry.findInputProcessorsForExtension('.old')).toHaveLength(0)
+    })
+
+    it('removes the extensions indexed at registration during replacement', () => {
+      const extensions = ['.old']
+      const original = createTestPlugin('test-plugin', {
+        inputProcessors: [{ id: 'original', extensions }],
+      })
+      registry.register(original)
+      extensions[0] = '.changed'
+
+      registry.register(createTestPlugin('test-plugin'), { force: true })
+      expect(registry.findInputProcessorsForExtension('.old')).toEqual([])
+    })
+
+    it('reports the field path for malformed non-JSON values', () => {
+      const plugin = createTestPlugin('test-plugin')
+      const invalidId = {
+        ...plugin,
+        metadata: { ...plugin.metadata, id: Symbol('invalid') },
+      } as unknown as ChangeDetectorPlugin
+      expect(() => registry.register(invalidId)).toThrow('metadata.id')
+
+      const invalidExtension = createTestPlugin('test-plugin', {
+        inputProcessors: [
+          { id: 'invalid', extensions: [42n as unknown as string] },
+        ],
+      })
+      expect(() => registry.register(invalidExtension)).toThrow(
+        'inputProcessors[0].extensions[0]',
+      )
+      expect(registry.plugins.size).toBe(0)
+    })
+
     it('warns on duplicate capability IDs', () => {
       const plugin1 = createTestPlugin('plugin-a', {
         inputProcessors: [{ id: 'default', extensions: ['.ts'] }],

@@ -174,7 +174,7 @@ function validateInputProcessor(
       if (!isValidExtension(p.extensions[i])) {
         errors.push({
           path: `${basePath}.extensions[${i}]`,
-          message: `Extension must be a non-empty string starting with "." (got ${JSON.stringify(p.extensions[i])})`,
+          message: 'Extension must be a non-empty string starting with "."',
           pluginId,
         })
       }

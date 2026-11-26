@@ -30,7 +30,13 @@
     "build": {
       "cache": true,
       "dependsOn": ["^build", "^build:api-artifacts"],
-      "inputs": ["source", "tsConfig", "ciCacheVersion"],
+      "inputs": [
+        "source",
+        "tsConfig",
+        "ciCacheVersion",
+        "{projectRoot}/tsconfig.*.json",
+        "{workspaceRoot}/scripts/write-esm-package.mjs"
+      ],
       "outputs": ["{projectRoot}/dist"]
     },
     "test:types": {
