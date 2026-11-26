@@ -5,6 +5,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import * as ts from 'typescript'
 import type { ResolvedEntryPoints } from '../types'
 
 /**
@@ -30,6 +31,13 @@ type PackageExports =
  * Cache for package.json lookups.
  */
 const packageJsonCache = new Map<string, PackageJson | null>()
+
+interface BuildDirectories {
+  rootDir: string
+  outDirs: string[]
+}
+
+const buildDirectoriesCache = new Map<string, BuildDirectories>()
 
 /**
  * Finds the nearest package.json by searching upward from a directory.
@@ -141,102 +149,86 @@ export function resolveEntryPoints(pkgPath: string): ResolvedEntryPoints {
  * @returns True if the file is an entry point
  */
 export function isEntryPoint(filePath: string, pkgPath: string): boolean {
-  const entryPoints = resolveEntryPoints(pkgPath)
+  const { main, types, exports } = resolveEntryPoints(pkgPath)
+  const entryPaths = [main, types, ...exports].filter((p) => p !== undefined)
   const absoluteFilePath = path.resolve(filePath)
+  const normalizedFilePath = normalizeForComparison(absoluteFilePath)
 
-  // Check main
   if (
-    entryPoints.main &&
-    normalizeForComparison(entryPoints.main) ===
-      normalizeForComparison(absoluteFilePath)
+    entryPaths.some(
+      (entry) => normalizeForComparison(entry) === normalizedFilePath,
+    )
   ) {
     return true
   }
-
-  // Check types
-  if (
-    entryPoints.types &&
-    normalizeForComparison(entryPoints.types) ===
-      normalizeForComparison(absoluteFilePath)
-  ) {
-    return true
+  if (entryPaths.length === 0) {
+    return false
   }
 
-  // Check exports
-  for (const exportPath of entryPoints.exports) {
-    if (
-      normalizeForComparison(exportPath) ===
-      normalizeForComparison(absoluteFilePath)
-    ) {
-      return true
-    }
-  }
-
-  // Also check if the TypeScript source file corresponds to the entry point
-  // e.g., src/index.ts -> dist/index.js
-  const sourceEquivalents = getSourceEquivalents(absoluteFilePath)
-  for (const sourcePath of sourceEquivalents) {
-    if (
-      entryPoints.main &&
-      normalizeForComparison(entryPoints.main) ===
-        normalizeForComparison(sourcePath)
-    ) {
-      return true
-    }
-    if (
-      entryPoints.types &&
-      normalizeForComparison(entryPoints.types) ===
-        normalizeForComparison(sourcePath)
-    ) {
-      return true
-    }
-    for (const exportPath of entryPoints.exports) {
-      if (
-        normalizeForComparison(exportPath) ===
-        normalizeForComparison(sourcePath)
-      ) {
-        return true
-      }
-    }
-  }
-
-  return false
+  const directories = getBuildDirectories(path.resolve(path.dirname(pkgPath)))
+  const fileWithoutExtension = stripExtension(absoluteFilePath)
+  const sourcePaths = getSourcePaths(absoluteFilePath, directories).map(
+    normalizeForComparison,
+  )
+  return entryPaths.some(
+    (entry) =>
+      getSourcePaths(entry, directories).some(
+        (source) => stripExtension(source) === fileWithoutExtension,
+      ) || sourcePaths.includes(normalizeForComparison(entry)),
+  )
 }
 
-/**
- * Normalizes a path for comparison by removing extension variations.
- */
 function normalizeForComparison(filePath: string): string {
-  // Remove common extensions and normalize
-  return filePath
-    .replace(/\.(js|ts|mjs|cjs|mts|cts|d\.ts|d\.mts|d\.cts)$/, '')
-    .replace(/\/index$/, '')
+  return stripExtension(filePath).replace(/[/\\]index$/, '')
 }
 
-/**
- * Gets potential source file equivalents for a dist file.
- */
-function getSourceEquivalents(filePath: string): string[] {
-  const equivalents: string[] = []
-  const dir = path.dirname(filePath)
-  const base = path.basename(filePath).replace(/\.(ts|tsx|js|jsx|mjs|cjs)$/, '')
+function stripExtension(filePath: string): string {
+  return filePath.replace(/\.(d\.[cm]?ts|[cm]?[jt]s|[jt]sx)$/, '')
+}
 
-  // Try common source directory patterns
-  const sourcePatterns = [
-    dir.replace('/dist/', '/src/').replace('\\dist\\', '\\src\\'),
-    dir.replace('/build/', '/src/').replace('\\build\\', '\\src\\'),
-    dir.replace('/lib/', '/src/').replace('\\lib\\', '\\src\\'),
-  ]
-
-  for (const sourceDir of sourcePatterns) {
-    if (sourceDir !== dir) {
-      equivalents.push(path.join(sourceDir, `${base}.ts`))
-      equivalents.push(path.join(sourceDir, `${base}.tsx`))
-      equivalents.push(path.join(sourceDir, `${base}.js`))
-    }
+function getBuildDirectories(pkgDir: string): BuildDirectories {
+  const cached = buildDirectoriesCache.get(pkgDir)
+  if (cached) {
+    return cached
   }
 
-  return equivalents
+  const options = ts.getParsedCommandLineOfConfigFile(
+    path.join(pkgDir, 'tsconfig.json'),
+    {},
+    {
+      ...ts.sys,
+      // Entry point mapping only needs the compiler options.
+      readDirectory: () => [],
+      onUnRecoverableConfigFileDiagnostic: () => undefined,
+    },
+  )?.options
+  const directories = {
+    rootDir: options?.rootDir ?? path.join(pkgDir, 'src'),
+    outDirs: options?.outDir
+      ? [options.outDir]
+      : ['dist', 'build', 'lib'].map((dir) => path.join(pkgDir, dir)),
+  }
+  buildDirectoriesCache.set(pkgDir, directories)
+  return directories
+}
+
+function getSourcePaths(
+  outputPath: string,
+  { rootDir, outDirs }: BuildDirectories,
+): string[] {
+  const sourcePaths: string[] = []
+  for (const outDir of outDirs) {
+    const relativePath = path.relative(outDir, outputPath)
+    if (
+      relativePath &&
+      relativePath !== '..' &&
+      !relativePath.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relativePath)
+    ) {
+      sourcePaths.push(path.join(rootDir, relativePath))
+    }
+  }
+  return sourcePaths
 }
 
 /**
@@ -244,5 +236,5 @@ function getSourceEquivalents(filePath: string): string[] {
  */
 export function clearPackageJsonCache(): void {
   packageJsonCache.clear()
+  buildDirectoriesCache.clear()
 }
-

@@ -153,6 +153,67 @@ describe('entry-point', () => {
       expect(isEntryPoint(filePath, pkgPath)).toBe(true)
     })
 
+    it('should identify a nested build output when main points to source', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(
+        pkgPath,
+        JSON.stringify({ main: './src/feature/index.tsx' }),
+      )
+
+      const filePath = path.join(tempDir, 'dist/feature/index.js')
+      expect(isEntryPoint(filePath, pkgPath)).toBe(true)
+    })
+
+    it.each([
+      ['main', { main: './dist/index.js' }, 'src/index.ts'],
+      ['main with JSX', { main: './lib/index.jsx' }, 'src/index.tsx'],
+      ['types', { types: './dist/index.d.ts' }, 'src/index.ts'],
+      [
+        'exports',
+        { exports: { './feature': { import: './build/feature/index.mjs' } } },
+        'src/feature/index.mts',
+      ],
+    ])(
+      'should map the %s output to its source file',
+      (_field, manifest, source) => {
+        const pkgPath = path.join(tempDir, 'package.json')
+        fs.writeFileSync(pkgPath, JSON.stringify(manifest))
+
+        expect(isEntryPoint(path.join(tempDir, source), pkgPath)).toBe(true)
+      },
+    )
+
+    it('should use the source and output directories from tsconfig.json', () => {
+      const pkgPath = path.join(tempDir, 'package.json')
+      fs.writeFileSync(
+        pkgPath,
+        JSON.stringify({ main: './output/feature/index.js' }),
+      )
+      fs.writeFileSync(
+        path.join(tempDir, 'tsconfig.base.json'),
+        JSON.stringify({
+          compilerOptions: { rootDir: './source', outDir: './output' },
+        }),
+      )
+      fs.writeFileSync(
+        path.join(tempDir, 'tsconfig.json'),
+        JSON.stringify({ extends: './tsconfig.base.json' }),
+      )
+
+      expect(
+        isEntryPoint(path.join(tempDir, 'source/feature/index.ts'), pkgPath),
+      ).toBe(true)
+      expect(
+        isEntryPoint(path.join(tempDir, 'src/feature/index.ts'), pkgPath),
+      ).toBe(false)
+      expect(
+        isEntryPoint(path.join(tempDir, 'source/feature.ts'), pkgPath),
+      ).toBe(false)
+      expect(isEntryPoint(path.join(tempDir, 'source/index.ts'), pkgPath)).toBe(
+        false,
+      )
+    })
+
     it('should not identify non-entry point files', () => {
       const pkgPath = path.join(tempDir, 'package.json')
       fs.writeFileSync(pkgPath, JSON.stringify({ main: './dist/index.js' }))
