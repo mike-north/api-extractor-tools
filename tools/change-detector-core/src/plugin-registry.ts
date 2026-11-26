@@ -13,6 +13,7 @@ import type {
   ReporterDefinition,
   ValidatorDefinition,
 } from './plugin-types'
+import { formatValidationErrors, validatePlugin } from './plugin-validation'
 
 // ============================================================================
 // Types
@@ -106,7 +107,7 @@ export interface PluginRegistry {
    *
    * @param plugin - The plugin to register
    * @param options - Registration options
-   * @throws If plugin ID is already registered (unless force is true)
+   * @throws If the plugin fails validation.
    */
   register(plugin: ChangeDetectorPlugin, options?: RegisterOptions): void
 
@@ -410,6 +411,15 @@ export function createPluginRegistry(
     },
 
     register(plugin: ChangeDetectorPlugin, registerOptions?: RegisterOptions) {
+      const validation = validatePlugin(plugin, {
+        allowEmptyCapabilities: true,
+      })
+      if (!validation.valid) {
+        throw new Error(
+          formatValidationErrors(validation, plugin?.metadata?.id),
+        )
+      }
+
       const force = registerOptions?.force ?? false
       const pluginId = plugin.metadata.id
 
@@ -427,7 +437,6 @@ export function createPluginRegistry(
       }
 
       plugins.set(pluginId, plugin)
-      logger.debug?.(`Registered plugin: ${pluginId}`)
 
       // Index input processors
       for (const processor of plugin.inputProcessors ?? []) {
@@ -469,6 +478,8 @@ export function createPluginRegistry(
       for (const validator of plugin.validators ?? []) {
         indexCapability(validators, pluginId, validator, force)
       }
+
+      logger.debug?.(`Registered plugin: ${pluginId}`)
     },
 
     unregister(pluginId: string): boolean {

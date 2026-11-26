@@ -172,6 +172,75 @@ describe('createPluginRegistry', () => {
       expect(registry.getInputProcessor('my-plugin:old')).toBeUndefined()
     })
 
+    it.each([false, true])(
+      'keeps every lookup intact on invalid registration (force: %s)',
+      (force) => {
+        const id = 'my-plugin'
+        const original = createTestPlugin(id, {
+          inputProcessors: [{ id: 'old', extensions: ['.old'] }],
+          policies: [{ id: 'old' }],
+          reporters: [{ id: 'old', format: 'json' }],
+          validators: [{ id: 'old' }],
+        })
+        if (force) registry.register(original)
+
+        const replacement = createTestPlugin(id, {
+          inputProcessors: [{ id: 'new', extensions: ['.new'] }],
+          policies: [{ id: 'new' }],
+          reporters: [{ id: 'new', format: 'text' }],
+          validators: [{ id: 'new' }],
+        })
+        const lookupState = () => ({
+          plugins: [...registry.plugins],
+          processors: registry.listInputProcessors(),
+          policies: registry.listPolicies(),
+          reporters: registry.listReporters(),
+          validators: registry.listValidators(),
+          byId: [id, `${id}:old`, `${id}:new`].map((key) => [
+            registry.getInputProcessor(key),
+            registry.getPolicy(key),
+            registry.getReporter(key),
+            registry.getValidator(key),
+          ]),
+          oldExtension: registry.findInputProcessorsForExtension('.old'),
+          newExtension: registry.findInputProcessorsForExtension('.new'),
+          jsonFormat: registry.findReportersForFormat('json'),
+          textFormat: registry.findReportersForFormat('text'),
+        })
+        const before = lookupState()
+
+        const invalid = {
+          ...replacement,
+          validators: {},
+        } as ChangeDetectorPlugin
+        expect(() => registry.register(invalid, { force })).toThrow()
+        expect(lookupState()).toEqual(before)
+      },
+    )
+
+    it('validates secondary index keys before replacing a plugin', () => {
+      const id = 'my-plugin'
+      const original = createTestPlugin(id, {
+        inputProcessors: [{ id: 'original', extensions: ['.old'] }],
+        reporters: [{ id: 'original', format: 'json' }],
+      })
+      registry.register(original)
+      const replacement = createTestPlugin(id, {
+        inputProcessors: [{ id: 'replacement', extensions: ['.new'] }],
+        reporters: [{ id: 'replacement', format: 'text' }],
+      })
+      const invalid = {
+        ...replacement,
+        reporters: [{ ...replacement.reporters![0]!, format: 42 }],
+      } as unknown as ChangeDetectorPlugin
+
+      expect(() => registry.register(invalid, { force: true })).toThrow()
+      expect(registry.plugins.get(id)).toBe(original)
+      expect(registry.findReportersForFormat('json')).toHaveLength(1)
+      expect(registry.findInputProcessorsForExtension('.old')).toHaveLength(1)
+      expect(registry.findInputProcessorsForExtension('.new')).toHaveLength(0)
+    })
+
     it('warns on duplicate capability IDs', () => {
       const plugin1 = createTestPlugin('plugin-a', {
         inputProcessors: [{ id: 'default', extensions: ['.ts'] }],

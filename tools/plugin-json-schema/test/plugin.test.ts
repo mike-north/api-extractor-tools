@@ -115,6 +115,36 @@ describe('JSON Schema Input Processor Plugin', () => {
       expect(userSymbol.signature).toContain('age?:')
     })
 
+    it('should reflect changes to required properties of inline objects', () => {
+      const processor = new JsonSchemaProcessor()
+      const processWithIdType = (type: string) =>
+        processor.process(
+          JSON.stringify({
+            title: 'Model',
+            type: 'object',
+            properties: {
+              child: {
+                type: 'object',
+                properties: { id: { type }, label: { type: 'string' } },
+                required: ['id'],
+              },
+            },
+          }),
+        )
+
+      const before = processWithIdType('string')
+      const after = processWithIdType('number')
+
+      expect(before.errors).toEqual([])
+      expect(after.errors).toEqual([])
+      expect(before.symbols.get('Model')?.signature).toContain(
+        'child?: { id: string; label?: string }',
+      )
+      expect(after.symbols.get('Model')?.signature).toContain(
+        'child?: { id: number; label?: string }',
+      )
+    })
+
     it('should process schema with $defs', () => {
       const processor = new JsonSchemaProcessor()
       const result = processor.process(

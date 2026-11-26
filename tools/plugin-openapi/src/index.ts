@@ -354,29 +354,34 @@ function generateOperationSignature(
   method: string,
   path: string,
   operation: OperationObjectV2 | OperationObjectV3,
+  pathParameters:
+    | PathItemObjectV2['parameters']
+    | PathItemObjectV3['parameters'],
   isV3: boolean,
 ): string {
   const parts: string[] = [`${method.toUpperCase()} ${path}`]
 
-  // Add parameters
-  if (operation.parameters && operation.parameters.length > 0) {
-    const params = operation.parameters
-      .filter(
-        (p): p is ParameterObjectV2 | ParameterObjectV3 => !isReference(p),
-      )
-      .map((p) => {
-        const required = p.required ? '' : '?'
-        let type = 'unknown'
-        if ('type' in p && typeof p.type === 'string' && p.type) {
-          type = p.type === 'integer' ? 'number' : p.type
-        } else if (p.schema) {
-          type = getSchemaTypeString(p.schema)
-        }
-        return `${p.name}${required}: ${type}`
-      })
-    if (params.length > 0) {
-      parts.push(`  params: { ${params.join('; ')} }`)
+  const parameters = new Map<string, ParameterObjectV2 | ParameterObjectV3>()
+  for (const parameter of [
+    ...(pathParameters ?? []),
+    ...(operation.parameters ?? []),
+  ]) {
+    if (!isReference(parameter)) {
+      parameters.set(`${parameter.in}:${parameter.name}`, parameter)
     }
+  }
+  if (parameters.size > 0) {
+    const params = Array.from(parameters.values(), (parameter) => {
+      const required = parameter.required ? '' : '?'
+      let type = 'unknown'
+      if (typeof parameter.type === 'string' && parameter.type) {
+        type = parameter.type === 'integer' ? 'number' : parameter.type
+      } else if (parameter.schema) {
+        type = getSchemaTypeString(parameter.schema)
+      }
+      return `${parameter.name}${required}: ${type}`
+    })
+    parts.push(`  params: { ${params.join('; ')} }`)
   }
 
   // Add request body (v3 only)
@@ -491,6 +496,7 @@ export class OpenAPIv2Processor implements InputProcessor {
                   method,
                   path,
                   operation,
+                  pathItem.parameters,
                   false,
                 ),
               })
@@ -601,6 +607,7 @@ export class OpenAPIv3Processor implements InputProcessor {
                   method,
                   path,
                   operation,
+                  pathItem.parameters,
                   true,
                 ),
               })

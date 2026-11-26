@@ -113,6 +113,63 @@ describe('OpenAPI Input Processor Plugin', () => {
     })
   })
 
+  it.each([
+    {
+      format: 'OpenAPI v2',
+      Processor: OpenAPIv2Processor,
+      version: { swagger: '2.0' },
+      stringType: { type: 'string' },
+      integerType: { type: 'integer' },
+    },
+    {
+      format: 'OpenAPI v3',
+      Processor: OpenAPIv3Processor,
+      version: { openapi: '3.0.0' },
+      stringType: { schema: { type: 'string' } },
+      integerType: { schema: { type: 'integer' } },
+    },
+  ])(
+    'merges path parameters with operation overrides in $format',
+    ({ Processor, version, stringType, integerType }) => {
+      const processor = new Processor()
+      const path = {
+        get: { operationId: 'Search', responses: {} },
+        post: {
+          operationId: 'SearchWithLimit',
+          parameters: [{ name: 'q', in: 'query', ...integerType }],
+          responses: {},
+        },
+      }
+      const processPath = (pathItem: object) =>
+        processor.process(
+          JSON.stringify({
+            ...version,
+            info: { title: 'Search API', version: '1.0.0' },
+            paths: { '/search': pathItem },
+          }),
+        )
+
+      const before = processPath(path)
+      const after = processPath({
+        ...path,
+        parameters: [
+          { name: 'q', in: 'query', required: true, ...stringType },
+          { name: 'q', in: 'header', required: true, ...stringType },
+        ],
+      })
+
+      expect(before.errors).toEqual([])
+      expect(after.errors).toEqual([])
+      expect(before.symbols.get('Search')?.signature).toBe('GET /search')
+      expect(after.symbols.get('Search')?.signature).toContain(
+        'params: { q: string; q: string }',
+      )
+      expect(after.symbols.get('SearchWithLimit')?.signature).toContain(
+        'params: { q?: number; q: string }',
+      )
+    },
+  )
+
   describe('OpenAPIv2Processor', () => {
     const simpleV2Spec = {
       swagger: '2.0',

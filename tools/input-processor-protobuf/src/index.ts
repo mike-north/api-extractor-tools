@@ -22,6 +22,7 @@ import type {
   ExportedSymbol,
 } from '@api-extractor-tools/change-detector-core'
 import * as protobuf from 'protobufjs'
+import { FileDescriptorSet } from 'protobufjs/ext/descriptor/index.js'
 import { VERSION } from './version'
 
 /**
@@ -210,11 +211,8 @@ export class JsonDescriptorProcessor implements InputProcessor {
     const errors: string[] = []
 
     try {
-      // Parse JSON content
-      const descriptor = JSON.parse(content) as object
-
-      // Create a protobuf Root from the JSON descriptor
-      const root = protobuf.Root.fromJSON(descriptor)
+      const descriptor: unknown = JSON.parse(content)
+      const root = loadJsonDescriptor(descriptor)
 
       // Extract symbols from the loaded root
       extractSymbols(root, symbols, this.options)
@@ -226,6 +224,34 @@ export class JsonDescriptorProcessor implements InputProcessor {
 
     return { symbols, errors }
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function loadJsonDescriptor(descriptor: unknown): protobuf.Root {
+  if (isRecord(descriptor)) {
+    if (Array.isArray(descriptor.file)) {
+      // The descriptor extension adds this method at runtime.
+      const DescriptorRoot = protobuf.Root as typeof protobuf.Root & {
+        fromDescriptor(descriptor: protobuf.Message): protobuf.Root
+      }
+      return DescriptorRoot.fromDescriptor(
+        FileDescriptorSet.fromObject(descriptor),
+      )
+    }
+
+    if (
+      isRecord(descriptor.nested) ||
+      (descriptor.nested === undefined && isRecord(descriptor.options)) ||
+      Object.keys(descriptor).length === 0
+    ) {
+      return protobuf.Root.fromJSON(descriptor)
+    }
+  }
+
+  throw new Error('Expected FileDescriptorSet or protobufjs reflection JSON')
 }
 
 /**

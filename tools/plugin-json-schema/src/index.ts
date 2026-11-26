@@ -233,19 +233,22 @@ function getTypeString(schema: JSONSchema): string {
     return `${itemType}[]`
   }
 
-  if (schema.type !== undefined) {
-    if (Array.isArray(schema.type)) {
-      return schema.type.map(mapJsonTypeToTs).join(' | ')
-    }
-    return mapJsonTypeToTs(schema.type)
-  }
-
-  if (schema.properties !== undefined) {
+  if (
+    schema.properties !== undefined &&
+    (schema.type === undefined || schema.type === 'object')
+  ) {
     const props = Object.entries(schema.properties).map(([name, prop]) => {
       const required = schema.required?.includes(name) ? '' : '?'
       return `${name}${required}: ${getTypeString(prop)}`
     })
     return `{ ${props.join('; ')} }`
+  }
+
+  if (schema.type !== undefined) {
+    if (Array.isArray(schema.type)) {
+      return schema.type.map(mapJsonTypeToTs).join(' | ')
+    }
+    return mapJsonTypeToTs(schema.type)
   }
 
   return 'unknown'

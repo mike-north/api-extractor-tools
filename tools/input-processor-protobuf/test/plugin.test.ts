@@ -393,6 +393,70 @@ describe('Protocol Buffer Input Processor Plugin', () => {
   })
 
   describe('JsonDescriptorProcessor', () => {
+    it('should extract a package-qualified message from FileDescriptorSet JSON', () => {
+      const processor = new JsonDescriptorProcessor()
+      const descriptor = {
+        file: [
+          {
+            name: 'api.proto',
+            package: 'demo',
+            syntax: 'proto3',
+            messageType: [{ name: 'Ping' }],
+          },
+        ],
+      }
+
+      const result = processor.process(JSON.stringify(descriptor))
+
+      expect(result.errors).toEqual([])
+      expect(result.symbols.get('demo.Ping')?.name).toBe('demo.Ping')
+    })
+
+    it('should accept symbolic enum values in FileDescriptorSet JSON fields', () => {
+      const processor = new JsonDescriptorProcessor()
+      const descriptor = {
+        file: [
+          {
+            name: 'api.proto',
+            syntax: 'proto3',
+            messageType: [
+              {
+                name: 'Ping',
+                field: [
+                  {
+                    name: 'value',
+                    number: 1,
+                    label: 'LABEL_REPEATED',
+                    type: 'TYPE_STRING',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      const result = processor.process(JSON.stringify(descriptor))
+
+      expect(result.errors).toEqual([])
+      expect(result.symbols.get('Ping')?.signature).toContain(
+        'repeated string value = 1',
+      )
+    })
+
+    it.each([{ unknown: [] }, { file: {} }, { nested: [] }])(
+      'should reject an unrecognized descriptor shape (%j)',
+      (descriptor) => {
+        const result = new JsonDescriptorProcessor().process(
+          JSON.stringify(descriptor),
+          'api.json',
+        )
+
+        expect(result.symbols.size).toBe(0)
+        expect(result.errors).toEqual([expect.stringContaining('api.json')])
+      },
+    )
+
     it('should process a simple JSON descriptor', () => {
       const processor = new JsonDescriptorProcessor()
       const descriptor = {

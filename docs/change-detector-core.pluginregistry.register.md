@@ -73,5 +73,5 @@ void
 
 ## Exceptions
 
-If plugin ID is already registered (unless force is true)
+If the plugin fails validation.
 
