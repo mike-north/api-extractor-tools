@@ -1,5 +1,9 @@
 import { expectType } from 'tsd'
-import { extract, InMemoryFileSystem, type IExtractorLibResult } from '..'
+import {
+  extract,
+  InMemoryFileSystem,
+  type IExtractorLibResult,
+} from '@api-extractor-tools/extractor-lib'
 
 expectType<IExtractorLibResult>(
   extract(

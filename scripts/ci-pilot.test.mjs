@@ -11,9 +11,10 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { delimiter, dirname, join, normalize } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { stripVTControlCharacters } from 'node:util'
 import ts from 'typescript'
 
 // Use the real tool versions while keeping every generated file in the fixture.
@@ -48,6 +49,7 @@ function nxFixture(t) {
     copy(root, path)
   }
   put(root, 'package.json', JSON.stringify({ name: 'fixture', private: true }))
+  put(root, '.gitignore', 'node_modules/\ndist/\n.nx/\n')
   symlinkSync(
     join(workspace, 'node_modules'),
     join(root, 'node_modules'),
@@ -57,10 +59,15 @@ function nxFixture(t) {
   return root
 }
 
-function runNx(root, target) {
+function runNx(root, target, env = {}) {
   return execFileSync(
     process.execPath,
-    [join(workspace, 'node_modules/nx/bin/nx.js'), 'run', target],
+    [
+      join(workspace, 'node_modules/nx/bin/nx.js'),
+      'run',
+      target,
+      '--outputStyle=static',
+    ],
     {
       cwd: root,
       encoding: 'utf8',
@@ -70,6 +77,9 @@ function runNx(root, target) {
         NX_DAEMON: 'false',
         NX_TUI: 'false',
         NX_NO_CLOUD: 'true',
+        NX_WORKSPACE_DATA_DIRECTORY: join(root, '.nx/workspace-data'),
+        NX_CACHE_DIRECTORY: join(root, '.nx/cache'),
+        ...env,
       },
     },
   )
@@ -191,7 +201,7 @@ test('API artifact generation preserves a stale baseline for the strict check', 
   put(root, scriptPath, readFileSync(join(workspace, scriptPath)))
   const env = {
     ...process.env,
-    PATH: `${join(normalizerModules, '.bin')}:${process.env.PATH}`,
+    PATH: `${join(normalizerModules, '.bin')}${delimiter}${process.env.PATH}`,
   }
 
   execFileSync(artifactScript, {
@@ -246,6 +256,7 @@ test('demo builds invalidate the cache when Vite inputs change', (t) => {
     readFileSync(copy(root, `${projectPath}/package.json`), 'utf8'),
   )
   const config = copy(root, `${projectPath}/vite.config.ts`)
+  copy(root, `${projectPath}/build-id.mjs`)
   symlinkSync(
     join(workspace, projectPath, 'node_modules'),
     join(project, 'node_modules'),
@@ -255,35 +266,58 @@ test('demo builds invalidate the cache when Vite inputs change', (t) => {
     project,
     'tsconfig.json',
     JSON.stringify({
-      compilerOptions: { noEmit: true, types: [] },
+      compilerOptions: {
+        noEmit: true,
+        module: 'ESNext',
+        target: 'ES2020',
+        types: [],
+      },
       include: ['src'],
     }),
   )
   put(
     project,
     'src/index.ts',
-    'declare const __BUILD_ID__: string; document.body.dataset.build = __BUILD_ID__\n',
+    `/// <reference types="vite/client" />
+declare const __BUILD_ID__: string
+document.body.dataset.build = __BUILD_ID__
+document.body.dataset.mode = import.meta.env.PROD ? 'production' : 'development'
+`,
   )
   const html =
     '<title>Demo</title><script type="module" src="/src/index.ts"></script>\n'
   put(project, 'index.html', html)
-  commitFixture(root, 'Initial commit')
-
   const build = `${manifest.name}:build`
-  runNx(root, build)
-  assert.match(runNx(root, build), /\[local cache\]/)
+  const buildDemo = (NODE_ENV = 'production') =>
+    runNx(root, build, { NODE_ENV })
+  const outputHtml = join(project, 'dist/index.html')
+  const readBundle = () => {
+    const bundle = readFileSync(outputHtml, 'utf8').match(
+      /src="\/[^"]+\/(assets\/[^" ]+\.js)"/,
+    )?.[1]
+    assert.ok(bundle, 'expected a JavaScript bundle in the compiled HTML')
+    return readFileSync(join(project, 'dist', bundle), 'utf8')
+  }
+  buildDemo()
+  assert.match(readBundle(), /\.build="unknown"/)
+  commitFixture(root, 'Initial commit')
+  buildDemo()
+  assert.match(buildDemo(), /\[local cache\]/)
+  assert.match(readBundle(), /\.mode="production"/)
+
+  buildDemo('development')
+  assert.match(readBundle(), /\.mode="development"/)
 
   const marker = 'New public asset\n'
   put(project, 'public/nested/marker.txt', marker)
-  runNx(root, build)
+  buildDemo()
   assert.equal(
     readFileSync(join(project, 'dist/nested/marker.txt'), 'utf8'),
     marker,
   )
 
-  const outputHtml = join(project, 'dist/index.html')
   put(project, 'index.html', html.replace('Demo', 'Updated demo'))
-  runNx(root, build)
+  buildDemo()
   assert.match(readFileSync(outputHtml, 'utf8'), /<title>Updated demo<\/title>/)
 
   writeFileSync(
@@ -293,7 +327,7 @@ test('demo builds invalidate the cache when Vite inputs change', (t) => {
       "base: '/updated-base/'",
     ),
   )
-  runNx(root, build)
+  buildDemo()
   assert.match(
     readFileSync(outputHtml, 'utf8'),
     /src="\/updated-base\/assets\//,
@@ -304,13 +338,81 @@ test('demo builds invalidate the cache when Vite inputs change', (t) => {
     cwd: root,
     encoding: 'utf8',
   }).trim()
-  runNx(root, build)
-  const bundle = readFileSync(outputHtml, 'utf8').match(
-    /src="\/updated-base\/(assets\/[^" ]+\.js)"/,
-  )?.[1]
-  assert.ok(bundle, 'expected a JavaScript bundle in the compiled HTML')
-  assert.ok(
-    readFileSync(join(project, 'dist', bundle), 'utf8').includes(revision),
+  buildDemo()
+  assert.ok(readBundle().includes(revision))
+})
+
+test('standalone type assertions detect changes to a workspace dependency on a warm cache', (t) => {
+  const root = nxFixture(t)
+  const dependency = join(root, 'tools/dependency')
+  const consumer = join(root, 'tools/consumer')
+  const tsdModules = join(workspace, 'tools/extractor-lib/node_modules')
+  for (const [project, name] of [
+    [dependency, 'dependency'],
+    [consumer, 'consumer'],
+  ]) {
+    put(
+      project,
+      'package.json',
+      JSON.stringify({
+        name,
+        version: '0.0.0',
+        types: 'dist/index.d.ts',
+        scripts: {
+          build: 'tsc',
+          ...(name === 'consumer' && {
+            'test:types':
+              'tsd --files test/index.test-d.ts > type-check.log 2>&1',
+          }),
+        },
+        ...(name === 'consumer' && {
+          dependencies: { dependency: 'workspace:*' },
+        }),
+      }),
+    )
+    put(
+      project,
+      'tsconfig.json',
+      JSON.stringify({
+        compilerOptions: { declaration: true, outDir: 'dist', types: [] },
+        include: ['src'],
+      }),
+    )
+  }
+  const entry = put(
+    dependency,
+    'src/index.ts',
+    "export const value: string = 'ok'\n",
+  )
+  put(consumer, 'src/index.ts', 'export {}\n')
+  put(
+    consumer,
+    'test/index.test-d.ts',
+    "import { expectType } from 'tsd'\nimport { value } from 'dependency'\nexpectType<string>(value)\n",
+  )
+  const modules = join(consumer, 'node_modules')
+  mkdirSync(modules, { recursive: true })
+  symlinkSync(dependency, join(modules, 'dependency'), 'dir')
+  symlinkSync(join(tsdModules, 'tsd'), join(modules, 'tsd'), 'dir')
+  symlinkSync(
+    join(workspace, 'node_modules/typescript'),
+    join(modules, 'typescript'),
+    'dir',
+  )
+  symlinkSync(join(tsdModules, '.bin'), join(modules, '.bin'), 'dir')
+
+  runNx(root, 'consumer:test:types')
+  assert.match(
+    runNx(root, 'consumer:test:types'),
+    /dependency:build\s+\[local cache\]/,
+  )
+  writeFileSync(entry, 'export const value: number = 1\n')
+  assert.throws(() => runNx(root, 'consumer:test:types'), { status: 1 })
+  assert.match(
+    stripVTControlCharacters(
+      readFileSync(join(consumer, 'type-check.log'), 'utf8'),
+    ),
+    /Argument of type number is not assignable to parameter of type string/,
   )
 })
 
@@ -345,7 +447,13 @@ test('a warm API report check preserves the declared package types', (t) => {
   put(
     project,
     'src/index.ts',
-    '/** The public interface. @public */\nexport interface Example { value: string }\n',
+    `/** The public interface. @public */
+interface Model { value: string }
+export { Model as Example }
+
+/** A preview interface. @alpha */
+export interface Preview { draft: boolean }
+`,
   )
   put(
     project,
@@ -375,25 +483,52 @@ test('a warm API report check preserves the declared package types', (t) => {
   )
   mkdirSync(join(root, 'consumer/node_modules'), { recursive: true })
   symlinkSync(project, join(root, 'consumer/node_modules/example'), 'dir')
-  const consumerFile = put(
-    root,
-    'consumer/index.ts',
-    "import type { Example } from 'example'\n",
-  )
-  const resolveTypes = () =>
-    ts.resolveModuleName(
-      'example',
-      consumerFile,
-      { moduleResolution: ts.ModuleResolutionKind.Node10 },
-      ts.sys,
-    ).resolvedModule?.resolvedFileName
+  const consumers = [
+    ['mts', ts.ModuleKind.ESNext],
+    ['cts', ts.ModuleKind.CommonJS],
+  ].map(([extension, mode]) => ({
+    mode,
+    file: put(
+      root,
+      `consumer/index.${extension}`,
+      "import type { Example } from 'example'\n",
+    ),
+  }))
+  const assertTypes = () => {
+    for (const { file, mode } of consumers) {
+      const resolved = ts.resolveModuleName(
+        'example',
+        file,
+        { moduleResolution: ts.ModuleResolutionKind.NodeNext },
+        ts.sys,
+        undefined,
+        undefined,
+        mode,
+      ).resolvedModule
+      assert.ok(
+        resolved,
+        `expected the declared rollup to resolve from ${file}`,
+      )
+      assert.equal(normalize(resolved.resolvedFileName), join(project, types))
+    }
+    const publicTypes = readFileSync(join(project, types), 'utf8')
+    assert.match(publicTypes, /\bExample\b/)
+    assert.doesNotMatch(publicTypes, /interface Preview/)
+    assert.match(
+      readFileSync(join(project, 'dist/example-alpha.d.ts'), 'utf8'),
+      /interface Preview/,
+    )
+  }
 
   runNx(root, 'example:generate:api-report')
-  assert.equal(resolveTypes(), join(project, types))
+  assertTypes()
+  const report = join(root, 'api-reports/example.api.md')
+  const baseline = readFileSync(report, 'utf8')
 
   const check = runNx(root, 'example:check:api-report')
   assert.match(check, /example:build\s+\[local cache\]/)
-  assert.equal(resolveTypes(), join(project, types))
+  assertTypes()
+  assert.equal(readFileSync(report, 'utf8'), baseline)
 })
 
 test('the required CI build lane runs standalone type assertions', () => {
@@ -401,14 +536,36 @@ test('the required CI build lane runs standalone type assertions', () => {
   const buildChecks = ci
     .split(/^  build-checks:\n/m)[1]
     ?.split(/^  build-and-test:\n/m)[0]
-  assert.ok(
-    /^      - name: [^\n]+\n        run: pnpm test:types$/m.test(buildChecks),
-    'expected an unconditional pnpm test:types step in build-checks',
-  )
+  const typeStep = buildChecks
+    ?.split(/^      - name: /m)
+    .slice(1)
+    .find((step) => /^        run: pnpm test:types$/m.test(step))
+  assert.ok(typeStep, 'expected pnpm test:types in build-checks')
+  assert.doesNotMatch(typeStep, /^        (?:if|continue-on-error):/m)
   assert.ok(
     /^  build-and-test:\n[\s\S]*?^    needs: \[[^\n]*\bbuild-checks\b[^\n]*\]/m.test(
       ci,
     ),
     'expected build-and-test to require build-checks',
   )
+})
+
+test('extractor-lib typechecks its compiler tests and package type assertions', () => {
+  const tests = join(workspace, 'tools/extractor-lib/test')
+  const config = ts.readConfigFile(
+    join(tests, 'tsconfig.json'),
+    ts.sys.readFile,
+  )
+  assert.equal(config.error, undefined)
+  const { fileNames } = ts.parseJsonConfigFileContent(
+    config.config,
+    ts.sys,
+    tests,
+  )
+  for (const file of ['compiler/program-factory.test.ts', 'types.test-d.ts']) {
+    assert.ok(
+      fileNames.map(normalize).includes(join(tests, file)),
+      `expected the test typecheck to include ${file}`,
+    )
+  }
 })

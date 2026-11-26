@@ -22,10 +22,14 @@
           "^default",
           "{projectRoot}/public/**/*",
           "{projectRoot}/index.html",
+          "{projectRoot}/build-id.mjs",
           "{projectRoot}/vite.config.ts",
           "{projectRoot}/vitest.config.ts",
           {
-            "runtime": "git rev-parse --short HEAD 2>/dev/null || echo unknown"
+            "env": "NODE_ENV"
+          },
+          {
+            "runtime": "node --input-type=module -e \"import { getBuildId } from './tools/demo-site/build-id.mjs'; console.log(getBuildId())\""
           }
         ]
       }

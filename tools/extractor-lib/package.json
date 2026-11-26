@@ -18,6 +18,25 @@
     "check": "pnpm check:eslint && pnpm check:typecheck-tests && pnpm check:api-report",
     "check:api-report": "node ../../scripts/run-api-extractor.mjs check"
   },
+  "nx": {
+    "targets": {
+      "check:eslint": {
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "check:typecheck-tests": {
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
+  },
+  "tsd": {
+    "compilerOptions": {
+      "module": "NodeNext"
+    }
+  },
   "keywords": [
     "typescript",
     "api-extractor",
