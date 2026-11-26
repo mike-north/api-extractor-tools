@@ -5,15 +5,15 @@
  * with maximum precision.
  */
 
-import type { DimensionalRule } from '../dsl-types'
-import type { ReleaseType } from '../../types'
+import type { DimensionalRule } from '../dsl-types.js'
+import type { ReleaseType } from '../../types.js'
 import type {
   ChangeTarget,
   ChangeAction,
   ChangeAspect,
   ChangeImpact,
   ChangeTag,
-} from '../../ast/types'
+} from '../../ast/types.js'
 
 // Forward declaration to avoid circular dependency
 // The actual type is imported at runtime in the constructor

@@ -5,8 +5,8 @@
  * used by all reporter implementations.
  */
 
-import type { ReleaseType } from '../../types'
-import type { SourceRange, ClassifiedChange } from '../types'
+import type { ReleaseType } from '../../types.js'
+import type { SourceRange, ClassifiedChange } from '../types.js'
 
 // =============================================================================
 // Types

@@ -2,14 +2,15 @@
   "name": "@api-extractor-tools/input-processor-typescript",
   "version": "0.1.0",
   "description": "TypeScript input processor plugin for change-detector",
+  "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "pnpm build:esm && pnpm build:cjs",
+    "build": "node scripts/inject-version.mjs && pnpm build:esm && pnpm build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node ../../scripts/mark-commonjs.mjs",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
@@ -30,7 +31,6 @@
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
     "@api-extractor-tools/change-detector-core": "workspace:*",
-    "pkg-up": "^5.0.0",
     "typescript": "5.8.3"
   },
   "devDependencies": {
@@ -41,9 +41,14 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     }
   },
   "files": [

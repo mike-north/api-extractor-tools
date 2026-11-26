@@ -2,7 +2,7 @@
  * Result types for plugin operations.
  */
 
-import type { ExportedSymbol, SourceLocation } from '../types'
+import type { ExportedSymbol, SourceLocation } from '../types.js'
 
 /**
  * Source mapping information from an input processor.

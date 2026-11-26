@@ -7,22 +7,11 @@ import {
   createPluginRegistry,
   isValidPlugin,
 } from '@api-extractor-tools/change-detector-core'
-import { pkgUpSync } from 'pkg-up'
-import * as fs from 'node:fs'
+import { readFileSync } from 'node:fs'
 
-// Read the expected version from package.json
-function getExpectedVersion(): string {
-  const pkgPath = pkgUpSync({ cwd: __dirname })
-  if (pkgPath) {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
-      version: string
-    }
-    return pkg.version
-  }
-  throw new Error('Could not find package.json')
-}
-
-const EXPECTED_VERSION = getExpectedVersion()
+const { version: EXPECTED_VERSION } = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+) as { version: string }
 
 describe('TypeScript Input Processor Plugin', () => {
   describe('unified plugin format', () => {

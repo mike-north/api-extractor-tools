@@ -12,8 +12,8 @@ import type {
   ModuleAnalysis,
   ModuleAnalysisWithTypes,
   ParseOptions,
-} from '../types'
-import { processStatement } from './declaration-extraction'
+} from '../types.js'
+import { processStatement } from './declaration-extraction.js'
 
 /**
  * Parses a TypeScript declaration string into a ModuleAnalysis.

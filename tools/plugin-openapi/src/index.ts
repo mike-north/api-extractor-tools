@@ -23,7 +23,7 @@ import type {
   SymbolKind,
 } from '@api-extractor-tools/change-detector-core'
 import * as yaml from 'js-yaml'
-import { VERSION } from './version'
+import { VERSION } from './version.js'
 
 // ============================================================================
 // Type Definitions

@@ -44,7 +44,7 @@ export type {
   DimensionalRule,
   DSLRule,
   DSLPolicy,
-} from './dsl-types/index'
+} from './dsl-types/index.js'
 
 // Result types
 export type {
@@ -56,7 +56,7 @@ export type {
   ValidationResult,
   ValidationError,
   ValidationWarning,
-} from './dsl-types/index'
+} from './dsl-types/index.js'
 
 // Utilities
 export {
@@ -65,11 +65,11 @@ export {
   isIntentRule,
   isPatternRule,
   isDimensionalRule,
-} from './dsl-types/index'
+} from './dsl-types/index.js'
 
 export type {
   DSLBuilderState,
   TransformOptions,
   _ExtractVariables,
   _PatternVariableMap,
-} from './dsl-types/index'
+} from './dsl-types/index.js'

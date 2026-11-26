@@ -12,11 +12,11 @@ import type {
   ChangeTag,
   DiffContext,
   NodeKind,
-} from '../types'
-import type { ParameterOrderAnalysis } from '../../parameter-analysis'
-import { normalizeSignature } from './rename-detection'
-import { detectParameterReordering } from './parameter-reordering'
-import { classifyTypeParameterChange } from './type-parameter-changes'
+} from '../types.js'
+import type { ParameterOrderAnalysis } from '../../parameter-analysis.js'
+import { normalizeSignature } from './rename-detection.js'
+import { detectParameterReordering } from './parameter-reordering.js'
+import { classifyTypeParameterChange } from './type-parameter-changes.js'
 
 /**
  * Maps NodeKind to ChangeTarget for top-level exports.

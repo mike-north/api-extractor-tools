@@ -11,12 +11,15 @@
  * manually using the registry.
  */
 
-import type { ChangeDetectorPlugin, InputProcessorPlugin } from './plugin-types'
+import type {
+  ChangeDetectorPlugin,
+  InputProcessorPlugin,
+} from './plugin-types.js'
 import {
   PLUGIN_KEYWORDS,
   adaptLegacyInputProcessorPlugin,
-} from './plugin-types'
-import { validatePlugin } from './plugin-validation'
+} from './plugin-types.js'
+import { validatePlugin } from './plugin-validation.js'
 
 // ============================================================================
 // Types

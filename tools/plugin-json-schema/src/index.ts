@@ -19,7 +19,7 @@ import type {
   ProcessResult,
   ExportedSymbol,
 } from '@api-extractor-tools/change-detector-core'
-import { VERSION } from './version'
+import { VERSION } from './version.js'
 
 /**
  * JSON Schema type definition.

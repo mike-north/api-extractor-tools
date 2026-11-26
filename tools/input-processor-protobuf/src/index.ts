@@ -21,8 +21,8 @@ import type {
   ProcessResult,
   ExportedSymbol,
 } from '@api-extractor-tools/change-detector-core'
-import * as protobuf from 'protobufjs'
-import { VERSION } from './version'
+import protobuf from 'protobufjs'
+import { VERSION } from './version.js'
 
 /**
  * Options for configuring the Protocol Buffer processors.

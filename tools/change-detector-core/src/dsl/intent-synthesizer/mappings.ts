@@ -9,7 +9,7 @@ import type {
   IntentExpression,
   PatternTemplate,
   PatternVariable,
-} from '../dsl-types'
+} from '../dsl-types.js'
 
 /**
  * Inverse mapping from pattern templates to intent expressions.

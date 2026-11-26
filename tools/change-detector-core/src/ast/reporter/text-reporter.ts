@@ -5,14 +5,14 @@
  * reports as plain text output, suitable for terminal display.
  */
 
-import type { ClassifiedChange } from '../types'
-import type { ASTReporterOptions, ASTComparisonReport } from './types'
+import type { ClassifiedChange } from '../types.js'
+import type { ASTReporterOptions, ASTComparisonReport } from './types.js'
 import {
   formatReleaseType,
   formatLocationRange,
   getColorCode,
   RESET,
-} from './types'
+} from './types.js'
 
 /**
  * Formats a single change as plain text.

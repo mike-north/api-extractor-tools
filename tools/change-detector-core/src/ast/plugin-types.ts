@@ -6,17 +6,17 @@
  * source locations.
  */
 
-import type { ReleaseType } from '../types'
+import type { ReleaseType } from '../types.js'
 import type {
   PolicyOptions as BasePolicyOptions,
   PolicyDefinition as BasePolicyDefinition,
   ReporterDefinition as BaseReporterDefinition,
   ReporterOptions,
   ReportOutputFormat,
-} from '../plugin-types'
-import type { ApiChange, ModuleAnalysis, ClassifiedChange } from './types'
-import type { Policy } from './rule-builder'
-import type { ASTReporterOptions, ASTComparisonReport } from './reporter'
+} from '../plugin-types.js'
+import type { ApiChange, ModuleAnalysis, ClassifiedChange } from './types.js'
+import type { Policy } from './rule-builder.js'
+import type { ASTReporterOptions, ASTComparisonReport } from './reporter.js'
 
 // =============================================================================
 // AST-Aware Policy Plugin Types
@@ -311,7 +311,7 @@ import {
   semverDefaultPolicy,
   semverReadOnlyPolicy,
   semverWriteOnlyPolicy,
-} from './builtin-policies'
+} from './builtin-policies.js'
 
 /**
  * Built-in AST-aware default policy definition.
@@ -363,7 +363,7 @@ import {
   formatASTReportAsText,
   formatASTReportAsMarkdown,
   formatASTReportAsJSON,
-} from './reporter'
+} from './reporter.js'
 
 /**
  * Built-in AST-aware text reporter definition.

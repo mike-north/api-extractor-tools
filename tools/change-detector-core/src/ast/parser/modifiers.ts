@@ -3,7 +3,7 @@
  */
 
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
-import type { Modifier } from '../types'
+import type { Modifier } from '../types.js'
 
 /**
  * Extracts modifiers from an AST node.

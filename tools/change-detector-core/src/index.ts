@@ -43,7 +43,7 @@ export type {
   ChangesByImpact,
   ComparisonStats,
   ComparisonReport,
-} from './types'
+} from './types.js'
 
 // Parameter analysis exports (used by AST differ)
 export {
@@ -56,7 +56,7 @@ export {
   editDistance,
   nameSimilarity,
   interpretNameChange,
-} from './parameter-analysis'
+} from './parameter-analysis.js'
 
 // Plugin types exports
 export {
@@ -107,7 +107,7 @@ export {
   // Legacy support (deprecated)
   type InputProcessorPlugin,
   adaptLegacyInputProcessorPlugin,
-} from './plugin-types'
+} from './plugin-types.js'
 
 // Plugin validation exports
 export {
@@ -117,7 +117,7 @@ export {
   validatePlugin,
   isValidPlugin,
   formatValidationErrors,
-} from './plugin-validation'
+} from './plugin-validation.js'
 
 // Plugin discovery exports (Node.js only)
 // Note: Only exporting types to avoid breaking browser builds
@@ -129,7 +129,7 @@ export type {
   LoadedPlugin,
   PluginDiscoveryError,
   PluginDiscoveryResult,
-} from './plugin-discovery'
+} from './plugin-discovery.js'
 
 // The actual discovery functions are not exported to maintain browser compatibility
 // If you need plugin discovery, import them directly:
@@ -143,7 +143,7 @@ export {
   type PluginRegistryOptions,
   type PluginRegistry,
   createPluginRegistry,
-} from './plugin-registry'
+} from './plugin-registry.js'
 
 // =============================================================================
 // AST-based Change Detection (Primary API)
@@ -190,17 +190,17 @@ export type {
   // Options
   ParseOptions,
   DiffOptions,
-} from './ast/types'
+} from './ast/types.js'
 
 // Parser exports
-export { parseModule, parseModuleWithTypes } from './ast/parser'
+export { parseModule, parseModuleWithTypes } from './ast/parser.js'
 
 // Differ exports
 export {
   diffModules,
   flattenChanges,
   groupChangesByDescriptor,
-} from './ast/differ'
+} from './ast/differ.js'
 
 // Reporter type exports
 export type {
@@ -208,7 +208,7 @@ export type {
   ASTComparisonReport,
   ASTChangeJSON,
   ASTReportJSON,
-} from './ast/reporter'
+} from './ast/reporter.js'
 
 // Reporter exports
 export {
@@ -217,7 +217,7 @@ export {
   formatASTReportAsText,
   formatASTReportAsMarkdown,
   formatASTReportAsJSON,
-} from './ast/reporter'
+} from './ast/reporter.js'
 
 // Plugin type exports
 export type {
@@ -230,7 +230,7 @@ export type {
   ASTProcessResult,
   ASTAwareInputProcessor,
   ASTCapability,
-} from './ast/plugin-types'
+} from './ast/plugin-types.js'
 
 // Plugin type guards and factories
 export {
@@ -239,21 +239,21 @@ export {
   isASTAwareInputProcessor,
   createASTAwarePolicyDefinition,
   createASTAwareReporterDefinition,
-} from './ast/plugin-types'
+} from './ast/plugin-types.js'
 
 // Built-in policy definitions
 export {
   defaultASTPolicy,
   readOnlyASTPolicy,
   writeOnlyASTPolicy,
-} from './ast/plugin-types'
+} from './ast/plugin-types.js'
 
 // Built-in reporter definitions
 export {
   textASTReporter,
   markdownASTReporter,
   jsonASTReporter,
-} from './ast/plugin-types'
+} from './ast/plugin-types.js'
 
 // Rule builder type exports
 export type {
@@ -261,7 +261,7 @@ export type {
   PolicyRule,
   Policy,
   ClassificationResult,
-} from './ast/rule-builder'
+} from './ast/rule-builder.js'
 
 // Rule builder exports
 export {
@@ -272,14 +272,14 @@ export {
   classifyChange,
   classifyChanges,
   determineOverallRelease,
-} from './ast/rule-builder'
+} from './ast/rule-builder.js'
 
 // Built-in rule-based policies
 export {
   semverDefaultPolicy,
   semverReadOnlyPolicy,
   semverWriteOnlyPolicy,
-} from './ast/builtin-policies'
+} from './ast/builtin-policies.js'
 
 // =============================================================================
 // Progressive DSL System
@@ -312,7 +312,7 @@ export type {
   DSLBuilderState,
   TransformOptions,
   TransformationChain,
-} from './dsl'
+} from './dsl/index.js'
 
 // DSL exports
 export {
@@ -343,22 +343,22 @@ export {
   synthesizeIntent,
   detectCommonPattern,
   generateIntentExpression,
-} from './dsl'
+} from './dsl/index.js'
 
 // =============================================================================
 // Convenience Functions
 // =============================================================================
 
-import type { ApiChange, ParseOptions, DiffOptions } from './ast/types'
-import type { Policy, ClassificationResult } from './ast/rule-builder'
-import type { ReleaseType } from './types'
-import { parseModuleWithTypes as parseASTModule } from './ast/parser'
-import { diffModules as diffASTModules } from './ast/differ'
+import type { ApiChange, ParseOptions, DiffOptions } from './ast/types.js'
+import type { Policy, ClassificationResult } from './ast/rule-builder.js'
+import type { ReleaseType } from './types.js'
+import { parseModuleWithTypes as parseASTModule } from './ast/parser.js'
+import { diffModules as diffASTModules } from './ast/differ.js'
 import {
   classifyChanges as classifyASTChangesInternal,
   determineOverallRelease as determineOverallReleaseInternal,
-} from './ast/rule-builder'
-import { semverDefaultPolicy as defaultPolicy } from './ast/builtin-policies'
+} from './ast/rule-builder.js'
+import { semverDefaultPolicy as defaultPolicy } from './ast/builtin-policies.js'
 
 /**
  * Options for the analyzeChanges convenience function.
@@ -458,9 +458,9 @@ export function analyzeChanges(
 // Legacy Compatibility Functions
 // =============================================================================
 
-import type { ExportedSymbol, SymbolKind, SourceLocation } from './types'
-import { parseModule as parseASTModuleSimple } from './ast/parser'
-import type { AnalyzableNode, NodeKind } from './ast/types'
+import type { ExportedSymbol, SymbolKind, SourceLocation } from './types.js'
+import { parseModule as parseASTModuleSimple } from './ast/parser.js'
+import type { AnalyzableNode, NodeKind } from './ast/types.js'
 
 /**
  * Result of parsing a declaration string.

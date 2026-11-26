@@ -5,10 +5,10 @@
  * reports as GitHub-flavored Markdown, suitable for PRs and documentation.
  */
 
-import type { ReleaseType } from '../../types'
-import type { ClassifiedChange } from '../types'
-import type { ASTReporterOptions, ASTComparisonReport } from './types'
-import { formatReleaseType } from './types'
+import type { ReleaseType } from '../../types.js'
+import type { ClassifiedChange } from '../types.js'
+import type { ASTReporterOptions, ASTComparisonReport } from './types.js'
+import { formatReleaseType } from './types.js'
 
 /**
  * Gets an emoji for a release type.

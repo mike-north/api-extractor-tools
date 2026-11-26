@@ -11,6 +11,9 @@ export default defineConfig([
     outDir: 'dist',
     target: 'node18',
     external: ['typescript'],
+    banner: {
+      js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);",
+    },
   },
   {
     entry: ['src/index.ts'],

@@ -7,7 +7,7 @@
 
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
 import type * as ts from 'typescript'
-import type { ReleaseType } from '../types'
+import type { ReleaseType } from '../types.js'
 
 // =============================================================================
 // Source Location Types

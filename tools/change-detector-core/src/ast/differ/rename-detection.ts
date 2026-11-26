@@ -2,8 +2,8 @@
  * Rename detection with confidence scoring.
  */
 
-import type { AnalyzableNode, Modifier } from '../types'
-import { editDistance, nameSimilarity } from '../../parameter-analysis'
+import type { AnalyzableNode, Modifier } from '../types.js'
+import { editDistance, nameSimilarity } from '../../parameter-analysis.js'
 
 interface RenameCandidate {
   oldNode: AnalyzableNode

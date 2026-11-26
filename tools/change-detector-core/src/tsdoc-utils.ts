@@ -20,7 +20,7 @@ import {
   DocSoftBreak,
   type DocNode,
 } from '@microsoft/tsdoc'
-import type { SymbolMetadata } from './types'
+import type { SymbolMetadata } from './types.js'
 
 /**
  * TSDoc parser instance configured for standard tags plus \@default.
@@ -264,4 +264,3 @@ export function isTSDocComment(commentText: string): boolean {
   const trimmed = commentText.trim()
   return trimmed.startsWith('/**') && trimmed.endsWith('*/')
 }
-

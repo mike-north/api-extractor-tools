@@ -25,4 +25,4 @@ export {
   formatASTReportAsMarkdown,
   // JSON reporter
   formatASTReportAsJSON,
-} from './reporter/index'
+} from './reporter/index.js'

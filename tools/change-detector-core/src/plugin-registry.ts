@@ -12,7 +12,7 @@ import type {
   PolicyDefinition,
   ReporterDefinition,
   ValidatorDefinition,
-} from './plugin-types'
+} from './plugin-types.js'
 
 // ============================================================================
 // Types

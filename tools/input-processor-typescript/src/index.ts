@@ -18,26 +18,7 @@ import type {
 } from '@api-extractor-tools/change-detector-core'
 import { parseDeclarationString } from '@api-extractor-tools/change-detector-core'
 import * as ts from 'typescript'
-import { pkgUpSync } from 'pkg-up'
-import * as fs from 'node:fs'
-
-// Dynamically find and read package.json to get the version
-// This works regardless of whether we're running from src or dist
-// Uses __dirname which is available in both CJS and our ESM build target
-function getPackageVersion(): string {
-  // __dirname is available in CommonJS and also works in our ESM build
-  // since we're targeting a module system that supports it
-  const pkgPath = pkgUpSync({ cwd: __dirname })
-  if (pkgPath) {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8')) as {
-      version: string
-    }
-    return pkg.version
-  }
-  return '0.0.0-unknown'
-}
-
-const VERSION = getPackageVersion()
+import { VERSION } from './version.js'
 
 /**
  * Options for configuring the TypeScript input processor.
