@@ -5,6 +5,11 @@
     "ciCacheVersion": ["{workspaceRoot}/ci-cache-version.txt"],
     "source": ["{projectRoot}/src/**/*"],
     "tests": ["{projectRoot}/test/**/*"],
+    "runtimeTests": [
+      "tests",
+      "{projectRoot}/package.json",
+      "{workspaceRoot}/scripts/runtime-package-fixture.mjs"
+    ],
     "tsConfig": [
       "{projectRoot}/tsconfig.json",
       "{workspaceRoot}/tsconfig.json"
@@ -62,7 +67,7 @@
         "ciCacheVersion",
         "source",
         "tsConfig",
-        "{projectRoot}/test/**/*",
+        "runtimeTests",
         "{projectRoot}/vitest.config.mts"
       ],
       "outputs": []
@@ -79,7 +84,7 @@
         "ciCacheVersion",
         "source",
         "tsConfig",
-        "{projectRoot}/test/**/*",
+        "runtimeTests",
         "{projectRoot}/vitest.config.mts"
       ],
       "outputs": ["{projectRoot}/coverage"]

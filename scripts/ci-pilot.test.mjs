@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { delimiter, dirname, join } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
@@ -33,32 +33,109 @@ function put(root, relativePath, contents) {
   return path
 }
 
-for (const [script, command] of [
-  ['changeset:auto', 'generate'],
-  ['changeset:validate', 'validate'],
+for (const [script, command, exitCode] of [
+  ['changeset:auto', 'generate', 0],
+  ['changeset:validate', 'validate', 1],
 ]) {
-  test(`${script} runs the workspace CLI and forwards arguments`, (t) => {
-    const root = fixture(t)
+  test(`${script} forwards arguments and preserves the CLI exit status`, (t) => {
+    const root = join(fixture(t), 'workspace with spaces')
     put(root, 'package.json', readFileSync(join(workspace, 'package.json')))
     put(
       root,
       'tools/changeset-change-detector/dist/cli.js',
-      'console.log(JSON.stringify(process.argv.slice(2)))\n',
+      `console.log(JSON.stringify(process.argv.slice(2)))\nprocess.exitCode = ${exitCode}\n`,
     )
 
-    const result = spawnSync('pnpm', [script, '--base', 'main'], {
-      cwd: root,
-      encoding: 'utf8',
-    })
+    // Use pnpm's JS entry when available, including when pnpm is a .cmd shim.
+    const pnpm = process.env.npm_execpath ?? 'pnpm'
+    const pnpmIsScript = /\.[cm]?js$/i.test(pnpm)
+    const args = [
+      '--base',
+      'example@1.0.0-rc.1',
+      '--summary',
+      'API with spaces',
+    ]
+    const result = spawnSync(
+      pnpmIsScript ? process.execPath : pnpm,
+      pnpmIsScript ? [pnpm, script, ...args] : [script, ...args],
+      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    )
     assert.ifError(result.error)
-    assert.equal(result.status, 0, result.stderr)
+    assert.equal(result.status, exitCode, result.stderr)
     assert.ok(
-      result.stdout
-        .split(/\r?\n/)
-        .includes(JSON.stringify([command, '--base', 'main'])),
+      result.stdout.split(/\r?\n/).includes(JSON.stringify([command, ...args])),
+      result.stdout + result.stderr,
     )
   })
 }
+
+test('changing the isolated runtime fixture invalidates cached package tests', (t) => {
+  const root = fixture(t)
+  for (const path of [
+    'nx.json',
+    'ci-cache-version.txt',
+    'pnpm-workspace.yaml',
+  ]) {
+    put(root, path, readFileSync(join(workspace, path)))
+  }
+  put(root, 'package.json', JSON.stringify({ name: 'runtime-cache-fixture' }))
+  put(
+    root,
+    'tools/example/package.json',
+    JSON.stringify({
+      name: 'example',
+      scripts: { test: 'node ../../scripts/runtime-package-fixture.mjs' },
+    }),
+  )
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'junction',
+  )
+
+  const env = {
+    ...process.env,
+    NX_DAEMON: 'false',
+    NX_ISOLATE_PLUGINS: 'false',
+    NX_CACHE_DIRECTORY: join(root, 'cache'),
+    NX_WORKSPACE_DATA_DIRECTORY: join(root, 'workspace-data'),
+  }
+  const nx = join(workspace, 'node_modules/nx/bin/nx.js')
+  const args = [
+    nx,
+    'run',
+    'example:test',
+    '--skipRemoteCache',
+    '--outputStyle=static',
+  ]
+  const options = {
+    cwd: root,
+    env,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }
+  const helper = 'scripts/runtime-package-fixture.mjs'
+  const marker = join(root, 'tools/example/marker.txt')
+  put(
+    root,
+    helper,
+    'import { writeFileSync } from "node:fs"\nwriteFileSync("marker.txt", "original")\n',
+  )
+  const initial = spawnSync(process.execPath, args, options)
+  assert.ifError(initial.error)
+  assert.equal(initial.status, 0, initial.stdout + initial.stderr)
+  assert.equal(readFileSync(marker, 'utf8'), 'original')
+
+  put(
+    root,
+    helper,
+    'import { writeFileSync } from "node:fs"\nwriteFileSync("marker.txt", "changed")\nprocess.exitCode = 43\n',
+  )
+  const changed = spawnSync(process.execPath, args, options)
+  assert.ifError(changed.error)
+  assert.equal(changed.status, 1, changed.stdout + changed.stderr)
+  assert.equal(readFileSync(marker, 'utf8'), 'changed')
+})
 
 test('workspace clean removes untracked generator output and keeps tracked and handwritten files', (t) => {
   const root = fixture(t)
@@ -157,7 +234,7 @@ test('API artifact generation preserves a stale baseline for the strict check', 
   put(root, scriptPath, readFileSync(join(workspace, scriptPath)))
   const env = {
     ...process.env,
-    PATH: `${join(normalizerModules, '.bin')}:${process.env.PATH}`,
+    PATH: `${join(normalizerModules, '.bin')}${delimiter}${process.env.PATH}`,
   }
 
   execFileSync(artifactScript, {

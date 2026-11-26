@@ -37,9 +37,12 @@
   "author": "",
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
+  "engines": {
+    "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+  },
   "peerDependencies": {
-    "eslint": ">=8.0.0",
-    "typescript": ">=5.5.0"
+    "eslint": "^8.57.0 || ^9.0.0",
+    "typescript": ">=5.5.0 <6.0.0"
   },
   "dependencies": {
     "@microsoft/tsdoc": "^0.15.1",

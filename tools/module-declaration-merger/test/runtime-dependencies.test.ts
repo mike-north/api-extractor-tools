@@ -11,10 +11,15 @@ it(
       import.meta.url,
     )
     const source = new URL('../', import.meta.url)
-    execFileSync(process.execPath, [
-      '--no-global-search-paths',
-      fileURLToPath(fixture),
-      fileURLToPath(source),
-    ])
+    execFileSync(
+      process.execPath,
+      [
+        '--no-global-search-paths',
+        fileURLToPath(fixture),
+        fileURLToPath(source),
+        'mergeModuleDeclarations',
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
   },
 )

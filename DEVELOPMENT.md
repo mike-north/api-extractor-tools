@@ -123,7 +123,7 @@ You have two options for creating changesets:
 
 #### Option 1: Auto-generate from API changes (Recommended)
 
-Use the changeset-change-detector plugin to automatically analyze your API changes and create a changeset with the correct version bump:
+Run `pnpm build` to compile the workspace CLI before generating or validating changesets. Use it to analyze your API changes and create a changeset with the recommended version bump:
 
 ```bash
 pnpm changeset:auto
