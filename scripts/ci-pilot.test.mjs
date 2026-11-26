@@ -33,6 +33,33 @@ function put(root, relativePath, contents) {
   return path
 }
 
+for (const [script, command] of [
+  ['changeset:auto', 'generate'],
+  ['changeset:validate', 'validate'],
+]) {
+  test(`${script} runs the workspace CLI and forwards arguments`, (t) => {
+    const root = fixture(t)
+    put(root, 'package.json', readFileSync(join(workspace, 'package.json')))
+    put(
+      root,
+      'tools/changeset-change-detector/dist/cli.js',
+      'console.log(JSON.stringify(process.argv.slice(2)))\n',
+    )
+
+    const result = spawnSync('pnpm', [script, '--base', 'main'], {
+      cwd: root,
+      encoding: 'utf8',
+    })
+    assert.ifError(result.error)
+    assert.equal(result.status, 0, result.stderr)
+    assert.ok(
+      result.stdout
+        .split(/\r?\n/)
+        .includes(JSON.stringify([command, '--base', 'main'])),
+    )
+  })
+}
+
 test('workspace clean removes untracked generator output and keeps tracked and handwritten files', (t) => {
   const root = fixture(t)
   const doc =

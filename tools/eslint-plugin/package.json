@@ -42,7 +42,8 @@
     "typescript": ">=5.5.0"
   },
   "dependencies": {
-    "@microsoft/tsdoc": "^0.15.1"
+    "@microsoft/tsdoc": "^0.15.1",
+    "@typescript-eslint/utils": "^8.48.1"
   },
   "devDependencies": {
     "@api-extractor-tools/declaration-file-normalizer": "workspace:*",
@@ -50,7 +51,6 @@
     "@types/node": "^22.10.2",
     "@typescript-eslint/parser": "^8.48.1",
     "@typescript-eslint/rule-tester": "^8.48.1",
-    "@typescript-eslint/utils": "^8.48.1",
     "@vitest/coverage-v8": "^4.0.15",
     "eslint": "^9.39.1",
     "tsd": "^0.33.0",

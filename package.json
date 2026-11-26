@@ -25,8 +25,8 @@
     "fix": "NX_TUI=false nx run-many -t fix:lint,fix:format --parallel",
     "fix:markdown": "markdownlint-cli2 --fix \"**/*.md\"",
     "changeset": "changeset",
-    "changeset:auto": "changeset-change-detector generate",
-    "changeset:validate": "changeset-change-detector validate",
+    "changeset:auto": "node tools/changeset-change-detector/dist/cli.js generate",
+    "changeset:validate": "node tools/changeset-change-detector/dist/cli.js validate",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish"
   },
