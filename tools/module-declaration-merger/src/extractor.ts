@@ -1,9 +1,9 @@
 import * as ts from 'typescript'
-import * as fs from 'fs'
 import * as path from 'path'
 import { TSDocParser, type ParserContext } from '@microsoft/tsdoc'
 import { glob } from 'fast-glob'
 import type { MaturityLevel } from './config'
+import { createImportCollector } from './augmentation-imports'
 
 /**
  * The kinds of declarations we extract from module augmentation blocks
@@ -242,6 +242,7 @@ function getDeclarationName(node: ts.Node): string {
 function extractDeclarationsFromModuleBlock(
   moduleBlock: ts.ModuleBlock,
   sourceFile: ts.SourceFile,
+  collectImports: ReturnType<typeof createImportCollector>,
 ): ExtractedDeclaration[] {
   const declarations: ExtractedDeclaration[] = []
 
@@ -258,13 +259,15 @@ function extractDeclarationsFromModuleBlock(
     const name = getDeclarationName(statement)
     const kind = getDeclarationKind(statement)
 
-    declarations.push({
+    const declaration = {
       text,
       maturityLevel,
       name,
       kind,
       isUntagged,
-    })
+    }
+    collectImports(statement, declaration)
+    declarations.push(declaration)
   }
 
   return declarations
@@ -276,6 +279,7 @@ function extractDeclarationsFromModuleBlock(
 function extractFromSourceFile(
   sourceFile: ts.SourceFile,
   filePath: string,
+  collectImports: ReturnType<typeof createImportCollector>,
 ): ExtractedModuleAugmentation[] {
   const augmentations: ExtractedModuleAugmentation[] = []
 
@@ -292,7 +296,11 @@ function extractFromSourceFile(
       // Get the module body
       let declarations: ExtractedDeclaration[] = []
       if (node.body && ts.isModuleBlock(node.body)) {
-        declarations = extractDeclarationsFromModuleBlock(node.body, sourceFile)
+        declarations = extractDeclarationsFromModuleBlock(
+          node.body,
+          sourceFile,
+          collectImports,
+        )
       }
 
       if (declarations.length > 0) {
@@ -354,19 +362,31 @@ export async function extractModuleAugmentations(
     absolute: true,
   })
 
+  const tsconfigPath = path.resolve(projectFolder, 'tsconfig.json')
+  const compilerConfig = ts.sys.fileExists(tsconfigPath)
+    ? ts.getParsedCommandLineOfConfigFile(tsconfigPath, undefined, {
+        ...ts.sys,
+        // Extraction also works with standalone source files.
+        onUnRecoverableConfigFileDiagnostic: () => {},
+      })
+    : undefined
+  const compilerOptions = { ...compilerConfig?.options, noLib: true }
+  const host = ts.createCompilerHost(compilerOptions, true)
+  host.getCurrentDirectory = () => path.resolve(projectFolder)
+  const program = ts.createProgram(files, compilerOptions, host)
+  const collectImports = createImportCollector(program, compilerConfig)
+
   for (const filePath of files) {
     try {
-      const content = fs.readFileSync(filePath, 'utf-8')
-      const sourceFile = ts.createSourceFile(
-        filePath,
-        content,
-        ts.ScriptTarget.Latest,
-        true, // setParentNodes
-        ts.ScriptKind.TS,
-      )
+      const sourceFile = program.getSourceFile(filePath)
+      if (!sourceFile) throw new Error('Unable to read source file')
 
       const relativePath = path.relative(projectFolder, filePath)
-      const fileAugmentations = extractFromSourceFile(sourceFile, relativePath)
+      const fileAugmentations = extractFromSourceFile(
+        sourceFile,
+        relativePath,
+        collectImports,
+      )
       augmentations.push(...fileAugmentations)
 
       // Collect untagged declarations info

@@ -18,6 +18,132 @@ describe('TypeScript type verification', () => {
   })
 
   it(
+    'compiles a rollup with imports used only by module augmentations',
+    { timeout: 30000 },
+    async () => {
+      const compilerOptions: ts.CompilerOptions = {
+        target: ts.ScriptTarget.ES2020,
+        module: ts.ModuleKind.CommonJS,
+        moduleResolution: ts.ModuleResolutionKind.Node10,
+        strict: true,
+        types: [],
+        lib: ['lib.es5.d.ts'],
+      }
+      const emitOptions = {
+        rootDir: './src',
+        declarationDir: './dist/declarations',
+        declaration: true,
+        emitDeclarationOnly: true,
+      }
+      project.files = {
+        'api-extractor.json': createApiExtractorConfig({
+          mainEntryPointFilePath:
+            '<projectFolder>/dist/declarations/index.d.ts',
+          dtsRollup: {
+            enabled: true,
+            publicTrimmedFilePath: '<projectFolder>/dist/rollups/index.d.ts',
+          },
+        }),
+        'tsconfig.json': JSON.stringify({
+          compilerOptions: emitOptions,
+          include: ['src/**/*.ts'],
+        }),
+        src: {
+          'index.ts': 'export type Payload = "rollup";',
+          first: {
+            'types.ts': 'export interface Payload { first: true }',
+            'augment.ts': `
+import type { Payload } from './types';
+import 'host';
+declare module 'host' {
+  /** @public */
+  interface Options {
+    first: Payload;
+    echo<Payload>(value: Payload): Payload;
+  }
+}`,
+          },
+          second: {
+            'types.ts': 'export default interface Payload { second: true }',
+            'augment.ts': `
+import type Payload from './types';
+import 'host';
+declare module 'host' {
+  /** @public */
+  interface Options { second: Payload }
+}`,
+          },
+        },
+        node_modules: {
+          host: {
+            'index.d.ts': 'export interface Options {}',
+          },
+        },
+        dist: {
+          rollups: {
+            'index.d.ts': 'export type Payload = "rollup";',
+          },
+        },
+        'consumer.ts': `
+import type { Payload } from './dist/rollups';
+import type { Options } from 'host';
+declare const options: Options;
+const first: { first: true } = options.first;
+const second: { second: true } = options.second;
+const echo: 42 = options.echo(42);
+const payload: Payload = 'rollup';
+`,
+      }
+      await project.write()
+
+      const source = ts.createProgram(
+        ['src/index.ts', 'src/first/augment.ts', 'src/second/augment.ts'].map(
+          (file) => path.join(project.baseDir, file),
+        ),
+        {
+          ...compilerOptions,
+          ...emitOptions,
+          rootDir: path.resolve(project.baseDir, emitOptions.rootDir),
+          declarationDir: path.resolve(
+            project.baseDir,
+            emitOptions.declarationDir,
+          ),
+        },
+      )
+      const messages = (diagnostics: readonly ts.Diagnostic[]) =>
+        diagnostics.map((diagnostic) =>
+          ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+        )
+      expect(messages(ts.getPreEmitDiagnostics(source))).toEqual([])
+      expect(messages(source.emit().diagnostics)).toEqual([])
+
+      const result = await mergeModuleDeclarations({
+        configPath: path.join(project.baseDir, 'api-extractor.json'),
+      })
+      const rollup = path.join(project.baseDir, 'dist/rollups/index.d.ts')
+      expect(result.errors).toEqual([])
+      expect(result.augmentedFiles).toEqual([rollup])
+
+      const consumer = ts.createProgram(
+        [rollup, path.join(project.baseDir, 'consumer.ts')],
+        {
+          ...compilerOptions,
+          noEmit: true,
+          skipLibCheck: false,
+        },
+      )
+      expect(messages(ts.getPreEmitDiagnostics(consumer))).toEqual([])
+      for (const dir of ['first', 'second']) {
+        expect(
+          consumer.getSourceFile(
+            path.join(project.baseDir, 'dist/declarations', dir, 'types.d.ts'),
+          ),
+        ).toBeDefined()
+      }
+    },
+  )
+
+  it(
     'produces valid TypeScript that compiles',
     { timeout: 30000 },
     async () => {

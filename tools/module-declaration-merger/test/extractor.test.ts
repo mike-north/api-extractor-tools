@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
-import { extractModuleAugmentations } from '@'
+import * as path from 'path'
+import {
+  createResolver,
+  extractModuleAugmentations,
+  getAugmentationPreview,
+} from '@'
 
 describe('extractModuleAugmentations', () => {
   let project: Project
@@ -89,5 +94,62 @@ declare module "../registry" {
     expect(declarations?.[1]?.maturityLevel).toBe('internal')
     expect(declarations?.[2]?.name).toBe('BetaThing')
     expect(declarations?.[2]?.maturityLevel).toBe('beta')
+  })
+
+  it('includes only imports referenced by declarations in the target rollup', async () => {
+    project.files = {
+      src: {
+        'augment.ts': `
+import type { Payload } from './payload';
+import type { Internal } from './internal';
+import type { Unused } from './unused';
+import 'host';
+
+declare module 'host' {
+  /** @public */
+  interface Options {
+    payload: Payload;
+    echo<Unused>(value: Unused): Unused;
+  }
+
+  /** @internal */
+  interface Options {
+    internal: Internal;
+  }
+}`,
+      },
+    }
+    await project.write()
+
+    const resolver = createResolver({
+      projectFolder: project.baseDir,
+      mainEntryPointFilePath: path.join(project.baseDir, 'src/index.ts'),
+    })
+    const rollupPaths = {
+      public: path.join(project.baseDir, 'dist/public.d.ts'),
+      internal: path.join(project.baseDir, 'dist/internal.d.ts'),
+    }
+    const { augmentations, errors } = await extractModuleAugmentations({
+      projectFolder: project.baseDir,
+    })
+
+    expect(errors).toEqual([])
+    const publicPreview = getAugmentationPreview(
+      augmentations,
+      rollupPaths,
+      resolver,
+      rollupPaths.public,
+    )
+    const internalPreview = getAugmentationPreview(
+      augmentations,
+      rollupPaths,
+      resolver,
+      rollupPaths.internal,
+    )
+    expect(publicPreview).toContain('../src/payload')
+    expect(publicPreview).not.toContain('../src/internal')
+    expect(publicPreview).not.toContain('../src/unused')
+    expect(internalPreview).toContain('../src/internal')
+    expect(internalPreview).not.toContain('../src/unused')
   })
 })

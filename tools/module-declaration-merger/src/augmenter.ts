@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { ExtractorLogLevel } from '@microsoft/api-extractor'
+import { prepareRollupImports } from './augmentation-imports'
 import type { RollupPaths, MissingReleaseTagConfig } from './config'
 import { getRollupPathsForMaturity } from './config'
 import type {
@@ -91,6 +92,7 @@ function generateSourceFileBlock(
   sourceFilePath: string,
   declarations: GroupedDeclaration[],
   resolvedModuleSpecifier: string,
+  rewritten: Map<ExtractedDeclaration, string>,
 ): string {
   const lines: string[] = []
 
@@ -99,7 +101,7 @@ function generateSourceFileBlock(
 
   for (const { declaration } of declarations) {
     // Indent each line of the declaration
-    const indentedText = declaration.text
+    const indentedText = (rewritten.get(declaration) ?? declaration.text)
       .split('\n')
       .map((line) => (line.trim() ? `  ${line}` : line))
       .join('\n')
@@ -117,6 +119,8 @@ function generateSourceFileBlock(
  */
 function generateAugmentationSection(
   moduleMap: Map<string, Map<string, GroupedDeclaration[]>>,
+  rollupPath: string,
+  existingContent: string,
 ): string {
   const sections: string[] = []
 
@@ -126,6 +130,18 @@ function generateAugmentationSection(
   sections.push('// ============================================')
   sections.push('')
 
+  const declarations = Array.from(moduleMap.values()).flatMap((sourceFileMap) =>
+    Array.from(sourceFileMap.values()).flatMap((group) =>
+      group.map(({ declaration }) => declaration),
+    ),
+  )
+  const { statements, rewritten } = prepareRollupImports(
+    rollupPath,
+    existingContent,
+    declarations,
+  )
+  if (statements.length > 0) sections.push(...statements, '')
+
   // Iterate through each module specifier
   for (const [resolvedModuleSpecifier, sourceFileMap] of moduleMap) {
     // Iterate through each source file that contributed to this module
@@ -134,6 +150,7 @@ function generateAugmentationSection(
         sourceFilePath,
         declarations,
         resolvedModuleSpecifier,
+        rewritten,
       )
       sections.push(block)
       sections.push('')
@@ -296,7 +313,11 @@ export function augmentRollups(options: AugmentOptions): AugmentResult {
       }
 
       // Generate augmentation section
-      const augmentationSection = generateAugmentationSection(moduleMap)
+      const augmentationSection = generateAugmentationSection(
+        moduleMap,
+        rollupPath,
+        existingContent,
+      )
 
       // Combine existing content with warnings and new augmentations
       const newContent =
@@ -345,5 +366,8 @@ export function getAugmentationPreview(
     return null
   }
 
-  return generateAugmentationSection(moduleMap)
+  const existingContent = fs.existsSync(targetRollup)
+    ? fs.readFileSync(targetRollup, 'utf-8')
+    : ''
+  return generateAugmentationSection(moduleMap, targetRollup, existingContent)
 }
