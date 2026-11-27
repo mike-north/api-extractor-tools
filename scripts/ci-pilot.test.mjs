@@ -1,6 +1,6 @@
 // These tests exercise the workspace commands in disposable project directories.
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import {
   existsSync,
   mkdirSync,
