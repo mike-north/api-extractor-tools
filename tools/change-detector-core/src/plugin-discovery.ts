@@ -11,12 +11,15 @@
  * manually using the registry.
  */
 
-import type { ChangeDetectorPlugin, InputProcessorPlugin } from './plugin-types'
+import type {
+  ChangeDetectorPlugin,
+  InputProcessorPlugin,
+} from './plugin-types.js'
 import {
   PLUGIN_KEYWORDS,
   adaptLegacyInputProcessorPlugin,
-} from './plugin-types'
-import { validatePlugin } from './plugin-validation'
+} from './plugin-types.js'
+import { validatePlugin } from './plugin-validation.js'
 
 // ============================================================================
 // Types
@@ -213,10 +216,26 @@ interface PackageJson {
   version: string
   main?: string
   module?: string
-  exports?:
-    | string
-    | { '.': string | { import?: string; require?: string; default?: string } }
+  exports?: PackageExport | null
   keywords?: string[]
+}
+
+type PackageExport = string | { [condition: string]: PackageExport | null }
+
+function resolveExport(
+  target: PackageExport | null | undefined,
+  condition: 'require' | 'import',
+): string | undefined {
+  if (typeof target === 'string') return target
+  if (!target) return undefined
+
+  for (const [key, nested] of Object.entries(target)) {
+    if (key === condition || key === 'node' || key === 'default') {
+      const resolved = resolveExport(nested, condition)
+      if (resolved !== undefined) return resolved
+    }
+  }
+  return undefined
 }
 
 // ============================================================================
@@ -285,7 +304,7 @@ export async function discoverPlugins(
   // Collect all node_modules directories to scan
   const nodeModulesDirs: string[] = []
   for (const searchPath of searchPaths) {
-    const nodeModulesPath = path.join(searchPath, 'node_modules')
+    const nodeModulesPath = path.resolve(searchPath, 'node_modules')
     try {
       const stat = await fs.stat(nodeModulesPath)
       if (stat.isDirectory()) {
@@ -310,6 +329,7 @@ export async function discoverPlugins(
       fs,
       path,
       logger,
+      typeof require === 'function' ? 'require' : 'import',
     )
 
     for (const pkgInfo of packageInfos) {
@@ -350,6 +370,7 @@ async function scanNodeModules(
   fs: typeof import('fs/promises'),
   path: typeof import('path'),
   logger: PluginDiscoveryLogger,
+  condition: 'import' | 'require' = 'import',
 ): Promise<PluginPackageInfo[]> {
   const results: PluginPackageInfo[] = []
 
@@ -375,6 +396,7 @@ async function scanNodeModules(
             fs,
             path,
             logger,
+            condition,
           )
           if (pkgInfo) {
             results.push(pkgInfo)
@@ -392,6 +414,7 @@ async function scanNodeModules(
         fs,
         path,
         logger,
+        condition,
       )
       if (pkgInfo) {
         results.push(pkgInfo)
@@ -412,6 +435,7 @@ async function checkPackage(
   fs: typeof import('fs/promises'),
   path: typeof import('path'),
   logger: PluginDiscoveryLogger,
+  condition: 'import' | 'require',
 ): Promise<PluginPackageInfo | null> {
   const packageJsonPath = path.join(packagePath, 'package.json')
 
@@ -438,20 +462,20 @@ async function checkPackage(
   logger.debug?.(`Found plugin package: ${packageName}`)
 
   // Resolve main entry point
-  let main: string | undefined
-  if (packageJson.exports) {
-    if (typeof packageJson.exports === 'string') {
-      main = packageJson.exports
-    } else if (packageJson.exports['.']) {
-      const dotExport = packageJson.exports['.']
-      if (typeof dotExport === 'string') {
-        main = dotExport
-      } else {
-        main = dotExport.import ?? dotExport.require ?? dotExport.default
-      }
-    }
-  }
-  main = main ?? packageJson.module ?? packageJson.main ?? 'index.js'
+  const packageExports = packageJson.exports
+  const rootExport =
+    packageExports &&
+    typeof packageExports === 'object' &&
+    '.' in packageExports
+      ? packageExports['.']
+      : packageExports
+  const main =
+    resolveExport(rootExport, condition) ??
+    resolveExport(rootExport, condition === 'require' ? 'import' : 'require') ??
+    (condition === 'require'
+      ? (packageJson.main ?? packageJson.module)
+      : (packageJson.module ?? packageJson.main)) ??
+    'index.js'
 
   return {
     packageName: packageJson.name,
@@ -484,10 +508,15 @@ async function loadPlugin(
 
   logger.debug?.(`Loading plugin from ${entryPoint}`)
 
-  // Dynamic import
-  let module: unknown
+  let loadedModule: unknown
   try {
-    module = await import(entryPoint)
+    if (typeof require === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      loadedModule = require(entryPoint)
+    } else {
+      const { pathToFileURL } = await import('node:url')
+      loadedModule = await import(pathToFileURL(entryPoint).href)
+    }
   } catch (error) {
     throw new Error(
       `Failed to import plugin "${pkgInfo.packageName}": ${
@@ -497,8 +526,8 @@ async function loadPlugin(
   }
 
   // Get the default export
-  const moduleObj = module as Record<string, unknown>
-  let pluginExport = moduleObj.default ?? module
+  const moduleObj = loadedModule as Record<string, unknown>
+  let pluginExport = moduleObj.default ?? loadedModule
 
   // Handle double-wrapped default exports (ESM interop)
   if (
@@ -593,7 +622,7 @@ export async function scanForPlugins(
   const path = await import('path')
 
   for (const searchPath of searchPaths) {
-    const nodeModulesPath = path.join(searchPath, 'node_modules')
+    const nodeModulesPath = path.resolve(searchPath, 'node_modules')
     try {
       const stat = await fs.stat(nodeModulesPath)
       if (stat.isDirectory()) {

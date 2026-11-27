@@ -46,14 +46,14 @@ import type {
   PatternCompileResult,
   PatternTemplate,
   PatternVariable,
-} from './dsl-types'
+} from './dsl-types.js'
 import type {
   ChangeTarget,
   ChangeAction,
   ChangeAspect,
   ChangeImpact,
   NodeKind,
-} from '../ast/types'
+} from '../ast/types.js'
 
 /**
  * Internal structure for parsed template components.

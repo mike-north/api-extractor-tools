@@ -4,14 +4,14 @@
  */
 
 // Result types
-export type { SourceMapping, ProcessResult } from './result-types'
+export type { SourceMapping, ProcessResult } from './result-types.js'
 
 // Input processor types
 export type {
   InputProcessor,
   InputProcessorOptions,
   InputProcessorDefinition,
-} from './input-processor'
+} from './input-processor.js'
 
 // Policy types
 export type {
@@ -19,7 +19,7 @@ export type {
   ExtendedVersioningPolicy,
   PolicyOptions,
   PolicyDefinition,
-} from './policy'
+} from './policy.js'
 
 // Reporter types
 export type {
@@ -29,14 +29,14 @@ export type {
   AsyncReporter,
   ReporterOptions,
   ReporterDefinition,
-} from './reporter'
+} from './reporter.js'
 
 // Validator types
 export type {
   ValidationResult,
   Validator,
   ValidatorDefinition,
-} from './validator'
+} from './validator.js'
 
 // Plugin container types
 export type {
@@ -44,16 +44,16 @@ export type {
   ChangeDetectorPlugin,
   PluginLifecycle,
   ChangeDetectorPluginWithLifecycle,
-} from './plugin'
+} from './plugin.js'
 
 // Error types
-export { PluginError } from './errors'
-export type { PluginErrorCode, PluginResult } from './errors'
+export { PluginError } from './errors.js'
+export type { PluginErrorCode, PluginResult } from './errors.js'
 
 // Discovery types
-export { PLUGIN_KEYWORDS } from './discovery'
-export type { DiscoveredPlugin, ResolvedPlugin } from './discovery'
+export { PLUGIN_KEYWORDS } from './discovery.js'
+export type { DiscoveredPlugin, ResolvedPlugin } from './discovery.js'
 
 // Legacy support
-export { adaptLegacyInputProcessorPlugin } from './legacy'
-export type { InputProcessorPlugin } from './legacy'
+export { adaptLegacyInputProcessorPlugin } from './legacy.js'
+export type { InputProcessorPlugin } from './legacy.js'

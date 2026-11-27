@@ -8,11 +8,14 @@ import type {
   ChangeDescriptor,
   DiffOptions,
   DiffContext,
-} from '../types'
-import { matchNodes } from './matching'
-import { detectRenames } from './rename-detection'
-import { createSimpleDescriptor, classifyChange } from './change-classification'
-import { detectNestedChanges } from './nested-changes'
+} from '../types.js'
+import { matchNodes } from './matching.js'
+import { detectRenames } from './rename-detection.js'
+import {
+  createSimpleDescriptor,
+  classifyChange,
+} from './change-classification.js'
+import { detectNestedChanges } from './nested-changes.js'
 
 /**
  * Default diff options.

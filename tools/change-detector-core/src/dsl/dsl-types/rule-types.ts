@@ -7,7 +7,7 @@
  * - Dimensional DSL (multi-dimensional specifications)
  */
 
-import type { ReleaseType } from '../../types'
+import type { ReleaseType } from '../../types.js'
 import type {
   ChangeTarget,
   ChangeAction,
@@ -15,7 +15,7 @@ import type {
   ChangeImpact,
   ChangeTag,
   NodeKind,
-} from '../../ast/types'
+} from '../../ast/types.js'
 
 // =============================================================================
 // Level 1: Intent-based DSL

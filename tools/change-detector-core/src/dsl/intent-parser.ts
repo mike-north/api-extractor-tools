@@ -45,9 +45,9 @@ import type {
   PatternRule,
   PatternTemplate,
   PatternVariable,
-} from './dsl-types'
-import type { ReleaseType } from '../types'
-import type { ChangeTarget, NodeKind } from '../ast/types'
+} from './dsl-types.js'
+import type { ReleaseType } from '../types.js'
+import type { ChangeTarget, NodeKind } from '../ast/types.js'
 
 /**
  * Internal mapping of intent expressions to their pattern representations.

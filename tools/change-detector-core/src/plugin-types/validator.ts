@@ -2,7 +2,7 @@
  * Validator types.
  */
 
-import type { ExportedSymbol } from '../types'
+import type { ExportedSymbol } from '../types.js'
 
 /**
  * Result of validation.

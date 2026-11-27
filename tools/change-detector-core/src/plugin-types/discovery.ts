@@ -2,14 +2,14 @@
  * Plugin discovery types (Node.js).
  */
 
-import type { InputProcessorDefinition } from './input-processor'
-import type { PolicyDefinition } from './policy'
-import type { ReporterDefinition } from './reporter'
-import type { ValidatorDefinition } from './validator'
+import type { InputProcessorDefinition } from './input-processor.js'
+import type { PolicyDefinition } from './policy.js'
+import type { ReporterDefinition } from './reporter.js'
+import type { ValidatorDefinition } from './validator.js'
 import type {
   ChangeDetectorPlugin,
   ChangeDetectorPluginWithLifecycle,
-} from './plugin'
+} from './plugin.js'
 
 /**
  * Keywords used for npm-based plugin discovery.

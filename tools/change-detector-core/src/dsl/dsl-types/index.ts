@@ -13,7 +13,7 @@ export type {
   DimensionalRule,
   DSLRule,
   DSLPolicy,
-} from './rule-types'
+} from './rule-types.js'
 
 // Result types
 export type {
@@ -25,7 +25,7 @@ export type {
   ValidationResult,
   ValidationError,
   ValidationWarning,
-} from './result-types'
+} from './result-types.js'
 
 // Utilities
 export {
@@ -34,11 +34,11 @@ export {
   isIntentRule,
   isPatternRule,
   isDimensionalRule,
-} from './utilities'
+} from './utilities.js'
 
 export type {
   DSLBuilderState,
   TransformOptions,
   _ExtractVariables,
   _PatternVariableMap,
-} from './utilities'
+} from './utilities.js'

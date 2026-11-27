@@ -12,8 +12,8 @@ import type {
   PolicyDefinition,
   ReporterDefinition,
   ValidatorDefinition,
-} from './plugin-types'
-import { formatValidationErrors, validatePlugin } from './plugin-validation'
+} from './plugin-types.js'
+import { formatValidationErrors, validatePlugin } from './plugin-validation.js'
 
 // ============================================================================
 // Types

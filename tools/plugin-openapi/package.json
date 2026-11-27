@@ -2,15 +2,16 @@
   "name": "@api-extractor-tools/plugin-openapi",
   "version": "0.1.0",
   "description": "OpenAPI v2/v3 input processor plugin for change-detector (isomorphic - works in Node.js and browsers)",
+  "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/cjs/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "pnpm inject-version && pnpm build:esm && pnpm build:cjs",
+    "build": "pnpm build:esm && pnpm build:cjs",
     "inject-version": "node scripts/inject-version.mjs",
-    "build:esm": "tsc -p tsconfig.esm.json && node ../../scripts/write-esm-package.mjs",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "node scripts/inject-version.mjs && tsc -p tsconfig.esm.json",
+    "build:cjs": "node scripts/inject-version.mjs && tsc -p tsconfig.cjs.json && node ../../scripts/mark-commonjs.mjs",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
@@ -80,5 +81,15 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/src/version.ts"
+        ]
+      }
+    }
+  }
 }

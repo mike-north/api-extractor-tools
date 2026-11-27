@@ -41,7 +41,7 @@ export type {
   ChangesByImpact,
   ComparisonStats,
   ComparisonReport,
-} from './types'
+} from './types.js'
 
 // Plugin types exports
 export {
@@ -92,7 +92,7 @@ export {
   // Legacy support (deprecated)
   type InputProcessorPlugin,
   adaptLegacyInputProcessorPlugin,
-} from './plugin-types'
+} from './plugin-types.js'
 
 // Plugin validation exports
 export {
@@ -102,7 +102,7 @@ export {
   validatePlugin,
   isValidPlugin,
   formatValidationErrors,
-} from './plugin-validation'
+} from './plugin-validation.js'
 
 // Plugin discovery exports (Node.js only)
 export {
@@ -114,7 +114,7 @@ export {
   type PluginDiscoveryResult,
   discoverPlugins,
   scanForPlugins,
-} from './plugin-discovery'
+} from './plugin-discovery.js'
 
 // Plugin registry exports
 export {
@@ -124,4 +124,4 @@ export {
   type PluginRegistryOptions,
   type PluginRegistry,
   createPluginRegistry,
-} from './plugin-registry'
+} from './plugin-registry.js'

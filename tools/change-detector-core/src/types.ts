@@ -1,4 +1,4 @@
-import type { ParameterOrderAnalysis } from './parameter-analysis'
+import type { ParameterOrderAnalysis } from './parameter-analysis.js'
 
 /**
  * The release type this delta represents according to semantic versioning.

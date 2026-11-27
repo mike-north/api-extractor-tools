@@ -48,4 +48,4 @@ export {
   synthesizeIntent,
   detectCommonPattern,
   generateIntentExpression,
-} from './intent-synthesizer/index'
+} from './intent-synthesizer/index.js'

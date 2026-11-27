@@ -1,4 +1,4 @@
-import type { ChangeDetectorPlugin } from './plugin-types'
+import type { ChangeDetectorPlugin } from './plugin-types.js'
 
 // ============================================================================
 // Validation Result Types

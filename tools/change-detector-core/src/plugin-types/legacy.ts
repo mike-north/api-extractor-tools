@@ -2,8 +2,8 @@
  * Legacy plugin support.
  */
 
-import type { InputProcessor } from './input-processor'
-import type { ChangeDetectorPlugin } from './plugin'
+import type { InputProcessor } from './input-processor.js'
+import type { ChangeDetectorPlugin } from './plugin.js'
 
 /**
  * Legacy input processor plugin interface.

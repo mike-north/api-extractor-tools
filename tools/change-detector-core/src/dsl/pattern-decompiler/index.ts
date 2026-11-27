@@ -6,7 +6,7 @@
  */
 
 // Public API - main decompilation functions
-export { decompileToPattern, findBestPattern } from './decompiler'
+export { decompileToPattern, findBestPattern } from './decompiler.js'
 
 // Public API - confidence calculation
-export { calculatePatternConfidence } from './confidence'
+export { calculatePatternConfidence } from './confidence.js'

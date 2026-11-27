@@ -54,4 +54,4 @@ export {
   decompileToPattern,
   findBestPattern,
   calculatePatternConfidence,
-} from './pattern-decompiler/index'
+} from './pattern-decompiler/index.js'

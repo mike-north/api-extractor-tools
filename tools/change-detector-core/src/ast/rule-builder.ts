@@ -14,7 +14,7 @@
  * ```
  */
 
-import type { ReleaseType } from '../types'
+import type { ReleaseType } from '../types.js'
 import type {
   ApiChange,
   ChangeTarget,
@@ -24,7 +24,7 @@ import type {
   ChangeTag,
   ClassifiedChange,
   NodeKind,
-} from './types'
+} from './types.js'
 
 // =============================================================================
 // Policy Rule Types

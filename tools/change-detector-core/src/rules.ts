@@ -24,7 +24,7 @@ export type {
   PolicyRule,
   Policy,
   ClassificationResult,
-} from './ast/rule-builder'
+} from './ast/rule-builder.js'
 
 // Rule builder exports
 export {
@@ -35,11 +35,11 @@ export {
   classifyChange,
   classifyChanges,
   determineOverallRelease,
-} from './ast/rule-builder'
+} from './ast/rule-builder.js'
 
 // Built-in rule-based policies
 export {
   semverDefaultPolicy,
   semverReadOnlyPolicy,
   semverWriteOnlyPolicy,
-} from './ast/builtin-policies'
+} from './ast/builtin-policies.js'
