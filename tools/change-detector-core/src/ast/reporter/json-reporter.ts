@@ -8,6 +8,7 @@
 import type { ReleaseType } from '../../types'
 import type { ClassifiedChange } from '../types'
 import type { ASTReporterOptions, ASTComparisonReport } from './types'
+import { groupChangesByReleaseType } from './types'
 
 /**
  * JSON-serializable change representation.
@@ -156,17 +157,20 @@ export function formatASTReportAsJSON(
   report: ASTComparisonReport,
   options: ASTReporterOptions = {},
 ): ASTReportJSON {
+  const groups =
+    options.flattenNested || report.changes.length === 0
+      ? report.byReleaseType
+      : groupChangesByReleaseType(report.changes)
+
   return {
     releaseType: report.releaseType,
     stats: report.stats,
     changes: {
-      forbidden: report.byReleaseType.forbidden.map((c) =>
-        changeToJSON(c, options),
-      ),
-      major: report.byReleaseType.major.map((c) => changeToJSON(c, options)),
-      minor: report.byReleaseType.minor.map((c) => changeToJSON(c, options)),
-      patch: report.byReleaseType.patch.map((c) => changeToJSON(c, options)),
-      none: report.byReleaseType.none.map((c) => changeToJSON(c, options)),
+      forbidden: groups.forbidden.map((c) => changeToJSON(c, options)),
+      major: groups.major.map((c) => changeToJSON(c, options)),
+      minor: groups.minor.map((c) => changeToJSON(c, options)),
+      patch: groups.patch.map((c) => changeToJSON(c, options)),
+      none: groups.none.map((c) => changeToJSON(c, options)),
     },
   }
 }

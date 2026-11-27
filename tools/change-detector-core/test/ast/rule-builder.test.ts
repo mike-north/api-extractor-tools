@@ -377,6 +377,46 @@ describe('Rule Builder', () => {
       expect(results[1]!.releaseType).toBe('minor')
       expect(results[2]!.releaseType).toBe('none')
     })
+
+    it('classifies descendants with their nesting context', () => {
+      const nestedPolicy = createPolicy('nested removals', 'none')
+        .addRule(
+          rule('deep-removal')
+            .nested()
+            .action('removed')
+            .when(({ context }) => context.depth === 2)
+            .returns('forbidden'),
+        )
+        .build()
+      const root = makeChange({ action: 'modified' })
+      const child = makeChange({}, { isNested: true, depth: 1 })
+      const grandchild = makeChange(
+        { action: 'removed' },
+        { isNested: true, depth: 2 },
+      )
+      root.nestedChanges.push(child)
+      child.nestedChanges.push(grandchild)
+
+      const results = classifyChanges([root], nestedPolicy)
+
+      expect(determineOverallRelease(results)).toBe('forbidden')
+      expect(results).toMatchObject([
+        {
+          releaseType: 'none',
+          nestedChanges: [
+            {
+              releaseType: 'none',
+              nestedChanges: [
+                {
+                  releaseType: 'forbidden',
+                  matchedRule: { name: 'deep-removal' },
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
   })
 
   describe('determineOverallRelease()', () => {

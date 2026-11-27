@@ -105,24 +105,43 @@ export function formatAPIChangesAsMarkdown(
   }
 
   // Added exports
-  const addedChanges = nonBreakingChanges.filter(
-    (c) => c.descriptor.action === 'added',
+  const addedExports = nonBreakingChanges.filter(
+    (c) => c.descriptor.action === 'added' && !c.context.isNested,
   )
-  if (addedChanges.length > 0) {
+  if (addedExports.length > 0) {
     sections.push('### Added Exports')
     sections.push('')
-    sections.push(...formatAddedExports(addedChanges))
+    sections.push(...formatAddedExports(addedExports))
     sections.push('')
   }
 
-  // Modified exports (non-breaking)
+  const addedMembers = nonBreakingChanges.filter(
+    (c) => c.descriptor.action === 'added' && c.context.isNested,
+  )
+  if (addedMembers.length > 0) {
+    sections.push('### Added Members')
+    sections.push('')
+    sections.push(...formatChangesAsList(addedMembers))
+    sections.push('')
+  }
+
   const modifiedChanges = nonBreakingChanges.filter(
-    (c) => c.descriptor.action !== 'added',
+    (c) => c.descriptor.action !== 'added' && !c.context.isNested,
   )
   if (modifiedChanges.length > 0) {
     sections.push('### Modified Exports')
     sections.push('')
     sections.push(...formatChangesAsList(modifiedChanges))
+    sections.push('')
+  }
+
+  const modifiedMembers = nonBreakingChanges.filter(
+    (c) => c.descriptor.action !== 'added' && c.context.isNested,
+  )
+  if (modifiedMembers.length > 0) {
+    sections.push('### Modified Members')
+    sections.push('')
+    sections.push(...formatChangesAsList(modifiedMembers))
     sections.push('')
   }
 

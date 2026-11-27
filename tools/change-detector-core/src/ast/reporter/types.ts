@@ -6,6 +6,7 @@
  */
 
 import type { ReleaseType } from '../../types'
+import { determineOverallRelease, walkClassifiedChanges } from '../rule-builder'
 import type { SourceRange, ClassifiedChange } from '../types'
 
 // =============================================================================
@@ -50,10 +51,10 @@ export interface ASTComparisonReport {
   /** The overall release type */
   releaseType: ReleaseType
 
-  /** All classified changes */
+  /** Root changes with their nested changes */
   changes: ClassifiedChange[]
 
-  /** Changes grouped by release type */
+  /** All classified changes, including descendants, grouped by release type */
   byReleaseType: Record<ReleaseType, ClassifiedChange[]>
 
   /** Summary statistics */
@@ -79,36 +80,15 @@ export interface ASTComparisonReport {
 export function createASTComparisonReport(
   changes: ClassifiedChange[],
 ): ASTComparisonReport {
-  const byReleaseType: Record<ReleaseType, ClassifiedChange[]> = {
-    forbidden: [],
-    major: [],
-    minor: [],
-    patch: [],
-    none: [],
-  }
-
-  for (const change of changes) {
-    byReleaseType[change.releaseType].push(change)
-  }
-
-  // Determine overall release type
-  let releaseType: ReleaseType = 'none'
-  if (byReleaseType.forbidden.length > 0) {
-    releaseType = 'forbidden'
-  } else if (byReleaseType.major.length > 0) {
-    releaseType = 'major'
-  } else if (byReleaseType.minor.length > 0) {
-    releaseType = 'minor'
-  } else if (byReleaseType.patch.length > 0) {
-    releaseType = 'patch'
-  }
+  const allChanges = [...walkClassifiedChanges(changes)]
+  const byReleaseType = groupChangesByReleaseType(allChanges)
 
   return {
-    releaseType,
+    releaseType: determineOverallRelease(changes),
     changes,
     byReleaseType,
     stats: {
-      total: changes.length,
+      total: allChanges.length,
       forbidden: byReleaseType.forbidden.length,
       major: byReleaseType.major.length,
       minor: byReleaseType.minor.length,
@@ -116,6 +96,36 @@ export function createASTComparisonReport(
       none: byReleaseType.none.length,
     },
   }
+}
+
+export function groupChangesByReleaseType(
+  changes: readonly ClassifiedChange[],
+  getReleaseType = (change: ClassifiedChange): ReleaseType =>
+    change.releaseType,
+): ASTComparisonReport['byReleaseType'] {
+  const groups: ASTComparisonReport['byReleaseType'] = {
+    forbidden: [],
+    major: [],
+    minor: [],
+    patch: [],
+    none: [],
+  }
+  for (const change of changes) {
+    groups[getReleaseType(change)].push(change)
+  }
+  return groups
+}
+
+/** Groups each displayed tree by its highest severity. */
+export function groupChangesForDisplay(
+  report: ASTComparisonReport,
+  options: ASTReporterOptions,
+): ASTComparisonReport['byReleaseType'] {
+  return options.flattenNested || report.changes.length === 0
+    ? report.byReleaseType
+    : groupChangesByReleaseType(report.changes, (change) =>
+        determineOverallRelease([change]),
+      )
 }
 
 // =============================================================================

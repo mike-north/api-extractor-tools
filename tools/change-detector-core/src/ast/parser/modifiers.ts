@@ -2,7 +2,10 @@
  * Modifier extraction from AST nodes.
  */
 
-import type { TSESTree } from '@typescript-eslint/typescript-estree'
+import {
+  AST_NODE_TYPES,
+  type TSESTree,
+} from '@typescript-eslint/typescript-estree'
 import type { Modifier } from '../types'
 
 /**
@@ -62,6 +65,9 @@ export function extractModifiers(
     } else if (accessibility === 'public') {
       modifiers.add('public')
     }
+  }
+  if ('key' in node && node.key?.type === AST_NODE_TYPES.PrivateIdentifier) {
+    modifiers.add('private')
   }
 
   // Check for async

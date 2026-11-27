@@ -182,6 +182,7 @@ export function diffModules(
 /**
  * Flattens nested changes into a single array.
  * Useful for reporting or counting total changes.
+ * Clears nestedChanges on entries in the flat array.
  * Adds 'is-nested-change' tag to nested changes.
  *
  * Note: This function does NOT mutate the input changes.
@@ -193,16 +194,17 @@ export function flattenChanges(changes: ApiChange[]): ApiChange[] {
   const result: ApiChange[] = []
 
   function flatten(change: ApiChange, isNested = false): void {
-    if (isNested) {
-      // Create a new change with the tag added (don't mutate input)
-      const flatChange: ApiChange = {
+    if (isNested || change.nestedChanges.length > 0) {
+      result.push({
         ...change,
-        descriptor: {
-          ...change.descriptor,
-          tags: new Set([...change.descriptor.tags, 'is-nested-change']),
-        },
-      }
-      result.push(flatChange)
+        nestedChanges: [],
+        descriptor: isNested
+          ? {
+              ...change.descriptor,
+              tags: new Set([...change.descriptor.tags, 'is-nested-change']),
+            }
+          : change.descriptor,
+      })
     } else {
       result.push(change)
     }

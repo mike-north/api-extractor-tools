@@ -1,8 +1,13 @@
 import { describe, it, expect } from 'vitest'
+import * as ts from 'typescript'
 import { z } from 'zod'
-import { parseModule } from '../../src/ast/parser'
-import { diffModules } from '../../src/ast/differ'
-import { classifyChanges } from '../../src/ast/rule-builder'
+import { parseModuleWithTypes } from '../../src/ast/parser'
+import { diffModules, flattenChanges } from '../../src/ast/differ'
+import {
+  classifyChange,
+  classifyChanges,
+  determineOverallRelease,
+} from '../../src/ast/rule-builder'
 import { semverDefaultPolicy } from '../../src/ast/builtin-policies'
 import type { ClassifiedChange } from '../../src/ast/types'
 import {
@@ -37,20 +42,20 @@ function createClassifiedChanges(
   oldSource: string,
   newSource: string,
 ): ClassifiedChange[] {
-  const oldAnalysis = parseModule(oldSource)
-  const newAnalysis = parseModule(newSource)
+  return classifyChanges(
+    compareSources(oldSource, newSource),
+    semverDefaultPolicy,
+  )
+}
+
+function compareSources(oldSource: string, newSource: string) {
+  const oldAnalysis = parseModuleWithTypes(oldSource, ts)
+  const newAnalysis = parseModuleWithTypes(newSource, ts)
   const changes = diffModules(oldAnalysis, newAnalysis, {
     includeNestedChanges: true,
   })
 
-  // Use the new rule-based policy system
-  const results = classifyChanges(changes, semverDefaultPolicy)
-
-  // Convert ClassificationResult[] to ClassifiedChange[]
-  return results.map((result) => ({
-    ...result.change,
-    releaseType: result.releaseType,
-  }))
+  return changes
 }
 
 describe('AST Reporter', () => {
@@ -122,9 +127,96 @@ export interface Product { sku: string; }`,
       expect(report.releaseType).toBe('none')
       expect(report.stats.total).toBe(0)
     })
+
+    it('formats reports whose changes are supplied in the release groups', () => {
+      const report = createASTComparisonReport(
+        createClassifiedChanges('export declare function run(): void', ''),
+      )
+      report.changes = []
+
+      expect(formatASTReportAsText(report)).toContain('[MAJOR] function: run')
+      expect(formatASTReportAsMarkdown(report)).toContain('`run`')
+      expect(formatASTReportAsJSON(report).changes.major).toMatchObject([
+        { path: 'run', releaseType: 'major' },
+      ])
+    })
+
+    it('counts each change once when the input was flattened before classification', () => {
+      const changes = compareSources(
+        'export interface API { run(): void }',
+        'export interface API {}',
+      )
+
+      const flattened = flattenChanges(changes)
+      const seen: string[] = []
+      const results = classifyChanges(flattened, {
+        defaultReleaseType: 'none',
+        name: 'track classifications',
+        rules: [
+          {
+            name: 'match removed method',
+            releaseType: 'major',
+            matches: ({ path }) => {
+              seen.push(path)
+              return path === 'API.run'
+            },
+          },
+        ],
+      })
+      const report = createASTComparisonReport(results)
+
+      expect(seen).toEqual(['API', 'API.run'])
+      expect(report.stats).toMatchObject({ total: 2, major: 1, none: 1 })
+      expect(changes[0]?.nestedChanges).toHaveLength(1)
+    })
+
+    it('aggregates a classified descendant under a raw intermediate change', () => {
+      const [root] = compareSources(
+        'export namespace API { export interface Nested { run(): void } }',
+        'export namespace API { export interface Nested {} }',
+      )
+      const rawChild = root!.nestedChanges[0]!
+      const descendant = classifyChange(
+        rawChild.nestedChanges[0]!,
+        semverDefaultPolicy,
+      )
+      const mixedTree = {
+        ...classifyChange(root!, semverDefaultPolicy),
+        nestedChanges: [
+          {
+            ...rawChild,
+            nestedChanges: [descendant],
+          },
+        ],
+      }
+
+      expect(determineOverallRelease([mixedTree])).toBe('major')
+      const report = createASTComparisonReport([mixedTree])
+      expect(report.byReleaseType.major).toEqual([descendant])
+      expect(report.stats).toMatchObject({ total: 2, major: 1, none: 1 })
+    })
   })
 
   describe('formatASTReportAsText', () => {
+    it('shows the change behind a deep release recommendation by default', () => {
+      const report = createASTComparisonReport(
+        createClassifiedChanges(
+          'export declare namespace Outer { namespace A { namespace B { interface API { run(): void } } } }',
+          'export declare namespace Outer { namespace A { namespace B { interface API {} } } }',
+        ),
+      )
+
+      expect(report.releaseType).toBe('major')
+      expect(formatASTReportAsText(report)).toContain('Outer.A.B.API.run')
+      expect(formatASTReportAsMarkdown(report)).toContain('Outer.A.B.API.run')
+      expect(formatASTReportAsText(report, { maxDepth: 3 })).not.toContain(
+        'Outer.A.B.API.run',
+      )
+      expect(formatASTReportAsMarkdown(report, { maxDepth: 3 })).not.toContain(
+        'Outer.A.B.API.run',
+      )
+    })
+
     it('formats report with breaking changes', () => {
       const classified = createClassifiedChanges(
         `export interface User { id: number; }`,
@@ -301,7 +393,7 @@ export interface Product { sku: string; }`,
       )
 
       const report = createASTComparisonReport(classified)
-      const json = formatASTReportAsJSON(report)
+      const json = formatASTReportAsJSON(report, { flattenNested: true })
 
       const majorChanges = json.changes.major
       expect(majorChanges.length).toBeGreaterThan(0)
@@ -332,25 +424,27 @@ export interface Product { sku: string; }`,
       expect(hasSignatures).toBe(true)
     })
 
-    it('includes nested changes when not flattened', () => {
+    it('formats each nested change once in both hierarchical and flat JSON', () => {
       const classified = createClassifiedChanges(
-        `export interface User { id: number; name: string; }`,
-        `export interface User { id: string; email: string; }`,
+        `export interface API { run(): void }`,
+        `export interface API {}`,
       )
 
       const report = createASTComparisonReport(classified)
-      const json = formatASTReportAsJSON(report, { flattenNested: false })
+      const json = formatASTReportAsJSON(report)
+      expect(json.changes.major).toEqual([])
+      expect(json.changes.none).toMatchObject([
+        {
+          path: 'API',
+          releaseType: 'none',
+          nestedChanges: [{ path: 'API.run', releaseType: 'major' }],
+        },
+      ])
 
-      // Check if any change has nested changes
-      const allChanges = [
-        ...json.changes.major,
-        ...json.changes.minor,
-        ...json.changes.patch,
-        ...json.changes.none,
-      ]
-
-      // At least verify the structure is correct
-      expect(allChanges.length).toBeGreaterThan(0)
+      const flatJson = formatASTReportAsJSON(report, { flattenNested: true })
+      expect(flatJson.changes.major).toMatchObject([{ path: 'API.run' }])
+      expect(flatJson.changes.none).toMatchObject([{ path: 'API' }])
+      expect(flatJson.changes.none[0]?.nestedChanges).toBeUndefined()
     })
 
     it('omits locations when disabled', () => {
@@ -360,7 +454,10 @@ export interface Product { sku: string; }`,
       )
 
       const report = createASTComparisonReport(classified)
-      const json = formatASTReportAsJSON(report, { includeLocations: false })
+      const json = formatASTReportAsJSON(report, {
+        flattenNested: true,
+        includeLocations: false,
+      })
 
       const majorChanges = json.changes.major
       expect(majorChanges.length).toBeGreaterThan(0)
