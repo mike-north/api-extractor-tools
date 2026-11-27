@@ -1,14 +1,6 @@
 import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { execSync } from 'child_process'
-
-function getGitSha(): string {
-  try {
-    return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim()
-  } catch {
-    return 'unknown'
-  }
-}
+import { getBuildId } from './build-id.mjs'
 
 /**
  * Vite plugin to inject a minimal process polyfill for browser builds.
@@ -91,6 +83,6 @@ export default defineConfig({
   },
   define: {
     // Build ID for bug reports and version tracking
-    __BUILD_ID__: JSON.stringify(getGitSha()),
+    __BUILD_ID__: JSON.stringify(getBuildId()),
   },
 })

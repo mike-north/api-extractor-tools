@@ -15,6 +15,7 @@
     "generate:docs": "NX_TUI=false nx api-documenter",
     "test": "pnpm test:workspace && NX_TUI=false nx run-many -t test --exclude api-extractor-tools --parallel && pnpm test:entrypoints",
     "test:workspace": "node --test scripts/ci-pilot.test.mjs",
+    "test:types": "NX_TUI=false nx run-many -t test:types --exclude api-extractor-tools --parallel",
     "test:entrypoints": "node --test scripts/package-entrypoints.test.mjs",
     "test:coverage": "NX_TUI=false nx run-many -t test:coverage --exclude api-extractor-tools --parallel",
     "test:changed": "pnpm vitest run --root tools/change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/module-declaration-merger --config vitest.config.mts --changed HEAD~1 --passWithNoTests && pnpm vitest run --root tools/changeset-change-detector --config vitest.config.mts --changed HEAD~1 --passWithNoTests",
