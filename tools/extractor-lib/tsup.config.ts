@@ -11,7 +11,8 @@ export default defineConfig({
   target: 'node18',
   external: ['typescript'],
   shims: true,
-  outExtension: ({ format }) => ({ js: format === 'esm' ? '.mjs' : '.cjs' }),
+  outExtension: ({ format }) =>
+    format === 'esm' ? { js: '.mjs', dts: '.d.mts' } : { js: '.cjs' },
   esbuildOptions(options, { format }) {
     if (format === 'esm') {
       options.banner = {
