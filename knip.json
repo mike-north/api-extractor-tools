@@ -3,7 +3,6 @@
   "ignore": [".worktrees/**"],
   "workspaces": {
     ".": {
-      "ignoreBinaries": ["changeset-change-detector"],
       "ignoreDependencies": [
         "@microsoft/api-extractor",
         "@vitest/coverage-v8",

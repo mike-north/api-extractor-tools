@@ -10,6 +10,11 @@
       "{workspaceRoot}/tools/declaration-file-normalizer/package.json"
     ],
     "tests": ["{projectRoot}/test/**/*"],
+    "runtimeTests": [
+      "tests",
+      "{projectRoot}/package.json",
+      "{workspaceRoot}/scripts/runtime-package-fixture.mjs"
+    ],
     "tsConfig": [
       "{projectRoot}/tsconfig.json",
       "{workspaceRoot}/tsconfig.json"
@@ -35,7 +40,13 @@
     "build": {
       "cache": true,
       "dependsOn": ["^build", "^build:api-artifacts"],
-      "inputs": ["source", "tsConfig", "ciCacheVersion"],
+      "inputs": [
+        "source",
+        "tsConfig",
+        "ciCacheVersion",
+        "{projectRoot}/tsconfig.*.json",
+        "{workspaceRoot}/scripts/write-esm-package.mjs"
+      ],
       "outputs": ["{projectRoot}/dist"]
     },
     "test:types": {
@@ -67,7 +78,7 @@
         "ciCacheVersion",
         "source",
         "tsConfig",
-        "{projectRoot}/test/**/*",
+        "runtimeTests",
         "{projectRoot}/vitest.config.mts"
       ],
       "outputs": []
@@ -84,7 +95,7 @@
         "ciCacheVersion",
         "source",
         "tsConfig",
-        "{projectRoot}/test/**/*",
+        "runtimeTests",
         "{projectRoot}/vitest.config.mts"
       ],
       "outputs": ["{projectRoot}/coverage"]

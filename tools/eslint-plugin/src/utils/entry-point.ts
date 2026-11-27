@@ -5,6 +5,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import * as ts from 'typescript'
 import type { ResolvedEntryPoints } from '../types'
 
 /**
@@ -30,6 +31,21 @@ type PackageExports =
  * Cache for package.json lookups.
  */
 const packageJsonCache = new Map<string, PackageJson | null>()
+
+interface BuildDirectory {
+  rootDir: string
+  outDir: string
+  declarationsOnly?: boolean
+}
+
+interface BuildDirectories {
+  configured: BuildDirectory[]
+  rootDir: string
+}
+
+const buildDirectoriesCache = new Map<string, BuildDirectories>()
+const conventionalOutDirs = ['dist', 'build', 'lib']
+const declarationExtension = /\.d\.[cm]?ts$/
 
 /**
  * Finds the nearest package.json by searching upward from a directory.
@@ -141,102 +157,298 @@ export function resolveEntryPoints(pkgPath: string): ResolvedEntryPoints {
  * @returns True if the file is an entry point
  */
 export function isEntryPoint(filePath: string, pkgPath: string): boolean {
-  const entryPoints = resolveEntryPoints(pkgPath)
+  const { main, types, exports } = resolveEntryPoints(pkgPath)
+  const entryPaths = [main, types, ...exports].filter((p) => p !== undefined)
   const absoluteFilePath = path.resolve(filePath)
+  const pkg = loadPackageJson(pkgPath)
+  const pkgDir = path.resolve(path.dirname(pkgPath))
+  const directoryMain = /[/\\]$/.test(pkg?.main ?? '')
+  const matchesFile = (entry: string, file: string): boolean =>
+    matchesEntry(entry, file, directoryMain && entry === main)
+  const patterns = getExportPatterns(pkg?.exports, pkgDir)
 
-  // Check main
   if (
-    entryPoints.main &&
-    normalizeForComparison(entryPoints.main) ===
-      normalizeForComparison(absoluteFilePath)
+    entryPaths.some((entry) => matchesFile(entry, absoluteFilePath)) ||
+    patterns.some(({ matches }) => matches(absoluteFilePath))
   ) {
     return true
   }
+  if (entryPaths.length === 0) {
+    return false
+  }
 
-  // Check types
-  if (
-    entryPoints.types &&
-    normalizeForComparison(entryPoints.types) ===
-      normalizeForComparison(absoluteFilePath)
-  ) {
+  const directories = getBuildDirectories(pkgDir)
+  // Keep recognizing build outputs adjacent to a nested, manifest-listed source.
+  const sourcePaths = getSourcePaths(
+    absoluteFilePath,
+    pkgDir,
+    directories,
+    true,
+  )
+  return (
+    entryPaths.some(
+      (entry) =>
+        getSourcePaths(entry, pkgDir, directories).some((source) =>
+          matchesEntry(
+            source,
+            absoluteFilePath,
+            directoryMain && entry === main,
+          ),
+        ) || sourcePaths.some((source) => matchesFile(entry, source)),
+    ) ||
+    patterns.some(
+      ({ target, matches }) =>
+        sourcePaths.some((source) => matches(source)) ||
+        getSourcePaths(target, pkgDir, directories).some((source) =>
+          matches(absoluteFilePath, source),
+        ),
+    )
+  )
+}
+
+function getExportPatterns(exports: PackageExports, pkgDir: string) {
+  if (!exports || typeof exports !== 'object') {
+    return []
+  }
+  const keys = Object.keys(exports)
+    .filter((key) => key.startsWith('./') && key.split('*').length === 2)
+    // Node prefers the longest prefix, then the longest full pattern.
+    .sort((a, b) => b.indexOf('*') - a.indexOf('*') || b.length - a.length)
+    .map((key) => {
+      const star = key.indexOf('*')
+      return { key, prefix: key.slice(0, star), suffix: key.slice(star + 1) }
+    })
+  return keys.flatMap(({ key, prefix, suffix }) => {
+    const targets: string[] = []
+    extractExportPaths(exports[key], targets)
+    return targets
+      .filter((target) => target.includes('*'))
+      .map((relativeTarget) => {
+        const target = path.resolve(pkgDir, relativeTarget)
+        return {
+          target,
+          matches: (file: string, pattern = target): boolean => {
+            const substitution = matchWildcard(pattern, file)
+            if (substitution === undefined) {
+              return false
+            }
+            const subpath = prefix + substitution + suffix
+            if (Object.hasOwn(exports, subpath)) {
+              return false
+            }
+            return (
+              keys.find(
+                ({ prefix, suffix }) =>
+                  subpath.length >= prefix.length + suffix.length &&
+                  subpath.startsWith(prefix) &&
+                  subpath.endsWith(suffix),
+              )?.key === key
+            )
+          },
+        }
+      })
+  })
+}
+
+function matchWildcard(pattern: string, file: string): string | undefined {
+  if (!formatsMatch(pattern, file)) {
+    return undefined
+  }
+  const parts = stripExtension(pattern).split('*')
+  const stem = stripExtension(file)
+  // Every star in a target receives the same substitution.
+  const length = (stem.length - parts.join('').length) / (parts.length - 1)
+  if (!Number.isInteger(length) || length < 1) {
+    return undefined
+  }
+  const start = parts[0]?.length ?? 0
+  const substitution = stem.slice(start, start + length)
+  if (path.relative(parts.join(substitution), stem) === '') {
+    return substitution.split(path.sep).join('/')
+  }
+  return undefined
+}
+
+function formatsMatch(entry: string, file: string): boolean {
+  const entryFormat = /\.([cm])[jt]s$/.exec(entry)?.[1]
+  const fileFormat = /\.([cm])[jt]s$/.exec(file)?.[1]
+  return !entryFormat || !fileFormat || entryFormat === fileFormat
+}
+
+function matchesEntry(
+  entry: string,
+  file: string,
+  directory: boolean,
+): boolean {
+  if (!formatsMatch(entry, file)) {
+    return false
+  }
+  const fileStem = stripExtension(file)
+  if (!directory && path.relative(stripExtension(entry), fileStem) === '') {
     return true
   }
+  return (
+    (directory || path.extname(entry) === '') &&
+    path.relative(path.join(entry, 'index'), fileStem) === ''
+  )
+}
 
-  // Check exports
-  for (const exportPath of entryPoints.exports) {
-    if (
-      normalizeForComparison(exportPath) ===
-      normalizeForComparison(absoluteFilePath)
-    ) {
-      return true
-    }
+function stripExtension(filePath: string): string {
+  return filePath.replace(/\.(d\.[cm]?ts|[cm]?[jt]s|[jt]sx)$/, '')
+}
+
+function getBuildDirectories(pkgDir: string): BuildDirectories {
+  const cached = buildDirectoriesCache.get(pkgDir)
+  if (cached) {
+    return cached
   }
 
-  // Also check if the TypeScript source file corresponds to the entry point
-  // e.g., src/index.ts -> dist/index.js
-  const sourceEquivalents = getSourceEquivalents(absoluteFilePath)
-  for (const sourcePath of sourceEquivalents) {
-    if (
-      entryPoints.main &&
-      normalizeForComparison(entryPoints.main) ===
-        normalizeForComparison(sourcePath)
-    ) {
-      return true
+  const primaryConfig = path.join(pkgDir, 'tsconfig.json')
+  const configFiles = ts.sys.readDirectory(
+    pkgDir,
+    ['.json'],
+    undefined,
+    ['tsconfig.json', 'tsconfig.*.json'],
+    1,
+  )
+  const directories: BuildDirectories = {
+    configured: [],
+    rootDir: path.join(pkgDir, 'src'),
+  }
+  const host = {
+    ...ts.sys,
+    onUnRecoverableConfigFileDiagnostic: () => undefined,
+  }
+  const optionsOnlyHost = { ...host, readDirectory: () => [] }
+  const extendedConfigs = new Map<string, ts.ExtendedConfigCacheEntry>()
+  const configs = configFiles.map((configPath) => ({
+    configPath,
+    options: ts.getParsedCommandLineOfConfigFile(
+      configPath,
+      {},
+      optionsOnlyHost,
+      extendedConfigs,
+    )?.options,
+  }))
+  const primary = configs.find(
+    ({ configPath }) => path.relative(primaryConfig, configPath) === '',
+  )?.options
+  directories.rootDir = primary?.rootDir ?? directories.rootDir
+  for (const { configPath, options } of configs) {
+    if (!options) {
+      continue
     }
+    const inheritedBase =
+      path.basename(configPath) === 'tsconfig.base.json' &&
+      extendedConfigs.has(configPath)
     if (
-      entryPoints.types &&
-      normalizeForComparison(entryPoints.types) ===
-        normalizeForComparison(sourcePath)
+      (!options.outDir && !options.declarationDir) ||
+      (options !== primary && (options.noEmit || inheritedBase))
     ) {
-      return true
+      continue
     }
-    for (const exportPath of entryPoints.exports) {
-      if (
-        normalizeForComparison(exportPath) ===
-        normalizeForComparison(sourcePath)
-      ) {
-        return true
+    const rootDir =
+      options.rootDir ??
+      (options.composite
+        ? path.dirname(configPath)
+        : inferSourceRoot(
+            ts.getParsedCommandLineOfConfigFile(configPath, {}, host)
+              ?.fileNames ?? [],
+          )) ??
+      directories.rootDir
+    if (options.outDir && !options.emitDeclarationOnly) {
+      directories.configured.push({ rootDir, outDir: options.outDir })
+    }
+    const declarationDir = options.declarationDir ?? options.outDir
+    if (
+      declarationDir &&
+      (options.declarationDir || options.emitDeclarationOnly)
+    ) {
+      directories.configured.push({
+        rootDir,
+        outDir: declarationDir,
+        declarationsOnly: true,
+      })
+    }
+  }
+  // A format-specific build can emit below the default output directory.
+  directories.configured.sort((a, b) => b.outDir.length - a.outDir.length)
+  buildDirectoriesCache.set(pkgDir, directories)
+  return directories
+}
+
+function inferSourceRoot(fileNames: string[]): string | undefined {
+  let rootDir: string | undefined
+  for (const file of fileNames) {
+    if (declarationExtension.test(file)) {
+      continue
+    }
+    rootDir ??= path.dirname(file)
+    while (relativeWithin(rootDir, file) === undefined) {
+      const parent = path.dirname(rootDir)
+      if (parent === rootDir) {
+        return undefined
       }
+      rootDir = parent
     }
   }
-
-  return false
+  return rootDir
 }
 
-/**
- * Normalizes a path for comparison by removing extension variations.
- */
-function normalizeForComparison(filePath: string): string {
-  // Remove common extensions and normalize
-  return filePath
-    .replace(/\.(js|ts|mjs|cjs|mts|cts|d\.ts|d\.mts|d\.cts)$/, '')
-    .replace(/\/index$/, '')
+function relativeWithin(dir: string, file: string): string | undefined {
+  const relative = path.relative(dir, file)
+  if (
+    relative !== '..' &&
+    !relative.startsWith('..' + path.sep) &&
+    !path.isAbsolute(relative)
+  ) {
+    return relative
+  }
+  return undefined
 }
 
-/**
- * Gets potential source file equivalents for a dist file.
- */
-function getSourceEquivalents(filePath: string): string[] {
-  const equivalents: string[] = []
-  const dir = path.dirname(filePath)
-  const base = path.basename(filePath).replace(/\.(ts|tsx|js|jsx|mjs|cjs)$/, '')
-
-  // Try common source directory patterns
-  const sourcePatterns = [
-    dir.replace('/dist/', '/src/').replace('\\dist\\', '\\src\\'),
-    dir.replace('/build/', '/src/').replace('\\build\\', '\\src\\'),
-    dir.replace('/lib/', '/src/').replace('\\lib\\', '\\src\\'),
-  ]
-
-  for (const sourceDir of sourcePatterns) {
-    if (sourceDir !== dir) {
-      equivalents.push(path.join(sourceDir, `${base}.ts`))
-      equivalents.push(path.join(sourceDir, `${base}.tsx`))
-      equivalents.push(path.join(sourceDir, `${base}.js`))
+function getSourcePaths(
+  outputPath: string,
+  pkgDir: string,
+  { rootDir, configured }: BuildDirectories,
+  nested = false,
+): string[] {
+  const sourcePaths: string[] = []
+  let matchedOutDir: string | undefined
+  for (const directory of configured) {
+    const { outDir } = directory
+    if (matchedOutDir && path.relative(matchedOutDir, outDir) !== '') {
+      continue
+    }
+    if (directory.declarationsOnly && !declarationExtension.test(outputPath)) {
+      continue
+    }
+    const relative = relativeWithin(outDir, outputPath)
+    if (relative !== undefined) {
+      sourcePaths.push(path.join(directory.rootDir, relative))
+      matchedOutDir = outDir
     }
   }
+  if (configured.length > 0) {
+    return sourcePaths
+  }
 
-  return equivalents
+  const relative = relativeWithin(pkgDir, outputPath)
+  if (relative === undefined) {
+    return []
+  }
+  const parts = relative.split(path.sep)
+  const outputIndex = parts.findIndex((part) =>
+    conventionalOutDirs.includes(path.sep === '\\' ? part.toLowerCase() : part),
+  )
+  if (outputIndex === -1 || (!nested && outputIndex > 0)) {
+    return []
+  }
+  const sourceDir =
+    outputIndex === 0
+      ? rootDir
+      : path.join(pkgDir, ...parts.slice(0, outputIndex), 'src')
+  return [path.join(sourceDir, ...parts.slice(outputIndex + 1))]
 }
 
 /**
@@ -244,5 +456,5 @@ function getSourceEquivalents(filePath: string): string[] {
  */
 export function clearPackageJsonCache(): void {
   packageJsonCache.clear()
+  buildDirectoriesCache.clear()
 }
-

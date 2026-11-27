@@ -49,17 +49,24 @@ Analyzes a pair of `.d.ts` rollups and classifies the delta according to [Semant
 change-detector old.d.ts new.d.ts
 change-detector old.d.ts new.d.ts --json
 change-detector old.d.ts new.d.ts --markdown
+```
 
-# Library usage
-import { compareDeclarations, formatReportAsText } from '@api-extractor-tools/change-detector';
+Save this example as `compare.mjs` and run `node compare.mjs` after generating
+both declaration files. It uses the alpha `compareDeclarations` API in JavaScript.
 
-const report = compareDeclarations({
+```javascript
+import {
+  compareDeclarations,
+  formatASTReportAsText,
+} from '@api-extractor-tools/change-detector'
+
+const result = compareDeclarations({
   oldFile: './dist/v1/index.d.ts',
   newFile: './dist/v2/index.d.ts',
-});
+})
 
-console.log(report.releaseType);  // "major" | "minor" | "patch" | "none"
-console.log(formatReportAsText(report));
+console.log(result.releaseType)
+console.log(formatASTReportAsText(result.report))
 ```
 
 ### [@api-extractor-tools/change-detector-core](./tools/change-detector-core)
@@ -75,23 +82,22 @@ Isomorphic core library for change detection that works in both Node.js and brow
 - Works in browsers (used by the [demo site](./tools/demo-site))
 - Suitable for building custom tooling
 
-```typescript
-import {
-  compareDeclarations,
-  formatReportAsMarkdown,
-} from '@api-extractor-tools/change-detector-core'
-import * as ts from 'typescript'
+Save this Node.js example as `compare.cts`. Compile it with
+`npx tsc --module node16 compare.cts`, then run `node compare.cjs`.
 
-const report = compareDeclarations(
-  {
-    oldContent: `export declare function greet(name: string): string;`,
-    newContent: `export declare function greet(name: string, prefix?: string): string;`,
-  },
-  ts,
-)
+```typescript
+import detector = require('@api-extractor-tools/change-detector-core')
+import ts = require('typescript')
+
+const oldSource = 'export declare function greet(name: string): string;'
+const newSource = `${oldSource}
+export declare function greetWithPrefix(name: string, prefix: string): string;`
+
+const result = detector.analyzeChanges(oldSource, newSource, ts)
+const report = detector.createASTComparisonReport(result.results)
 
 console.log(report.releaseType) // 'minor'
-console.log(formatReportAsMarkdown(report))
+console.log(detector.formatASTReportAsMarkdown(report))
 ```
 
 > **When to use which?**
