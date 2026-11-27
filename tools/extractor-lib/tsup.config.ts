@@ -10,6 +10,7 @@ export default defineConfig({
   outDir: 'dist',
   target: 'node18',
   external: ['typescript'],
+  shims: true,
   outExtension: ({ format }) => ({ js: format === 'esm' ? '.mjs' : '.cjs' }),
   esbuildOptions(options, { format }) {
     if (format === 'esm') {

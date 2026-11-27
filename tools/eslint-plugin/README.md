@@ -465,8 +465,9 @@ The `recommended` configuration enables all rules with these defaults:
 
 ## Requirements
 
-- ESLint >= 8.0.0
-- TypeScript >= 5.5.0
+- Node.js `^18.18.0 || ^20.9.0 || >=21.1.0`
+- ESLint `^8.57.0 || ^9.0.0`
+- TypeScript `>=5.5.0 <6.0.0`
 
 ## Related
 

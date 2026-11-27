@@ -77,6 +77,7 @@ export type NodeKind =
 export type Modifier =
   | 'exported'
   | 'default-export'
+  | 'type-only-export'
   | 'readonly'
   | 'optional'
   | 'abstract'
@@ -636,8 +637,9 @@ export interface DiffOptions {
  * Contains TypeChecker and other state needed for semantic analysis.
  */
 export interface DiffContext {
-  /** TypeScript type checker for semantic analysis */
-  checker: import('typescript').TypeChecker
+  /** TypeScript type checkers for semantic analysis */
+  oldChecker: import('typescript').TypeChecker
+  newChecker: import('typescript').TypeChecker
 
   /** Resolved diff options */
   options: Required<DiffOptions>

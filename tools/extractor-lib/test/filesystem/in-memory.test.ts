@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { InMemoryFileSystem } from '../../src/filesystem/in-memory.js'
+import * as pathUtils from '../../src/filesystem/path-utils.js'
 
 describe('InMemoryFileSystem', () => {
   describe('constructor', () => {
@@ -135,9 +136,48 @@ describe('InMemoryFileSystem', () => {
       expect(fs.readFile('/a/b/c/file.txt')).toBe('deep')
     })
 
+    it.each([
+      { path: 'C:/file.txt', rootEntry: 'file.txt' },
+      { path: 'C:/a/b/file.txt', rootEntry: 'a' },
+    ])(
+      'should register the drive root when first writing $path',
+      ({ path, rootEntry }) => {
+        const dirname = pathUtils.dirname
+        let rootVisits = 0
+        // Bound the synchronous walk so a regression fails without hanging the runner.
+        const dirnameSpy = vi
+          .spyOn(pathUtils, 'dirname')
+          .mockImplementation((path) => {
+            if (path === 'C:/' && ++rootVisits > 1) {
+              throw new Error('Parent traversal revisited the drive root')
+            }
+            return dirname(path)
+          })
+
+        try {
+          fs.writeFile(path, 'content')
+        } finally {
+          dirnameSpy.mockRestore()
+        }
+
+        expect(fs.isDirectory('C:/')).toBe(true)
+        expect(fs.readDirectory('C:/')).toEqual([rootEntry])
+        expect(fs.isDirectory(dirname(path))).toBe(true)
+        expect(fs.readFile(path)).toBe('content')
+      },
+    )
+
     it('should write empty files', () => {
       fs.writeFile('/empty.txt', '')
       expect(fs.readFile('/empty.txt')).toBe('')
+    })
+
+    it('should reject a file at an unregistered drive root', () => {
+      expect(() => fs.writeFile('C:\\', 'content')).toThrow(
+        'path is a directory',
+      )
+      fs.writeFile('C:\\file.txt', 'content')
+      expect(fs.readDirectory('C:/')).toEqual(['file.txt'])
     })
 
     it('should throw when writing to a directory', () => {

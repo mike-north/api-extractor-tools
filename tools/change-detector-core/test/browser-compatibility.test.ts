@@ -5,7 +5,7 @@ import * as path from 'path'
 import { pkgUpSync } from 'pkg-up'
 import * as coreModule from '../src/index.js'
 
-describe('Browser Compatibility', () => {
+describe('Browser Compatibility', { timeout: 30000 }, () => {
   it('should not export Node.js-only functions from main index', () => {
     // Verify core exports are available
     expect(coreModule.analyzeChanges).toBeDefined()

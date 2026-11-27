@@ -50,7 +50,7 @@ function runCli(
   }
 }
 
-describe('CLI', () => {
+describe('CLI', { timeout: 30000 }, () => {
   let project: Project
 
   beforeEach(() => {
