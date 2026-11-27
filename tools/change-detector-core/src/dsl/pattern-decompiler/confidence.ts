@@ -9,14 +9,14 @@ import type {
   DimensionalRule,
   PatternRule,
   PatternTemplate,
-} from '../dsl-types'
+} from '../dsl-types.js'
 import type {
   ChangeTarget,
   ChangeAction,
   ChangeAspect,
   ChangeImpact,
   NodeKind,
-} from '../../ast/types'
+} from '../../ast/types.js'
 
 /**
  * Calculate confidence score for how well a pattern captures a dimensional rule.

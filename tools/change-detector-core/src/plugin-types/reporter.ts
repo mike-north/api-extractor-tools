@@ -2,7 +2,7 @@
  * Reporter types.
  */
 
-import type { Change, ComparisonReport } from '../types'
+import type { Change, ComparisonReport } from '../types.js'
 
 /**
  * Supported output format categories.

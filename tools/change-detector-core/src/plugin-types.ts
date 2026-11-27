@@ -33,10 +33,10 @@ export type {
   DiscoveredPlugin,
   ResolvedPlugin,
   InputProcessorPlugin,
-} from './plugin-types/index'
+} from './plugin-types/index.js'
 
 export {
   PluginError,
   PLUGIN_KEYWORDS,
   adaptLegacyInputProcessorPlugin,
-} from './plugin-types/index'
+} from './plugin-types/index.js'

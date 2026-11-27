@@ -7,13 +7,13 @@ import type {
   ApiChange,
   DiffOptions,
   DiffContext,
-} from '../types'
-import { matchNodes } from './matching'
+} from '../types.js'
+import { matchNodes } from './matching.js'
 import {
   nodeKindToTarget,
   createSimpleDescriptor,
   classifyChange,
-} from './change-classification'
+} from './change-classification.js'
 
 /**
  * Detects changes in nested members (properties, methods, etc.).

@@ -44,8 +44,11 @@
         "source",
         "tsConfig",
         "ciCacheVersion",
-        "{projectRoot}/tsconfig.*.json",
-        "{workspaceRoot}/scripts/write-esm-package.mjs"
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig.{cjs,esm}.json",
+        "{projectRoot}/tsup.config.ts",
+        "{projectRoot}/scripts/inject-version.mjs",
+        "{workspaceRoot}/scripts/mark-commonjs.mjs"
       ],
       "outputs": ["{projectRoot}/dist"]
     },

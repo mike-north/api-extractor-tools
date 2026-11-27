@@ -374,9 +374,6 @@ importers:
       '@api-extractor-tools/change-detector-core':
         specifier: workspace:*
         version: link:../change-detector-core
-      pkg-up:
-        specifier: ^5.0.0
-        version: 5.0.0
       typescript:
         specifier: 5.8.3
         version: 5.8.3

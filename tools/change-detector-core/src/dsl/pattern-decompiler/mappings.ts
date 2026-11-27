@@ -9,13 +9,13 @@ import type {
   DimensionalRule,
   PatternTemplate,
   PatternVariable,
-} from '../dsl-types'
+} from '../dsl-types.js'
 import type {
   ChangeTarget,
   ChangeAction,
   NodeKind,
   ChangeTag,
-} from '../../ast/types'
+} from '../../ast/types.js'
 
 /**
  * Internal structure for mapping dimensions to patterns.

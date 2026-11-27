@@ -2,7 +2,7 @@
  * Policy-related types.
  */
 
-import type { AnalyzedChange, ReleaseType, VersioningPolicy } from '../types'
+import type { AnalyzedChange, ReleaseType, VersioningPolicy } from '../types.js'
 
 /**
  * Context provided to policies for context-aware classification.

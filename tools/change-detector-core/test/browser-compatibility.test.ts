@@ -3,11 +3,10 @@ import { describe, it, expect } from 'vitest'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { pkgUpSync } from 'pkg-up'
-describe('Browser Compatibility', { timeout: 30000 }, () => {
-  it('should not export Node.js-only functions from main index', async () => {
-    // Import the main module
-    const coreModule = await import('../src/index')
+import * as coreModule from '../src/index.js'
 
+describe('Browser Compatibility', { timeout: 30000 }, () => {
+  it('should not export Node.js-only functions from main index', () => {
     // Verify core exports are available
     expect(coreModule.analyzeChanges).toBeDefined()
     expect(coreModule.parseModule).toBeDefined()
@@ -64,14 +63,12 @@ describe('Browser Compatibility', { timeout: 30000 }, () => {
 
     // Should have both ESM and CJS builds
 
-    expect(packageJson.exports['.'].import).toContain('/dist/esm/')
+    expect(packageJson.exports['.'].import.default).toContain('/dist/esm/')
 
-    expect(packageJson.exports['.'].require).toContain('/dist/cjs/')
+    expect(packageJson.exports['.'].require.default).toContain('/dist/cjs/')
   })
 
-  it('should only export isomorphic functionality from main index', async () => {
-    const coreModule = await import('../src/index')
-
+  it('should only export isomorphic functionality from main index', () => {
     // List of exports that MUST be isomorphic (work in both Node.js and browser)
     const isomorphicExports = [
       // Core analysis functions

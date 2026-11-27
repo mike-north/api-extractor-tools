@@ -12,8 +12,8 @@ import type {
   ModuleAnalysis,
   ModuleAnalysisWithTypes,
   ParseOptions,
-} from '../types'
-import { processStatement } from './declaration-extraction'
+} from '../types.js'
+import { processStatement } from './declaration-extraction.js'
 
 // Keep array syntax resolvable in the virtual program without loading libraries from disk.
 const virtualLib = `

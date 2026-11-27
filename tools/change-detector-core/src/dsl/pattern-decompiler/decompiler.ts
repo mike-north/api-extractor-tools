@@ -10,8 +10,8 @@ import type {
   PatternRule,
   PatternDecompileResult,
   PatternTemplate,
-} from '../dsl-types'
-import { findMatchingPatterns, extractVariables } from './mappings'
+} from '../dsl-types.js'
+import { findMatchingPatterns, extractVariables } from './mappings.js'
 
 /**
  * Decompile a dimensional rule into pattern representation.

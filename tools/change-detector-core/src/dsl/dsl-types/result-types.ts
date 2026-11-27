@@ -10,7 +10,7 @@ import type {
   PatternRule,
   DimensionalRule,
   DSLRule,
-} from './rule-types'
+} from './rule-types.js'
 
 // =============================================================================
 // Transformation Types

@@ -6,7 +6,7 @@
  */
 
 // Public API - progressive rule builder
-export { ProgressiveRuleBuilder } from './progressive-builder'
+export { ProgressiveRuleBuilder } from './progressive-builder.js'
 
 // Public API - factory functions
-export { createProgressivePolicy, createStandardPolicy } from './factories'
+export { createProgressivePolicy, createStandardPolicy } from './factories.js'

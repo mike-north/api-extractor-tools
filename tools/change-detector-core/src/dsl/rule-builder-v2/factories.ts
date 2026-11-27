@@ -5,9 +5,9 @@
  * Progressive DSL builders and pre-configured standard policies.
  */
 
-import type { DSLPolicy } from '../dsl-types'
-import type { ReleaseType } from '../../types'
-import { ProgressiveRuleBuilder } from './progressive-builder'
+import type { DSLPolicy } from '../dsl-types.js'
+import type { ReleaseType } from '../../types.js'
+import { ProgressiveRuleBuilder } from './progressive-builder.js'
 
 /**
  * Create a new progressive rule builder.

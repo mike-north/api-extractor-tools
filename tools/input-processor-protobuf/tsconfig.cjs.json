@@ -8,7 +8,8 @@
     "outDir": "./dist/cjs",
     "rootDir": "./src",
     "declaration": true,
-    "declarationMap": false
+    "declarationMap": true,
+    "esModuleInterop": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test"]

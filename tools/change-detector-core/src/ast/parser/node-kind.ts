@@ -4,7 +4,7 @@
 
 import { AST_NODE_TYPES } from '@typescript-eslint/typescript-estree'
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
-import type { NodeKind } from '../types'
+import type { NodeKind } from '../types.js'
 
 /**
  * Determines the NodeKind for an AST node.

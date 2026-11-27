@@ -10,4 +10,4 @@ export {
   synthesizeIntent,
   detectCommonPattern,
   generateIntentExpression,
-} from './synthesizer'
+} from './synthesizer.js'

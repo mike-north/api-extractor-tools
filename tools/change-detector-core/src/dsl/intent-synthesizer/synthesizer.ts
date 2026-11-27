@@ -10,12 +10,12 @@ import type {
   IntentSynthesisResult,
   IntentRule,
   IntentExpression,
-} from '../dsl-types'
+} from '../dsl-types.js'
 import {
   PATTERN_TO_INTENT_MAP,
   matchesConstraints,
   synthesizeConditionalIntent,
-} from './mappings'
+} from './mappings.js'
 
 /**
  * Synthesize an intent expression from a pattern rule.
