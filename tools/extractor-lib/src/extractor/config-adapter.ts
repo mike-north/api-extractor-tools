@@ -1,9 +1,19 @@
 import * as os from 'node:os'
 import * as nodePath from 'node:path'
 import * as realFs from 'node:fs'
+import type {
+  ExtractorConfig,
+  ExtractorLogLevel,
+  IConfigFile,
+} from '@microsoft/api-extractor'
 import type * as ts from 'typescript'
 import type { IVirtualFileSystem } from '../filesystem/types.js'
 import type { IExtractorLibConfig } from '../config/types.js'
+import { getExtractorCompiler, requireFromLibrary } from './dependencies.js'
+import {
+  forEachModuleSpecifier,
+  resolveDeclarationPathReference,
+} from './module-specifiers.js'
 
 /**
  * Adapted configuration containing both the ExtractorConfig and output path information.
@@ -13,7 +23,10 @@ export interface IAdaptedConfig {
   /**
    * The prepared ExtractorConfig ready for use with Extractor.invoke()
    */
-  extractorConfig: unknown // ExtractorConfig type - using unknown to avoid import issues
+  extractorConfig: ExtractorConfig
+
+  /** Virtual paths indexed by their staged filesystem paths. */
+  stagedFiles: ReadonlyMap<string, string>
 
   /**
    * Real filesystem paths where outputs will be written by API Extractor.
@@ -51,66 +64,177 @@ export interface IAdaptedConfig {
 }
 
 /**
- * Creates a temporary directory on the real filesystem and populates it with
- * the necessary files from the virtual filesystem.
- *
- * This is necessary because API Extractor validates that paths exist on the
- * real filesystem, and we need to provide the actual declaration files for analysis.
- *
- * @param fs - Virtual filesystem containing source files
- * @param entryPointPath - Virtual path to the entry point .d.ts file
- * @returns Object containing the temp directory path and a cleanup function
+ * Copies the declaration tree into the temporary project, preserving its layout.
  * @internal
  */
-function createAndPopulateTempDirectory(
+function stageDeclarations(
   fs: IVirtualFileSystem,
-  entryPointPath: string,
-): { tempDir: string; entryPointRealPath: string; cleanup: () => void } {
-  const tempDir = realFs.mkdtempSync(
-    nodePath.join(os.tmpdir(), 'extractor-lib-'),
+  config: IExtractorLibConfig,
+  tempDir: string,
+  compiler: typeof ts,
+  compilerOptionsForConfig: Record<string, unknown>,
+): {
+  entryPointRealPath: string
+  projectFolder: string
+  stagedFiles: ReadonlyMap<string, string>
+  roots: string[]
+} {
+  const { ExtractorConfig } = requireFromLibrary(
+    '@microsoft/api-extractor',
+  ) as typeof import('@microsoft/api-extractor')
+  const entryPoint = fs.resolvePath(config.mainEntryPointFilePath)
+  const entryPointDir = fs.dirname(entryPoint)
+  let virtualRoot = entryPointDir
+  while (fs.dirname(virtualRoot) !== virtualRoot) {
+    virtualRoot = fs.dirname(virtualRoot)
+  }
+  const rootPrefix = virtualRoot.endsWith('/') ? virtualRoot : `${virtualRoot}/`
+  const inputDir = nodePath.join(tempDir, 'input')
+  const toRealPath = (path: string): string =>
+    nodePath.join(inputDir, path.slice(rootPrefix.length))
+  const stagedFiles = new Map<string, string>()
+  const virtualProjectFolder = config.projectFolder
+    ? fs.resolvePath(config.projectFolder)
+    : undefined
+  const projectFolder =
+    virtualProjectFolder &&
+    (virtualProjectFolder === virtualRoot ||
+      entryPoint.startsWith(`${virtualProjectFolder}/`))
+      ? toRealPath(virtualProjectFolder)
+      : tempDir
+  const { options: compilerOptions } = compiler.convertCompilerOptionsFromJson(
+    compilerOptionsForConfig,
+    projectFolder,
   )
+  // CompilerState uses declaration outputs directly instead of redirecting
+  // package self-imports through their build directories.
+  delete compilerOptions.outDir
+  delete compilerOptions.declarationDir
 
-  // Create temp and dist directories
-  realFs.mkdirSync(nodePath.join(tempDir, 'temp'), { recursive: true })
-  realFs.mkdirSync(nodePath.join(tempDir, 'dist'), { recursive: true })
+  function toVirtualPath(realPath: string): string | undefined {
+    const relative = nodePath.relative(inputDir, realPath)
+    if (
+      nodePath.isAbsolute(relative) ||
+      relative === '..' ||
+      relative.startsWith(`..${nodePath.sep}`)
+    ) {
+      return undefined
+    }
+    return relative
+      ? fs.join(virtualRoot, relative.split(nodePath.sep).join('/'))
+      : virtualRoot
+  }
 
-  // Copy the entry point file and any files in the same directory
-  // to the temp directory, preserving the relative structure
-  const virtualDir = fs.dirname(entryPointPath)
-  const entryPointFilename = fs.basename(entryPointPath)
+  function copyFile(virtualPath: string, realPath: string): string {
+    const content = fs.readFile(virtualPath)
+    realFs.mkdirSync(nodePath.dirname(realPath), { recursive: true })
+    realFs.writeFileSync(realPath, content, 'utf8')
+    stagedFiles.set(realPath, virtualPath)
+    return content
+  }
 
-  // Write the entry point file
-  const entryPointContent = fs.readFile(entryPointPath)
-  const entryPointRealPath = nodePath.join(tempDir, 'dist', entryPointFilename)
-  realFs.writeFileSync(entryPointRealPath, entryPointContent, 'utf-8')
-
-  // Also copy any other .d.ts files in the same directory
-  if (fs.exists(virtualDir) && fs.isDirectory(virtualDir)) {
-    const files = fs.readDirectory(virtualDir)
-    for (const file of files) {
-      if (file.endsWith('.d.ts') && file !== entryPointFilename) {
-        const virtualPath = fs.join(virtualDir, file)
-        const content = fs.readFile(virtualPath)
-        realFs.writeFileSync(
-          nodePath.join(tempDir, 'dist', file),
-          content,
-          'utf-8',
-        )
+  // Resolve against the staged layout while consulting the VFS for files the
+  // compiler has not seen yet. Package metadata preserves NodeNext resolution.
+  const host: ts.ModuleResolutionHost = {
+    directoryExists(realPath) {
+      const virtualPath = toVirtualPath(realPath)
+      return virtualPath === undefined
+        ? compiler.sys.directoryExists(realPath)
+        : fs.isDirectory(virtualPath)
+    },
+    fileExists(realPath) {
+      const virtualPath = toVirtualPath(realPath)
+      return virtualPath === undefined
+        ? compiler.sys.fileExists(realPath)
+        : (ExtractorConfig.hasDtsFileExtension(realPath) ||
+            nodePath.basename(realPath) === 'package.json') &&
+            fs.isFile(virtualPath)
+    },
+    readFile(realPath) {
+      realPath = nodePath.normalize(realPath)
+      const virtualPath = toVirtualPath(realPath)
+      if (
+        virtualPath !== undefined &&
+        !stagedFiles.has(realPath) &&
+        nodePath.basename(realPath) === 'package.json' &&
+        fs.isFile(virtualPath)
+      ) {
+        return copyFile(virtualPath, realPath)
       }
+      return compiler.sys.readFile(realPath)
+    },
+  }
+
+  function stageFile(realPath: string, virtualPath: string): void {
+    realPath = nodePath.normalize(realPath)
+    if (stagedFiles.has(realPath)) {
+      return
+    }
+    const content = copyFile(virtualPath, realPath)
+    const file = compiler.createSourceFile(
+      realPath,
+      content,
+      {
+        languageVersion: compiler.ScriptTarget.Latest,
+        impliedNodeFormat: compiler.getImpliedNodeFormatForFile(
+          realPath,
+          undefined,
+          host,
+          compilerOptions,
+        ),
+      },
+      true,
+    )
+    for (const reference of file.referencedFiles) {
+      stageDependency(
+        resolveDeclarationPathReference(compiler, file, reference),
+      )
+    }
+    forEachModuleSpecifier(compiler, file, (specifier) => {
+      const { resolvedModule } = compiler.resolveModuleName(
+        specifier.text,
+        realPath,
+        compilerOptions,
+        host,
+        undefined,
+        undefined,
+        compiler.getModeForUsageLocation(file, specifier, compilerOptions),
+      )
+      if (resolvedModule) {
+        stageDependency(resolvedModule.resolvedFileName)
+      }
+    })
+  }
+
+  function stageDependency(realPath: string): void {
+    const virtualPath = toVirtualPath(realPath)
+    if (
+      virtualPath !== undefined &&
+      ExtractorConfig.hasDtsFileExtension(realPath) &&
+      fs.isFile(virtualPath)
+    ) {
+      stageFile(realPath, virtualPath)
     }
   }
 
-  return {
-    tempDir,
-    entryPointRealPath,
-    cleanup: (): void => {
-      try {
-        realFs.rmSync(tempDir, { recursive: true, force: true })
-      } catch {
-        // Ignore cleanup errors - temp directory will be cleaned up by OS eventually
+  // Keep adjacent declaration roots for ambient types and augmentations.
+  const entryPointRealPath = toRealPath(entryPoint)
+  stageFile(entryPointRealPath, entryPoint)
+  const roots = [entryPointRealPath]
+  if (fs.isDirectory(entryPointDir)) {
+    for (const entry of fs.readDirectory(entryPointDir)) {
+      if (!entry.endsWith('.d.ts')) {
+        continue
       }
-    },
+      const sibling = fs.join(entryPointDir, entry)
+      if (sibling !== entryPoint && fs.isFile(sibling)) {
+        const realPath = toRealPath(sibling)
+        stageFile(realPath, sibling)
+        roots.push(realPath)
+      }
+    }
   }
+  return { entryPointRealPath, projectFolder, stagedFiles, roots }
 }
 
 /**
@@ -182,29 +306,56 @@ export function createExtractorConfig(
   fs: IVirtualFileSystem,
   typescript: typeof ts,
 ): IAdaptedConfig {
-  // Dynamically import API Extractor types to avoid issues if not available
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { ExtractorConfig } = require('@microsoft/api-extractor') as {
-    ExtractorConfig: {
-      prepare: (options: {
-        configObject: unknown
-        configObjectFullPath: string | undefined
-        packageJson?: unknown
-        packageJsonFullPath?: string | undefined
-      }) => unknown
+  const tempDir = realFs.mkdtempSync(
+    nodePath.join(os.tmpdir(), 'extractor-lib-'),
+  )
+  const cleanup = (): void => {
+    try {
+      realFs.rmSync(tempDir, { recursive: true, force: true })
+    } catch {
+      // Cleanup failures should not mask extraction errors.
     }
   }
 
-  // Create and populate temp directory with files from virtual filesystem
-  const { tempDir, entryPointRealPath, cleanup } =
-    createAndPopulateTempDirectory(fs, config.mainEntryPointFilePath)
+  try {
+    return {
+      ...prepareExtractorConfig(config, fs, typescript, tempDir),
+      cleanup,
+    }
+  } catch (error) {
+    cleanup()
+    throw error
+  }
+}
+
+function prepareExtractorConfig(
+  config: IExtractorLibConfig,
+  fs: IVirtualFileSystem,
+  typescript: typeof ts,
+  tempDir: string,
+): Omit<IAdaptedConfig, 'cleanup'> {
+  const { ExtractorConfig } = requireFromLibrary(
+    '@microsoft/api-extractor',
+  ) as typeof import('@microsoft/api-extractor')
+  const compiler = getExtractorCompiler()
+  const compilerOptionsForConfig = convertCompilerOptionsToStrings(
+    config.compilerOptions,
+    typescript,
+  )
+  const { entryPointRealPath, projectFolder, stagedFiles, roots } =
+    stageDeclarations(fs, config, tempDir, compiler, compilerOptionsForConfig)
 
   // Create package.json content and write to temp dir
   const packageJson = {
     name: config.packageName,
     version: config.packageVersion ?? '0.0.0',
     main: 'index.js',
-    types: './dist/' + fs.basename(config.mainEntryPointFilePath),
+    types:
+      './' +
+      nodePath
+        .relative(tempDir, entryPointRealPath)
+        .split(nodePath.sep)
+        .join('/'),
   }
   const packageJsonPath = nodePath.join(tempDir, 'package.json')
   realFs.writeFileSync(
@@ -214,55 +365,8 @@ export function createExtractorConfig(
   )
 
   // Build the api-extractor config object using real paths
-  const configObject: {
-    projectFolder: string
-    mainEntryPointFilePath: string
-    bundledPackages?: string[]
-    compiler?: {
-      tsconfigFilePath?: string
-      overrideTsconfig?: unknown
-    }
-    apiReport?: {
-      enabled: boolean
-      reportFileName?: string
-      reportFolder?: string
-      reportTempFolder?: string
-    }
-    docModel?: {
-      enabled: boolean
-      apiJsonFilePath?: string
-    }
-    dtsRollup?: {
-      enabled: boolean
-      untrimmedFilePath?: string
-      alphaTrimmedFilePath?: string
-      betaTrimmedFilePath?: string
-      publicTrimmedFilePath?: string
-    }
-    messages?: {
-      compilerMessageReporting?: {
-        default?: {
-          logLevel: string
-          addToApiReportFile?: boolean
-        }
-      }
-      extractorMessageReporting?: Record<
-        string,
-        {
-          logLevel: string
-          addToApiReportFile?: boolean
-        }
-      >
-      tsdocMessageReporting?: Record<
-        string,
-        {
-          logLevel: string
-          addToApiReportFile?: boolean
-        }
-      >
-    }
-  } = {
-    projectFolder: tempDir,
+  const configObject: IConfigFile = {
+    projectFolder,
     mainEntryPointFilePath: entryPointRealPath,
   }
 
@@ -271,16 +375,9 @@ export function createExtractorConfig(
     configObject.bundledPackages = config.bundledPackages
   }
 
-  // Configure compiler - use overrideTsconfig to provide options directly
-  // We need to convert TypeScript enum values to their string equivalents
-  // because api-extractor expects string values in the config
-  const compilerOptionsForConfig = convertCompilerOptionsToStrings(
-    config.compilerOptions,
-    typescript,
-  )
-
   configObject.compiler = {
     overrideTsconfig: {
+      files: roots,
       compilerOptions: {
         ...compilerOptionsForConfig,
         declaration: true,
@@ -373,7 +470,8 @@ export function createExtractorConfig(
     if (config.messages.compilerMessageReporting) {
       configObject.messages.compilerMessageReporting = {
         default: {
-          logLevel: config.messages.compilerMessageReporting.logLevel,
+          logLevel: config.messages.compilerMessageReporting
+            .logLevel as ExtractorLogLevel,
           addToApiReportFile:
             config.messages.compilerMessageReporting.addToApiReportFile ??
             false,
@@ -387,7 +485,7 @@ export function createExtractorConfig(
         config.messages.extractorMessageReporting,
       )) {
         configObject.messages.extractorMessageReporting[messageId] = {
-          logLevel: rule.logLevel,
+          logLevel: rule.logLevel as ExtractorLogLevel,
           addToApiReportFile: rule.addToApiReportFile ?? false,
         }
       }
@@ -399,7 +497,7 @@ export function createExtractorConfig(
         config.messages.tsdocMessageReporting,
       )) {
         configObject.messages.tsdocMessageReporting[messageId] = {
-          logLevel: rule.logLevel,
+          logLevel: rule.logLevel as ExtractorLogLevel,
           addToApiReportFile: rule.addToApiReportFile ?? false,
         }
       }
@@ -417,7 +515,7 @@ export function createExtractorConfig(
   return {
     extractorConfig,
     outputPaths,
+    stagedFiles,
     tempDir,
-    cleanup,
   }
 }
