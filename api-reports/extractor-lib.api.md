@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ExtractorConfig } from '@microsoft/api-extractor';
 import { ExtractorMessage } from '@microsoft/api-extractor';
 import * as ts from 'typescript';
 
@@ -79,7 +80,7 @@ export function getRequiredLibFileNames(typescript: typeof ts, compilerOptions: 
 // @internal
 export interface IAdaptedConfig {
     cleanup: () => void;
-    extractorConfig: unknown;
+    extractorConfig: ExtractorConfig;
     outputPaths: {
         apiReport?: string;
         docModel?: string;
@@ -90,6 +91,7 @@ export interface IAdaptedConfig {
             public?: string;
         };
     };
+    stagedFiles: ReadonlyMap<string, string>;
     tempDir: string;
 }
 

@@ -693,7 +693,7 @@ export interface ModifiedDescriptor extends ChangeDescriptorBase {
 }
 
 // @alpha
-export type Modifier = 'exported' | 'default-export' | 'readonly' | 'optional' | 'abstract' | 'static' | 'private' | 'protected' | 'public' | 'const' | 'declare' | 'async';
+export type Modifier = 'exported' | 'default-export' | 'type-only-export' | 'readonly' | 'optional' | 'abstract' | 'static' | 'private' | 'protected' | 'public' | 'const' | 'declare' | 'async';
 
 // @alpha
 export interface ModuleAnalysis {

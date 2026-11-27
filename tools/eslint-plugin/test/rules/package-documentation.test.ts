@@ -28,7 +28,7 @@ fs.mkdirSync(path.join(ruleTestSrcDir, 'utils'), { recursive: true })
 
 fs.writeFileSync(
   path.join(ruleTestDir, 'package.json'),
-  JSON.stringify({ name: 'test-package', main: './src/index.ts' }, null, 2),
+  JSON.stringify({ name: 'test-package', main: './dist/index.js' }, null, 2),
 )
 
 // Create placeholder files so paths resolve correctly
@@ -134,6 +134,7 @@ describe('package-documentation', () => {
     valid: [
       // Entry point with @packageDocumentation — should pass
       {
+        name: 'accepts package documentation on the source of the manifest entry',
         code: `/**
  * Package entry point.
  * @packageDocumentation
@@ -172,6 +173,7 @@ export function foo() {}`,
       },
       // Entry point with no comments at all — should fail
       {
+        name: 'requires package documentation on the source of the manifest entry',
         code: `export function foo() {}`,
         filename: entryFile,
         errors: [{ messageId: 'missingPackageDocumentation' as const }],

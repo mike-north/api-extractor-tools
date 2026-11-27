@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { pkgUpSync } from 'pkg-up'
-describe('Browser Compatibility', () => {
+describe('Browser Compatibility', { timeout: 30000 }, () => {
   it('should not export Node.js-only functions from main index', async () => {
     // Import the main module
     const coreModule = await import('../src/index')

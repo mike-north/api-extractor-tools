@@ -13,7 +13,30 @@
     "test:coverage": "vitest run --coverage"
   },
   "nx": {
+    "namedInputs": {
+      "readmeTestInputs": [
+        "ciCacheVersion",
+        "source",
+        "tsConfig",
+        "tests",
+        "{projectRoot}/package.json",
+        "{projectRoot}/vitest.config.ts",
+        "{workspaceRoot}/tools/change-detector-core/README.md"
+      ]
+    },
     "targets": {
+      "test": {
+        "inputs": [
+          "readmeTestInputs",
+          "^default"
+        ]
+      },
+      "test:coverage": {
+        "inputs": [
+          "readmeTestInputs",
+          "^default"
+        ]
+      },
       "build": {
         "inputs": [
           "source",
