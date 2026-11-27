@@ -58,6 +58,7 @@
       "entry": [
         "src/index.ts",
         "src/cli.ts",
+        "src/baseline.ts",
         "test/**/*.test-d.ts",
         "test/**/*.test.ts"
       ],
