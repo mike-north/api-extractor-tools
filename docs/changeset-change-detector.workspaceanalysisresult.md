@@ -53,7 +53,7 @@ string
 
 </td><td>
 
-**_(ALPHA)_** The baseline reference used for comparison
+**_(ALPHA)_** The shared baseline ref, or "per-package" when packages use different refs
 
 
 </td></tr>

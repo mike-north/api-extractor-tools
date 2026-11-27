@@ -1,54 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { execFileSync } from 'node:child_process'
+import { runCli as runCompiledCli } from '../../../scripts/test-cli.mjs'
 
-/**
- * Type guard for exec sync errors that have stdout/stderr/status properties.
- */
-interface ExecSyncError extends Error {
-  stdout: Buffer | string | null
-  stderr: Buffer | string | null
-  status: number | null
-}
-
-function isExecSyncError(error: unknown): error is ExecSyncError {
-  return (
-    error instanceof Error &&
-    ('stdout' in error || 'stderr' in error || 'status' in error)
-  )
-}
-
-/**
- * Runs the CLI and returns its output.
- * Uses the compiled CLI from dist.
- */
-function runCli(
+const cliPath = path.join(__dirname, '../dist/cli.js')
+const runCli = (
   args: string[],
-  options: { cwd?: string; env?: Record<string, string> } = {},
-): { stdout: string; stderr: string; exitCode: number } {
-  const cliPath = path.join(__dirname, '../dist/cli.js')
-  const cmd = `node ${cliPath} ${args.join(' ')}`
-
-  try {
-    const stdout = execSync(cmd, {
-      cwd: options.cwd,
-      encoding: 'utf-8',
-      env: { ...process.env, ...options.env },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return { stdout, stderr: '', exitCode: 0 }
-  } catch (error) {
-    if (isExecSyncError(error)) {
-      return {
-        stdout: error.stdout?.toString() ?? '',
-        stderr: error.stderr?.toString() ?? '',
-        exitCode: error.status ?? 1,
-      }
-    }
-    return { stdout: '', stderr: String(error), exitCode: 1 }
-  }
-}
+  options?: Parameters<typeof runCompiledCli>[2],
+) => runCompiledCli(cliPath, args, options)
 
 describe('CLI', { timeout: 30000 }, () => {
   let project: Project
@@ -234,7 +194,52 @@ describe('CLI', { timeout: 30000 }, () => {
     })
   })
 
+  it('rejects --base without a ref instead of using automatic selection', () => {
+    const result = runCli(['validate', '--strict', '--base'], {
+      cwd: project.baseDir,
+    })
+    expect(result.exitCode).toBe(1)
+    expect(result.stderr).toMatch(/--base.*requires a Git ref/i)
+  })
+
   describe('validate command', () => {
+    it('exits nonzero in strict mode when a package declaration has not been built', async () => {
+      project.files = {
+        'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+        tools: {
+          example: {
+            'package.json': JSON.stringify({
+              name: 'example',
+              types: 'dist/index.d.ts',
+            }),
+          },
+        },
+      }
+      await project.write()
+      const gitOptions = { cwd: project.baseDir, stdio: 'ignore' } as const
+      execFileSync('git', ['init'], gitOptions)
+      execFileSync('git', ['add', '.'], gitOptions)
+      execFileSync(
+        'git',
+        [
+          '-c',
+          'user.name=Test',
+          '-c',
+          'user.email=test@example.com',
+          'commit',
+          '-m',
+          'Initial',
+        ],
+        gitOptions,
+      )
+
+      const result = runCli(['validate', '--strict', '--base', 'HEAD'], {
+        cwd: project.baseDir,
+      })
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toMatch(/example: .*declaration file/i)
+    })
+
     it('accepts the validate command', async () => {
       project.files = {
         'package.json': JSON.stringify({

@@ -22,6 +22,7 @@ import type {
   WorkspaceAnalysisResult,
 } from './types'
 import { releaseTypeToBumpType } from './types'
+import { getIgnoredPackages } from './validator'
 
 /**
  * Creates a changeset object from analysis results.
@@ -198,10 +199,17 @@ export async function generateChangeset(
   // Analyze workspace
   let analysis: WorkspaceAnalysisResult
   try {
+    const ignored = await getIgnoredPackages(cwd)
     analysis = analyzeWorkspace({
       cwd,
       baseRef: options.baseRef,
     })
+    analysis.packagesWithErrors = analysis.packagesWithErrors.filter(
+      (result) => !ignored.has(result.package.name),
+    )
+    analysis.packagesWithChanges = analysis.packagesWithChanges.filter(
+      (result) => !ignored.has(result.package.name),
+    )
   } catch (err) {
     return {
       success: false,
@@ -215,7 +223,11 @@ export async function generateChangeset(
     const errorMessages = analysis.packagesWithErrors
       .map((r) => `  - ${r.package.name}: ${r.error}`)
       .join('\n')
-    console.warn(`⚠️  Some packages had analysis errors:\n${errorMessages}`)
+    return {
+      success: false,
+      skipped: false,
+      error: `API analysis failed:\n${errorMessages}`,
+    }
   }
 
   // Check if there are any changes

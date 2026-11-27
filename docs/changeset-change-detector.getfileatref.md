@@ -89,3 +89,7 @@ null \| string
 
 The file content, or null if file doesn't exist at that ref
 
+## Exceptions
+
+Error if the ref or file lookup fails
+

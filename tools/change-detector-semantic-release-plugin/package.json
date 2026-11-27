@@ -38,7 +38,8 @@
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
-    "@api-extractor-tools/change-detector": "workspace:*"
+    "@api-extractor-tools/change-detector": "workspace:*",
+    "@api-extractor-tools/changeset-change-detector": "workspace:*"
   },
   "peerDependencies": {
     "semantic-release": ">=20.0.0"

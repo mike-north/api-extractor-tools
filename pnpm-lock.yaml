@@ -142,6 +142,9 @@ importers:
       '@api-extractor-tools/change-detector':
         specifier: workspace:*
         version: link:../change-detector
+      '@api-extractor-tools/changeset-change-detector':
+        specifier: workspace:*
+        version: link:../changeset-change-detector
     devDependencies:
       '@api-extractor-tools/declaration-file-normalizer':
         specifier: workspace:*
@@ -173,6 +176,9 @@ importers:
       '@api-extractor-tools/change-detector':
         specifier: workspace:*
         version: link:../change-detector
+      '@changesets/config':
+        specifier: ^3.1.2
+        version: 3.1.2
       '@changesets/read':
         specifier: ^0.6.5
         version: 0.6.6
@@ -182,6 +188,15 @@ importers:
       '@changesets/write':
         specifier: ^0.4.0
         version: 0.4.0
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
+      semver:
+        specifier: ^7.7.3
+        version: 7.7.3
+      yaml:
+        specifier: ^2.8.2
+        version: 2.8.2
     devDependencies:
       '@api-extractor-tools/declaration-file-normalizer':
         specifier: workspace:*
@@ -192,6 +207,9 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.1
+      '@types/semver':
+        specifier: ^7.7.0
+        version: 7.8.0
       '@vitest/coverage-v8':
         specifier: ^4.0.15
         version: 4.0.15(vitest@4.0.15(@types/node@22.19.1)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2))
@@ -1983,6 +2001,9 @@ packages:
 
   '@types/rimraf@3.0.2':
     resolution: {integrity: sha512-F3OznnSLAUxFrCEu/L5PY8+ny8DtcFRjx7fZZ9bycvXRi3KPTRS9HOitGZwvPg0juRhXFWIeKX58cnX5YqLohQ==}
+
+  '@types/semver@7.8.0':
+    resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
   '@types/ssri@7.1.5':
     resolution: {integrity: sha512-odD/56S3B51liILSk5aXJlnYt99S6Rt9EFDDqGtJM26rKHApHcwyU/UoYHrzKkdkHMAIquGWCuHtQTbes+FRQw==}
@@ -7219,6 +7240,8 @@ snapshots:
     dependencies:
       '@types/glob': 9.0.0
       '@types/node': 22.19.1
+
+  '@types/semver@7.8.0': {}
 
   '@types/ssri@7.1.5':
     dependencies:

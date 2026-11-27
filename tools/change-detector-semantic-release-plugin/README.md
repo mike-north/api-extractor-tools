@@ -512,26 +512,11 @@ if (analysis.report) {
    }
    ```
 
-### "No baseline found" or New Package Issues
+### Baseline lookup
 
-**Problem**: Plugin reports it can't find a baseline for comparison.
+The plugin uses `baseRef` when configured and otherwise uses the last release tag supplied by semantic-release. Without either, it selects the highest reachable package version tag by SemVer precedence, then tries `v`-prefixed tags and branch baselines.
 
-**Explanation**: This is normal for:
-
-- Initial releases
-- First time using the plugin
-- Repositories without release tags
-
-**Solutions**:
-
-1. For new packages, the plugin will automatically detect this and recommend a `minor` release in override mode
-2. In validate mode, proceed normally - the plugin won't block new packages
-3. If you have releases but no tags, create tags for past releases:
-
-   ```bash
-   git tag v1.0.0 <commit-hash>
-   git push --tags
-   ```
+If the package name is absent at the baseline, override mode recommends a minor release. For an existing package, the baseline ref must contain its historical declaration, including when the package moved within the repository. In validate mode with `failOnMismatch`, a missing declaration, parse error, or failed Git lookup stops release analysis.
 
 ### Plugin Not Running During Release
 

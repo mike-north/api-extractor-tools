@@ -31,7 +31,7 @@ function removeUntrackedGeneratedMarkdown() {
   const candidates = execFileSync(
     'git',
     ['ls-files', '--others', '-z', '--', 'docs/', 'api-reports/'],
-    { cwd: workspace, encoding: 'utf8' },
+    { cwd: workspace, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   )
   for (const candidate of candidates.split('\0')) {
     if (!candidate.endsWith('.md')) continue

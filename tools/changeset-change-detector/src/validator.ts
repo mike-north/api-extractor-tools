@@ -6,6 +6,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { read as readChangesetConfig } from '@changesets/config'
 import readChangesets from '@changesets/read'
 import type { NewChangeset, VersionType } from '@changesets/types'
 import { analyzeWorkspace } from './analyzer'
@@ -76,6 +77,13 @@ export function aggregateChangesetBumps(
   return bumps
 }
 
+export async function getIgnoredPackages(cwd: string): Promise<Set<string>> {
+  if (!fs.existsSync(path.join(cwd, '.changeset', 'config.json')))
+    return new Set()
+  const config = await readChangesetConfig(cwd)
+  return new Set(config.ignore)
+}
+
 /**
  * Validates changesets against detected API changes.
  *
@@ -111,7 +119,9 @@ export async function validateChangesets(
 
   // Analyze workspace
   let analysis: WorkspaceAnalysisResult
+  let ignoredPackages: Set<string>
   try {
+    ignoredPackages = await getIgnoredPackages(cwd)
     analysis = analyzeWorkspace({
       cwd,
       baseRef: options.baseRef,
@@ -136,9 +146,18 @@ export async function validateChangesets(
   // Build map of detected changes per package
   const detectedChanges = new Map<string, { bump: ChangesetBumpType | null }>()
   for (const result of analysis.packages) {
-    if (result.error && result.package.declarationFile !== null) {
+    if (ignoredPackages.has(result.package.name)) continue
+    if (result.error !== undefined) {
+      const declarationFile = result.package.declarationFile
+      // Packages without declarations are only a problem in strict mode.
+      if (declarationFile === null && !options.strict) continue
+      // A broken current declaration is always an error; other analysis
+      // failures (such as an unreadable baseline) are advisory unless strict.
+      const currentDeclarationFailed =
+        declarationFile !== null && result.error.includes(declarationFile)
       issues.push({
-        severity: 'error',
+        severity:
+          options.strict || currentDeclarationFailed ? 'error' : 'warning',
         packageName: result.package.name,
         message: `API comparison failed: ${result.error}`,
       })
@@ -151,6 +170,7 @@ export async function validateChangesets(
   // Check for packages with changes but no changesets
   const packagesMissingChangesets: string[] = []
   for (const result of analysis.packagesWithChanges) {
+    if (ignoredPackages.has(result.package.name)) continue
     const bump = releaseTypeToBumpType(result.recommendedBump)
     if (bump && !changesetBumps.has(result.package.name)) {
       packagesMissingChangesets.push(result.package.name)

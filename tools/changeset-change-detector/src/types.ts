@@ -57,7 +57,7 @@ export interface PackageAnalysisResult {
 export interface WorkspaceAnalysisResult {
   /** Analysis results for each package */
   packages: PackageAnalysisResult[]
-  /** The baseline reference used for comparison */
+  /** The shared baseline ref, or "per-package" when packages use different refs */
   baselineRef: string
   /** Packages that have changes requiring a version bump */
   packagesWithChanges: PackageAnalysisResult[]

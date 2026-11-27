@@ -113,6 +113,7 @@ export interface CompareOptions {
     newFile: string;
     oldFile: string;
     policy?: Policy;
+    throwOnError?: boolean;
 }
 
 // @alpha

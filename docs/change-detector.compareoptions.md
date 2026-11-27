@@ -95,5 +95,24 @@ import('@api-extractor-tools/change-detector-core').[Policy](./change-detector-c
 
 
 </td></tr>
+<tr><td>
+
+[throwOnError?](./change-detector.compareoptions.throwonerror.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+**_(ALPHA)_** _(Optional)_ Throw on declaration parse errors instead of returning a partial comparison.
+
+
+</td></tr>
 </tbody></table>
 

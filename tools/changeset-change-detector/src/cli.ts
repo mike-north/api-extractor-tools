@@ -40,10 +40,11 @@ function parseArgs(args: string[]): CliOptions {
       options.strict = true
     } else if (arg === '--base' || arg === '-b') {
       const nextArg = args[i + 1]
-      if (nextArg && !nextArg.startsWith('-')) {
-        options.baseRef = nextArg
-        i++
+      if (!nextArg || nextArg.startsWith('-')) {
+        throw new Error(`${arg} requires a Git ref`)
       }
+      options.baseRef = nextArg
+      i++
     } else if (arg === '--summary' || arg === '-s') {
       const nextArg = args[i + 1]
       if (nextArg && !nextArg.startsWith('-')) {
@@ -150,7 +151,14 @@ async function runValidate(options: CliOptions): Promise<number> {
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
-  const options = parseArgs(args)
+  let options: CliOptions
+  try {
+    options = parseArgs(args)
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error))
+    process.exitCode = 1
+    return
+  }
 
   if (options.help || options.command === 'help') {
     printHelp()
@@ -191,4 +199,3 @@ main().catch((err) => {
   console.error('Unexpected error:', err)
   process.exitCode = 1
 })
-

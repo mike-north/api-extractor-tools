@@ -55,7 +55,17 @@ describe('Edge Cases: Declaration File Discovery', () => {
     const result = findDeclarationFile(project.baseDir, config)
 
     // Should fall back to common location
-    expect(result).toContain('dist/index.d.ts')
+    expect(result).toBe(path.join(project.baseDir, 'dist/index.d.ts'))
+  })
+
+  it('reports a missing manifest declaration even when an old build is present', async () => {
+    project.pkg.types = 'dist/public.d.ts'
+    project.files = {
+      dist: { 'index.d.ts': 'export declare function stale(): void;' },
+    }
+    await project.write()
+
+    expect(findDeclarationFile(project.baseDir, resolveConfig())).toBeNull()
   })
 
   it('handles multiple common locations with priority order', async () => {
@@ -78,7 +88,7 @@ describe('Edge Cases: Declaration File Discovery', () => {
     const result = findDeclarationFile(project.baseDir, config)
 
     // Should prefer dist over others
-    expect(result).toContain('dist/index.d.ts')
+    expect(result).toBe(path.join(project.baseDir, 'dist/index.d.ts'))
   })
 
   it('handles explicit absolute path correctly', async () => {
@@ -122,7 +132,7 @@ describe('Edge Cases: Declaration File Discovery', () => {
     const config = resolveConfig()
     const result = findDeclarationFile(project.baseDir, config)
 
-    expect(result).toContain('dist/index.d.ts')
+    expect(result).toBe(path.join(project.baseDir, 'dist/index.d.ts'))
   })
 
   it('handles package.json with neither types nor typings', async () => {
@@ -140,7 +150,7 @@ describe('Edge Cases: Declaration File Discovery', () => {
     const config = resolveConfig()
     const result = findDeclarationFile(project.baseDir, config)
 
-    expect(result).toContain('dist/index.d.ts')
+    expect(result).toBe(path.join(project.baseDir, 'dist/index.d.ts'))
   })
 })
 
@@ -156,12 +166,8 @@ describe('Edge Cases: Git Baseline Detection', () => {
   })
 
   it('handles scoped package name in tag search', async () => {
-    project.files = {
-      'package.json': JSON.stringify({
-        name: '@scope/package',
-        version: '1.0.0',
-      }),
-    }
+    project.pkg.name = '@scope/package'
+    project.pkg.version = '1.0.0'
     await project.write()
     initGitRepo(project.baseDir)
     execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
@@ -178,7 +184,7 @@ describe('Edge Cases: Git Baseline Detection', () => {
     const baseline = determineBaseline(project.baseDir)
 
     // Should find the scoped tag
-    expect(baseline).toMatch(/@scope\/package@|main/)
+    expect(baseline).toBe('@scope/package@1.0.0')
   })
 
   it('falls back to main when no tags exist', async () => {
@@ -272,7 +278,28 @@ describe('Edge Cases: Git Baseline Detection', () => {
     expect(baseline).toBe('custom-ref')
   })
 
-  it('verifies lastRelease tag exists before using it', async () => {
+  it('selects the stable package tag ahead of its prerelease', async () => {
+    project.pkg.name = '@test/pkg'
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git tag @test/pkg@1.0.0', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git tag @test/pkg@1.0.0-rc.1', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+
+    expect(determineBaseline(project.baseDir)).toBe('@test/pkg@1.0.0')
+  })
+
+  it('prefers the lastRelease tag over automatically discovered versions', async () => {
     project.files = {
       'package.json': JSON.stringify({
         name: '@test/pkg',
@@ -287,16 +314,14 @@ describe('Edge Cases: Git Baseline Detection', () => {
       stdio: 'ignore',
     })
     execSync('git tag v1.0.0', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git tag v2.0.0', { cwd: project.baseDir, stdio: 'ignore' })
 
-    // Try to use non-existent tag
     const baseline = determineBaseline(project.baseDir, {
-      gitTag: 'v9.9.9',
-      version: '9.9.9',
+      gitTag: 'v1.0.0',
+      version: '1.0.0',
     })
 
-    // Should fall back to finding tags
-    expect(baseline).toBeTruthy()
-    expect(baseline).not.toBe('v9.9.9')
+    expect(baseline).toBe('v1.0.0')
   })
 })
 
@@ -309,6 +334,26 @@ describe('Edge Cases: Git File Retrieval', () => {
 
   afterEach(() => {
     project.dispose()
+  })
+
+  it('reads a declaration with spaces from the package directory', async () => {
+    const declaration = 'export declare const nested: boolean;'
+    project.files = {
+      'public api.d.ts': 'export declare const root: boolean;',
+      packages: { nested: { 'public api.d.ts': declaration } },
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    const cwd = path.join(project.baseDir, 'packages/nested')
+
+    expect(getFileAtRef(path.join(cwd, 'public api.d.ts'), 'HEAD', cwd)).toBe(
+      declaration,
+    )
   })
 
   it('returns null when file does not exist at ref', async () => {
@@ -392,6 +437,101 @@ describe('Edge Cases: API Analysis', () => {
     project.dispose()
   })
 
+  it('reports an unavailable baseline declaration for an existing package', async () => {
+    project.files = {
+      'package.json': JSON.stringify({
+        name: '@test/pkg',
+        types: 'dist/index.d.ts',
+      }),
+      '.gitignore': 'dist/\n',
+      dist: { 'index.d.ts': 'export declare const current: boolean;' },
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+
+    const result = analyzeAPIChanges(
+      project.baseDir,
+      resolveConfig({ baseRef: 'HEAD' }),
+    )
+    expect(result.isNewPackage).toBe(false)
+    expect(result.recommendedBump).toBe('none')
+    expect(result.error).toMatch(/baseline declaration.*dist\/index\.d\.ts/i)
+  })
+
+  it('reports an invalid explicit baseline despite a reachable release tag', async () => {
+    project.files = {
+      'package.json': JSON.stringify({
+        name: '@test/pkg',
+        types: 'index.d.ts',
+      }),
+      'index.d.ts': 'export declare const value: boolean;',
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git tag v1.0.0', { cwd: project.baseDir, stdio: 'ignore' })
+
+    const result = analyzeAPIChanges(
+      project.baseDir,
+      resolveConfig({ baseRef: 'missing-ref' }),
+    )
+    expect(result.isNewPackage).toBe(false)
+    expect(result.error).toContain('missing-ref')
+  })
+
+  it('reports a missing last release tag as a lookup error', async () => {
+    project.files = {
+      'package.json': JSON.stringify({
+        name: '@test/pkg',
+        types: 'index.d.ts',
+      }),
+      'index.d.ts': 'export declare const value: boolean;',
+    }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add .', { cwd: project.baseDir, stdio: 'ignore' })
+    execSync('git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    execSync('git branch -M main', { cwd: project.baseDir, stdio: 'ignore' })
+
+    const result = analyzeAPIChanges(project.baseDir, resolveConfig(), {
+      gitTag: 'v9.9.9',
+      version: '9.9.9',
+    })
+    expect(result.isNewPackage).toBe(false)
+    expect(result.error).toContain('v9.9.9')
+  })
+
+  it('rejects a branch with the same name as an unavailable release tag', async () => {
+    project.pkg.name = '@test/pkg'
+    project.pkg.types = 'index.d.ts'
+    project.files = { 'index.d.ts': 'export declare const value: boolean;' }
+    await project.write()
+    initGitRepo(project.baseDir)
+    execSync('git add . && git commit -m "Initial" && git branch v1.0.0', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+
+    const result = analyzeAPIChanges(project.baseDir, resolveConfig(), {
+      gitTag: 'v1.0.0',
+      version: '1.0.0',
+    })
+    expect(result.isNewPackage).toBe(false)
+    expect(result.error).toMatch(/refs\/tags\/v1.0.0/)
+  })
+
   it('handles missing declaration file', async () => {
     project.files = {
       'package.json': JSON.stringify({
@@ -408,6 +548,29 @@ describe('Edge Cases: API Analysis', () => {
     expect(result.recommendedBump).toBe('none')
   })
 
+  it('compares an explicit declaration in a project without a manifest', async () => {
+    const declarationPath = 'index.d.ts'
+    project.files = {
+      [declarationPath]: 'export declare function removed(): void;',
+    }
+    await project.write()
+    fs.unlinkSync(path.join(project.baseDir, 'package.json'))
+    initGitRepo(project.baseDir)
+    execSync('git add . && git commit -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
+    fs.writeFileSync(path.join(project.baseDir, declarationPath), 'export {};')
+
+    const result = analyzeAPIChanges(
+      project.baseDir,
+      resolveConfig({ baseRef: 'HEAD', declarationPath }),
+    )
+    expect(result.isNewPackage).toBe(false)
+    expect(result.error).toBeUndefined()
+    expect(result.recommendedBump).toBe('major')
+  })
+
   it('handles new package without baseline', async () => {
     project.files = {
       'package.json': JSON.stringify({
@@ -419,13 +582,15 @@ describe('Edge Cases: API Analysis', () => {
       },
     }
     await project.write()
-    // Initialize git but don't commit the declaration file
     initGitRepo(project.baseDir)
+    execSync('git commit --allow-empty -m "Initial"', {
+      cwd: project.baseDir,
+      stdio: 'ignore',
+    })
 
-    const config = resolveConfig()
+    const config = resolveConfig({ baseRef: 'HEAD' })
     const result = analyzeAPIChanges(project.baseDir, config)
 
-    // When there's no baseline (file doesn't exist in git history), it's a new package
     expect(result.isNewPackage).toBe(true)
     expect(result.recommendedBump).toBe('minor')
     expect(result.report).toBeNull()
@@ -462,10 +627,9 @@ describe('Edge Cases: API Analysis', () => {
       version: '1.0.0',
     })
 
-    // The change-detector might successfully parse invalid syntax or return errors
-    // We just verify the function completes without crashing
-    expect(result).toBeDefined()
-    expect(result.recommendedBump).toBeDefined()
+    expect(result.error).toMatch(/parse error/i)
+    expect(result.recommendedBump).toBe('none')
+    expect(result.report).toBeNull()
   })
 
   it('creates and cleans up temp directory', async () => {

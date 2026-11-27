@@ -4,11 +4,17 @@
  * @packageDocumentation
  */
 
-import { execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import { compareDeclarations } from '@api-extractor-tools/change-detector'
 import type { ASTComparisonReport } from '@api-extractor-tools/change-detector'
+import {
+  declarationPathFromMain,
+  findReleaseTag,
+  hasCommit,
+  readFileAtRef,
+  readPackageBaseline,
+} from '@api-extractor-tools/changeset-change-detector/dist/baseline'
 import type { AnalysisResult, ResolvedPluginConfig } from './types'
 
 /**
@@ -37,16 +43,8 @@ export function findDeclarationFile(
   }
 
   // Try to find from package.json
-  const pkgJsonPath = path.join(cwd, 'package.json')
-  if (!fs.existsSync(pkgJsonPath)) {
-    return null
-  }
-
-  const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8')) as {
-    types?: string
-    typings?: string
-    main?: string
-  }
+  const pkgJson = readPackageManifest(cwd)
+  if (!pkgJson) return null
 
   // Error if both types and typings are specified - there's no good reason to use both
   if (pkgJson.types && pkgJson.typings) {
@@ -55,25 +53,15 @@ export function findDeclarationFile(
     )
   }
 
-  // Check "types" field
-  if (pkgJson.types) {
-    const typesPath = path.join(cwd, pkgJson.types)
-    if (fs.existsSync(typesPath)) {
-      return typesPath
-    }
-  }
-
-  // Check "typings" field (legacy alternative to types)
-  if (pkgJson.typings) {
-    const typingsPath = path.join(cwd, pkgJson.typings)
-    if (fs.existsSync(typingsPath)) {
-      return typingsPath
-    }
+  const types = pkgJson.types ?? pkgJson.typings
+  if (types) {
+    const typesPath = path.resolve(cwd, types)
+    return fs.existsSync(typesPath) ? typesPath : null
   }
 
   // Try to find .d.ts next to main
-  if (pkgJson.main) {
-    const mainDts = pkgJson.main.replace(/\.js$/, '.d.ts')
+  const mainDts = declarationPathFromMain(pkgJson.main)
+  if (mainDts) {
     const mainDtsPath = path.join(cwd, mainDts)
     if (fs.existsSync(mainDtsPath)) {
       return mainDtsPath
@@ -113,86 +101,49 @@ export function determineBaseline(
   lastRelease?: { gitTag: string; version: string },
   explicitRef?: string | null,
 ): string {
-  // If explicit ref provided, use it
-  if (explicitRef) {
-    return explicitRef
-  }
+  const manifest =
+    explicitRef == null && !lastRelease?.gitTag
+      ? readPackageManifest(cwd)
+      : undefined
+  return selectBaseline(cwd, lastRelease, explicitRef, manifest).name
+}
 
-  // Use last release tag if available
+function selectBaseline(
+  cwd: string,
+  lastRelease?: { gitTag: string },
+  explicitRef?: string | null,
+  manifest?: PackageManifest,
+): { name: string; ref: string } {
+  if (explicitRef != null) return { name: explicitRef, ref: explicitRef }
   if (lastRelease?.gitTag) {
-    // Verify the tag exists
-    try {
-      execSync(`git rev-parse --verify ${lastRelease.gitTag}`, {
-        cwd,
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-      })
-      return lastRelease.gitTag
-    } catch {
-      // Tag doesn't exist, continue to fallback
-    }
+    const name = lastRelease.gitTag
+    return { name, ref: `refs/tags/${name}` }
   }
 
-  // Try to find a version tag
-  try {
-    const pkgJsonPath = path.join(cwd, 'package.json')
-    if (fs.existsSync(pkgJsonPath)) {
-      const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8')) as {
-        name?: string
-      }
-      if (pkgJson.name) {
-        // Look for tags like @api-extractor-tools/change-detector@0.0.1 or v0.0.1
-        const tagPatterns = [`${pkgJson.name}@*`, 'v*']
+  const packageTag = manifest?.name
+    ? findReleaseTag(cwd, `${manifest.name}@`)
+    : undefined
+  const tag = packageTag ?? findReleaseTag(cwd, 'v')
+  if (tag) return { name: tag, ref: `refs/tags/${tag}` }
 
-        for (const pattern of tagPatterns) {
-          const tags = execSync(`git tag -l "${pattern}"`, {
-            cwd,
-            encoding: 'utf-8',
-          })
-            .trim()
-            .split('\n')
-            .filter((t: string) => t.length > 0)
-
-          if (tags.length > 0) {
-            // Sort and get the latest
-            tags.sort()
-            const latestTag = tags[tags.length - 1]
-            if (latestTag) {
-              return latestTag
-            }
-          }
-        }
-      }
-    }
-  } catch {
-    // Git command failed, continue to fallback
+  for (const name of ['main', 'master']) {
+    const ref = `refs/heads/${name}`
+    if (hasCommit(cwd, ref)) return { name, ref }
   }
+  return { name: 'HEAD~1', ref: 'HEAD~1' }
+}
 
-  // Fallback to main or master
-  try {
-    execSync('git rev-parse --verify main', {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return 'main'
-  } catch {
-    // main doesn't exist
-  }
+interface PackageManifest {
+  name?: string
+  types?: string
+  typings?: string
+  main?: string
+}
 
-  try {
-    execSync('git rev-parse --verify master', {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return 'master'
-  } catch {
-    // master doesn't exist
-  }
-
-  // Last resort: HEAD~1
-  return 'HEAD~1'
+function readPackageManifest(cwd: string): PackageManifest | undefined {
+  const file = path.join(cwd, 'package.json')
+  if (!fs.existsSync(file)) return undefined
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as PackageManifest
 }
 
 /**
@@ -202,6 +153,7 @@ export function determineBaseline(
  * @param ref - Git ref to get the file from
  * @param cwd - The working directory
  * @returns The file content, or null if file doesn't exist at that ref
+ * @throws Error if the ref or file lookup fails
  *
  * @alpha
  */
@@ -210,20 +162,7 @@ export function getFileAtRef(
   ref: string,
   cwd: string,
 ): string | null {
-  // Convert absolute path to relative path from cwd
-  const relativePath = path.relative(cwd, filePath)
-
-  try {
-    const content = execSync(`git show ${ref}:${relativePath}`, {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return content
-  } catch {
-    // File doesn't exist at that ref
-    return null
-  }
+  return readFileAtRef(filePath, ref, cwd)
 }
 
 /**
@@ -247,54 +186,35 @@ export function analyzeAPIChanges(
   config: ResolvedPluginConfig,
   lastRelease?: { gitTag: string; version: string },
 ): AnalysisResult {
-  // Find the declaration file
-  const declarationFile = findDeclarationFile(cwd, config)
-
-  if (!declarationFile) {
-    return {
-      report: null,
-      recommendedBump: 'none',
-      isNewPackage: false,
-      error: 'Could not find declaration file. Ensure the package is built.',
-    }
-  }
-
-  // Check if current declaration file exists
-  if (!fs.existsSync(declarationFile)) {
-    return {
-      report: null,
-      recommendedBump: 'none',
-      isNewPackage: false,
-      error: `Declaration file not found: ${declarationFile}`,
-    }
-  }
-
-  // Determine baseline
-  const baselineRef = determineBaseline(cwd, lastRelease, config.baseRef)
-
-  // Get baseline content
-  const baselineContent = getFileAtRef(declarationFile, baselineRef, cwd)
-
-  // If no baseline exists, this is a new package
-  if (baselineContent === null) {
-    return {
-      report: null,
-      recommendedBump: 'minor',
-      isNewPackage: true,
-    }
-  }
-
-  // Write baseline to temp file for comparison
-  const tempDir = fs.mkdtempSync(path.join(cwd, '.semantic-release-temp-'))
-  const baselineFile = path.join(tempDir, 'baseline.d.ts')
-
+  let tempDir: string | undefined
   try {
-    fs.writeFileSync(baselineFile, baselineContent)
+    const declarationFile = findDeclarationFile(cwd, config)
+    if (!declarationFile) {
+      throw new Error(
+        'Could not find declaration file. Ensure the package is built.',
+      )
+    }
+    const manifest = readPackageManifest(cwd)
+    const { ref } = selectBaseline(cwd, lastRelease, config.baseRef, manifest)
+    const baseline = readPackageBaseline(
+      cwd,
+      declarationFile,
+      ref,
+      cwd,
+      manifest?.name,
+      Boolean(config.declarationPath),
+    )
+    if (baseline.kind === 'absent') {
+      return { report: null, recommendedBump: 'minor', isNewPackage: true }
+    }
 
-    // Run change-detector comparison
+    tempDir = fs.mkdtempSync(path.join(cwd, '.semantic-release-temp-'))
+    const baselineFile = path.join(tempDir, 'baseline.d.ts')
+    fs.writeFileSync(baselineFile, baseline.content)
     const result = compareDeclarations({
       oldFile: baselineFile,
       newFile: declarationFile,
+      throwOnError: true,
     })
 
     return {
@@ -310,9 +230,8 @@ export function analyzeAPIChanges(
       error: err instanceof Error ? err.message : String(err),
     }
   } finally {
-    // Clean up temp files
     try {
-      fs.rmSync(tempDir, { recursive: true, force: true })
+      if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true })
     } catch {
       // Ignore cleanup errors
     }
