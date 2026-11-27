@@ -2,13 +2,64 @@
  * Tests for the validator module.
  */
 
-import { describe, it, expect } from 'vitest'
+import { execSync } from 'node:child_process'
+import * as path from 'node:path'
+import { Project } from 'fixturify-project'
+import { describe, it, expect, vi } from 'vitest'
 import type { NewChangeset } from '@changesets/types'
 import {
   aggregateChangesetBumps,
   formatValidationResult,
+  validateChangesets,
   type ValidationResult,
 } from '@'
+
+vi.mock('node:child_process', { spy: true })
+
+describe('validateChangesets', () => {
+  it('fails validation for a malformed declaration in a compared package', async () => {
+    const project = new Project('test-workspace')
+    try {
+      project.files = {
+        'pnpm-workspace.yaml': 'packages:\n  - tools/*\n',
+        tools: {
+          'pkg-a': {
+            'package.json': JSON.stringify({
+              name: '@test/pkg-a',
+              types: 'index.d.ts',
+            }),
+            'index.d.ts': 'export declare const foo: ;',
+          },
+          'no-declarations': {
+            'package.json': JSON.stringify({ name: '@test/no-declarations' }),
+          },
+        },
+      }
+      await project.write()
+      vi.mocked(execSync).mockReturnValueOnce(
+        'export declare const foo: string;',
+      )
+
+      const result = await validateChangesets({
+        cwd: project.baseDir,
+        baseRef: 'HEAD',
+      })
+
+      expect(result.valid).toBe(false)
+      expect(result.errorCount).toBe(1)
+      expect(result.issues).toHaveLength(1)
+      expect(result.issues[0]).toMatchObject({
+        severity: 'error',
+        packageName: '@test/pkg-a',
+      })
+      expect(result.issues[0]?.message).toContain(
+        `${path.join(project.baseDir, 'tools/pkg-a/index.d.ts')}: Parse error:`,
+      )
+    } finally {
+      project.dispose()
+    }
+  })
+})
 
 describe('aggregateChangesetBumps', () => {
   it('aggregates bumps from single changeset', () => {

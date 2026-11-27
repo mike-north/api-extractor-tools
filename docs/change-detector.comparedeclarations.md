@@ -59,6 +59,10 @@ Comparison options including paths to old and new files
 
 A comparison result with release type, changes, and formatted report
 
+## Exceptions
+
+Error if either input file cannot be read or parsed
+
 ## Example
 
 
