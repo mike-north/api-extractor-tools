@@ -1,5 +1,12 @@
 # @api-extractor-tools/demo-site
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [[`5eeffa9`](https://github.com/mike-north/api-extractor-tools/commit/5eeffa931d494845b887141e5ad3b0f9fa06f239), [`1779355`](https://github.com/mike-north/api-extractor-tools/commit/177935515de6ce70f277a8eadcf8a4a272ef643b), [`121ecf1`](https://github.com/mike-north/api-extractor-tools/commit/121ecf1ef95b005e815600072afe01202f963ebc), [`c0a4710`](https://github.com/mike-north/api-extractor-tools/commit/c0a47105c2758c17b81d6cc03114ec0e81f681b4), [`e8bfe92`](https://github.com/mike-north/api-extractor-tools/commit/e8bfe9234a71d3ac55cb48036bc55e4a35d4c70c)]:
+  - @api-extractor-tools/change-detector-core@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

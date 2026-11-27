@@ -1,5 +1,19 @@
 # @api-extractor-tools/extractor-lib
 
+## 0.1.1
+
+### Patch Changes
+
+- [#226](https://github.com/mike-north/api-extractor-tools/pull/226) [`121ecf1`](https://github.com/mike-north/api-extractor-tools/commit/121ecf1ef95b005e815600072afe01202f963ebc) Thanks [@mike-north](https://github.com/mike-north)! - Fix native Node.js ESM imports for change-detector-core and its subpaths,
+  the TypeScript and Protobuf input processors, and the JSON Schema and
+  OpenAPI plugins. Plugin discovery loads the matching entry point in Node.js.
+  The extractor-lib ESM entry point supports running extractions with either a
+  supplied or installed TypeScript compiler. Extractor-lib also ships declarations
+  for its CommonJS entry point. Processor builds preserve prerelease versions in
+  both module formats.
+
+- [#222](https://github.com/mike-north/api-extractor-tools/pull/222) [`b3d9190`](https://github.com/mike-north/api-extractor-tools/commit/b3d9190f313952a595482913c6e98befada337a7) Thanks [@mike-north](https://github.com/mike-north)! - Preserve relative paths when staging declarations for API Extractor, including dependencies in parent directories. Report unresolved relative modules and missing triple-slash path references as extraction errors. Support extraction from both CommonJS and ESM, and handle Windows drive roots in the in-memory filesystem.
+
 ## 0.1.0
 
 ### Minor Changes
