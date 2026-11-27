@@ -136,6 +136,14 @@ export async function validateChangesets(
   // Build map of detected changes per package
   const detectedChanges = new Map<string, { bump: ChangesetBumpType | null }>()
   for (const result of analysis.packages) {
+    if (result.error && result.package.declarationFile !== null) {
+      issues.push({
+        severity: 'error',
+        packageName: result.package.name,
+        message: `API comparison failed: ${result.error}`,
+      })
+      continue
+    }
     const bump = releaseTypeToBumpType(result.recommendedBump)
     detectedChanges.set(result.package.name, { bump })
   }
