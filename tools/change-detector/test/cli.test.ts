@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { execFile, spawn } from 'node:child_process'
+import { open, readFile } from 'node:fs/promises'
+import { promisify } from 'node:util'
 import { z } from 'zod'
 
 /**
@@ -33,46 +35,6 @@ function parseCliOutput(stdout: string) {
   return CliOutputSchema.parse(JSON.parse(stdout))
 }
 
-/**
- * Runs the CLI and returns its output.
- * Uses the compiled CLI from dist.
- */
-function runCli(
-  args: string[],
-  options: { cwd?: string; env?: Record<string, string> } = {},
-): { stdout: string; stderr: string; exitCode: number } {
-  const cliPath = path.join(__dirname, '../dist/cli.js')
-  const cmd = `node ${cliPath} ${args.join(' ')}`
-
-  try {
-    const stdout = execSync(cmd, {
-      cwd: options.cwd,
-      encoding: 'utf-8',
-      env: { ...process.env, ...options.env },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
-    return { stdout, stderr: '', exitCode: 0 }
-  } catch (error: unknown) {
-    function isExecError(err: unknown): err is {
-      stdout?: string | Buffer
-      stderr?: string | Buffer
-      status?: number
-    } {
-      return (
-        typeof err === 'object' &&
-        err !== null &&
-        ('stdout' in err || 'stderr' in err || 'status' in err)
-      )
-    }
-    const e = isExecError(error) ? error : {}
-    return {
-      stdout: e.stdout?.toString() || '',
-      stderr: e.stderr?.toString() || '',
-      exitCode: e.status ?? 1,
-    }
-  }
-}
-
 describe('CLI', () => {
   let project: Project
 
@@ -84,9 +46,44 @@ describe('CLI', () => {
     project.dispose()
   })
 
+  async function runCli(args: string[]) {
+    const cliPath = path.join(__dirname, '../dist/cli.js')
+    const stdoutPath = path.join(project.baseDir, 'stdout.log')
+    const stderrPath = path.join(project.baseDir, 'stderr.log')
+    const stdout = await open(stdoutPath, 'w')
+    try {
+      const stderr = await open(stderrPath, 'w')
+      try {
+        const child = spawn(process.execPath, [cliPath, ...args], {
+          stdio: ['ignore', stdout.fd, stderr.fd],
+          timeout: 10000,
+        })
+        const exitCode = await new Promise<number>((resolve, reject) => {
+          child.once('error', reject)
+          child.once('close', (code, signal) => {
+            if (code === null) {
+              reject(new Error(`CLI terminated by ${signal}`))
+            } else {
+              resolve(code)
+            }
+          })
+        })
+        return {
+          stdout: await readFile(stdoutPath, 'utf-8'),
+          stderr: await readFile(stderrPath, 'utf-8'),
+          exitCode,
+        }
+      } finally {
+        await stderr.close()
+      }
+    } finally {
+      await stdout.close()
+    }
+  }
+
   describe('argument parsing', () => {
-    it('shows help with --help flag', () => {
-      const result = runCli(['--help'])
+    it('shows help with --help flag', async () => {
+      const result = await runCli(['--help'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('change-detector')
@@ -95,23 +92,23 @@ describe('CLI', () => {
       expect(result.stdout).toContain('ARGUMENTS')
     })
 
-    it('shows help with -h flag', () => {
-      const result = runCli(['-h'])
+    it('shows help with -h flag', async () => {
+      const result = await runCli(['-h'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('change-detector')
     })
 
-    it('shows version with --version flag', () => {
-      const result = runCli(['--version'])
+    it('shows version with --version flag', async () => {
+      const result = await runCli(['--version'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('change-detector')
       expect(result.stdout).toMatch(/v?\d+\.\d+\.\d+/)
     })
 
-    it('shows version with -V flag', () => {
-      const result = runCli(['-V'])
+    it('shows version with -V flag', async () => {
+      const result = await runCli(['-V'])
 
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toMatch(/v?\d+\.\d+\.\d+/)
@@ -119,8 +116,8 @@ describe('CLI', () => {
   })
 
   describe('error handling', () => {
-    it('fails when no files are provided', () => {
-      const result = runCli([])
+    it('fails when no files are provided', async () => {
+      const result = await runCli([])
 
       expect(result.exitCode).toBe(1)
       expect(result.stderr).toContain(
@@ -134,7 +131,7 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli([path.join(project.baseDir, 'old.d.ts')])
+      const result = await runCli([path.join(project.baseDir, 'old.d.ts')])
 
       expect(result.exitCode).toBe(1)
       expect(result.stderr).toContain(
@@ -142,41 +139,112 @@ describe('CLI', () => {
       )
     })
 
-    it('handles missing old file gracefully', async () => {
+    it('fails when the old file is missing', async () => {
       project.files = {
         'new.d.ts': 'export declare const foo: string;',
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
       ])
 
-      // CLI handles missing files gracefully
-      expect(result.exitCode).toBe(0)
-      const parsed = parseCliOutput(result.stdout)
-      expect(parsed).toBeDefined()
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain('File not found:')
+      expect(result.stderr).toContain('old.d.ts')
     })
 
-    it('handles missing new file gracefully', async () => {
+    it('fails when the new file is missing', async () => {
       project.files = {
         'old.d.ts': 'export declare const foo: string;',
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
       ])
 
-      // CLI handles missing files gracefully
-      expect(result.exitCode).toBe(0)
-      const parsed = parseCliOutput(result.stdout)
-      expect(parsed).toBeDefined()
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain('File not found:')
+      expect(result.stderr).toContain('new.d.ts')
     })
+
+    it('fails and reports both paths when both files are missing', async () => {
+      const oldFile = path.join(project.baseDir, 'old.d.ts')
+      const newFile = path.join(project.baseDir, 'new.d.ts')
+
+      const result = await runCli([oldFile, newFile, '--json'])
+
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain(`File not found: ${oldFile}`)
+      expect(result.stderr).toContain(`File not found: ${newFile}`)
+    })
+
+    it('fails when a declaration file cannot be parsed', async () => {
+      project.files = {
+        'old.d.ts': 'export declare const foo: ;',
+        'new.d.ts': 'export declare const foo: string;',
+      }
+      await project.write()
+
+      const oldFile = path.join(project.baseDir, 'old.d.ts')
+      const result = await runCli([
+        oldFile,
+        path.join(project.baseDir, 'new.d.ts'),
+        '--json',
+      ])
+
+      expect(result.exitCode).toBe(1)
+      expect(result.stdout).toBe('')
+      expect(result.stderr).toContain(`${oldFile}: Parse error:`)
+    })
+
+    it.each(['.d.cts', '.d.mts'])(
+      'reports a directory and a malformed renamed export in a %s input',
+      async (extension) => {
+        const malformedName = `new declarations${extension}`
+        project.files = {
+          'old declarations.d.ts': { '.gitkeep': '' },
+          [malformedName]:
+            'declare function greet(): void; export { greet as };',
+        }
+        await project.write()
+
+        const oldFile = path.join(project.baseDir, 'old declarations.d.ts')
+        const newFile = path.join(project.baseDir, malformedName)
+        const result = await runCli([oldFile, newFile, '--json'])
+
+        expect(result.exitCode).toBe(1)
+        expect(result.stdout).toBe('')
+        expect(result.stderr).toContain(
+          `Cannot read declaration file: ${oldFile}`,
+        )
+        expect(result.stderr).toContain(`${newFile}: Parse error:`)
+      },
+    )
+
+    it.skipIf(process.platform === 'win32')(
+      'rejects a named pipe without waiting for a writer',
+      async () => {
+        const pipe = path.join(project.baseDir, 'old.d.ts')
+        const missing = path.join(project.baseDir, 'new.d.ts')
+        await promisify(execFile)('mkfifo', [pipe])
+
+        const result = await runCli([pipe, missing, '--markdown'])
+
+        expect(result.exitCode).toBe(1)
+        expect(result.stdout).toBe('')
+        expect(result.stderr).toContain(`Cannot read declaration file: ${pipe}`)
+        expect(result.stderr).toContain(`File not found: ${missing}`)
+      },
+    )
   })
 
   describe('output formats', () => {
@@ -187,7 +255,7 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
       ])
@@ -206,7 +274,7 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
@@ -225,7 +293,7 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--markdown',
@@ -243,7 +311,7 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--md',
@@ -262,13 +330,14 @@ describe('CLI', () => {
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
       ])
 
       expect(result.exitCode).toBe(0)
+      expect(result.stderr).toBe('')
       const parsed = parseCliOutput(result.stdout)
       expect(parsed.releaseType).toBe('none')
       expect(parsed.stats.total).toBe(0)
@@ -282,7 +351,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
@@ -303,7 +372,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
@@ -323,7 +392,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
@@ -344,7 +413,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
       ])
@@ -352,8 +421,8 @@ export declare function bar(): void;`,
       expect(result.exitCode).toBe(0)
     })
 
-    it('returns 1 when missing required arguments', () => {
-      const result = runCli([])
+    it('returns 1 when missing required arguments', async () => {
+      const result = await runCli([])
 
       expect(result.exitCode).toBe(1)
     })
@@ -374,7 +443,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
@@ -394,7 +463,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
@@ -420,7 +489,7 @@ export declare function bar(): void;`,
       }
       await project.write()
 
-      const result = runCli([
+      const result = await runCli([
         path.join(project.baseDir, 'old.d.ts'),
         path.join(project.baseDir, 'new.d.ts'),
         '--json',
