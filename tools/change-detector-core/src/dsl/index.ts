@@ -54,19 +54,19 @@
  */
 
 // Core type definitions
-export * from './dsl-types'
+export * from './dsl-types.js'
 
 // Intent parsing (Intent → Pattern)
-export * from './intent-parser'
+export * from './intent-parser.js'
 
 // Pattern compilation (Pattern → Dimensional)
-export * from './pattern-compiler'
+export * from './pattern-compiler.js'
 
 // Pattern decompilation (Dimensional → Pattern)
-export * from './pattern-decompiler'
+export * from './pattern-decompiler.js'
 
 // Intent synthesis (Pattern → Intent)
-export * from './intent-synthesizer'
+export * from './intent-synthesizer.js'
 
 // Rule builder integration
-export * from './rule-builder-v2'
+export * from './rule-builder-v2/index.js'

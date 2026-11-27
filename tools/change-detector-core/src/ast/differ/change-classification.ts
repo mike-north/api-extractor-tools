@@ -2,7 +2,6 @@
  * Change classification and type impact determination.
  */
 
-import type * as ts from 'typescript'
 import type {
   AnalyzableNode,
   ChangeDescriptor,
@@ -12,11 +11,11 @@ import type {
   ChangeTag,
   DiffContext,
   NodeKind,
-} from '../types'
-import type { ParameterOrderAnalysis } from '../../parameter-analysis'
-import { normalizeSignature } from './rename-detection'
-import { detectParameterReordering } from './parameter-reordering'
-import { classifyTypeParameterChange } from './type-parameter-changes'
+} from '../types.js'
+import type { ParameterOrderAnalysis } from '../../parameter-analysis.js'
+import { normalizeSignature } from './rename-detection.js'
+import { detectParameterReordering } from './parameter-reordering.js'
+import { classifyTypeParameterChange } from './type-parameter-changes.js'
 
 /**
  * Maps NodeKind to ChangeTarget for top-level exports.
@@ -98,6 +97,26 @@ export function classifyChange(
 } {
   const target = nodeKindToTarget(oldNode.kind)
 
+  const kinds = [oldNode.kind, newNode.kind]
+  if (
+    kinds.includes('type-alias') &&
+    (kinds.includes('variable') || kinds.includes('function'))
+  ) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'type', 'unrelated'),
+      explanation: `Changed '${oldNode.path}' from a ${oldNode.kind} to a ${newNode.kind}`,
+    }
+  }
+
+  const wasTypeOnly = oldNode.modifiers.has('type-only-export')
+  const isTypeOnly = newNode.modifiers.has('type-only-export')
+  if (isTypeOnly && !wasTypeOnly) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'type', 'narrowing'),
+      explanation: `Removed the value export of '${oldNode.path}'`,
+    }
+  }
+
   // Check for parameter reordering (for functions/methods)
   // This check happens even when signatures are identical because
   // parameter reordering preserves types but changes names
@@ -138,35 +157,20 @@ export function classifyChange(
   }
 
   // Check for type changes
-  if (oldNode.typeInfo.signature !== newNode.typeInfo.signature) {
-    // Look up TypeScript types from symbols if context available
-    const oldSymbol = context?.oldSymbols?.get(oldNode.path)
-    const newSymbol = context?.newSymbols?.get(newNode.path)
-    let oldTsType: ts.Type | undefined
-    let newTsType: ts.Type | undefined
-
-    if (context && oldSymbol && newSymbol) {
-      const oldDecl = oldSymbol.getDeclarations()?.[0]
-      const newDecl = newSymbol.getDeclarations()?.[0]
-      if (oldDecl && newDecl) {
-        oldTsType = context.checker.getTypeOfSymbolAtLocation(
-          oldSymbol,
-          oldDecl,
+  const oldSignature = oldNode.typeInfo.signature
+  const newSignature = newNode.typeInfo.signature
+  const aliasImpact =
+    oldNode.kind === 'type-alias' && newNode.kind === 'type-alias'
+      ? compareTypeMembers(
+          oldNode.typeInfo.unionMembers ?? [oldSignature],
+          newNode.typeInfo.unionMembers ?? [newSignature],
         )
-        newTsType = context.checker.getTypeOfSymbolAtLocation(
-          newSymbol,
-          newDecl,
-        )
-      }
-    }
-
-    const impact = determineTypeImpact(
-      oldNode.typeInfo.signature,
-      newNode.typeInfo.signature,
-      context && oldTsType && newTsType
-        ? { checker: context.checker, oldTsType, newTsType }
-        : undefined,
-    )
+      : undefined
+  if (
+    oldSignature !== newSignature ||
+    (aliasImpact && aliasImpact !== 'equivalent')
+  ) {
+    const impact = aliasImpact ?? determineTypeImpact(oldNode, newNode, context)
 
     const explanation =
       impact === 'equivalent'
@@ -175,11 +179,20 @@ export function classifyChange(
           ? `Widened type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
           : impact === 'narrowing'
             ? `Narrowed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
-            : `Changed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
+            : oldSignature === newSignature
+              ? `Changed a constituent of type '${oldNode.path}'`
+              : `Changed type of '${oldNode.path}' from '${oldNode.typeInfo.signature}' to '${newNode.typeInfo.signature}'`
 
     return {
       descriptor: createModifiedDescriptor(target, 'type', impact),
       explanation,
+    }
+  }
+
+  if (wasTypeOnly && !isTypeOnly) {
+    return {
+      descriptor: createModifiedDescriptor(target, 'type', 'widening'),
+      explanation: `Added a value export for '${oldNode.path}'`,
     }
   }
 
@@ -358,92 +371,57 @@ export function classifyChange(
  * Falls back to string-based heuristics when TypeChecker info is unavailable.
  */
 function determineTypeImpact(
-  oldType: string,
-  newType: string,
-  context?: {
-    checker: ts.TypeChecker
-    oldTsType?: ts.Type
-    newTsType?: ts.Type
-  },
+  oldNode: AnalyzableNode,
+  newNode: AnalyzableNode,
+  context?: DiffContext,
 ): ChangeImpact {
-  const oldNorm = normalizeSignature(oldType)
-  const newNorm = normalizeSignature(newType)
+  const oldNorm = normalizeSignature(oldNode.typeInfo.signature)
+  const newNorm = normalizeSignature(newNode.typeInfo.signature)
 
   if (oldNorm === newNorm) {
     return 'equivalent'
   }
 
-  // Try TypeChecker-based analysis if available
-  if (context?.checker && context.oldTsType && context.newTsType) {
-    return determineTypeImpactWithChecker(
-      context.oldTsType,
-      context.newTsType,
-      context.checker,
-    )
+  const oldSymbol = context?.oldSymbols?.get(oldNode.path)
+  const newSymbol = context?.newSymbols?.get(newNode.path)
+  const oldDecl = oldSymbol?.getDeclarations()?.[0]
+  const newDecl = newSymbol?.getDeclarations()?.[0]
+  if (!context || !oldSymbol || !newSymbol || !oldDecl || !newDecl) {
+    return determineTypeImpactFromStrings(oldNorm, newNorm)
   }
 
-  // Fall back to string-based heuristics
-  return determineTypeImpactFromStrings(oldNorm, newNorm)
+  const { oldChecker, newChecker } = context
+  const oldTsType = oldChecker.getTypeOfSymbolAtLocation(oldSymbol, oldDecl)
+  const newTsType = newChecker.getTypeOfSymbolAtLocation(newSymbol, newDecl)
+  return compareTypeMembers(
+    oldTsType.isUnion()
+      ? oldTsType.types.map((type) =>
+          normalizeSignature(oldChecker.typeToString(type)),
+        )
+      : [oldNorm],
+    newTsType.isUnion()
+      ? newTsType.types.map((type) =>
+          normalizeSignature(newChecker.typeToString(type)),
+        )
+      : [newNorm],
+  )
 }
 
-/**
- * TypeChecker-based type variance analysis using isTypeAssignableTo.
- */
-function determineTypeImpactWithChecker(
-  oldType: ts.Type,
-  newType: ts.Type,
-  checker: ts.TypeChecker,
+function compareTypeMembers(
+  oldTypes: string[],
+  newTypes: string[],
 ): ChangeImpact {
-  // Check if types are assignable to each other
-  // Note: isTypeAssignableTo is internal to TS, but we can use type compatibility checks
-  const oldTypeStr = checker.typeToString(oldType)
-  const newTypeStr = checker.typeToString(newType)
+  const oldMembers = new Set(oldTypes)
+  const newMembers = new Set(newTypes)
+  const oldSubsetOfNew = [...oldMembers].every((member) =>
+    newMembers.has(member),
+  )
+  const newSubsetOfOld = [...newMembers].every((member) =>
+    oldMembers.has(member),
+  )
 
-  if (oldTypeStr === newTypeStr) {
-    return 'equivalent'
-  }
-
-  // For union types, check if one is a subset of the other
-  if (oldType.isUnion() && newType.isUnion()) {
-    const oldMembers = oldType.types.map((t) => checker.typeToString(t))
-    const newMembers = newType.types.map((t) => checker.typeToString(t))
-
-    const oldSet = new Set(oldMembers)
-    const newSet = new Set(newMembers)
-
-    // If new type has all old members plus more → widening
-    const oldSubsetOfNew = oldMembers.every((m) => newSet.has(m))
-    // If old type has all new members plus more → narrowing
-    const newSubsetOfOld = newMembers.every((m) => oldSet.has(m))
-
-    if (oldSubsetOfNew && !newSubsetOfOld) {
-      return 'widening'
-    }
-    if (newSubsetOfOld && !oldSubsetOfNew) {
-      return 'narrowing'
-    }
-    if (oldSubsetOfNew && newSubsetOfOld) {
-      return 'equivalent'
-    }
-  }
-
-  // Check if new is union containing old → widening
-  if (newType.isUnion()) {
-    const newMembers = newType.types.map((t) => checker.typeToString(t))
-    if (newMembers.includes(oldTypeStr)) {
-      return 'widening'
-    }
-  }
-
-  // Check if old is union containing new → narrowing
-  if (oldType.isUnion()) {
-    const oldMembers = oldType.types.map((t) => checker.typeToString(t))
-    if (oldMembers.includes(newTypeStr)) {
-      return 'narrowing'
-    }
-  }
-
-  // Types are different and not in subset relationship
+  if (oldSubsetOfNew) return newSubsetOfOld ? 'equivalent' : 'widening'
+  if (newSubsetOfOld) return 'narrowing'
   return 'unrelated'
 }
 

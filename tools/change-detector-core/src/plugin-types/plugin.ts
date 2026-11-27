@@ -2,10 +2,10 @@
  * Plugin container types.
  */
 
-import type { InputProcessorDefinition } from './input-processor'
-import type { PolicyDefinition } from './policy'
-import type { ReporterDefinition } from './reporter'
-import type { ValidatorDefinition } from './validator'
+import type { InputProcessorDefinition } from './input-processor.js'
+import type { PolicyDefinition } from './policy.js'
+import type { ReporterDefinition } from './reporter.js'
+import type { ValidatorDefinition } from './validator.js'
 
 /**
  * Metadata identifying a plugin.

@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { describe, it, expect } from 'vitest'
 import protobufPlugin, {
   ProtoFileProcessor,
@@ -27,13 +28,60 @@ function getExpectedVersion(): string {
 const EXPECTED_VERSION = getExpectedVersion()
 
 describe('Protocol Buffer Input Processor Plugin', () => {
+  it('processes input through the CommonJS and ESM package exports', () => {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        `
+        import assert from 'node:assert/strict'
+        import { createRequire } from 'node:module'
+        import * as esm from '@api-extractor-tools/input-processor-protobuf'
+        const require = createRequire(import.meta.url)
+        const cjs = require('@api-extractor-tools/input-processor-protobuf')
+        const content = JSON.stringify({"file": [{"messageType": [{"name": "Ping"}]}]})
+        for (const entry of [esm, cjs]) {
+          const result = new entry.JsonDescriptorProcessor().process(content)
+          assert.deepEqual(result.errors, [])
+          assert.ok(result.symbols.has('Ping'))
+          assert.equal(entry.default.metadata.version, ${JSON.stringify(EXPECTED_VERSION)})
+          assert.equal(entry.legacyProtoPlugin.version, entry.default.metadata.version)
+          assert.equal(entry.legacyJsonDescriptorPlugin.version, entry.default.metadata.version)
+        }
+      `,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+  })
+
+  it('resolves declarations in the same module format as the entry point', () => {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--conditions=types',
+        '--eval',
+        `
+          import assert from 'node:assert/strict'
+          import { createRequire } from 'node:module'
+          import { pathToFileURL } from 'node:url'
+          const require = createRequire(import.meta.url)
+          const name = '@api-extractor-tools/input-processor-protobuf'
+          assert.ok(import.meta.resolve(name).endsWith('/dist/esm/index.d.ts'))
+          assert.ok(pathToFileURL(require.resolve(name)).pathname.endsWith('/dist/cjs/index.d.ts'))
+        `,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+  })
+
   describe('unified plugin format', () => {
     it('should have correct plugin metadata', () => {
       expect(protobufPlugin.metadata.id).toBe('protobuf')
       expect(protobufPlugin.metadata.name).toBe(
         'Protocol Buffer Input Processor Plugin',
       )
-      expect(protobufPlugin.metadata.version).toBe(EXPECTED_VERSION)
       expect(protobufPlugin.metadata.description).toBeDefined()
     })
 
@@ -101,7 +149,7 @@ describe('Protocol Buffer Input Processor Plugin', () => {
       expect(legacyProtoPlugin.name).toBe(
         'Protocol Buffer Proto File Processor',
       )
-      expect(legacyProtoPlugin.version).toBe(EXPECTED_VERSION)
+      expect(legacyProtoPlugin.version).toBe(protobufPlugin.metadata.version)
       expect(legacyProtoPlugin.extensions).toEqual(['.proto'])
     })
 
@@ -110,7 +158,9 @@ describe('Protocol Buffer Input Processor Plugin', () => {
       expect(legacyJsonDescriptorPlugin.name).toBe(
         'Protocol Buffer JSON Descriptor Processor',
       )
-      expect(legacyJsonDescriptorPlugin.version).toBe(EXPECTED_VERSION)
+      expect(legacyJsonDescriptorPlugin.version).toBe(
+        protobufPlugin.metadata.version,
+      )
       expect(legacyJsonDescriptorPlugin.extensions).toEqual([
         '.pb.json',
         '.descriptor.json',
@@ -393,6 +443,182 @@ describe('Protocol Buffer Input Processor Plugin', () => {
   })
 
   describe('JsonDescriptorProcessor', () => {
+    it('should extract a package-qualified message from FileDescriptorSet JSON', () => {
+      const processor = new JsonDescriptorProcessor()
+      const descriptor = {
+        file: [
+          {
+            name: 'api.proto',
+            package: 'demo',
+            syntax: 'proto3',
+            messageType: [{ name: 'Ping' }],
+          },
+        ],
+      }
+
+      const result = processor.process(JSON.stringify(descriptor))
+
+      expect(result.errors).toEqual([])
+      expect(result.symbols.get('demo.Ping')?.name).toBe('demo.Ping')
+    })
+
+    it('should accept symbolic enum values in FileDescriptorSet JSON fields', () => {
+      const processor = new JsonDescriptorProcessor()
+      const descriptor = {
+        file: [
+          {
+            name: 'api.proto',
+            syntax: 'proto3',
+            messageType: [
+              {
+                name: 'Ping',
+                field: [
+                  {
+                    name: 'value',
+                    number: 1,
+                    label: 'LABEL_REPEATED',
+                    type: 'TYPE_STRING',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      const result = processor.process(JSON.stringify(descriptor))
+
+      expect(result.errors).toEqual([])
+      expect(result.symbols.get('Ping')?.signature).toContain(
+        'repeated string value = 1',
+      )
+    })
+
+    it('accepts proto field names in FileDescriptorSet JSON', () => {
+      const descriptor = {
+        file: [
+          {
+            package: 'demo',
+            message_type: [
+              {
+                name: 'Ping',
+                nested_type: [{ name: 'Child' }],
+                field: [
+                  {
+                    name: 'child',
+                    number: 1,
+                    type: 'TYPE_MESSAGE',
+                    type_name: '.demo.Ping.Child',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+      const result = new JsonDescriptorProcessor().process(
+        JSON.stringify(descriptor),
+      )
+      expect(result.errors).toEqual([])
+      expect(result.symbols.get('demo.Ping')?.signature).toContain(
+        'Child child = 1',
+      )
+      expect(result.symbols.has('demo.Ping.Child')).toBe(true)
+    })
+
+    it('includes map value types even when nested descriptor symbols are disabled', () => {
+      const processor = new JsonDescriptorProcessor({ includeNested: false })
+      const processWithValueType = (type: string) =>
+        processor.process(
+          JSON.stringify({
+            file: [
+              {
+                package: 'demo',
+                syntax: 'proto3',
+                messageType: [
+                  {
+                    name: 'Ping',
+                    field: [
+                      {
+                        name: 'labels',
+                        number: 1,
+                        label: 'LABEL_REPEATED',
+                        type: 'TYPE_MESSAGE',
+                        typeName: '.demo.Ping.LabelsEntry',
+                      },
+                    ],
+                    nestedType: [
+                      {
+                        name: 'LabelsEntry',
+                        options: { mapEntry: true },
+                        field: [
+                          { name: 'key', number: 1, type: 'TYPE_STRING' },
+                          { name: 'value', number: 2, type },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+        )
+
+      const before = processWithValueType('TYPE_STRING')
+      const after = processWithValueType('TYPE_INT32')
+      expect(before.errors).toEqual([])
+      expect(after.errors).toEqual([])
+      expect([...before.symbols.keys()]).toEqual(['demo.Ping'])
+      expect(before.symbols.get('demo.Ping')?.signature).toContain(
+        'map<string, string> labels = 1',
+      )
+      expect(after.symbols.get('demo.Ping')?.signature).toContain(
+        'map<string, int32> labels = 1',
+      )
+    })
+
+    it('reports an invalid field enum with the descriptor path and filename', () => {
+      const descriptor = {
+        file: [
+          {
+            messageType: [
+              {
+                name: 'Ping',
+                field: [{ name: 'id', number: 1, type: 'UNKNOWN' }],
+              },
+            ],
+          },
+        ],
+      }
+      const filename = String.raw`C:\spec\api.pb.json`
+      const result = new JsonDescriptorProcessor().process(
+        JSON.stringify(descriptor),
+        filename,
+      )
+      expect(result.symbols.size).toBe(0)
+      expect(result.errors).toEqual([
+        expect.stringContaining(
+          `${filename}: file[0].messageType[0].field[0].type`,
+        ),
+      ])
+    })
+
+    it.each([
+      { unknown: [] },
+      { file: {} },
+      { file: [{ unexpected: true }] },
+      { file: [{}], nested: { Ping: { fields: {} } } },
+      { nested: [] },
+    ])('should reject an unrecognized descriptor shape (%j)', (descriptor) => {
+      const result = new JsonDescriptorProcessor().process(
+        JSON.stringify(descriptor),
+        'api.json',
+      )
+
+      expect(result.symbols.size).toBe(0)
+      expect(result.errors).toEqual([expect.stringContaining('api.json')])
+    })
+
     it('should process a simple JSON descriptor', () => {
       const processor = new JsonDescriptorProcessor()
       const descriptor = {

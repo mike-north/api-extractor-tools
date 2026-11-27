@@ -6,4 +6,8 @@
  */
 
 // Public API - main entry points
-export { diffModules, flattenChanges, groupChangesByDescriptor } from './core'
+export {
+  diffModules,
+  flattenChanges,
+  groupChangesByDescriptor,
+} from './core.js'

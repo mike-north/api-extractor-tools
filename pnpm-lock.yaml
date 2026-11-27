@@ -302,6 +302,9 @@ importers:
       '@microsoft/tsdoc':
         specifier: ^0.15.1
         version: 0.15.1
+      '@typescript-eslint/utils':
+        specifier: ^8.48.1
+        version: 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.8.3)
     devDependencies:
       '@api-extractor-tools/declaration-file-normalizer':
         specifier: workspace:*
@@ -316,9 +319,6 @@ importers:
         specifier: ^8.48.1
         version: 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.8.3)
       '@typescript-eslint/rule-tester':
-        specifier: ^8.48.1
-        version: 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.8.3)
-      '@typescript-eslint/utils':
         specifier: ^8.48.1
         version: 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.8.3)
       '@vitest/coverage-v8':
@@ -392,9 +392,6 @@ importers:
       '@api-extractor-tools/change-detector-core':
         specifier: workspace:*
         version: link:../change-detector-core
-      pkg-up:
-        specifier: ^5.0.0
-        version: 5.0.0
       typescript:
         specifier: 5.8.3
         version: 5.8.3
@@ -426,6 +423,9 @@ importers:
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
     devDependencies:
       '@api-extractor-tools/declaration-file-normalizer':
         specifier: workspace:*
@@ -442,9 +442,6 @@ importers:
       tsd:
         specifier: ^0.33.0
         version: 0.33.0
-      typescript:
-        specifier: 5.8.3
-        version: 5.8.3
       vitest:
         specifier: ^4.0.15
         version: 4.0.15(@types/node@22.19.1)(jiti@2.6.1)(jsdom@25.0.1)(yaml@2.8.2)

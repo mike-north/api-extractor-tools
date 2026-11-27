@@ -7,7 +7,7 @@ import type {
   ChangeDescriptor,
   ChangeImpact,
   TypeParameterInfo,
-} from '../types'
+} from '../types.js'
 
 interface TypeParameterChange {
   kind: 'added' | 'removed' | 'constraint-changed' | 'default-changed'

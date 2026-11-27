@@ -25,6 +25,18 @@
     "semantic-versioning",
     "api-extractor"
   ],
+  "nx": {
+    "targets": {
+      "build": {
+        "inputs": [
+          "source",
+          "tsConfig",
+          "ciCacheVersion",
+          "declarationNormalizer"
+        ]
+      }
+    }
+  },
   "author": "",
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",

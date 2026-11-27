@@ -8,11 +8,14 @@ import type {
   ChangeDescriptor,
   DiffOptions,
   DiffContext,
-} from '../types'
-import { matchNodes } from './matching'
-import { detectRenames } from './rename-detection'
-import { createSimpleDescriptor, classifyChange } from './change-classification'
-import { detectNestedChanges } from './nested-changes'
+} from '../types.js'
+import { matchNodes } from './matching.js'
+import { detectRenames } from './rename-detection.js'
+import {
+  createSimpleDescriptor,
+  classifyChange,
+} from './change-classification.js'
+import { detectNestedChanges } from './nested-changes.js'
 
 /**
  * Default diff options.
@@ -46,9 +49,10 @@ export function diffModules(
   const opts: Required<DiffOptions> = { ...DEFAULT_DIFF_OPTIONS, ...options }
   const changes: ApiChange[] = []
 
-  // Create diff context with TypeChecker for semantic analysis
+  // Create diff context with each module's TypeChecker for semantic analysis
   const context: DiffContext = {
-    checker: newAnalysis.checker,
+    oldChecker: oldAnalysis.checker,
+    newChecker: newAnalysis.checker,
     options: opts,
     oldSymbols: oldAnalysis.symbols,
     newSymbols: newAnalysis.symbols,

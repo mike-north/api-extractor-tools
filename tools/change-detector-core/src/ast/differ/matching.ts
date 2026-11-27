@@ -2,7 +2,7 @@
  * Node matching algorithm for comparing two analyses.
  */
 
-import type { AnalyzableNode } from '../types'
+import type { AnalyzableNode } from '../types.js'
 
 interface MatchResult {
   matched: Array<{ old: AnalyzableNode; new: AnalyzableNode }>

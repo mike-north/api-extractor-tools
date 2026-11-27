@@ -2,18 +2,18 @@
  * Parameter reordering detection.
  */
 
-import type { AnalyzableNode } from '../types'
+import type { AnalyzableNode } from '../types.js'
 import {
   detectParameterReordering as detectParamReorder,
   type ParameterInfo,
   type ParameterOrderAnalysis,
-} from '../../parameter-analysis'
+} from '../../parameter-analysis.js'
 
 /**
  * Converts AST ParameterInfo to the format used by parameter-analysis.
  */
 function toParamAnalysisInfo(
-  astParams: import('../types').ParameterInfo[],
+  astParams: import('../types.js').ParameterInfo[],
 ): ParameterInfo[] {
   return astParams.map((p, i) => ({
     name: p.name,

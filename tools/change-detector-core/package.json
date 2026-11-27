@@ -2,6 +2,7 @@
   "name": "@api-extractor-tools/change-detector-core",
   "version": "0.1.0",
   "description": "Isomorphic core for detecting changes between TypeScript declaration files (browser + Node.js)",
+  "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -9,7 +10,7 @@
     "clean": "rm -rf dist && node ../../scripts/clean-api-scratch.mjs change-detector-core",
     "build": "pnpm build:esm && pnpm build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node ../../scripts/mark-commonjs.mjs",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
@@ -46,24 +47,44 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     },
     "./ast": {
-      "types": "./dist/esm/ast/index.d.ts",
-      "import": "./dist/esm/ast/index.js",
-      "require": "./dist/cjs/ast/index.js"
+      "import": {
+        "types": "./dist/esm/ast/index.d.ts",
+        "default": "./dist/esm/ast/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/ast/index.d.ts",
+        "default": "./dist/cjs/ast/index.js"
+      }
     },
     "./rules": {
-      "types": "./dist/esm/rules.d.ts",
-      "import": "./dist/esm/rules.js",
-      "require": "./dist/cjs/rules.js"
+      "import": {
+        "types": "./dist/esm/rules.d.ts",
+        "default": "./dist/esm/rules.js"
+      },
+      "require": {
+        "types": "./dist/cjs/rules.d.ts",
+        "default": "./dist/cjs/rules.js"
+      }
     },
     "./plugins": {
-      "types": "./dist/esm/plugins.d.ts",
-      "import": "./dist/esm/plugins.js",
-      "require": "./dist/cjs/plugins.js"
+      "import": {
+        "types": "./dist/esm/plugins.d.ts",
+        "default": "./dist/esm/plugins.js"
+      },
+      "require": {
+        "types": "./dist/cjs/plugins.d.ts",
+        "default": "./dist/cjs/plugins.js"
+      }
     }
   },
   "typesVersions": {

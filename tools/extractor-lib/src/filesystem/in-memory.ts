@@ -78,9 +78,13 @@ export class InMemoryFileSystem implements IVirtualFileSystem {
     const dirsToCreate: string[] = []
 
     // Collect all directories that need to be created
-    while (dir !== '/' && !this.directories.has(dir)) {
+    while (!this.directories.has(dir)) {
       dirsToCreate.push(dir)
-      dir = dirname(dir)
+      const parent = dirname(dir)
+      if (parent === dir) {
+        break
+      }
+      dir = parent
     }
 
     // Create directories in reverse order (parent to child)
@@ -115,7 +119,10 @@ export class InMemoryFileSystem implements IVirtualFileSystem {
   writeFile(path: string, content: string): void {
     const absolutePath = this.toAbsolutePath(path)
 
-    if (this.directories.has(absolutePath)) {
+    if (
+      this.directories.has(absolutePath) ||
+      dirname(absolutePath) === absolutePath
+    ) {
       throw new Error(`Cannot write file: path is a directory: ${absolutePath}`)
     }
 
@@ -138,7 +145,9 @@ export class InMemoryFileSystem implements IVirtualFileSystem {
     }
 
     const entries = new Set<string>()
-    const searchPath = absolutePath === '/' ? '/' : absolutePath + '/'
+    const searchPath = absolutePath.endsWith('/')
+      ? absolutePath
+      : absolutePath + '/'
 
     // Find all immediate children (files and directories)
     for (const filePath of this.files.keys()) {

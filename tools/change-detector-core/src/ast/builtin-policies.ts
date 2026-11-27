@@ -4,7 +4,7 @@
  * These policies provide semantic versioning guidance for API changes.
  */
 
-import { rule, createPolicy, type Policy } from './rule-builder'
+import { rule, createPolicy, type Policy } from './rule-builder.js'
 
 // =============================================================================
 // Semver Default Policy

@@ -3,12 +3,12 @@
  */
 
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
-import type { NodeMetadata } from '../types'
+import type { NodeMetadata } from '../types.js'
 import {
   extractTSDocMetadata,
   toSymbolMetadata,
   isTSDocComment,
-} from '../../tsdoc-utils'
+} from '../../tsdoc-utils.js'
 
 /**
  * Extracts leading comments for a node.

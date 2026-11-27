@@ -5,7 +5,7 @@
  * builder helper types, and utility types for pattern variable extraction.
  */
 
-import type { ChangeTarget, NodeKind } from '../../ast/types'
+import type { ChangeTarget, NodeKind } from '../../ast/types.js'
 import type {
   IntentExpression,
   PatternTemplate,
@@ -13,8 +13,8 @@ import type {
   PatternRule,
   DimensionalRule,
   DSLRule,
-} from './rule-types'
-import type { ValidationError } from './result-types'
+} from './rule-types.js'
+import type { ValidationError } from './result-types.js'
 
 // =============================================================================
 // Common Pattern Library

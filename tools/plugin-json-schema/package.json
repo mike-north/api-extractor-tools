@@ -2,21 +2,41 @@
   "name": "@api-extractor-tools/plugin-json-schema",
   "version": "0.1.0",
   "description": "JSON Schema input processor plugin for change-detector (isomorphic - works in Node.js and browsers)",
+  "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/cjs/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "pnpm inject-version && pnpm build:esm && pnpm build:cjs",
+    "build": "pnpm build:esm && pnpm build:cjs",
     "inject-version": "node scripts/inject-version.mjs",
-    "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "node scripts/inject-version.mjs && tsc -p tsconfig.esm.json",
+    "build:cjs": "node scripts/inject-version.mjs && tsc -p tsconfig.cjs.json && node ../../scripts/mark-commonjs.mjs",
     "test": "vitest run && pnpm test:types",
     "test:types": "tsd --files 'test/**/*.test-d.ts'",
     "test:coverage": "vitest run --coverage",
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
     "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "inputs": [
+          "source",
+          "!{projectRoot}/src/version.ts",
+          "tsConfig",
+          "ciCacheVersion",
+          "{projectRoot}/package.json",
+          "{projectRoot}/scripts/inject-version.mjs",
+          "{projectRoot}/tsconfig.*.json"
+        ],
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/src/version.ts"
+        ]
+      }
+    }
   },
   "keywords": [
     "json-schema",
@@ -44,13 +64,28 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     }
   },
   "files": [
     "dist"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "nx": {
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/src/version.ts"
+        ]
+      }
+    }
+  }
 }

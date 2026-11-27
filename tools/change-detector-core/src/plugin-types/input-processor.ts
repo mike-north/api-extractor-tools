@@ -2,7 +2,7 @@
  * Input processor types.
  */
 
-import type { ProcessResult } from './result-types'
+import type { ProcessResult } from './result-types.js'
 
 /**
  * An input processor instance that can process content.

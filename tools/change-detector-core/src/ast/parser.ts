@@ -6,4 +6,4 @@
  */
 
 // Only export the public API - other functions are internal implementation details
-export { parseModule, parseModuleWithTypes } from './parser/index'
+export { parseModule, parseModuleWithTypes } from './parser/index.js'

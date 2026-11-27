@@ -11,7 +11,7 @@ const runCli = (
   options?: Parameters<typeof runCompiledCli>[2],
 ) => runCompiledCli(cliPath, args, options)
 
-describe('CLI', () => {
+describe('CLI', { timeout: 30000 }, () => {
   let project: Project
 
   beforeEach(() => {

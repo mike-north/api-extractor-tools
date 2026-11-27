@@ -4,7 +4,17 @@
     // Bump this epoch to retire previous Nx results for every cacheable target.
     "ciCacheVersion": ["{workspaceRoot}/ci-cache-version.txt"],
     "source": ["{projectRoot}/src/**/*"],
+    "declarationNormalizer": [
+      "{workspaceRoot}/tools/declaration-file-normalizer/src/**/*",
+      "{workspaceRoot}/tools/declaration-file-normalizer/tsconfig.json",
+      "{workspaceRoot}/tools/declaration-file-normalizer/package.json"
+    ],
     "tests": ["{projectRoot}/test/**/*"],
+    "runtimeTests": [
+      "tests",
+      "{projectRoot}/package.json",
+      "{workspaceRoot}/scripts/runtime-package-fixture.mjs"
+    ],
     "tsConfig": [
       "{projectRoot}/tsconfig.json",
       "{workspaceRoot}/tsconfig.json"
@@ -30,7 +40,16 @@
     "build": {
       "cache": true,
       "dependsOn": ["^build", "^build:api-artifacts"],
-      "inputs": ["source", "tsConfig", "ciCacheVersion"],
+      "inputs": [
+        "source",
+        "tsConfig",
+        "ciCacheVersion",
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig.{cjs,esm}.json",
+        "{projectRoot}/tsup.config.ts",
+        "{projectRoot}/scripts/inject-version.mjs",
+        "{workspaceRoot}/scripts/mark-commonjs.mjs"
+      ],
       "outputs": ["{projectRoot}/dist"]
     },
     "test:types": {
@@ -62,7 +81,7 @@
         "ciCacheVersion",
         "source",
         "tsConfig",
-        "{projectRoot}/test/**/*",
+        "runtimeTests",
         "{projectRoot}/vitest.config.mts"
       ],
       "outputs": []
@@ -79,7 +98,7 @@
         "ciCacheVersion",
         "source",
         "tsConfig",
-        "{projectRoot}/test/**/*",
+        "runtimeTests",
         "{projectRoot}/vitest.config.mts"
       ],
       "outputs": ["{projectRoot}/coverage"]

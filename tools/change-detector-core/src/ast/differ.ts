@@ -10,4 +10,4 @@ export {
   diffModules,
   flattenChanges,
   groupChangesByDescriptor,
-} from './differ/index'
+} from './differ/index.js'

@@ -4,7 +4,7 @@
  */
 
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
-import type { SourceRange, SourcePosition } from '../types'
+import type { SourceRange, SourcePosition } from '../types.js'
 
 /**
  * Converts a typescript-estree position to our SourcePosition.

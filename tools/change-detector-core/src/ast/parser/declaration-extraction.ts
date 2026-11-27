@@ -5,12 +5,12 @@
 
 import { AST_NODE_TYPES } from '@typescript-eslint/typescript-estree'
 import type { TSESTree } from '@typescript-eslint/typescript-estree'
-import type { AnalyzableNode, TypeInfo } from '../types'
-import { toSourceRange, getNodeText } from './source-location'
-import { getNodeKind } from './node-kind'
-import { extractModifiers } from './modifiers'
-import { extractBasicTypeInfo, extractSignatureInfo } from './extractors'
-import { extractNodeMetadata } from './metadata-extraction'
+import type { AnalyzableNode, TypeInfo } from '../types.js'
+import { toSourceRange, getNodeText } from './source-location.js'
+import { getNodeKind } from './node-kind.js'
+import { extractModifiers } from './modifiers.js'
+import { extractBasicTypeInfo, extractSignatureInfo } from './extractors.js'
+import { extractNodeMetadata } from './metadata-extraction.js'
 
 /**
  * Gets the name from a declaration node.
@@ -313,6 +313,14 @@ export function processStatement(
       }
     }
   } else if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
+    if (statement.declaration.type === AST_NODE_TYPES.Identifier) {
+      const localNode = outputMap.get(statement.declaration.name)
+      if (localNode) {
+        localNode.modifiers.add('exported')
+        localNode.modifiers.add('default-export')
+        return
+      }
+    }
     if (statement.declaration) {
       const node = processDeclaration(
         source,

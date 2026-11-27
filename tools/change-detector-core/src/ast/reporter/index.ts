@@ -11,17 +11,17 @@ export {
   type ASTComparisonReport,
   createASTComparisonReport,
   formatSourceLocation,
-} from './types'
+} from './types.js'
 
 // Public API - text reporter
-export { formatASTReportAsText } from './text-reporter'
+export { formatASTReportAsText } from './text-reporter.js'
 
 // Public API - markdown reporter
-export { formatASTReportAsMarkdown } from './markdown-reporter'
+export { formatASTReportAsMarkdown } from './markdown-reporter.js'
 
 // Public API - JSON reporter
 export {
   type ASTChangeJSON,
   type ASTReportJSON,
   formatASTReportAsJSON,
-} from './json-reporter'
+} from './json-reporter.js'

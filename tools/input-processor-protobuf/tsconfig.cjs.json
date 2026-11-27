@@ -4,10 +4,12 @@
     "noEmit": false,
     "module": "CommonJS",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "outDir": "./dist/cjs",
     "rootDir": "./src",
-    "declaration": false,
-    "declarationMap": false
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test"]

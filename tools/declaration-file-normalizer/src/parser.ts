@@ -67,35 +67,22 @@ export function parseDeclarationFile(
   // TypeScript's compiler API requires this pattern to explore all
   // declarations, statements, and type expressions in the file.
   function visit(node: ts.Node): void {
-    // Extract import declarations
-    if (ts.isImportDeclaration(node)) {
-      const moduleSpecifier = node.moduleSpecifier
-      if (ts.isStringLiteral(moduleSpecifier)) {
-        const importPath = resolveImportPath(moduleSpecifier.text, absolutePath)
-        if (importPath) {
-          importedFiles.push(importPath)
-        } else if (verbose && moduleSpecifier.text.startsWith('.')) {
-          console.warn(
-            `  ⚠ Could not resolve import: "${moduleSpecifier.text}" from ${absolutePath}`,
-          )
-        }
-      }
-    }
-
-    // Extract export declarations (export * from './foo')
-    if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
-      if (ts.isStringLiteral(node.moduleSpecifier)) {
-        const exportPath = resolveImportPath(
-          node.moduleSpecifier.text,
-          absolutePath,
+    const isExport = ts.isExportDeclaration(node)
+    const moduleSpecifier =
+      isExport || ts.isImportDeclaration(node)
+        ? node.moduleSpecifier
+        : ts.isImportEqualsDeclaration(node) &&
+            ts.isExternalModuleReference(node.moduleReference)
+          ? node.moduleReference.expression
+          : undefined
+    if (moduleSpecifier && ts.isStringLiteral(moduleSpecifier)) {
+      const dependency = resolveImportPath(moduleSpecifier.text, absolutePath)
+      if (dependency) {
+        importedFiles.push(dependency)
+      } else if (verbose && moduleSpecifier.text.startsWith('.')) {
+        console.warn(
+          `  ⚠ Could not resolve ${isExport ? 'export' : 'import'}: "${moduleSpecifier.text}" from ${absolutePath}`,
         )
-        if (exportPath) {
-          importedFiles.push(exportPath)
-        } else if (verbose && node.moduleSpecifier.text.startsWith('.')) {
-          console.warn(
-            `  ⚠ Could not resolve export: "${node.moduleSpecifier.text}" from ${absolutePath}`,
-          )
-        }
       }
     }
 
@@ -168,8 +155,8 @@ export function parseDeclarationFile(
 /**
  * Resolves a relative import specifier to an absolute file path.
  *
- * Handles TypeScript's ESM output where declaration files import `.js` files
- * but reference `.d.ts` files on disk. Tries multiple resolution strategies:
+ * Matches JavaScript specifiers to the corresponding TypeScript declaration
+ * extensions. For extensionless imports it tries:
  * 1. Direct path + `.d.ts`
  * 2. Path + `/index.d.ts`
  * 3. Exact path (if already includes extension)
@@ -192,7 +179,16 @@ function resolveImportPath(
   }
 
   const dir = path.dirname(fromFile)
-  let resolved = path.resolve(dir, importSpecifier)
+  let resolved = path.resolve(dir, importSpecifier.replaceAll('\\', '/'))
+
+  // Match the declaration extension to the explicit Node module format.
+  const extension = path.extname(resolved)
+  if (extension === '.mjs' || extension === '.cjs') {
+    const declarationExtension = extension === '.mjs' ? '.d.mts' : '.d.cts'
+    const declaration =
+      resolved.slice(0, -extension.length) + declarationExtension
+    return fs.existsSync(declaration) ? declaration : null
+  }
 
   // Strip .js extension if present (declaration files reference .js but exist as .d.ts)
   if (resolved.endsWith('.js')) {

@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { delimiter, dirname, join } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { runCli, runCommand } from './test-cli.mjs'
@@ -33,6 +33,110 @@ function put(root, relativePath, contents) {
   writeFileSync(path, contents)
   return path
 }
+
+for (const [script, command, exitCode] of [
+  ['changeset:auto', 'generate', 0],
+  ['changeset:validate', 'validate', 1],
+]) {
+  test(`${script} forwards arguments and preserves the CLI exit status`, (t) => {
+    const root = join(fixture(t), 'workspace with spaces')
+    put(root, 'package.json', readFileSync(join(workspace, 'package.json')))
+    put(
+      root,
+      'tools/changeset-change-detector/dist/cli.js',
+      `console.log(JSON.stringify(process.argv.slice(2)))\nprocess.exitCode = ${exitCode}\n`,
+    )
+
+    // Use pnpm's JS entry when available, including when pnpm is a .cmd shim.
+    const pnpm = process.env.npm_execpath ?? 'pnpm'
+    const pnpmIsScript = /\.[cm]?js$/i.test(pnpm)
+    const args = [
+      '--base',
+      'example@1.0.0-rc.1',
+      '--summary',
+      'API with spaces',
+    ]
+    const result = spawnSync(
+      pnpmIsScript ? process.execPath : pnpm,
+      pnpmIsScript ? [pnpm, script, ...args] : [script, ...args],
+      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+    assert.ifError(result.error)
+    assert.equal(result.status, exitCode, result.stderr)
+    assert.ok(
+      result.stdout.split(/\r?\n/).includes(JSON.stringify([command, ...args])),
+      result.stdout + result.stderr,
+    )
+  })
+}
+
+test('changing the isolated runtime fixture invalidates cached package tests', (t) => {
+  const root = fixture(t)
+  for (const path of [
+    'nx.json',
+    'ci-cache-version.txt',
+    'pnpm-workspace.yaml',
+  ]) {
+    put(root, path, readFileSync(join(workspace, path)))
+  }
+  put(root, 'package.json', JSON.stringify({ name: 'runtime-cache-fixture' }))
+  put(
+    root,
+    'tools/example/package.json',
+    JSON.stringify({
+      name: 'example',
+      scripts: { test: 'node ../../scripts/runtime-package-fixture.mjs' },
+    }),
+  )
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'junction',
+  )
+
+  const env = {
+    ...process.env,
+    NX_DAEMON: 'false',
+    NX_ISOLATE_PLUGINS: 'false',
+    NX_CACHE_DIRECTORY: join(root, 'cache'),
+    NX_WORKSPACE_DATA_DIRECTORY: join(root, 'workspace-data'),
+  }
+  const nx = join(workspace, 'node_modules/nx/bin/nx.js')
+  const args = [
+    nx,
+    'run',
+    'example:test',
+    '--skipRemoteCache',
+    '--outputStyle=static',
+  ]
+  const options = {
+    cwd: root,
+    env,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }
+  const helper = 'scripts/runtime-package-fixture.mjs'
+  const marker = join(root, 'tools/example/marker.txt')
+  put(
+    root,
+    helper,
+    'import { writeFileSync } from "node:fs"\nwriteFileSync("marker.txt", "original")\n',
+  )
+  const initial = spawnSync(process.execPath, args, options)
+  assert.ifError(initial.error)
+  assert.equal(initial.status, 0, initial.stdout + initial.stderr)
+  assert.equal(readFileSync(marker, 'utf8'), 'original')
+
+  put(
+    root,
+    helper,
+    'import { writeFileSync } from "node:fs"\nwriteFileSync("marker.txt", "changed")\nprocess.exitCode = 43\n',
+  )
+  const changed = spawnSync(process.execPath, args, options)
+  assert.ifError(changed.error)
+  assert.equal(changed.status, 1, changed.stdout + changed.stderr)
+  assert.equal(readFileSync(marker, 'utf8'), 'changed')
+})
 
 test('workspace clean removes untracked generator output and keeps tracked and handwritten files', (t) => {
   const root = fixture(t)
@@ -133,7 +237,7 @@ test('API artifact generation preserves a stale baseline for the strict check', 
   put(root, scriptPath, readFileSync(join(workspace, scriptPath)))
   const env = {
     ...process.env,
-    PATH: `${join(normalizerModules, '.bin')}:${process.env.PATH}`,
+    PATH: `${join(normalizerModules, '.bin')}${delimiter}${process.env.PATH}`,
   }
 
   const commandOptions = { cwd: project, env, shell: true }
@@ -174,4 +278,156 @@ test('API artifact generation preserves a stale baseline for the strict check', 
     readFileSync(rollup, 'utf8') === 'existing declaration rollup',
     true,
   )
+})
+
+test('a warm declaration build reruns when the normalizer changes', (t) => {
+  const root = fixture(t)
+  const normalizer = 'tools/declaration-file-normalizer'
+  const merger = 'tools/module-declaration-merger'
+  const readWorkspace = (path) => readFileSync(join(workspace, path), 'utf8')
+  const normalizerName = JSON.parse(
+    readWorkspace(`${normalizer}/package.json`),
+  ).name
+  const mergerPackage = JSON.parse(readWorkspace(`${merger}/package.json`))
+
+  put(root, 'nx.json', readWorkspace('nx.json'))
+  put(
+    root,
+    'package.json',
+    JSON.stringify({ name: 'workspace', private: true }),
+  )
+  put(root, 'pnpm-workspace.yaml', "packages: ['tools/*']\n")
+  put(
+    root,
+    `${normalizer}/package.json`,
+    JSON.stringify({
+      name: normalizerName,
+      scripts: { build: 'node --version' },
+    }),
+  )
+  put(
+    root,
+    `${merger}/package.json`,
+    JSON.stringify({
+      name: mergerPackage.name,
+      nx: mergerPackage.nx,
+      devDependencies: { [normalizerName]: 'workspace:*' },
+      scripts: {
+        build: 'node build.cjs',
+      },
+    }),
+  )
+  put(
+    root,
+    `${merger}/build.cjs`,
+    `const fs = require('node:fs');
+    fs.mkdirSync('dist', { recursive: true });
+    fs.copyFileSync('../declaration-file-normalizer/src/marker.txt', 'dist/index.d.ts');`,
+  )
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'dir',
+  )
+  const input = `${normalizer}/src/marker.txt`
+  const output = join(root, merger, 'dist/index.d.ts')
+  const nx = join(workspace, 'node_modules/nx/bin/nx.js')
+  const build = () =>
+    execFileSync(process.execPath, [nx, 'run', `${mergerPackage.name}:build`], {
+      cwd: root,
+      env: {
+        ...process.env,
+        NX_DAEMON: 'false',
+        NX_DISABLE_NX_CACHE: 'false',
+        NX_ISOLATE_PLUGINS: 'false',
+        NX_SKIP_NX_CACHE: 'false',
+        NX_TUI: 'false',
+      },
+    })
+
+  put(root, input, 'before')
+  build()
+  assert.equal(readFileSync(output, 'utf8'), 'before')
+
+  put(root, input, 'after')
+  build()
+  assert.equal(readFileSync(output, 'utf8'), 'after')
+})
+
+test('warm plugin builds restore the version from the package manifest', (t) => {
+  const root = fixture(t)
+  const packages = [
+    'input-processor-protobuf',
+    'plugin-json-schema',
+    'plugin-openapi',
+  ]
+  const staleVersion = "export const VERSION = '1.2.3-alpha.2'\n"
+  const currentVersion = '1.2.3'
+  for (const path of ['nx.json', 'pnpm-workspace.yaml']) {
+    put(root, path, readFileSync(join(workspace, path)))
+  }
+  put(root, 'package.json', JSON.stringify({ name: 'fixture', private: true }))
+  symlinkSync(
+    join(workspace, 'node_modules'),
+    join(root, 'node_modules'),
+    'junction',
+  )
+
+  const sources = packages.map((name) => {
+    const path = `tools/${name}`
+    const original = JSON.parse(
+      readFileSync(join(workspace, path, 'package.json'), 'utf8'),
+    )
+    put(
+      root,
+      `${path}/package.json`,
+      JSON.stringify({
+        name: original.name,
+        version: currentVersion,
+        scripts: { build: original.scripts['inject-version'] },
+        nx: original.nx,
+      }),
+    )
+    put(
+      root,
+      `${path}/scripts/inject-version.mjs`,
+      readFileSync(join(workspace, path, 'scripts/inject-version.mjs')),
+    )
+    return put(root, `${path}/src/version.ts`, staleVersion)
+  })
+  const build = () =>
+    execFileSync(
+      process.execPath,
+      [
+        join(workspace, 'node_modules/nx/bin/nx.js'),
+        'run-many',
+        '-t',
+        'build',
+        '--exclude',
+        'fixture',
+      ],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          NX_CACHE_DIRECTORY: join(root, '.nx/cache'),
+          NX_DAEMON: 'false',
+          NX_DISABLE_NX_CACHE: 'false',
+          NX_ISOLATE_PLUGINS: 'false',
+          NX_SKIP_NX_CACHE: 'false',
+          NX_WORKSPACE_DATA_DIRECTORY: join(root, '.nx/workspace-data'),
+        },
+      },
+    )
+
+  build()
+  for (const source of sources) {
+    assert.match(readFileSync(source, 'utf8'), /VERSION = '1\.2\.3'/)
+    writeFileSync(source, staleVersion)
+  }
+  assert.match(build(), /from the cache .*3 out of 3 tasks/)
+  for (const source of sources) {
+    assert.match(readFileSync(source, 'utf8'), /VERSION = '1\.2\.3'/)
+  }
 })

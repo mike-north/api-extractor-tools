@@ -14,15 +14,15 @@ import type {
   PatternRule,
   DimensionalRule,
   PatternVariable,
-} from '../dsl-types'
-import type { ReleaseType } from '../../types'
-import type { ChangeTarget, NodeKind } from '../../ast/types'
-import { parseIntent } from '../intent-parser'
-import { compilePattern } from '../pattern-compiler'
+} from '../dsl-types.js'
+import type { ReleaseType } from '../../types.js'
+import type { ChangeTarget, NodeKind } from '../../ast/types.js'
+import { parseIntent } from '../intent-parser.js'
+import { compilePattern } from '../pattern-compiler.js'
 import {
   DimensionalRuleBuilder,
   type ProgressiveRuleBuilderInterface,
-} from './dimensional-builder'
+} from './dimensional-builder.js'
 
 /**
  * Progressive rule builder supporting all three DSL levels.

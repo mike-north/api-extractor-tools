@@ -5,9 +5,9 @@
  * reports as JSON, suitable for programmatic consumption and tooling.
  */
 
-import type { ReleaseType } from '../../types'
-import type { ClassifiedChange } from '../types'
-import type { ASTReporterOptions, ASTComparisonReport } from './types'
+import type { ReleaseType } from '../../types.js'
+import type { ClassifiedChange } from '../types.js'
+import type { ASTReporterOptions, ASTComparisonReport } from './types.js'
 
 /**
  * JSON-serializable change representation.

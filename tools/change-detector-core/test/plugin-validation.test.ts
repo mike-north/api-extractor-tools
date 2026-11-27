@@ -41,6 +41,18 @@ describe('validatePlugin', () => {
       expect(result.errors).toHaveLength(0)
     })
 
+    it.each(['inputProcessors', 'policies', 'reporters', 'validators'])(
+      'rejects a non-array %s capability list',
+      (field) => {
+        const plugin = { ...createValidPlugin(), [field]: {} }
+
+        expect(isValidPlugin(plugin)).toBe(false)
+        expect(validatePlugin(plugin).errors).toContainEqual(
+          expect.objectContaining({ path: field }),
+        )
+      },
+    )
+
     it('rejects null', () => {
       const result = validatePlugin(null)
 

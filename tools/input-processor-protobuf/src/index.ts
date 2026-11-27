@@ -21,8 +21,9 @@ import type {
   ProcessResult,
   ExportedSymbol,
 } from '@api-extractor-tools/change-detector-core'
-import * as protobuf from 'protobufjs'
-import { VERSION } from './version'
+import protobuf from 'protobufjs'
+import descriptorTypes from 'protobufjs/ext/descriptor/index.js'
+import { VERSION } from './version.js'
 
 /**
  * Options for configuring the Protocol Buffer processors.
@@ -41,19 +42,28 @@ export interface ProtobufProcessorOptions {
  */
 function generateMessageSignature(type: protobuf.Type): string {
   const fields = type.fieldsArray.map((field) => {
+    if (field instanceof protobuf.MapField) {
+      return `map<${field.keyType}, ${field.type}> ${field.name} = ${field.id}`
+    }
+    // protobufjs represents descriptor maps as repeated messages.
+    const entry = field.resolvedType
+    if (
+      field.repeated &&
+      entry instanceof protobuf.Type &&
+      entry.parent === type &&
+      entry.getOption('map_entry') === true &&
+      entry.fieldsArray.length === 2 &&
+      entry.fields.key?.id === 1 &&
+      entry.fields.value?.id === 2
+    ) {
+      return `map<${entry.fields.key.type}, ${entry.fields.value.type}> ${field.name} = ${field.id}`
+    }
     const rule = field.repeated
       ? 'repeated '
       : field.required
         ? 'required '
         : ''
-    // Check if this is a map field by checking for the map property
-    let typeStr: string
-    if (field.map && field instanceof protobuf.MapField) {
-      typeStr = `map<${field.keyType}, ${field.type}>`
-    } else {
-      typeStr = field.type
-    }
-    return `${rule}${typeStr} ${field.name} = ${field.id}`
+    return `${rule}${field.type} ${field.name} = ${field.id}`
   })
   return `message ${type.name} {\n  ${fields.join(';\n  ')}${fields.length > 0 ? ';' : ''}\n}`
 }
@@ -210,11 +220,8 @@ export class JsonDescriptorProcessor implements InputProcessor {
     const errors: string[] = []
 
     try {
-      // Parse JSON content
-      const descriptor = JSON.parse(content) as object
-
-      // Create a protobuf Root from the JSON descriptor
-      const root = protobuf.Root.fromJSON(descriptor)
+      const descriptor: unknown = JSON.parse(content)
+      const root = loadJsonDescriptor(descriptor)
 
       // Extract symbols from the loaded root
       extractSymbols(root, symbols, this.options)
@@ -226,6 +233,103 @@ export class JsonDescriptorProcessor implements InputProcessor {
 
     return { symbols, errors }
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function normalizeDescriptorMessage(
+  value: unknown,
+  type: protobuf.Type,
+  path = '',
+): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error(`${path}: expected a descriptor object`)
+
+  const normalized: Record<string, unknown> = {}
+  for (const [key, entry] of Object.entries(value)) {
+    const name = key.replace(/_([a-z])/g, (_, letter: string) =>
+      letter.toUpperCase(),
+    )
+    const fieldPath = path ? `${path}.${name}` : name
+    const field = Object.hasOwn(type.fields, name)
+      ? type.fields[name]
+      : undefined
+    if (!field) throw new Error(`${fieldPath}: unknown descriptor field`)
+    if (Object.hasOwn(normalized, name)) {
+      throw new Error(`${fieldPath}: duplicate descriptor field`)
+    }
+    if (entry === null) {
+      normalized[name] = undefined
+      continue
+    }
+
+    const { resolvedType } = field.resolve()
+    function normalizeField(item: unknown, itemPath: string): unknown {
+      if (resolvedType instanceof protobuf.Type) {
+        return normalizeDescriptorMessage(item, resolvedType, itemPath)
+      }
+      if (resolvedType instanceof protobuf.Enum) {
+        if (
+          typeof item === 'string' &&
+          Object.hasOwn(resolvedType.values, item)
+        ) {
+          return resolvedType.values[item]
+        }
+        if (
+          typeof item === 'number' &&
+          Object.hasOwn(resolvedType.valuesById, item)
+        ) {
+          return item
+        }
+        throw new Error(`${itemPath}: invalid descriptor enum value`)
+      }
+      return item
+    }
+
+    if (field.repeated) {
+      if (!Array.isArray(entry)) {
+        throw new Error(`${fieldPath}: expected an array`)
+      }
+      normalized[name] = entry.map((item: unknown, index) =>
+        normalizeField(item, `${fieldPath}[${index}]`),
+      )
+    } else {
+      normalized[name] = normalizeField(entry, fieldPath)
+    }
+  }
+  return normalized
+}
+
+function loadJsonDescriptor(descriptor: unknown): protobuf.Root {
+  if (isRecord(descriptor)) {
+    if (
+      Array.isArray(descriptor.file) &&
+      !Object.hasOwn(descriptor, 'nested')
+    ) {
+      // The descriptor extension adds this method at runtime.
+      const DescriptorRoot = protobuf.Root as typeof protobuf.Root & {
+        fromDescriptor(descriptor: protobuf.Message): protobuf.Root
+      }
+      const { FileDescriptorSet } = descriptorTypes
+      return DescriptorRoot.fromDescriptor(
+        FileDescriptorSet.fromObject(
+          normalizeDescriptorMessage(descriptor, FileDescriptorSet),
+        ),
+      )
+    }
+
+    if (
+      !Object.hasOwn(descriptor, 'file') &&
+      (isRecord(descriptor.nested) ||
+        (descriptor.nested === undefined && isRecord(descriptor.options)) ||
+        Object.keys(descriptor).length === 0)
+    ) {
+      return protobuf.Root.fromJSON(descriptor)
+    }
+  }
+
+  throw new Error('Expected FileDescriptorSet or protobufjs reflection JSON')
 }
 
 /**

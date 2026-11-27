@@ -57,13 +57,17 @@ export type {
   // Options
   ParseOptions,
   DiffOptions,
-} from './types'
+} from './types.js'
 
 // Parser exports
-export { parseModule, parseModuleWithTypes } from './parser'
+export { parseModule, parseModuleWithTypes } from './parser.js'
 
 // Differ exports
-export { diffModules, flattenChanges, groupChangesByDescriptor } from './differ'
+export {
+  diffModules,
+  flattenChanges,
+  groupChangesByDescriptor,
+} from './differ.js'
 
 // Reporter type exports
 export type {
@@ -71,7 +75,7 @@ export type {
   ASTComparisonReport,
   ASTChangeJSON,
   ASTReportJSON,
-} from './reporter'
+} from './reporter.js'
 
 // Reporter exports
 export {
@@ -80,7 +84,7 @@ export {
   formatASTReportAsText,
   formatASTReportAsMarkdown,
   formatASTReportAsJSON,
-} from './reporter'
+} from './reporter.js'
 
 // Plugin type exports
 export type {
@@ -93,7 +97,7 @@ export type {
   ASTProcessResult,
   ASTAwareInputProcessor,
   ASTCapability,
-} from './plugin-types'
+} from './plugin-types.js'
 
 // Plugin type guards and factories
 export {
@@ -102,18 +106,18 @@ export {
   isASTAwareInputProcessor,
   createASTAwarePolicyDefinition,
   createASTAwareReporterDefinition,
-} from './plugin-types'
+} from './plugin-types.js'
 
 // Built-in policy definitions
 export {
   defaultASTPolicy,
   readOnlyASTPolicy,
   writeOnlyASTPolicy,
-} from './plugin-types'
+} from './plugin-types.js'
 
 // Built-in reporter definitions
 export {
   textASTReporter,
   markdownASTReporter,
   jsonASTReporter,
-} from './plugin-types'
+} from './plugin-types.js'

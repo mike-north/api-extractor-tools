@@ -10,8 +10,8 @@ import type {
   TypeParameterInfo,
   SignatureInfo,
   PropertyInfo,
-} from '../types'
-import { toSourceRange, getNodeText } from './source-location'
+} from '../types.js'
+import { toSourceRange, getNodeText } from './source-location.js'
 
 /**
  * Extracts parameter information from a function parameter.

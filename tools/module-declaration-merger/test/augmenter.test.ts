@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Project } from 'fixturify-project'
 import * as fs from 'fs'
 import * as path from 'path'
-import { createResolver, augmentRollups } from '@'
+import { createResolver, augmentRollups, getAugmentationPreview } from '@'
 
 describe('augmentRollups', () => {
   let project: Project
@@ -13,6 +13,39 @@ describe('augmentRollups', () => {
 
   afterEach(() => {
     project.dispose()
+  })
+
+  it('previews declarations without imports before the rollup exists as a file', async () => {
+    project.files = { dist: { 'index.d.ts': { '.keep': '' } } }
+    await project.write()
+    const rollup = path.join(project.baseDir, 'dist/index.d.ts')
+    const resolver = createResolver({
+      projectFolder: project.baseDir,
+      mainEntryPointFilePath: path.join(project.baseDir, 'src/index.ts'),
+    })
+    expect(
+      getAugmentationPreview(
+        [
+          {
+            moduleSpecifier: 'host',
+            sourceFilePath: 'src/augment.ts',
+            originalText: '',
+            declarations: [
+              {
+                text: 'interface Options {}',
+                maturityLevel: 'public',
+                name: 'Options',
+                kind: 'interface',
+                isUntagged: false,
+              },
+            ],
+          },
+        ],
+        { public: rollup },
+        resolver,
+        rollup,
+      ),
+    ).toContain('interface Options {}')
   })
 
   it('appends module declarations to rollup files', async () => {

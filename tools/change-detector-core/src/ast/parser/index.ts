@@ -6,4 +6,4 @@
  */
 
 // Public API - main entry points
-export { parseModule, parseModuleWithTypes } from './core'
+export { parseModule, parseModuleWithTypes } from './core.js'
