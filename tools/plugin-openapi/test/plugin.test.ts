@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { describe, it, expect } from 'vitest'
 import openapiPlugin, {
   OpenAPIv2Processor,
@@ -28,11 +29,58 @@ function getExpectedVersion(): string {
 const EXPECTED_VERSION = getExpectedVersion()
 
 describe('OpenAPI Input Processor Plugin', () => {
+  it('processes input through the CommonJS and ESM package exports', () => {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        `
+        import assert from 'node:assert/strict'
+        import { createRequire } from 'node:module'
+        import * as esm from '@api-extractor-tools/plugin-openapi'
+        const require = createRequire(import.meta.url)
+        const cjs = require('@api-extractor-tools/plugin-openapi')
+        const content = JSON.stringify({"openapi": "3.0.0", "info": {"title": "API", "version": "1"}, "paths": {"/ping": {"get": {"operationId": "Ping", "responses": {}}}}})
+        for (const entry of [esm, cjs]) {
+          const result = new entry.OpenAPIv3Processor().process(content)
+          assert.deepEqual(result.errors, [])
+          assert.ok(result.symbols.has('Ping'))
+          assert.equal(entry.default.metadata.version, ${JSON.stringify(EXPECTED_VERSION)})
+          assert.equal(entry.legacyOpenAPIv2Plugin.version, entry.default.metadata.version)
+          assert.equal(entry.legacyOpenAPIv3Plugin.version, entry.default.metadata.version)
+        }
+      `,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+  })
+
+  it('resolves declarations in the same module format as the entry point', () => {
+    execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--conditions=types',
+        '--eval',
+        `
+          import assert from 'node:assert/strict'
+          import { createRequire } from 'node:module'
+          import { pathToFileURL } from 'node:url'
+          const require = createRequire(import.meta.url)
+          const name = '@api-extractor-tools/plugin-openapi'
+          assert.ok(import.meta.resolve(name).endsWith('/dist/esm/index.d.ts'))
+          assert.ok(pathToFileURL(require.resolve(name)).pathname.endsWith('/dist/cjs/index.d.ts'))
+        `,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
+  })
+
   describe('unified plugin format', () => {
     it('should have correct plugin metadata', () => {
       expect(openapiPlugin.metadata.id).toBe('openapi')
       expect(openapiPlugin.metadata.name).toBe('OpenAPI Input Processor Plugin')
-      expect(openapiPlugin.metadata.version).toBe(EXPECTED_VERSION)
       expect(openapiPlugin.metadata.description).toBeDefined()
     })
 
@@ -93,14 +141,14 @@ describe('OpenAPI Input Processor Plugin', () => {
     it('should have correct legacy v2 plugin metadata', () => {
       expect(legacyOpenAPIv2Plugin.id).toBe('openapi-v2')
       expect(legacyOpenAPIv2Plugin.name).toBe('OpenAPI v2 (Swagger) Processor')
-      expect(legacyOpenAPIv2Plugin.version).toBe(EXPECTED_VERSION)
+      expect(legacyOpenAPIv2Plugin.version).toBe(openapiPlugin.metadata.version)
       expect(legacyOpenAPIv2Plugin.extensions).toContain('.swagger.yaml')
     })
 
     it('should have correct legacy v3 plugin metadata', () => {
       expect(legacyOpenAPIv3Plugin.id).toBe('openapi-v3')
       expect(legacyOpenAPIv3Plugin.name).toBe('OpenAPI v3 Processor')
-      expect(legacyOpenAPIv3Plugin.version).toBe(EXPECTED_VERSION)
+      expect(legacyOpenAPIv3Plugin.version).toBe(openapiPlugin.metadata.version)
       expect(legacyOpenAPIv3Plugin.extensions).toContain('.openapi.yaml')
     })
 
@@ -112,6 +160,104 @@ describe('OpenAPI Input Processor Plugin', () => {
       expect(v3Processor).toBeInstanceOf(OpenAPIv3Processor)
     })
   })
+
+  it.each([
+    {
+      format: 'OpenAPI v2',
+      Processor: OpenAPIv2Processor,
+      version: { swagger: '2.0' },
+      parameterRef: '#/parameters/',
+      stringType: { type: 'string' },
+      integerType: { type: 'integer' },
+    },
+    {
+      format: 'OpenAPI v3',
+      Processor: OpenAPIv3Processor,
+      version: { openapi: '3.0.0' },
+      parameterRef: '#/components/parameters/',
+      stringType: { schema: { type: 'string' } },
+      integerType: { schema: { type: 'integer' } },
+    },
+  ])(
+    'merges path parameters with operation overrides in $format',
+    ({ Processor, version, parameterRef, stringType, integerType }) => {
+      const processor = new Processor()
+      const path = {
+        get: { operationId: 'Search', responses: {} },
+        post: {
+          operationId: 'SearchWithLimit',
+          parameters: [{ name: 'q', in: 'query', ...integerType }],
+          responses: {},
+        },
+      }
+      const processPath = (pathItem: object) =>
+        processor.process(
+          JSON.stringify({
+            ...version,
+            info: { title: 'Search API', version: '1.0.0' },
+            paths: { '/search': pathItem },
+          }),
+        )
+
+      const before = processPath(path)
+      const after = processPath({
+        ...path,
+        parameters: [
+          { name: 'q', in: 'query', required: true, ...stringType },
+          { name: 'q', in: 'header', required: true, ...stringType },
+        ],
+      })
+
+      expect(before.errors).toEqual([])
+      expect(after.errors).toEqual([])
+      expect(before.symbols.get('Search')?.signature).toBe('GET /search')
+      expect(after.symbols.get('Search')?.signature).toContain(
+        'params: { query.q: string; header.q: string }',
+      )
+      expect(after.symbols.get('SearchWithLimit')?.signature).toContain(
+        'params: { query.q?: number; header.q: string }',
+      )
+
+      const parameters = {
+        'search/query ~ required': {
+          name: 'q',
+          in: 'query',
+          required: true,
+          ...stringType,
+        },
+        Limit: { name: 'q', in: 'query', ...integerType },
+      }
+      const referenced = processor.process(
+        JSON.stringify({
+          ...version,
+          info: { title: 'Search API', version: '1.0.0' },
+          ...('swagger' in version
+            ? { parameters }
+            : { components: { parameters } }),
+          paths: {
+            '/search': {
+              ...path,
+              parameters: [
+                { $ref: `${parameterRef}search~1query%20~0%20required` },
+              ],
+              post: {
+                ...path.post,
+                parameters: [{ $ref: `${parameterRef}Limit` }],
+              },
+            },
+          },
+        }),
+      )
+
+      expect(referenced.errors).toEqual([])
+      expect(referenced.symbols.get('Search')?.signature).toBe(
+        'GET /search\n  params: { q: string }',
+      )
+      expect(referenced.symbols.get('SearchWithLimit')?.signature).toBe(
+        'POST /search\n  params: { q?: number }',
+      )
+    },
+  )
 
   describe('OpenAPIv2Processor', () => {
     const simpleV2Spec = {

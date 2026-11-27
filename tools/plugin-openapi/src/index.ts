@@ -202,6 +202,7 @@ interface OpenAPIv3Document {
 }
 
 type OpenAPIDocument = OpenAPIv2Document | OpenAPIv3Document
+type ParameterObject = ParameterObjectV2 | ParameterObjectV3
 
 /**
  * Options for configuring OpenAPI processors.
@@ -242,6 +243,45 @@ function extractRefName(ref: string): string {
   // Handle refs like "#/definitions/Name" or "#/components/schemas/Name"
   const segments = ref.split('/')
   return segments[segments.length - 1] || ref
+}
+
+function resolveParameter(
+  parameter: ParameterObject | Reference,
+  document: OpenAPIDocument,
+): ParameterObject | undefined {
+  const visited = new Set<string>()
+  let value: unknown = parameter
+  while (isReference(value)) {
+    const ref = value.$ref
+    if (!ref.startsWith('#/')) return undefined
+    if (visited.has(ref))
+      throw new Error(`Circular parameter reference "${ref}"`)
+    visited.add(ref)
+
+    value = document
+    for (const token of decodeURIComponent(ref.slice(2)).split('/')) {
+      const key = token.replace(/~1/g, '/').replace(/~0/g, '~')
+      if (
+        typeof value !== 'object' ||
+        value === null ||
+        !Object.hasOwn(value, key)
+      ) {
+        throw new Error(`Unresolved parameter reference "${ref}"`)
+      }
+      value = (value as Record<string, unknown>)[key]
+    }
+  }
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('name' in value) ||
+    typeof value.name !== 'string' ||
+    !('in' in value) ||
+    typeof value.in !== 'string'
+  ) {
+    throw new Error('Expected an OpenAPI parameter with a name and location')
+  }
+  return value as ParameterObject
 }
 
 /**
@@ -354,33 +394,51 @@ function generateOperationSignature(
   method: string,
   path: string,
   operation: OperationObjectV2 | OperationObjectV3,
-  isV3: boolean,
+  pathParameters:
+    | PathItemObjectV2['parameters']
+    | PathItemObjectV3['parameters'],
+  document: OpenAPIDocument,
 ): string {
   const parts: string[] = [`${method.toUpperCase()} ${path}`]
 
-  // Add parameters
-  if (operation.parameters && operation.parameters.length > 0) {
-    const params = operation.parameters
-      .filter(
-        (p): p is ParameterObjectV2 | ParameterObjectV3 => !isReference(p),
-      )
-      .map((p) => {
-        const required = p.required ? '' : '?'
-        let type = 'unknown'
-        if ('type' in p && typeof p.type === 'string' && p.type) {
-          type = p.type === 'integer' ? 'number' : p.type
-        } else if (p.schema) {
-          type = getSchemaTypeString(p.schema)
-        }
-        return `${p.name}${required}: ${type}`
-      })
-    if (params.length > 0) {
-      parts.push(`  params: { ${params.join('; ')} }`)
+  const parameters = new Map<string, ParameterObject>()
+  for (const entry of [
+    ...(pathParameters ?? []),
+    ...(operation.parameters ?? []),
+  ]) {
+    const parameter = resolveParameter(entry, document)
+    if (parameter) {
+      parameters.set(`${parameter.in}:${parameter.name}`, parameter)
     }
+  }
+  if (parameters.size > 0) {
+    const nameCounts = new Map<string, number>()
+    for (const { name } of parameters.values()) {
+      nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1)
+    }
+    const params = Array.from(parameters.values(), (parameter) => {
+      const required = parameter.required ? '' : '?'
+      let type = 'unknown'
+      if (typeof parameter.type === 'string' && parameter.type) {
+        type = parameter.type === 'integer' ? 'number' : parameter.type
+      } else if (parameter.schema) {
+        type = getSchemaTypeString(parameter.schema)
+      }
+      const name =
+        nameCounts.get(parameter.name) === 1
+          ? parameter.name
+          : `${parameter.in}.${parameter.name}`
+      return `${name}${required}: ${type}`
+    })
+    parts.push(`  params: { ${params.join('; ')} }`)
   }
 
   // Add request body (v3 only)
-  if (isV3 && 'requestBody' in operation && operation.requestBody) {
+  if (
+    !isOpenAPIv2(document) &&
+    'requestBody' in operation &&
+    operation.requestBody
+  ) {
     const body = operation.requestBody as RequestBodyObjectV3
     if (!isReference(body) && body.content) {
       const jsonContent = body.content['application/json']
@@ -396,7 +454,7 @@ function generateOperationSignature(
     operation.responses['201'] ||
     operation.responses['default']
   if (successResponse && !isReference(successResponse)) {
-    if (isV3) {
+    if (!isOpenAPIv2(document)) {
       const response = successResponse as ResponseObjectV3
       if (response.content?.['application/json']?.schema) {
         parts.push(
@@ -491,7 +549,8 @@ export class OpenAPIv2Processor implements InputProcessor {
                   method,
                   path,
                   operation,
-                  false,
+                  pathItem.parameters,
+                  doc,
                 ),
               })
             }
@@ -601,7 +660,8 @@ export class OpenAPIv3Processor implements InputProcessor {
                   method,
                   path,
                   operation,
-                  true,
+                  pathItem.parameters,
+                  doc,
                 ),
               })
             }

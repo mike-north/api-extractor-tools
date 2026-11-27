@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/cjs/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "pnpm build:esm && pnpm build:cjs",
@@ -18,6 +18,25 @@
     "check": "pnpm check:eslint && pnpm check:typecheck-tests",
     "check:eslint": "eslint src test",
     "check:typecheck-tests": "tsc -p test/tsconfig.json"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "inputs": [
+          "source",
+          "!{projectRoot}/src/version.ts",
+          "tsConfig",
+          "ciCacheVersion",
+          "{projectRoot}/package.json",
+          "{projectRoot}/scripts/inject-version.mjs",
+          "{projectRoot}/tsconfig.*.json"
+        ],
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/src/version.ts"
+        ]
+      }
+    }
   },
   "keywords": [
     "json-schema",
