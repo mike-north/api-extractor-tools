@@ -2,7 +2,8 @@
  * Tests for the validator module.
  */
 
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
+import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { Project } from 'fixturify-project'
 import { describe, it, expect, vi } from 'vitest'
@@ -28,7 +29,7 @@ describe('validateChangesets', () => {
               name: '@test/pkg-a',
               types: 'index.d.ts',
             }),
-            'index.d.ts': 'export declare const foo: ;',
+            'index.d.ts': 'export declare const foo: string;',
           },
           'no-declarations': {
             'package.json': JSON.stringify({ name: '@test/no-declarations' }),
@@ -36,8 +37,24 @@ describe('validateChangesets', () => {
         },
       }
       await project.write()
-      vi.mocked(execSync).mockReturnValueOnce(
-        'export declare const foo: string;',
+      const git = (...args: string[]) =>
+        execFileSync('git', args, { cwd: project.baseDir, stdio: 'pipe' })
+      git('init', '-q', '-b', 'main')
+      git('add', '-A')
+      git(
+        '-c',
+        'user.name=Test',
+        '-c',
+        'user.email=test@example.com',
+        'commit',
+        '-q',
+        '--no-gpg-sign',
+        '-m',
+        'baseline',
+      )
+      fs.writeFileSync(
+        path.join(project.baseDir, 'tools/pkg-a/index.d.ts'),
+        'export declare const foo: ;',
       )
 
       const result = await validateChangesets({

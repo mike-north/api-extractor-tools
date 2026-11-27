@@ -148,11 +148,16 @@ export async function validateChangesets(
   for (const result of analysis.packages) {
     if (ignoredPackages.has(result.package.name)) continue
     if (result.error !== undefined) {
+      const declarationFile = result.package.declarationFile
+      // Packages without declarations are only a problem in strict mode.
+      if (declarationFile === null && !options.strict) continue
+      // A broken current declaration is always an error; other analysis
+      // failures (such as an unreadable baseline) are advisory unless strict.
+      const currentDeclarationFailed =
+        declarationFile !== null && result.error.includes(declarationFile)
       issues.push({
         severity:
-          options.strict || result.package.declarationFile !== null
-            ? 'error'
-            : 'warning',
+          options.strict || currentDeclarationFailed ? 'error' : 'warning',
         packageName: result.package.name,
         message: `API comparison failed: ${result.error}`,
       })
