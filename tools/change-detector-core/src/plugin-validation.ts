@@ -1,10 +1,4 @@
-import type {
-  ChangeDetectorPlugin,
-  InputProcessorDefinition,
-  PolicyDefinition,
-  ReporterDefinition,
-  ValidatorDefinition,
-} from './plugin-types'
+import type { ChangeDetectorPlugin } from './plugin-types'
 
 // ============================================================================
 // Validation Result Types
@@ -180,7 +174,7 @@ function validateInputProcessor(
       if (!isValidExtension(p.extensions[i])) {
         errors.push({
           path: `${basePath}.extensions[${i}]`,
-          message: `Extension must be a non-empty string starting with "." (got ${JSON.stringify(p.extensions[i])})`,
+          message: 'Extension must be a non-empty string starting with "."',
           pluginId,
         })
       }
@@ -379,8 +373,8 @@ function validateValidator(
 /**
  * Checks for duplicate IDs within a capability array.
  */
-function findDuplicateIds<T extends { id: string }>(
-  items: readonly T[],
+function findDuplicateIds(
+  items: readonly unknown[],
   capabilityType: string,
   pluginId: string | undefined,
 ): PluginValidationError[] {
@@ -390,7 +384,7 @@ function findDuplicateIds<T extends { id: string }>(
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
     if (item && typeof item === 'object' && 'id' in item) {
-      const id = (item as { id: unknown }).id
+      const id = item.id
       if (typeof id === 'string') {
         const firstIndex = seen.get(id)
         if (firstIndex !== undefined) {
@@ -538,12 +532,21 @@ export function validatePlugin(
   // Validate capabilities
   // =========================================================================
 
-  const inputProcessors = Array.isArray(p.inputProcessors)
-    ? p.inputProcessors
-    : []
-  const policies = Array.isArray(p.policies) ? p.policies : []
-  const reporters = Array.isArray(p.reporters) ? p.reporters : []
-  const validators = Array.isArray(p.validators) ? p.validators : []
+  function readCapabilityList(field: string): readonly unknown[] {
+    const capability = p[field]
+    if (Array.isArray(capability)) {
+      return capability
+    }
+    if (capability !== undefined) {
+      errors.push({ path: field, message: 'Expected an array', pluginId })
+    }
+    return []
+  }
+
+  const inputProcessors = readCapabilityList('inputProcessors')
+  const policies = readCapabilityList('policies')
+  const reporters = readCapabilityList('reporters')
+  const validators = readCapabilityList('validators')
 
   const totalCapabilities =
     inputProcessors.length +
@@ -567,45 +570,25 @@ export function validatePlugin(
       ...validateInputProcessor(inputProcessors[i], i, pluginId, options),
     )
   }
-  errors.push(
-    ...findDuplicateIds(
-      inputProcessors as InputProcessorDefinition[],
-      'inputProcessors',
-      pluginId,
-    ),
-  )
+  errors.push(...findDuplicateIds(inputProcessors, 'inputProcessors', pluginId))
 
   // Validate policies
   for (let i = 0; i < policies.length; i++) {
     errors.push(...validatePolicy(policies[i], i, pluginId, options))
   }
-  errors.push(
-    ...findDuplicateIds(policies as PolicyDefinition[], 'policies', pluginId),
-  )
+  errors.push(...findDuplicateIds(policies, 'policies', pluginId))
 
   // Validate reporters
   for (let i = 0; i < reporters.length; i++) {
     errors.push(...validateReporter(reporters[i], i, pluginId, options))
   }
-  errors.push(
-    ...findDuplicateIds(
-      reporters as ReporterDefinition[],
-      'reporters',
-      pluginId,
-    ),
-  )
+  errors.push(...findDuplicateIds(reporters, 'reporters', pluginId))
 
   // Validate validators
   for (let i = 0; i < validators.length; i++) {
     errors.push(...validateValidator(validators[i], i, pluginId, options))
   }
-  errors.push(
-    ...findDuplicateIds(
-      validators as ValidatorDefinition[],
-      'validators',
-      pluginId,
-    ),
-  )
+  errors.push(...findDuplicateIds(validators, 'validators', pluginId))
 
   return {
     valid: errors.length === 0,
