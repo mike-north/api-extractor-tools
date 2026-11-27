@@ -96,6 +96,9 @@ jobs:
       - name: Check built packages
         run: pnpm check:packages
 
+      - name: Test package type assertions
+        run: pnpm test:types
+
       - name: Test with coverage
         if: steps.changed-files.outputs.non_markdown_any_changed == 'true'
         run: pnpm test:coverage

@@ -217,10 +217,7 @@ describe('createVirtualCompilerHost', () => {
   describe('lib file support', () => {
     it('should use lib file provider for lib files', () => {
       const fs = createTestFileSystem()
-      const libProvider = createLibFileProvider({
-        fs,
-        libPath: '/lib',
-      })
+      const libProvider = createLibFileProvider(ts)
 
       const host = createVirtualCompilerHost(ts, {
         fs,
@@ -240,10 +237,7 @@ describe('createVirtualCompilerHost', () => {
 
     it('should get source file from lib provider', () => {
       const fs = createTestFileSystem()
-      const libProvider = createLibFileProvider({
-        fs,
-        libPath: '/lib',
-      })
+      const libProvider = createLibFileProvider(ts)
 
       const host = createVirtualCompilerHost(ts, {
         fs,
@@ -263,10 +257,7 @@ describe('createVirtualCompilerHost', () => {
 
     it('should get default lib file name from provider', () => {
       const fs = createTestFileSystem()
-      const libProvider = createLibFileProvider({
-        fs,
-        libPath: '/lib',
-      })
+      const libProvider = createLibFileProvider(ts)
 
       const host = createVirtualCompilerHost(ts, {
         fs,

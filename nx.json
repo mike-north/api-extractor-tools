@@ -59,15 +59,8 @@
         "build:api-artifacts",
         "^build:api-artifacts"
       ],
-      "cache": true,
-      "inputs": [
-        "ciCacheVersion",
-        "source",
-        "tsConfig",
-        "{projectRoot}/test/**/*",
-        "{projectRoot}/vitest.config.mts"
-      ],
-      "outputs": []
+      // Assertions can depend on the live declarations emitted by other packages.
+      "cache": false
     },
     "test": {
       "dependsOn": [
@@ -133,7 +126,7 @@
     "check:api-report": {
       // Compare the live declarations and tracked baseline on each invocation.
       "cache": false,
-      "dependsOn": ["build", "^build", "^build:api-artifacts"]
+      "dependsOn": ["build:api-artifacts", "^build:api-artifacts"]
     }
   }
 }

@@ -1,5 +1,6 @@
 import * as eslint from '@eslint/js'
 import { defineConfig } from 'eslint/config'
+import { fileURLToPath } from 'node:url'
 
 import * as tsdocPlugin from 'eslint-plugin-tsdoc'
 import tseslint from 'typescript-eslint'
@@ -28,10 +29,17 @@ export default defineConfig(
     },
   },
   {
+    files: ['tools/extractor-lib/test/types.test-d.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: './tools/extractor-lib/test/tsconfig.json',
+        tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
+      },
+    },
+  },
+  {
     // Ignore test files, config files, and demo-site from type-aware linting
-    ignores: [
-      '**/vitest.config.*',
-      'commitlint.config.cjs',
-    ],
+    ignores: ['**/vitest.config.*', 'commitlint.config.cjs'],
   },
 )

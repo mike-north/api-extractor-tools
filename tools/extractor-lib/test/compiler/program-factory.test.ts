@@ -26,7 +26,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts'],
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(program).toBeDefined()
@@ -50,7 +50,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts', 'src/utils.ts'],
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(program).toBeDefined()
@@ -73,7 +73,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts'], // Relative path
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       const sourceFile = program.getSourceFile('/project/src/index.ts')
@@ -91,7 +91,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['/project/src/index.ts'], // Absolute path
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       const sourceFile = program.getSourceFile('/project/src/index.ts')
@@ -160,7 +160,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts'],
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(hasErrors(program)).toBe(false)
@@ -179,7 +179,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts'],
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(hasErrors(program)).toBe(true)
@@ -206,7 +206,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts'],
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(hasErrors(program)).toBe(false)
@@ -233,7 +233,7 @@ describe('createProgram', () => {
         rootDir: '/project',
         entryPoints: ['src/index.ts'],
         compilerOptions: createTestCompilerOptions(),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(hasErrors(program)).toBe(true)
@@ -266,7 +266,7 @@ describe('createProgram', () => {
           outDir: '/project/dist',
           rootDir: '/project/src',
         }),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       // Emit the program
@@ -298,7 +298,7 @@ describe('createProgram', () => {
           outDir: '/project/dist',
           rootDir: '/project/src',
         }),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       program.emit()
@@ -328,7 +328,7 @@ describe('createProgram', () => {
           outDir: '/project/dist',
           rootDir: '/project/src',
         }),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       program.emit()
@@ -355,7 +355,7 @@ describe('createProgram', () => {
         compilerOptions: createTestCompilerOptions({
           strict: true,
         }),
-        libFileProvider: createLibFileProvider({ fs, libPath: '/lib' }),
+        libFileProvider: createLibFileProvider(ts),
       })
 
       expect(hasErrors(program)).toBe(true)
@@ -374,7 +374,7 @@ describe('createProgram', () => {
       })
 
       // Provide libFileProvider that reads from /lib in the virtual filesystem
-      const libProvider = createLibFileProvider({ fs, libPath: '/lib' })
+      const libProvider = createLibFileProvider(ts)
 
       const program = createProgram({
         typescript: ts,
@@ -394,7 +394,7 @@ describe('createProgram', () => {
       })
 
       // Provide explicit lib file provider
-      const libProvider = createLibFileProvider({ fs, libPath: '/lib' })
+      const libProvider = createLibFileProvider(ts)
 
       const program = createProgram({
         typescript: ts,
