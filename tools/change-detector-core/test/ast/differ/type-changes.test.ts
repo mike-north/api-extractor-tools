@@ -23,6 +23,28 @@ describe('AST Differ - Type Changes', () => {
       expect(changes[0]!.descriptor.aspect).toBe('type')
     })
 
+    it.each([
+      ['string', 'number'],
+      ['{ value: string }', '{ value: number }'],
+    ])(
+      'detects an incompatible alias change from %s to %s',
+      (oldType, newType) => {
+        const oldAnalysis = parseModule(`export type Id = ${oldType};`)
+        const newAnalysis = parseModule(`export type Id = ${newType};`)
+
+        expect(diffModules(oldAnalysis, newAnalysis)).toMatchObject([
+          {
+            path: 'Id',
+            descriptor: {
+              action: 'modified',
+              aspect: 'type',
+              impact: 'unrelated',
+            },
+          },
+        ])
+      },
+    )
+
     it('detects type widening (adding to union)', () => {
       // Use interface member change instead of type alias
       // Type alias widening requires Phase 3 TypeChecker-based variance

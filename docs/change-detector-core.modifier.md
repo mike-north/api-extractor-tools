@@ -12,5 +12,5 @@ Modifiers that can be applied to declarations.
 **Signature:**
 
 ```typescript
-export type Modifier = 'exported' | 'default-export' | 'readonly' | 'optional' | 'abstract' | 'static' | 'private' | 'protected' | 'public' | 'const' | 'declare' | 'async';
+export type Modifier = 'exported' | 'default-export' | 'type-only-export' | 'readonly' | 'optional' | 'abstract' | 'static' | 'private' | 'protected' | 'public' | 'const' | 'declare' | 'async';
 ```
