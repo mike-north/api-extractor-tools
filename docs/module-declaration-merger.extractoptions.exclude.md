@@ -7,7 +7,7 @@
 > This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Glob patterns for files to exclude (default: \['\*\*<!-- -->/<!-- -->node\_modules<!-- -->/<!-- -->\*\*', '\*\*<!-- -->/<!-- -->\*.d.ts'\])
+Glob patterns for files to exclude. Defaults to declaration files and files under node\_modules and dist.
 
 **Signature:**
 
