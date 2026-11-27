@@ -1,5 +1,17 @@
 # @api-extractor-tools/eslint-plugin
 
+## 1.0.0
+
+### Major Changes
+
+- [#217](https://github.com/mike-north/api-extractor-tools/pull/217) [`7ed8f4c`](https://github.com/mike-north/api-extractor-tools/commit/7ed8f4cdae2d22e37e8e83a80854fdf6aa7bef33) Thanks [@mike-north](https://github.com/mike-north)! - Install `@typescript-eslint/utils` with the ESLint plugin so the package loads in production installs. The plugin now requires Node.js `^18.18.0 || ^20.9.0 || >=21.1.0`, ESLint `^8.57.0 || ^9.0.0`, and TypeScript `>=5.5.0 <6.0.0`.
+
+### Patch Changes
+
+- [#215](https://github.com/mike-north/api-extractor-tools/pull/215) [`12d1db1`](https://github.com/mike-north/api-extractor-tools/commit/12d1db16d9f03989564cb7ce1f91b3bcbe579413) Thanks [@mike-north](https://github.com/mike-north)! - Recognize source entry points in the `package-documentation` rule when `package.json` points to compiled files. Honor separate CommonJS, ESM, and declaration output directories, and resolve conditional and wildcard exports.
+
+- [#223](https://github.com/mike-north/api-extractor-tools/pull/223) [`21ccd05`](https://github.com/mike-north/api-extractor-tools/commit/21ccd05b40461d8b3143cfa1825bf346efa24e1d) Thanks [@mike-north](https://github.com/mike-north)! - Restore each package's published TypeScript declarations when checking its API report after a cached build.
+
 ## 0.1.1
 
 ### Patch Changes

@@ -1,5 +1,27 @@
 # @api-extractor-tools/change-detector-core
 
+## 0.1.1
+
+### Patch Changes
+
+- [#220](https://github.com/mike-north/api-extractor-tools/pull/220) [`5eeffa9`](https://github.com/mike-north/api-extractor-tools/commit/5eeffa931d494845b887141e5ad3b0f9fa06f239) Thanks [@mike-north](https://github.com/mike-north)! - Compare declarations exposed through local export lists by their public names. Add a `throwOnError` option to file comparisons so release tooling can fail on declaration parse errors.
+
+- [#219](https://github.com/mike-north/api-extractor-tools/pull/219) [`1779355`](https://github.com/mike-north/api-extractor-tools/commit/177935515de6ce70f277a8eadcf8a4a272ef643b) Thanks [@mike-north](https://github.com/mike-north)! - Update the quick start to use `analyzeChanges`, `createASTComparisonReport`, and the current report formatters. Show how to run the examples in Node.js and bundle them for browsers with Vite.
+
+- [#226](https://github.com/mike-north/api-extractor-tools/pull/226) [`121ecf1`](https://github.com/mike-north/api-extractor-tools/commit/121ecf1ef95b005e815600072afe01202f963ebc) Thanks [@mike-north](https://github.com/mike-north)! - Fix native Node.js ESM imports for change-detector-core and its subpaths,
+  the TypeScript and Protobuf input processors, and the JSON Schema and
+  OpenAPI plugins. Plugin discovery loads the matching entry point in Node.js.
+  The extractor-lib ESM entry point supports running extractions with either a
+  supplied or installed TypeScript compiler. Extractor-lib also ships declarations
+  for its CommonJS entry point. Processor builds preserve prerelease versions in
+  both module formats.
+
+- [#221](https://github.com/mike-north/api-extractor-tools/pull/221) [`c0a4710`](https://github.com/mike-north/api-extractor-tools/commit/c0a47105c2758c17b81d6cc03114ec0e81f681b4) Thanks [@mike-north](https://github.com/mike-north)! - Detect removals from local export lists, including exports with a different public name, and report incompatible changes to exported type aliases as breaking.
+
+  Recognize local default and type-only exports, resolve export lists in Windows-style declaration paths, and preserve array elements, union members, and object properties when comparing aliases.
+
+- [#225](https://github.com/mike-north/api-extractor-tools/pull/225) [`e8bfe92`](https://github.com/mike-north/api-extractor-tools/commit/e8bfe9234a71d3ac55cb48036bc55e4a35d4c70c) Thanks [@mike-north](https://github.com/mike-north)! - Reject malformed plugin capabilities before updating registry lookups and report the invalid field. Keep the existing plugin registered if a replacement fails and remove the original extension and format entries on a successful replacement.
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @api-extractor-tools/module-declaration-merger
 
+## 0.1.1
+
+### Patch Changes
+
+- [#216](https://github.com/mike-north/api-extractor-tools/pull/216) [`2130a9b`](https://github.com/mike-north/api-extractor-tools/commit/2130a9bb898d9e8e6e21d772f2dffeefb466dc7e) Thanks [@mike-north](https://github.com/mike-north)! - Preserve imports and inline import types used by module augmentations in declaration rollups. Resolve local imports from each rollup, keep bindings distinct when names overlap, and preserve CommonJS and ESM resolution conditions for `.cts` and `.mts` sources.
+
+- [#223](https://github.com/mike-north/api-extractor-tools/pull/223) [`21ccd05`](https://github.com/mike-north/api-extractor-tools/commit/21ccd05b40461d8b3143cfa1825bf346efa24e1d) Thanks [@mike-north](https://github.com/mike-north)! - Restore each package's published TypeScript declarations when checking its API report after a cached build.
+
+- [#217](https://github.com/mike-north/api-extractor-tools/pull/217) [`7ed8f4c`](https://github.com/mike-north/api-extractor-tools/commit/7ed8f4cdae2d22e37e8e83a80854fdf6aa7bef33) Thanks [@mike-north](https://github.com/mike-north)! - Install `typescript` with the module declaration merger so the package loads in production installs.
+
 ## 0.1.0
 
 ### Minor Changes

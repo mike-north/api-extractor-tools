@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/plugin-json-schema",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JSON Schema input processor plugin for change-detector (isomorphic - works in Node.js and browsers)",
   "type": "module",
   "main": "dist/cjs/index.js",
@@ -22,15 +22,6 @@
   "nx": {
     "targets": {
       "build": {
-        "inputs": [
-          "source",
-          "!{projectRoot}/src/version.ts",
-          "tsConfig",
-          "ciCacheVersion",
-          "{projectRoot}/package.json",
-          "{projectRoot}/scripts/inject-version.mjs",
-          "{projectRoot}/tsconfig.*.json"
-        ],
         "outputs": [
           "{projectRoot}/dist",
           "{projectRoot}/src/version.ts"
@@ -77,15 +68,5 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false,
-  "nx": {
-    "targets": {
-      "build": {
-        "outputs": [
-          "{projectRoot}/dist",
-          "{projectRoot}/src/version.ts"
-        ]
-      }
-    }
-  }
+  "sideEffects": false
 }

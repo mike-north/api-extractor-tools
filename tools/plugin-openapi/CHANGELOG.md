@@ -1,5 +1,21 @@
 # @api-extractor-tools/plugin-openapi
 
+## 0.1.1
+
+### Patch Changes
+
+- [#225](https://github.com/mike-north/api-extractor-tools/pull/225) [`e8bfe92`](https://github.com/mike-north/api-extractor-tools/commit/e8bfe9234a71d3ac55cb48036bc55e4a35d4c70c) Thanks [@mike-north](https://github.com/mike-north)! - Include path-level parameters and local parameter references in OpenAPI operation signatures. Apply operation-level overrides by name and location, distinguish same-name parameters by location, and support native Node.js ESM imports alongside CommonJS.
+
+- [#226](https://github.com/mike-north/api-extractor-tools/pull/226) [`121ecf1`](https://github.com/mike-north/api-extractor-tools/commit/121ecf1ef95b005e815600072afe01202f963ebc) Thanks [@mike-north](https://github.com/mike-north)! - Fix native Node.js ESM imports for change-detector-core and its subpaths,
+  the TypeScript and Protobuf input processors, and the JSON Schema and
+  OpenAPI plugins. Plugin discovery loads the matching entry point in Node.js.
+  The extractor-lib ESM entry point supports running extractions with either a
+  supplied or installed TypeScript compiler. Extractor-lib also ships declarations
+  for its CommonJS entry point. Processor builds preserve prerelease versions in
+  both module formats.
+- Updated dependencies [[`5eeffa9`](https://github.com/mike-north/api-extractor-tools/commit/5eeffa931d494845b887141e5ad3b0f9fa06f239), [`1779355`](https://github.com/mike-north/api-extractor-tools/commit/177935515de6ce70f277a8eadcf8a4a272ef643b), [`121ecf1`](https://github.com/mike-north/api-extractor-tools/commit/121ecf1ef95b005e815600072afe01202f963ebc), [`c0a4710`](https://github.com/mike-north/api-extractor-tools/commit/c0a47105c2758c17b81d6cc03114ec0e81f681b4), [`e8bfe92`](https://github.com/mike-north/api-extractor-tools/commit/e8bfe9234a71d3ac55cb48036bc55e4a35d4c70c)]:
+  - @api-extractor-tools/change-detector-core@0.1.1
+
 ## 0.1.0
 
 ### Patch Changes

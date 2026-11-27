@@ -1,5 +1,24 @@
 # @api-extractor-tools/changeset-change-detector
 
+## 0.1.1
+
+### Patch Changes
+
+- [#214](https://github.com/mike-north/api-extractor-tools/pull/214) [`3b72c50`](https://github.com/mike-north/api-extractor-tools/commit/3b72c5064000152bb7f19210157a885139ca04b5) Thanks [@mike-north](https://github.com/mike-north)! - Fail declaration comparisons when an input file is missing, unreadable, or cannot be parsed. The CLI reports the error on stderr and exits with status 1. Identical valid inputs still return a successful report with no changes.
+
+  Changeset validation reports failed declaration comparisons as package errors.
+
+- [#223](https://github.com/mike-north/api-extractor-tools/pull/223) [`21ccd05`](https://github.com/mike-north/api-extractor-tools/commit/21ccd05b40461d8b3143cfa1825bf346efa24e1d) Thanks [@mike-north](https://github.com/mike-north)! - Restore each package's published TypeScript declarations when checking its API report after a cached build.
+
+- [#220](https://github.com/mike-north/api-extractor-tools/pull/220) [`5eeffa9`](https://github.com/mike-north/api-extractor-tools/commit/5eeffa931d494845b887141e5ad3b0f9fa06f239) Thanks [@mike-north](https://github.com/mike-north)! - Resolve release baselines per package using reachable SemVer tags and read historical declarations from the Git repository root, including for relocated packages. Recognize CommonJS and ESM declaration filenames and surface invalid refs, missing declarations, and parse failures. Strict Changesets validation and changeset generation fail when an included package cannot be analyzed.
+
+- [#221](https://github.com/mike-north/api-extractor-tools/pull/221) [`c0a4710`](https://github.com/mike-north/api-extractor-tools/commit/c0a47105c2758c17b81d6cc03114ec0e81f681b4) Thanks [@mike-north](https://github.com/mike-north)! - Detect removals from local export lists, including exports with a different public name, and report incompatible changes to exported type aliases as breaking.
+
+  Recognize local default and type-only exports, resolve export lists in Windows-style declaration paths, and preserve array elements, union members, and object properties when comparing aliases.
+
+- Updated dependencies [[`5eeffa9`](https://github.com/mike-north/api-extractor-tools/commit/5eeffa931d494845b887141e5ad3b0f9fa06f239), [`3b72c50`](https://github.com/mike-north/api-extractor-tools/commit/3b72c5064000152bb7f19210157a885139ca04b5), [`21ccd05`](https://github.com/mike-north/api-extractor-tools/commit/21ccd05b40461d8b3143cfa1825bf346efa24e1d), [`c0a4710`](https://github.com/mike-north/api-extractor-tools/commit/c0a47105c2758c17b81d6cc03114ec0e81f681b4)]:
+  - @api-extractor-tools/change-detector@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

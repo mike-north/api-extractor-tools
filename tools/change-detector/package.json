@@ -1,6 +1,6 @@
 {
   "name": "@api-extractor-tools/change-detector",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Detects changes between two API Extractor rollup files",
   "main": "dist/index.js",
   "types": "dist/change-detector-public.d.ts",
@@ -21,35 +21,6 @@
     "check:api-report": "node ../../scripts/run-api-extractor.mjs check"
   },
   "nx": {
-    "namedInputs": {
-      "readmeTestInputs": [
-        "ciCacheVersion",
-        "source",
-        "tsConfig",
-        "tests",
-        "{projectRoot}/package.json",
-        "{projectRoot}/vitest.config.mts",
-        "{workspaceRoot}/README.md",
-        "{workspaceRoot}/tools/change-detector-core/README.md"
-      ]
-    },
-    "targets": {
-      "test": {
-        "inputs": [
-          "readmeTestInputs",
-          "^default"
-        ]
-      },
-      "test:coverage": {
-        "inputs": [
-          "readmeTestInputs",
-          "^default"
-        ]
-      }
-    }
-  },
-  "keywords": [],
-  "nx": {
     "targets": {
       "build": {
         "inputs": [
@@ -61,6 +32,7 @@
       }
     }
   },
+  "keywords": [],
   "author": "",
   "license": "MIT",
   "packageManager": "pnpm@10.24.0",
