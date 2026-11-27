@@ -107,8 +107,7 @@ export { default as typescriptPlugin } from '@api-extractor-tools/input-processo
 // Main API
 import type { CompareOptions, ComparisonResult } from './types'
 import type { ASTComparisonReport } from '@api-extractor-tools/change-detector-core'
-import { parseDeclarationFile } from './parser'
-import { compareDeclarationFiles } from './comparator'
+import { compareFiles } from './comparator'
 import {
   classifyChanges,
   determineOverallRelease,
@@ -133,6 +132,7 @@ export interface CompareDeclarationsResult extends ComparisonResult {
  *
  * @param options - Comparison options including paths to old and new files
  * @returns A comparison result with release type, changes, and formatted report
+ * @throws Error if either input file cannot be read or parsed
  *
  * @example
  * ```ts
@@ -152,34 +152,11 @@ export interface CompareDeclarationsResult extends ComparisonResult {
 export function compareDeclarations(
   options: CompareOptions,
 ): CompareDeclarationsResult {
-  const {
-    oldFile,
-    newFile,
-    policy = semverDefaultPolicy,
-    throwOnError,
-  } = options
+  const { oldFile, newFile, policy = semverDefaultPolicy } = options
 
-  // Parse both files with type information
-  const oldParsed = parseDeclarationFile(oldFile)
-  const newParsed = parseDeclarationFile(newFile)
-
-  if (throwOnError) {
-    for (const parsed of [oldParsed, newParsed]) {
-      if (parsed.errors.length) {
-        const file = parsed === oldParsed ? oldFile : newFile
-        throw new Error(`${file}: ${parsed.errors.join('; ')}`)
-      }
-    }
-  }
-
-  // Compare the files
-  const { changes, errors } = compareDeclarationFiles(oldParsed, newParsed)
-
-  // Log errors if any (but don't fail)
+  const { changes, errors } = compareFiles(oldFile, newFile)
   if (errors.length > 0) {
-    for (const error of errors) {
-      console.warn(`[change-detector] ${error}`)
-    }
+    throw new Error(errors.join('\n'))
   }
 
   // Classify changes

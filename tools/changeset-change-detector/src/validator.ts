@@ -149,9 +149,12 @@ export async function validateChangesets(
     if (ignoredPackages.has(result.package.name)) continue
     if (result.error !== undefined) {
       issues.push({
-        severity: options.strict ? 'error' : 'warning',
+        severity:
+          options.strict || result.package.declarationFile !== null
+            ? 'error'
+            : 'warning',
         packageName: result.package.name,
-        message: `Analysis failed: ${result.error}`,
+        message: `API comparison failed: ${result.error}`,
       })
       continue
     }
