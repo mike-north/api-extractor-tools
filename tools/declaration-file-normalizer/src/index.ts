@@ -13,6 +13,8 @@
  */
 
 import * as fs from 'fs'
+import * as path from 'path'
+import * as ts from 'typescript'
 import { buildFileGraph } from './parser.js'
 import { normalizeType } from './normalizer.js'
 import { writeNormalizedFile } from './writer.js'
@@ -82,6 +84,33 @@ export function normalizeUnionTypes(
     }
 
     const fileGraph = buildFileGraph(entryPoint, verbose)
+    let checker: ts.TypeChecker | undefined
+    const getChecker = () => {
+      if (checker) return checker
+
+      const compilerOptions: ts.CompilerOptions = {
+        module: ts.ModuleKind.NodeNext,
+        target: ts.ScriptTarget.ESNext,
+        types: [],
+      }
+      const host = ts.createCompilerHost(compilerOptions, true)
+      const readSourceFile = host.getSourceFile.bind(host)
+      // Bind the same ASTs that the normalizer uses, even after a file is rewritten.
+      host.getSourceFile = (fileName, options, ...args) => {
+        const sourceFile = fileGraph.get(path.resolve(fileName))?.sourceFile
+        if (!sourceFile) return readSourceFile(fileName, options, ...args)
+
+        if (typeof options === 'object') {
+          sourceFile.impliedNodeFormat = options.impliedNodeFormat
+          options.setExternalModuleIndicator?.(sourceFile)
+        }
+        return sourceFile
+      }
+      checker = ts
+        .createProgram([...fileGraph.keys()], compilerOptions, host)
+        .getTypeChecker()
+      return checker
+    }
 
     if (verbose) {
       console.log(`Found ${fileGraph.size} files to process`)
@@ -114,7 +143,7 @@ export function normalizeUnionTypes(
 
       // Normalize each type recursively
       for (const typeAlias of analyzed.typeAliases) {
-        typeAlias.normalizedText = normalizeType(typeAlias.node)
+        typeAlias.normalizedText = normalizeType(typeAlias.node, getChecker)
       }
 
       // Count normalized types

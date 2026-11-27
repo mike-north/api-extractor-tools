@@ -4,6 +4,11 @@
     // Bump this epoch to retire previous Nx results for every cacheable target.
     "ciCacheVersion": ["{workspaceRoot}/ci-cache-version.txt"],
     "source": ["{projectRoot}/src/**/*"],
+    "declarationNormalizer": [
+      "{workspaceRoot}/tools/declaration-file-normalizer/src/**/*",
+      "{workspaceRoot}/tools/declaration-file-normalizer/tsconfig.json",
+      "{workspaceRoot}/tools/declaration-file-normalizer/package.json"
+    ],
     "tests": ["{projectRoot}/test/**/*"],
     "runtimeTests": [
       "tests",
